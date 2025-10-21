@@ -5,7 +5,7 @@ use serde::de::Unexpected::Seq;
 
 /// The configuration of a tool that is defined by the provider.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LanguageModelProviderDefinedTool {
+pub struct ProviderDefinedTool {
     #[serde(rename = "type")]
     pub tool_type: ProviderDefinedToolType,
 
@@ -28,7 +28,7 @@ impl Default for ProviderDefinedToolType {
     }
 }
 
-impl LanguageModelProviderDefinedTool {
+impl ProviderDefinedTool {
     pub fn new(
         id: impl Into<String>,
         name: impl Into<String>,

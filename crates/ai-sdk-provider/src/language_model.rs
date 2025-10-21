@@ -9,7 +9,19 @@ mod data_content;
 mod file;
 mod finish_reason;
 mod provider_defined_tool;
-
+mod reasoning;
+mod response_metadata;
+mod source;
+mod text;
+mod tool_call;
+mod tool_choice;
+mod tool_result;
+mod usage;
+mod function_tool;
+mod call_warning;
+mod content;
+mod prompt;
+mod stream_part;
 
 #[async_trait]
 pub trait LanguageModel {

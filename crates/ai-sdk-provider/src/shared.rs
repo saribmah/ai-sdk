@@ -1,3 +1,3 @@
-mod headers;
-mod provider_metadata;
-mod provider_options;
+pub mod headers;
+pub mod provider_metadata;
+pub mod provider_options;
