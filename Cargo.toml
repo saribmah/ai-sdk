@@ -1,6 +1,14 @@
-[package]
-name = "ai-sdk"
+[workspace]
+resolver = "3"
+members = [
+    "crates/ai-sdk-provider",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+authors = ["saribmahmood55@gmail.com"]
+repository = "https://github.com/saribmah/ai-sdk"
 
-[dependencies]
+[workspace.dependencies]

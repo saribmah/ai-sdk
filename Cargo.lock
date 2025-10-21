@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "ai-sdk"
+name = "ai-sdk-provider"
 version = "0.1.0"
