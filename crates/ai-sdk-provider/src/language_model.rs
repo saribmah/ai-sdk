@@ -3,6 +3,15 @@ use async_trait::async_trait;
 use futures::Stream;
 use regex::Regex;
 use serde_json::Value;
+use crate::language_model::call_options::CallOptions;
+use crate::language_model::call_warning::CallWarning;
+use crate::language_model::content::Content;
+use crate::language_model::finish_reason::FinishReason;
+use crate::language_model::response_metadata::ResponseMetadata;
+use crate::language_model::stream_part::StreamPart;
+use crate::language_model::usage::Usage;
+use crate::shared::headers::Headers;
+use crate::shared::provider_metadata::ProviderMetadata;
 
 mod call_options;
 mod data_content;
@@ -37,37 +46,29 @@ pub trait LanguageModel {
 
     async fn supported_urls(&self) -> HashMap<String, Vec<Regex>>;
 
-    async fn do_generate(&self, options: LanguageModelCallOptions) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>>;
+    async fn do_generate(&self, options: CallOptions) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>>;
 
-    async fn do_stream(&self, options: LanguageModelCallOptions) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>>;
+    async fn do_stream(&self, options: CallOptions) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>>;
 }
 
 pub struct LanguageModelGenerateResponse {
-    pub content: Vec<LanguageModelContent>,
-    pub finish_reason: LanguageModelFinishReason,
-    pub usage: LanguageModelUsage,
+    pub content: Vec<Content>,
+    pub finish_reason: FinishReason,
+    pub usage: Usage,
     pub provider_metadata: Option<ProviderMetadata>,
     pub request: Option<RequestMetadata>,
     pub response: Option<ResponseMetadata>,
-    pub warnings: Vec<LanguageModelCallWarning>,
+    pub warnings: Vec<CallWarning>,
 }
 
 pub struct LanguageModelStreamResponse {
-    pub stream: Box<dyn Stream<Item = LanguageModelStreamPart> + Unpin + Send>,
+    pub stream: Box<dyn Stream<Item = StreamPart> + Unpin + Send>,
     pub request: Option<RequestMetadata>,
     pub response: Option<StreamResponseMetadata>,
 }
 
 pub struct RequestMetadata {
     pub body: Option<Value>,
-}
-
-pub struct ResponseMetadata {
-    pub headers: Option<Headers>,
-    pub body: Option<Value>,
-
-    #[serde(flatten)]
-    pub metadata: LanguageModelResponseMetadata,
 }
 
 pub struct StreamResponseMetadata {
