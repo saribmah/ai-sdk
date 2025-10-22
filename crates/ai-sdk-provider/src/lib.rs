@@ -1,6 +1,6 @@
 mod provider;
 mod language_model;
-mod shared;
+pub mod shared;
 
 #[cfg(test)]
 mod tests {

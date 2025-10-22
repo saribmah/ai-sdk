@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
-members = [
-    "crates/ai-sdk-provider",
+members = ["crates/ai-sdk-core",
+    "crates/ai-sdk-provider", "crates/ai-sdk-utils",
 ]
 
 [workspace.package]

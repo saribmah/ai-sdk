@@ -12,6 +12,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-core"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-provider",
+ "base64",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
 name = "ai-sdk-provider"
 version = "0.1.0"
 dependencies = [
@@ -26,6 +40,10 @@ dependencies = [
  "tokio-util",
  "url",
 ]
+
+[[package]]
+name = "ai-sdk-utils"
+version = "0.1.0"
 
 [[package]]
 name = "android_system_properties"
@@ -576,6 +594,26 @@ name = "synstructure"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f63587ca0f12b72a0600bcba1d40081f830876000bb46dd2337a3051618f4fc8"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ff15c8ecd7de3849db632e14d18d2571fa09dfc5ed93479bc4485c7a517c913"
 dependencies = [
  "proc-macro2",
  "quote",
