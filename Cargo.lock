@@ -17,8 +17,10 @@ version = "0.1.0"
 dependencies = [
  "ai-sdk-provider",
  "async-stream",
+ "async-trait",
  "base64",
  "futures-util",
+ "regex",
  "serde",
  "serde_bytes",
  "serde_json",

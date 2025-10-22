@@ -13,23 +13,23 @@ use crate::language_model::usage::Usage;
 use crate::shared::headers::Headers;
 use crate::shared::provider_metadata::ProviderMetadata;
 
-mod call_options;
+pub mod call_options;
 mod data_content;
 mod file;
 mod finish_reason;
+pub mod prompt;
 mod provider_defined_tool;
 mod reasoning;
 mod response_metadata;
 mod source;
 mod text;
 mod tool_call;
-mod tool_choice;
+pub mod tool_choice;
 mod tool_result;
 mod usage;
 mod function_tool;
 mod call_warning;
 mod content;
-mod prompt;
 mod stream_part;
 
 #[async_trait]
