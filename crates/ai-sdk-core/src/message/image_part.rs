@@ -1,9 +1,10 @@
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use crate::message::DataContent;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 /// Image content part of a prompt. It contains an image.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ImagePart {
     /// Image data. Can either be data (base64 or bytes) or a URL.
     pub image: ImageSource,
@@ -11,14 +12,17 @@ pub struct ImagePart {
     /// Optional IANA media type of the image.
     ///
     /// @see <https://www.iana.org/assignments/media-types/media-types.xhtml>
+    #[serde(rename = "mediaType", skip_serializing_if = "Option::is_none")]
     pub media_type: Option<String>,
 
     /// Additional provider-specific metadata.
+    #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<ProviderOptions>,
 }
 
 /// Source of image data - either raw data or a URL.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum ImageSource {
     /// Data content (base64 or raw bytes)
     Data(DataContent),

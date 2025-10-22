@@ -1,14 +1,16 @@
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// Reasoning content part of a prompt. It contains reasoning text.
 ///
 /// This is typically used for chain-of-thought or extended thinking from AI models.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReasoningPart {
     /// The reasoning text.
     pub text: String,
 
     /// Additional provider-specific metadata.
+    #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<ProviderOptions>,
 }
 

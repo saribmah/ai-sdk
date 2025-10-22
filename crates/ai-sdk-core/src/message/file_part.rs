@@ -1,27 +1,32 @@
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use crate::message::DataContent;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 /// File content part of a prompt. It contains a file.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FilePart {
     /// File data. Can either be data (base64 or bytes) or a URL.
     pub data: FileSource,
 
     /// Optional filename of the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
 
     /// IANA media type of the file.
     ///
     /// @see <https://www.iana.org/assignments/media-types/media-types.xhtml>
+    #[serde(rename = "mediaType")]
     pub media_type: String,
 
     /// Additional provider-specific metadata.
+    #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<ProviderOptions>,
 }
 
 /// Source of file data - either raw data or a URL.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum FileSource {
     /// Data content (base64 or raw bytes)
     Data(DataContent),

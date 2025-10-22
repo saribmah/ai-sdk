@@ -1,7 +1,8 @@
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// Text content part of a prompt. It contains a string of text.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TextPart {
     /// The text content.
     pub text: String,
@@ -9,6 +10,7 @@ pub struct TextPart {
     /// Additional provider-specific metadata. They are passed through
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
+    #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<ProviderOptions>,
 }
 

@@ -1,4 +1,5 @@
 use base64::Engine;
+use serde::{Deserialize, Serialize};
 
 /// Data content. Can either be a base64-encoded string or raw bytes.
 ///
@@ -17,12 +18,14 @@ use base64::Engine;
 /// let bytes = vec![0x89, 0x50, 0x4E, 0x47];
 /// let data = DataContent::from(bytes);
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum DataContent {
     /// Base64-encoded string
     Base64(String),
 
     /// Raw bytes (equivalent to Uint8Array, ArrayBuffer, or Buffer in TypeScript/Node.js)
+    #[serde(with = "serde_bytes")]
     Bytes(Vec<u8>),
 }
 

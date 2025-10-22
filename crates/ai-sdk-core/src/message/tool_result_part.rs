@@ -1,55 +1,66 @@
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
 /// Tool result content part of a prompt.
 ///
 /// It contains the result of the tool call with the matching ID.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ToolResultPart {
     /// ID of the tool call that this result is associated with.
+    #[serde(rename = "toolCallId")]
     pub tool_call_id: String,
 
     /// Name of the tool that generated this result.
+    #[serde(rename = "toolName")]
     pub tool_name: String,
 
     /// Result of the tool call.
     pub output: ToolResultOutput,
 
     /// Additional provider-specific metadata.
+    #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<ProviderOptions>,
 }
 
 /// Output of a tool result.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum ToolResultOutput {
     /// Text tool output that should be directly sent to the API.
     Text {
         value: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// JSON tool output.
     Json {
         value: Value,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// Type when the user has denied the execution of the tool call.
     ExecutionDenied {
+        #[serde(skip_serializing_if = "Option::is_none")]
         reason: Option<String>,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// Error as text.
     ErrorText {
         value: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// Error as JSON.
     ErrorJson {
         value: Value,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -60,11 +71,13 @@ pub enum ToolResultOutput {
 }
 
 /// Content part within a tool result output.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum ToolResultContentPart {
     /// Text content.
     Text {
         text: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -72,6 +85,7 @@ pub enum ToolResultContentPart {
     #[deprecated(note = "Use FileData or ImageData instead")]
     Media {
         data: String,
+        #[serde(rename = "mediaType")]
         media_type: String,
     },
 
@@ -80,15 +94,19 @@ pub enum ToolResultContentPart {
         /// Base64-encoded media data.
         data: String,
         /// IANA media type.
+        #[serde(rename = "mediaType")]
         media_type: String,
         /// Optional filename of the file.
+        #[serde(skip_serializing_if = "Option::is_none")]
         filename: Option<String>,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// File URL.
     FileUrl {
         url: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -98,7 +116,9 @@ pub enum ToolResultContentPart {
         ///
         /// If you use multiple providers, you can specify provider-specific IDs
         /// using the HashMap variant. The key is the provider name (e.g., "openai", "anthropic").
+        #[serde(rename = "fileId")]
         file_id: FileId,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -107,13 +127,16 @@ pub enum ToolResultContentPart {
         /// Base64-encoded image data.
         data: String,
         /// IANA media type.
+        #[serde(rename = "mediaType")]
         media_type: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
     /// Image URL.
     ImageUrl {
         url: String,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -123,7 +146,9 @@ pub enum ToolResultContentPart {
         ///
         /// If you use multiple providers, you can specify provider-specific IDs
         /// using the HashMap variant.
+        #[serde(rename = "fileId")]
         file_id: FileId,
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 
@@ -131,12 +156,14 @@ pub enum ToolResultContentPart {
     ///
     /// This can be used to implement provider-specific content parts.
     Custom {
+        #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
 }
 
 /// File ID - either a single string or provider-specific IDs.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum FileId {
     /// Single file ID (works with a single provider).
     Single(String),

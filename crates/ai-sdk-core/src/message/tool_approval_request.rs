@@ -1,12 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 /// Tool approval request prompt part.
 ///
 /// This represents a request for user approval before executing a tool call.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ToolApprovalRequest {
     /// ID of the tool approval.
+    #[serde(rename = "approvalId")]
     pub approval_id: String,
 
     /// ID of the tool call that the approval request is for.
+    #[serde(rename = "toolCallId")]
     pub tool_call_id: String,
 }
 

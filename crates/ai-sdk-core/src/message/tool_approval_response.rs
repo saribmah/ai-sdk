@@ -1,15 +1,19 @@
+use serde::{Deserialize, Serialize};
+
 /// Tool approval response prompt part.
 ///
 /// This represents the user's response to a tool approval request.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ToolApprovalResponse {
     /// ID of the tool approval.
+    #[serde(rename = "approvalId")]
     pub approval_id: String,
 
     /// Flag indicating whether the approval was granted or denied.
     pub approved: bool,
 
     /// Optional reason for the approval or denial.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
 
