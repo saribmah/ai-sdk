@@ -8,6 +8,9 @@ pub enum AISDKError {
         value: String,
         message: String,
     },
+
+    #[error("Invalid prompt: {message}")]
+    InvalidPrompt { message: String },
 }
 
 impl AISDKError {
@@ -15,6 +18,12 @@ impl AISDKError {
         Self::InvalidArgument {
             parameter: parameter.into(),
             value: value.to_string(),
+            message: message.into(),
+        }
+    }
+
+    pub fn invalid_prompt(message: impl Into<String>) -> Self {
+        Self::InvalidPrompt {
             message: message.into(),
         }
     }

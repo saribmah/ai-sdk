@@ -339,6 +339,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "maxOutputTokens");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
@@ -354,6 +355,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "temperature");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
@@ -369,6 +371,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "temperature");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
@@ -384,6 +387,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "topP");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
@@ -399,6 +403,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "presencePenalty");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
@@ -414,6 +419,7 @@ mod tests {
             AISDKError::InvalidArgument { parameter, .. } => {
                 assert_eq!(parameter, "frequencyPenalty");
             }
+            _ => panic!("Expected InvalidArgument error"),
         }
     }
 
