@@ -11,6 +11,9 @@ pub enum AISDKError {
 
     #[error("Invalid prompt: {message}")]
     InvalidPrompt { message: String },
+
+    #[error("Model error: {message}")]
+    ModelError { message: String },
 }
 
 impl AISDKError {
@@ -24,6 +27,12 @@ impl AISDKError {
 
     pub fn invalid_prompt(message: impl Into<String>) -> Self {
         Self::InvalidPrompt {
+            message: message.into(),
+        }
+    }
+
+    pub fn model_error(message: impl Into<String>) -> Self {
+        Self::ModelError {
             message: message.into(),
         }
     }

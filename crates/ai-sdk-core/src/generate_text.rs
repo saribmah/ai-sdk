@@ -11,7 +11,13 @@ use crate::prompt::{
     Prompt,
 };
 use ai_sdk_provider::{
-    language_model::LanguageModel, language_model::tool_choice::ToolChoice,
+    language_model::{
+        call_options::{CallOptions, Tool as ProviderTool},
+        function_tool::FunctionTool,
+        provider_defined_tool::ProviderDefinedTool,
+        LanguageModel,
+    },
+    language_model::tool_choice::ToolChoice,
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
@@ -48,7 +54,7 @@ use serde_json::Value;
 /// let settings = CallSettings::default();
 /// generate_text(model, prompt, settings, None, None, None)?;
 /// ```
-pub fn generate_text(
+pub async fn generate_text(
     model: &dyn LanguageModel,
     prompt: Prompt,
     settings: CallSettings,
@@ -65,41 +71,108 @@ pub fn generate_text(
     // Step 3: Convert to language model format (provider messages)
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
-    // TODO: Implement actual text generation logic
-    // For now, just print the arguments
+    // Step 4: Convert tools from core to provider format
+    let provider_tools = tools.map(|core_tools| {
+        core_tools
+            .into_iter()
+            .map(convert_tool_to_provider)
+            .collect::<Vec<_>>()
+    });
 
-    println!("=== generate_text called ===");
-    println!(
-        "Model: provider={}, model_id={}",
-        model.provider(),
-        model.model_id()
-    );
-    println!("Initial Prompt (standardized):");
-    println!("  - System: {:?}", initial_prompt.system);
-    println!("  - Messages count: {}", initial_prompt.messages.len());
-    println!("Converted Messages (provider format):");
-    println!("  - Messages count: {}", messages.len());
-    for (i, msg) in messages.iter().enumerate() {
-        println!("  - Message {}: {:?}", i, msg);
+    // Step 5: Build CallOptions
+    let mut call_options = CallOptions::new(messages);
+
+    // Add prepared settings
+    if let Some(max_tokens) = prepared_settings.max_output_tokens {
+        call_options = call_options.with_max_output_tokens(max_tokens);
     }
-    println!("Settings: {:?}", settings);
-    println!("Prepared Settings: {:?}", prepared_settings);
-    println!(
-        "Tools: {} tools provided",
-        tools.as_ref().map(|t| t.len()).unwrap_or(0)
-    );
-    println!("Tool Choice: {:?}", tool_choice);
-    println!(
-        "Provider Options: {}",
-        if provider_options.is_some() {
-            "provided"
-        } else {
-            "none"
-        }
-    );
-    println!("===========================");
+    if let Some(temp) = prepared_settings.temperature {
+        call_options = call_options.with_temperature(temp);
+    }
+    if let Some(top_p) = prepared_settings.top_p {
+        call_options = call_options.with_top_p(top_p);
+    }
+    if let Some(top_k) = prepared_settings.top_k {
+        call_options = call_options.with_top_k(top_k);
+    }
+    if let Some(penalty) = prepared_settings.presence_penalty {
+        call_options = call_options.with_presence_penalty(penalty);
+    }
+    if let Some(penalty) = prepared_settings.frequency_penalty {
+        call_options = call_options.with_frequency_penalty(penalty);
+    }
+    if let Some(sequences) = prepared_settings.stop_sequences {
+        call_options = call_options.with_stop_sequences(sequences);
+    }
+    if let Some(seed) = prepared_settings.seed {
+        call_options = call_options.with_seed(seed);
+    }
 
+    // Add tools and tool choice
+    if let Some(tools) = provider_tools {
+        call_options = call_options.with_tools(tools);
+    }
+    if let Some(choice) = tool_choice {
+        call_options = call_options.with_tool_choice(choice);
+    }
+
+    // Add headers and abort signal from settings
+    if let Some(headers) = settings.headers {
+        call_options = call_options.with_headers(headers);
+    }
+    if let Some(signal) = settings.abort_signal {
+        call_options = call_options.with_abort_signal(signal);
+    }
+
+    // Add provider options
+    if let Some(opts) = provider_options {
+        call_options = call_options.with_provider_options(opts);
+    }
+
+    // Step 6: Call model.do_generate
+    let _response = model.do_generate(call_options).await
+        .map_err(|e| AISDKError::model_error(e.to_string()))?;
+
+    // TODO: Process and return the response
+    // For now, just return Ok
     Ok(())
+}
+
+/// Convert a core Tool to a provider Tool.
+fn convert_tool_to_provider(core_tool: Tool<Value, Value>) -> ProviderTool {
+    use crate::message::tool::definition::ToolType;
+
+    match core_tool.tool_type {
+        ToolType::Function => {
+            let mut function_tool = FunctionTool::new("function", core_tool.input_schema);
+
+            if let Some(desc) = core_tool.description {
+                function_tool = function_tool.with_description(desc);
+            }
+            if let Some(opts) = core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts);
+            }
+
+            ProviderTool::Function(function_tool)
+        }
+        ToolType::Dynamic => {
+            // Dynamic tools are treated as function tools in the provider
+            let mut function_tool = FunctionTool::new("dynamic", core_tool.input_schema);
+
+            if let Some(desc) = core_tool.description {
+                function_tool = function_tool.with_description(desc);
+            }
+            if let Some(opts) = core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts);
+            }
+
+            ProviderTool::Function(function_tool)
+        }
+        ToolType::ProviderDefined { id, name, args } => {
+            let provider_tool = ProviderDefinedTool::new(id, name, args);
+            ProviderTool::ProviderDefined(provider_tool)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -145,7 +218,9 @@ mod tests {
             &self,
             _options: CallOptions,
         ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
-            unimplemented!("Mock implementation")
+            // Return a basic mock response
+            // For now, we just return a mock error to indicate that this is a test mock
+            Err("Mock implementation - tests should not actually call do_generate".into())
         }
 
         async fn do_stream(
@@ -156,19 +231,25 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_generate_text_basic() {
+    #[tokio::test]
+    async fn test_generate_text_basic() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Tell me a joke");
         let settings = CallSettings::default();
 
-        // This should just print the arguments and validate settings
-        let result = generate_text(&model, prompt, settings, None, None, None);
-        assert!(result.is_ok());
+        // This should validate settings and call do_generate
+        // The mock returns an error, but that's expected
+        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        assert!(result.is_err());
+        // Check that it's a model error (from do_generate), not a validation error
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
     }
 
-    #[test]
-    fn test_generate_text_with_settings() {
+    #[tokio::test]
+    async fn test_generate_text_with_settings() {
         let model = MockLanguageModel::new();
         let prompt =
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
@@ -176,25 +257,35 @@ mod tests {
             .with_temperature(0.7)
             .with_max_output_tokens(100);
 
-        // This should just print the arguments and validate settings
-        let result = generate_text(&model, prompt, settings, None, None, None);
-        assert!(result.is_ok());
+        // This should validate settings and call do_generate
+        // The mock returns an error, but that's expected
+        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
     }
 
-    #[test]
-    fn test_generate_text_with_tool_choice() {
+    #[tokio::test]
+    async fn test_generate_text_with_tool_choice() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Use a tool to check the weather");
         let settings = CallSettings::default();
         let tool_choice = Some(ToolChoice::Auto);
 
-        // This should just print the arguments and validate settings
-        let result = generate_text(&model, prompt, settings, None, tool_choice, None);
-        assert!(result.is_ok());
+        // This should validate settings and call do_generate
+        // The mock returns an error, but that's expected
+        let result = generate_text(&model, prompt, settings, None, tool_choice, None).await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
     }
 
-    #[test]
-    fn test_generate_text_with_provider_options() {
+    #[tokio::test]
+    async fn test_generate_text_with_provider_options() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Hello, world!");
         let settings = CallSettings::default();
@@ -207,19 +298,24 @@ mod tests {
                 .collect(),
         );
 
-        // This should just print the arguments and validate settings
-        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options));
-        assert!(result.is_ok());
+        // This should validate settings and call do_generate
+        // The mock returns an error, but that's expected
+        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options)).await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
     }
 
-    #[test]
-    fn test_generate_text_with_invalid_temperature() {
+    #[tokio::test]
+    async fn test_generate_text_with_invalid_temperature() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None);
+        let result = generate_text(&model, prompt, settings, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -229,14 +325,14 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_generate_text_with_invalid_max_tokens() {
+    #[tokio::test]
+    async fn test_generate_text_with_invalid_max_tokens() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None);
+        let result = generate_text(&model, prompt, settings, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -246,14 +342,14 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_generate_text_with_empty_messages() {
+    #[tokio::test]
+    async fn test_generate_text_with_empty_messages() {
         let model = MockLanguageModel::new();
         let prompt = Prompt::messages(vec![]);
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
-        let result = generate_text(&model, prompt, settings, None, None, None);
+        let result = generate_text(&model, prompt, settings, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidPrompt { message }) => {
