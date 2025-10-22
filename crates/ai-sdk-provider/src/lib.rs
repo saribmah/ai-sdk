@@ -1,6 +1,12 @@
-mod provider;
-mod language_model;
+pub mod error;
+pub mod language_model;
+pub mod provider;
 pub mod shared;
+
+// Re-export commonly used types
+pub use error::ProviderError;
+pub use language_model::LanguageModel;
+pub use provider::Provider;
 
 #[cfg(test)]
 mod tests {
