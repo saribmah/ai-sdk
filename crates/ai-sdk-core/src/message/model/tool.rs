@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use super::super::content_parts::ToolResultPart;
-use super::super::tool_approval_response::ToolApprovalResponse;
+use super::super::tool::ToolApprovalResponse;
 
 /// Content of a tool message. It is an array of tool result parts.
 pub type ToolContent = Vec<ToolContentPart>;

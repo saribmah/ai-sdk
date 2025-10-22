@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use super::super::content_parts::{TextPart, FilePart, ReasoningPart, ToolCallPart, ToolResultPart};
-use super::super::tool_approval_request::ToolApprovalRequest;
+use super::super::tool::ToolApprovalRequest;
 
 /// Content of an assistant message.
 /// It can be a string or an array of text, file, reasoning, and tool call parts.
