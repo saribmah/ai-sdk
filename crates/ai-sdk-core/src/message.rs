@@ -8,7 +8,11 @@ pub use content_parts::{
     TextPart, ImagePart, ImageSource, FilePart, FileSource, ReasoningPart,
     ToolCallPart, ToolResultPart, ToolResultOutput, ToolResultContentPart, FileId
 };
-pub use tool::{ToolCall, ToolResult, ToolApprovalRequest, ToolApprovalResponse};
+pub use tool::{
+    ToolCall, ToolResult, ToolApprovalRequest, ToolApprovalResponse,
+    ToolCallOptions, Tool, ToolType, ToolExecuteFunction, ToolNeedsApprovalFunction,
+    ToolExecutionOutput, execute_tool, ToolExecutionEvent
+};
 pub use model::{
     ModelMessage,
     SystemModelMessage,
