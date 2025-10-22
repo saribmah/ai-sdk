@@ -1,0 +1,22 @@
+[package]
+name = "openai-compatible"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+ai-sdk-provider = { path = "../ai-sdk-provider" }
+tokio = { version = "1.41", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+async-trait = "0.1"
+futures-util = "0.3"
+url = "2.5"
+regex = "1.12"
+
+[dev-dependencies]
+tokio = { version = "1.41", features = ["macros", "rt-multi-thread"] }

@@ -52,6 +52,7 @@ pub trait Provider: Send + Sync {
     /// ```
     fn language_model(&self, model_id: &str) -> Result<Box<dyn LanguageModel>, ProviderError>;
 
+    /*
     /// Returns the text embedding model with the given id.
     ///
     /// The model id is provider-specific and is used to identify which embedding
@@ -76,10 +77,10 @@ pub trait Provider: Send + Sync {
     /// This method has a default implementation that returns an error, as not all
     /// providers support text embedding models. Override this method to provide
     /// text embedding model support.
-    fn text_embedding_model(&self, model_id: &str) -> Result<Box<dyn std::any::Any>, ProviderError> {
-        Err(ProviderError::no_such_model(
-            model_id,
-            "text-embedding-not-supported",
-        ))
-    }
+    // fn text_embedding_model(&self, model_id: &str) -> Result<Box<dyn std::any::Any>, ProviderError> {
+    //     Err(ProviderError::no_such_model(
+    //         model_id,
+    //         "text-embedding-not-supported",
+    //     ))
+    // } */
 }
