@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::text_part::TextPart;
-use super::file_part::FilePart;
-use super::reasoning_part::ReasoningPart;
+use super::content_parts::{TextPart, FilePart, ReasoningPart};
 use super::tool_call_part::ToolCallPart;
 use super::tool_result_part::ToolResultPart;
 use super::tool_approval_request::ToolApprovalRequest;
