@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::content_parts::{TextPart, ImagePart, FilePart};
+use super::super::content_parts::{TextPart, ImagePart, FilePart};
 
 /// Content of a user message. It can be a string or an array of text, image, and file parts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

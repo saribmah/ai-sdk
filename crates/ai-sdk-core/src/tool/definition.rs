@@ -6,7 +6,7 @@ use futures_util::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use super::options::ToolCallOptions;
-use crate::message::tool_result_part::ToolResultOutput;
+use crate::message::content_parts::ToolResultOutput;
 
 /// The output from a tool execution, which can be either a single value or a stream of values.
 pub enum ToolExecutionOutput<OUTPUT>

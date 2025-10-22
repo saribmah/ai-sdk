@@ -1,8 +1,14 @@
+pub mod system;
+pub mod user;
+pub mod assistant;
+pub mod tool;
+
+pub use system::SystemModelMessage;
+pub use user::{UserModelMessage, UserContent, UserContentPart};
+pub use assistant::{AssistantModelMessage, AssistantContent, AssistantContentPart};
+pub use tool::{ToolModelMessage, ToolContent, ToolContentPart};
+
 use serde::{Deserialize, Deserializer, Serialize};
-use super::system_model_message::SystemModelMessage;
-use super::user_model_message::UserModelMessage;
-use super::assistant_model_message::AssistantModelMessage;
-use super::tool_model_message::ToolModelMessage;
 
 /// A message that can be used in the `messages` field of a prompt.
 /// It can be a user message, an assistant message, a system message, or a tool message.
@@ -165,8 +171,7 @@ mod tests {
 
     #[test]
     fn test_model_message_tool() {
-        use super::super::tool_model_message::ToolContentPart;
-        use super::super::tool_result_part::{ToolResultPart, ToolResultOutput};
+        use super::super::content_parts::{ToolResultPart, ToolResultOutput};
 
         let tool_msg = ToolModelMessage::new(vec![
             ToolContentPart::ToolResult(ToolResultPart::new(

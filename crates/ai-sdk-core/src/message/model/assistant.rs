@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::content_parts::{TextPart, FilePart, ReasoningPart};
-use super::tool_call_part::ToolCallPart;
-use super::tool_result_part::ToolResultPart;
-use super::tool_approval_request::ToolApprovalRequest;
+use super::super::content_parts::{TextPart, FilePart, ReasoningPart, ToolCallPart, ToolResultPart};
+use super::super::tool_approval_request::ToolApprovalRequest;
 
 /// Content of an assistant message.
 /// It can be a string or an array of text, file, reasoning, and tool call parts.
@@ -128,7 +126,7 @@ impl From<ToolApprovalRequest> for AssistantContentPart {
 mod tests {
     use super::*;
     use url::Url;
-    use super::super::tool_result_part::ToolResultOutput;
+    use crate::message::content_parts::ToolResultOutput;
 
     #[test]
     fn test_assistant_model_message_new_text() {

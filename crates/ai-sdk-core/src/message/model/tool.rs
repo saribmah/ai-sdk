@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::tool_result_part::ToolResultPart;
-use super::tool_approval_response::ToolApprovalResponse;
+use super::super::content_parts::ToolResultPart;
+use super::super::tool_approval_response::ToolApprovalResponse;
 
 /// Content of a tool message. It is an array of tool result parts.
 pub type ToolContent = Vec<ToolContentPart>;
@@ -60,7 +60,7 @@ impl ToolModelMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::tool_result_part::ToolResultOutput;
+    use crate::message::content_parts::ToolResultOutput;
     use serde_json::json;
 
     #[test]

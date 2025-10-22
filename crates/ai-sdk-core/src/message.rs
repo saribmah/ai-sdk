@@ -1,27 +1,24 @@
 pub mod data_content;
 pub mod content_parts;
 pub mod tool_call;
-pub mod tool_call_part;
 pub mod tool_result;
-pub mod tool_result_part;
 pub mod tool_approval_request;
 pub mod tool_approval_response;
-pub mod tool_model_message;
-pub mod system_model_message;
-pub mod user_model_message;
-pub mod assistant_model_message;
-pub mod model_message;
+pub mod model;
 
 pub use data_content::DataContent;
-pub use content_parts::{TextPart, ImagePart, ImageSource, FilePart, FileSource, ReasoningPart};
+pub use content_parts::{
+    TextPart, ImagePart, ImageSource, FilePart, FileSource, ReasoningPart,
+    ToolCallPart, ToolResultPart, ToolResultOutput, ToolResultContentPart, FileId
+};
 pub use tool_call::ToolCall;
-pub use tool_call_part::ToolCallPart;
 pub use tool_result::ToolResult;
-pub use tool_result_part::{ToolResultPart, ToolResultOutput, ToolResultContentPart, FileId};
 pub use tool_approval_request::ToolApprovalRequest;
 pub use tool_approval_response::ToolApprovalResponse;
-pub use tool_model_message::{ToolModelMessage, ToolContent, ToolContentPart};
-pub use system_model_message::SystemModelMessage;
-pub use user_model_message::{UserModelMessage, UserContent, UserContentPart};
-pub use assistant_model_message::{AssistantModelMessage, AssistantContent, AssistantContentPart};
-pub use model_message::ModelMessage;
+pub use model::{
+    ModelMessage,
+    SystemModelMessage,
+    UserModelMessage, UserContent, UserContentPart,
+    AssistantModelMessage, AssistantContent, AssistantContentPart,
+    ToolModelMessage, ToolContent, ToolContentPart
+};
