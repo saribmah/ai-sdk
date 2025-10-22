@@ -2,16 +2,29 @@ use std::future::Future;
 use std::pin::Pin;
 use std::collections::HashMap;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use futures_util::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use super::options::ToolCallOptions;
 use crate::message::tool_result_part::ToolResultOutput;
 
+/// The output from a tool execution, which can be either a single value or a stream of values.
+pub enum ToolExecutionOutput<OUTPUT>
+where
+    OUTPUT: Send + 'static,
+{
+    /// A single output value (non-streaming).
+    Single(Pin<Box<dyn Future<Output = OUTPUT> + Send>>),
+
+    /// A stream of output values (streaming).
+    Streaming(Pin<Box<dyn Stream<Item = OUTPUT> + Send>>),
+}
+
 /// Function that executes a tool with the given input and options.
 ///
-/// Returns a Future that resolves to the tool's output.
+/// Returns either a Future that resolves to a single output, or a Stream of outputs.
 pub type ToolExecuteFunction<INPUT, OUTPUT> = Box<
-    dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = OUTPUT> + Send>> + Send + Sync,
+    dyn Fn(INPUT, ToolCallOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync,
 >;
 
 /// Function that determines if a tool needs approval before execution.
@@ -279,14 +292,32 @@ where
 
     /// Executes the tool with the given input and options.
     ///
+    /// For streaming tools, this will consume the entire stream and return the final output.
+    /// For non-streaming tools, this will await and return the single output.
+    ///
     /// Returns None if the tool has no execute function.
     pub async fn execute_tool(
         &self,
         input: INPUT,
         options: ToolCallOptions,
-    ) -> Option<OUTPUT> {
+    ) -> Option<OUTPUT>
+    where
+        OUTPUT: Clone,
+    {
+        use futures_util::StreamExt;
+
         if let Some(execute) = &self.execute {
-            Some(execute(input, options).await)
+            let result = execute(input, options);
+            match result {
+                ToolExecutionOutput::Single(future) => Some(future.await),
+                ToolExecutionOutput::Streaming(mut stream) => {
+                    let mut last_output: Option<OUTPUT> = None;
+                    while let Some(output) = stream.next().await {
+                        last_output = Some(output);
+                    }
+                    last_output
+                }
+            }
         } else {
             None
         }
@@ -424,9 +455,9 @@ mod tests {
 
         let tool: Tool = Tool::function(schema)
             .with_execute(Box::new(|input: Value, _options| {
-                Box::pin(async move {
+                ToolExecutionOutput::Single(Box::pin(async move {
                     json!({"result": input})
-                })
+                }))
             }));
 
         let options = ToolCallOptions::new("call_123", vec![]);
@@ -445,5 +476,26 @@ mod tests {
         let result = tool.execute_tool(json!({}), options).await;
 
         assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_tool_execute_with_streaming() {
+        let schema = json!({"type": "object"});
+
+        let tool: Tool = Tool::function(schema)
+            .with_execute(Box::new(|_input: Value, _options| {
+                ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
+                    yield json!({"step": 1});
+                    yield json!({"step": 2});
+                    yield json!({"step": 3});
+                }))
+            }));
+
+        let options = ToolCallOptions::new("call_123", vec![]);
+        let result = tool.execute_tool(json!({}), options).await;
+
+        // Should return the last output
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), json!({"step": 3}));
     }
 }
