@@ -25,8 +25,8 @@ This is a Cargo workspace with multiple crates:
 
 ```toml
 [dependencies]
-ai-sdk-core = { path = "crates/ai-sdk-core" }
-openai-compatible = { path = "crates/openai-compatible" }
+ai-sdk-core = { path = "ai-sdk-core" }
+openai-compatible = { path = "openai-compatible" }
 tokio = { version = "1.41", features = ["full"] }
 ```
 
