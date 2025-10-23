@@ -1,14 +1,19 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod error;
+pub mod language_model;
+pub mod provider;
+pub mod shared;
+
+// Re-export commonly used types
+pub use error::ProviderError;
+pub use language_model::{
+    LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse, RequestMetadata,
+};
+pub use provider::Provider;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        assert_eq!(4, 4);
     }
 }

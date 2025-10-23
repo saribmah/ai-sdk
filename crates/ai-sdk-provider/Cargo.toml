@@ -9,3 +9,14 @@ description = "Provider definition for AI SDK"
 categories = ["api-bindings"]
 
 [dependencies]
+regex = "1.12.2"
+async-trait = "0.1.89"
+futures = "0.3.31"
+serde_json = "1.0.145"
+url = "2.5.7"
+serde = { version = "1.0.228", features = ["derive"] }
+chrono = "0.4.42"
+tokio = "1.48.0"
+base64 = "0.22.1"
+tokio-util = "0.7.16"
+thiserror = "2.0.9"

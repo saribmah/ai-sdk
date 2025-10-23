@@ -1,0 +1,25 @@
+[package]
+name = "ai-sdk-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { version = "1.41", features = ["time"] }  # For async runtime and sleep
+tokio-util = "0.7.16"  # For CancellationToken (equivalent to AbortSignal)
+thiserror = "2.0.9"    # For error handling
+base64 = "0.22.1"      # For base64 encoding/decoding
+serde = { version = "1.0.228", features = ["derive"] }  # For serialization
+serde_json = "1.0.145" # For JSON values
+serde_bytes = "0.11"   # For efficient byte array serialization
+url = "2.5.7"          # For URL parsing
+ai-sdk-provider = { path = "../ai-sdk-provider" }  # Provider types and traits
+async-stream = "0.3"   # For async generators
+futures-util = "0.3"   # For Stream trait and StreamExt
+
+[dev-dependencies]
+tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests
+async-trait = "0.1.89"  # For async trait implementations in tests
+regex = "1.12.2"  # For Regex in tests
