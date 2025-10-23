@@ -13,7 +13,7 @@
 
 use ai_sdk_core::generate_text;
 use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
-use openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 use std::env;
 
 #[tokio::main]
