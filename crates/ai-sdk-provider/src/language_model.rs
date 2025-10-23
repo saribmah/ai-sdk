@@ -16,20 +16,20 @@ use crate::shared::provider_metadata::ProviderMetadata;
 pub mod call_options;
 mod data_content;
 mod file;
-mod finish_reason;
+pub mod finish_reason;
 pub mod prompt;
 pub mod provider_defined_tool;
-mod reasoning;
-mod response_metadata;
+pub mod reasoning;
+pub mod response_metadata;
 mod source;
-mod text;
-mod tool_call;
+pub mod text;
+pub mod tool_call;
 pub mod tool_choice;
 mod tool_result;
-mod usage;
+pub mod usage;
 pub mod function_tool;
-mod call_warning;
-mod content;
+pub mod call_warning;
+pub mod content;
 mod stream_part;
 
 #[async_trait]
