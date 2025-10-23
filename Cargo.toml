@@ -12,3 +12,24 @@ authors = ["saribmahmood55@gmail.com"]
 repository = "https://github.com/saribmah/ai-sdk"
 
 [workspace.dependencies]
+
+# Virtual package for workspace-level examples
+[package]
+name = "ai-sdk-examples"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+ai-sdk-core = { path = "crates/ai-sdk-core" }
+ai-sdk-provider = { path = "crates/ai-sdk-provider" }
+openai-compatible = { path = "crates/openai-compatible" }
+tokio = { version = "1.41", features = ["full"] }
+
+[[example]]
+name = "basic_chat"
+path = "examples/basic_chat.rs"
+
+[[example]]
+name = "conversation"
+path = "examples/conversation.rs"

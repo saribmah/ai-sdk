@@ -51,6 +51,7 @@ pub trait LanguageModel {
     async fn do_stream(&self, options: CallOptions) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>>;
 }
 
+#[derive(Debug)]
 pub struct LanguageModelGenerateResponse {
     pub content: Vec<Content>,
     pub finish_reason: FinishReason,
@@ -67,6 +68,7 @@ pub struct LanguageModelStreamResponse {
     pub response: Option<StreamResponseMetadata>,
 }
 
+#[derive(Debug)]
 pub struct RequestMetadata {
     pub body: Option<Value>,
 }
