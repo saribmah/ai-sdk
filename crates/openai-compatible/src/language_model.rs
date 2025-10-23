@@ -5,18 +5,20 @@ use ai_sdk_provider::language_model::{
 use async_trait::async_trait;
 use regex::Regex;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Configuration for the OpenAI-compatible language model.
-#[derive(Debug, Clone)]
-pub struct OpenAICompatibleLanguageModelConfig {
-    /// The provider identifier (e.g., "openai", "azure-openai")
+/// This is similar to OpenAICompatibleChatConfig in the TypeScript implementation.
+#[derive(Clone)]
+pub struct OpenAICompatibleChatConfig {
+    /// The provider identifier (e.g., "openai.chat", "azure-openai.chat")
     pub provider: String,
 
-    /// The base URL for the API
-    pub base_url: String,
+    /// Function to get headers for requests
+    pub headers: Arc<dyn Fn() -> HashMap<String, String> + Send + Sync>,
 
-    /// The model ID to use
-    pub model_id: String,
+    /// Function to construct the URL for API calls
+    pub url: Arc<dyn Fn(&UrlOptions) -> String + Send + Sync>,
 
     /// Optional API key for authentication
     pub api_key: Option<String>,
@@ -27,36 +29,67 @@ pub struct OpenAICompatibleLanguageModelConfig {
     /// Optional project ID
     pub project: Option<String>,
 
-    /// Additional headers to send with requests
-    pub headers: HashMap<String, String>,
+    /// Optional query parameters
+    pub query_params: HashMap<String, String>,
+}
+
+/// Options for constructing URLs
+pub struct UrlOptions {
+    pub model_id: String,
+    pub path: String,
+}
+
+impl std::fmt::Debug for OpenAICompatibleChatConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenAICompatibleChatConfig")
+            .field("provider", &self.provider)
+            .field("api_key", &self.api_key.as_ref().map(|_| "***"))
+            .field("organization", &self.organization)
+            .field("project", &self.project)
+            .field("query_params", &self.query_params)
+            .finish()
+    }
 }
 
 /// OpenAI-compatible language model implementation.
+/// This is similar to OpenAICompatibleChatLanguageModel in the TypeScript implementation.
 pub struct OpenAICompatibleLanguageModel {
-    config: OpenAICompatibleLanguageModelConfig,
+    model_id: String,
+    config: OpenAICompatibleChatConfig,
     http_client: reqwest::Client,
 }
 
 impl OpenAICompatibleLanguageModel {
     /// Creates a new OpenAI-compatible language model instance.
-    pub fn new(config: OpenAICompatibleLanguageModelConfig) -> Self {
+    pub fn new(model_id: impl Into<String>, config: OpenAICompatibleChatConfig) -> Self {
         let http_client = reqwest::Client::new();
 
         Self {
+            model_id: model_id.into(),
             config,
             http_client,
         }
+    }
+
+    /// Gets the provider name
+    fn get_provider(&self) -> &str {
+        &self.config.provider
+    }
+
+    /// Gets the model ID
+    fn get_model_id(&self) -> &str {
+        &self.model_id
     }
 }
 
 #[async_trait]
 impl LanguageModel for OpenAICompatibleLanguageModel {
     fn provider(&self) -> &str {
-        &self.config.provider
+        self.get_provider()
     }
 
     fn model_id(&self) -> &str {
-        &self.config.model_id
+        self.get_model_id()
     }
 
     async fn supported_urls(&self) -> HashMap<String, Vec<Regex>> {
@@ -101,12 +134,9 @@ impl LanguageModel for OpenAICompatibleLanguageModel {
 /// A boxed `LanguageModel` trait object.
 pub fn create_language_model(
     model_id: impl Into<String>,
-    config: OpenAICompatibleLanguageModelConfig,
+    config: OpenAICompatibleChatConfig,
 ) -> Box<dyn LanguageModel> {
-    let mut model_config = config;
-    model_config.model_id = model_id.into();
-
-    Box::new(OpenAICompatibleLanguageModel::new(model_config))
+    Box::new(OpenAICompatibleLanguageModel::new(model_id, config))
 }
 
 #[cfg(test)]
@@ -115,18 +145,25 @@ mod tests {
 
     #[test]
     fn test_create_language_model() {
-        let config = OpenAICompatibleLanguageModelConfig {
-            provider: "openai".to_string(),
-            base_url: "https://api.openai.com/v1".to_string(),
-            model_id: "".to_string(), // Will be set by create_language_model
+        let base_url = "https://api.openai.com/v1".to_string();
+        let config = OpenAICompatibleChatConfig {
+            provider: "openai.chat".to_string(),
+            headers: Arc::new(move || {
+                let mut headers = HashMap::new();
+                headers.insert("Authorization".to_string(), "Bearer test-key".to_string());
+                headers
+            }),
+            url: Arc::new(move |opts: &UrlOptions| {
+                format!("{}{}", base_url, opts.path)
+            }),
             api_key: Some("test-key".to_string()),
             organization: None,
             project: None,
-            headers: HashMap::new(),
+            query_params: HashMap::new(),
         };
 
         let model = create_language_model("gpt-4", config);
-        assert_eq!(model.provider(), "openai");
+        assert_eq!(model.provider(), "openai.chat");
         assert_eq!(model.model_id(), "gpt-4");
     }
 }
