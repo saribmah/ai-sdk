@@ -19,14 +19,14 @@ This is a Cargo workspace with multiple crates:
 
 - **`ai-sdk-core`**: Core functionality including `generate_text`, prompt handling, and message types
 - **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
-- **`openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
+- **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
 
 ## Installation
 
 ```toml
 [dependencies]
-ai-sdk-core = { path = "crates/ai-sdk-core" }
-openai-compatible = { path = "crates/openai-compatible" }
+ai-sdk-core = { path = "ai-sdk-core" }
+ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 tokio = { version = "1.41", features = ["full"] }
 ```
 
@@ -37,7 +37,7 @@ tokio = { version = "1.41", features = ["full"] }
 ```rust
 use ai_sdk_core::generate_text;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -143,7 +143,7 @@ The SDK follows a layered architecture inspired by Vercel's AI SDK:
 - Standardized types: `CallOptions`, `Content`, `FinishReason`, `Usage`
 - Tool calling interfaces
 
-### Implementation Layer (`openai-compatible`)
+### Implementation Layer (`ai-sdk-openai-compatible`)
 - Concrete provider implementations
 - API-specific request/response handling
 - HTTP client management
@@ -214,7 +214,7 @@ cargo test
 # Run tests for a specific crate
 cargo test -p ai-sdk-core
 cargo test -p ai-sdk-provider
-cargo test -p openai-compatible
+cargo test -p ai-sdk-openai-compatible
 
 # Run with output
 cargo test -- --nocapture

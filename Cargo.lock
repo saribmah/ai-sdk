@@ -35,9 +35,26 @@ name = "ai-sdk-examples"
 version = "0.1.0"
 dependencies = [
  "ai-sdk-core",
+ "ai-sdk-openai-compatible",
  "ai-sdk-provider",
- "openai-compatible",
  "tokio",
+]
+
+[[package]]
+name = "ai-sdk-openai-compatible"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-provider",
+ "async-trait",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "url",
 ]
 
 [[package]]
@@ -779,23 +796,6 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
-
-[[package]]
-name = "openai-compatible"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-core",
- "ai-sdk-provider",
- "async-trait",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "url",
-]
 
 [[package]]
 name = "openssl"

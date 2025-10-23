@@ -1,7 +1,10 @@
 [workspace]
 resolver = "3"
-members = ["crates/ai-sdk-core",
-    "crates/ai-sdk-provider", "crates/ai-sdk-utils", "crates/openai-compatible",
+members = [
+    "ai-sdk-core",
+    "ai-sdk-provider",
+    "ai-sdk-utils",
+    "ai-sdk-openai-compatible",
 ]
 
 [workspace.package]
@@ -21,9 +24,9 @@ edition.workspace = true
 publish = false
 
 [dependencies]
-ai-sdk-core = { path = "crates/ai-sdk-core" }
-ai-sdk-provider = { path = "crates/ai-sdk-provider" }
-openai-compatible = { path = "crates/openai-compatible" }
+ai-sdk-core = { path = "ai-sdk-core" }
+ai-sdk-provider = { path = "ai-sdk-provider" }
+ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 tokio = { version = "1.41", features = ["full"] }
 
 [[example]]
