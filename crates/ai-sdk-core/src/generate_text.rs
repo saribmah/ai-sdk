@@ -38,7 +38,7 @@ use serde_json::Value;
 ///
 /// # Returns
 ///
-/// Returns `Result<(), AISDKError>` - Success or validation error
+/// Returns `Result<LanguageModelGenerateResponse, AISDKError>` - The generated response or validation error
 ///
 /// # Errors
 ///
@@ -52,7 +52,8 @@ use serde_json::Value;
 ///
 /// let prompt = Prompt::text("Tell me a joke");
 /// let settings = CallSettings::default();
-/// generate_text(model, prompt, settings, None, None, None)?;
+/// let response = generate_text(model, prompt, settings, None, None, None).await?;
+/// println!("Response: {:?}", response.content);
 /// ```
 pub async fn generate_text(
     model: &dyn LanguageModel,
@@ -61,7 +62,7 @@ pub async fn generate_text(
     tools: Option<Vec<Tool<Value, Value>>>,
     tool_choice: Option<ToolChoice>,
     provider_options: Option<ProviderOptions>,
-) -> Result<(), AISDKError> {
+) -> Result<ai_sdk_provider::language_model::LanguageModelGenerateResponse, AISDKError> {
     // Step 1: Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
@@ -130,12 +131,11 @@ pub async fn generate_text(
     }
 
     // Step 6: Call model.do_generate
-    let _response = model.do_generate(call_options).await
+    let response = model.do_generate(call_options).await
         .map_err(|e| AISDKError::model_error(e.to_string()))?;
 
-    // TODO: Process and return the response
-    // For now, just return Ok
-    Ok(())
+    // Return the response
+    Ok(response)
 }
 
 /// Convert a core Tool to a provider Tool.

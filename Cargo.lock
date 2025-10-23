@@ -31,6 +31,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-examples"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-provider",
+ "openai-compatible",
+ "tokio",
+]
+
+[[package]]
 name = "ai-sdk-provider"
 version = "0.1.0"
 dependencies = [

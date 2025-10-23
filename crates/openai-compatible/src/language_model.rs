@@ -358,7 +358,7 @@ struct OpenAIFunction {
 #[derive(Debug, Deserialize)]
 struct OpenAIChatResponse {
     id: String,
-    _object: String,
+    object: String,
     created: u64,
     model: String,
     choices: Vec<OpenAIChoice>,
@@ -368,7 +368,7 @@ struct OpenAIChatResponse {
 /// OpenAI choice in response
 #[derive(Debug, Deserialize)]
 struct OpenAIChoice {
-    _index: u32,
+    index: u32,
     message: OpenAIMessage,
     finish_reason: Option<String>,
 }
@@ -376,7 +376,7 @@ struct OpenAIChoice {
 /// OpenAI message in response
 #[derive(Debug, Deserialize)]
 struct OpenAIMessage {
-    _role: String,
+    role: String,
     content: Option<String>,
     #[serde(default)]
     tool_calls: Option<Vec<OpenAIToolCall>>,
@@ -393,7 +393,7 @@ struct OpenAIMessage {
 struct OpenAIToolCall {
     id: Option<String>,
     #[serde(rename = "type")]
-    _tool_type: String,
+    tool_type: String,
     function: OpenAIToolCallFunction,
 }
 
@@ -420,8 +420,8 @@ struct OpenAIUsage {
 #[derive(Debug, Deserialize)]
 struct OpenAICompletionTokensDetails {
     reasoning_tokens: Option<u64>,
-    _accepted_prediction_tokens: Option<u64>,
-    _rejected_prediction_tokens: Option<u64>,
+    accepted_prediction_tokens: Option<u64>,
+    rejected_prediction_tokens: Option<u64>,
 }
 
 /// OpenAI prompt tokens details

@@ -168,6 +168,41 @@ The SDK follows a layered architecture inspired by Vercel's AI SDK:
 - Embedding support
 - Image generation
 
+## Examples
+
+The project includes real-world examples that you can run with your own API key:
+
+### Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Add your API key to `.env`:
+```
+OPENAI_API_KEY=sk-your-actual-api-key-here
+```
+
+### Running Examples
+
+```bash
+# Basic chat example - simple text generation
+export OPENAI_API_KEY="your-api-key"
+cargo run --example basic_chat
+
+# Conversation example - system messages and temperature settings
+export OPENAI_API_KEY="your-api-key"
+cargo run --example conversation
+```
+
+The examples demonstrate:
+- Creating providers with environment variables
+- Using `generate_text` with real API calls
+- Handling responses and metadata
+- System messages and temperature settings
+- Token usage tracking
+
 ## Development
 
 ### Running Tests
@@ -196,6 +231,9 @@ cargo build --release
 
 # Check without building
 cargo check
+
+# Check examples
+cargo check --examples
 ```
 
 ## Contributing
