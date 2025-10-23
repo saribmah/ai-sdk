@@ -194,6 +194,10 @@ cargo run --example basic_chat
 # Conversation example - system messages and temperature settings
 export OPENAI_API_KEY="your-api-key"
 cargo run --example conversation
+
+# Tool calling example - function calling with a weather tool
+export OPENAI_API_KEY="your-api-key"
+cargo run --example tool_calling
 ```
 
 The examples demonstrate:
@@ -202,6 +206,7 @@ The examples demonstrate:
 - Handling responses and metadata
 - System messages and temperature settings
 - Token usage tracking
+- Tool/function calling and handling tool call responses
 
 ## Development
 

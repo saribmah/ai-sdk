@@ -4,4 +4,4 @@ pub mod message;
 pub mod prompt;
 
 pub use error::AISDKError;
-pub use generate_text::generate_text;
+pub use generate_text::{generate_text, prepare_tools_and_tool_choice, ToolSet};

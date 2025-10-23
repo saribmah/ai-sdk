@@ -21,6 +21,11 @@ use ai_sdk_provider::{
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
+use std::collections::HashMap;
+
+/// A set of tools indexed by their names.
+/// The key is the tool name that will be used by the language model.
+pub type ToolSet = HashMap<String, Tool<Value, Value>>;
 
 /// Generate text using a language model.
 ///
@@ -32,7 +37,7 @@ use serde_json::Value;
 /// * `model` - The language model to use for generation
 /// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
 /// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
-/// * `tools` - Optional tools that the model can call. The model needs to support calling tools.
+/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
 /// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
 /// * `provider_options` - Optional provider-specific options.
 ///
@@ -59,7 +64,7 @@ pub async fn generate_text(
     model: &dyn LanguageModel,
     prompt: Prompt,
     settings: CallSettings,
-    tools: Option<Vec<Tool<Value, Value>>>,
+    tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
     provider_options: Option<ProviderOptions>,
 ) -> Result<ai_sdk_provider::language_model::LanguageModelGenerateResponse, AISDKError> {
@@ -72,13 +77,8 @@ pub async fn generate_text(
     // Step 3: Convert to language model format (provider messages)
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
-    // Step 4: Convert tools from core to provider format
-    let provider_tools = tools.map(|core_tools| {
-        core_tools
-            .into_iter()
-            .map(convert_tool_to_provider)
-            .collect::<Vec<_>>()
-    });
+    // Step 4: Prepare tools and tool choice
+    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools, tool_choice);
 
     // Step 5: Build CallOptions
     let mut call_options = CallOptions::new(messages);
@@ -113,7 +113,7 @@ pub async fn generate_text(
     if let Some(tools) = provider_tools {
         call_options = call_options.with_tools(tools);
     }
-    if let Some(choice) = tool_choice {
+    if let Some(choice) = prepared_tool_choice {
         call_options = call_options.with_tool_choice(choice);
     }
 
@@ -138,13 +138,55 @@ pub async fn generate_text(
     Ok(response)
 }
 
+/// Prepares tools and tool choice for the language model.
+///
+/// Converts a ToolSet (HashMap of tool names to tools) into provider tools
+/// and prepares the tool choice strategy.
+///
+/// # Arguments
+///
+/// * `tools` - Optional tool set (HashMap of tool names to tools)
+/// * `tool_choice` - Optional tool choice strategy
+///
+/// # Returns
+///
+/// A tuple of (Option<Vec<ProviderTool>>, Option<ToolChoice>)
+pub fn prepare_tools_and_tool_choice(
+    tools: Option<ToolSet>,
+    tool_choice: Option<ToolChoice>,
+) -> (Option<Vec<ProviderTool>>, Option<ToolChoice>) {
+    // If no tools provided, return None for both
+    if tools.is_none() || tools.as_ref().map(|t| t.is_empty()).unwrap_or(true) {
+        return (None, None);
+    }
+
+    let tools = tools.unwrap();
+    let mut language_model_tools = Vec::new();
+
+    // Convert each tool in the toolset to a provider tool
+    for (name, tool) in tools {
+        let provider_tool = convert_tool_to_provider(name, tool);
+        language_model_tools.push(provider_tool);
+    }
+
+    // Prepare tool choice - if not specified, default to auto
+    let prepared_tool_choice = tool_choice.or(Some(ToolChoice::Auto));
+
+    (Some(language_model_tools), prepared_tool_choice)
+}
+
 /// Convert a core Tool to a provider Tool.
-fn convert_tool_to_provider(core_tool: Tool<Value, Value>) -> ProviderTool {
+///
+/// # Arguments
+///
+/// * `name` - The name of the tool (from the ToolSet key)
+/// * `core_tool` - The tool definition
+fn convert_tool_to_provider(name: String, core_tool: Tool<Value, Value>) -> ProviderTool {
     use crate::message::tool::definition::ToolType;
 
     match core_tool.tool_type {
         ToolType::Function => {
-            let mut function_tool = FunctionTool::new("function", core_tool.input_schema);
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
 
             if let Some(desc) = core_tool.description {
                 function_tool = function_tool.with_description(desc);
@@ -157,7 +199,7 @@ fn convert_tool_to_provider(core_tool: Tool<Value, Value>) -> ProviderTool {
         }
         ToolType::Dynamic => {
             // Dynamic tools are treated as function tools in the provider
-            let mut function_tool = FunctionTool::new("dynamic", core_tool.input_schema);
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
 
             if let Some(desc) = core_tool.description {
                 function_tool = function_tool.with_description(desc);
@@ -168,7 +210,8 @@ fn convert_tool_to_provider(core_tool: Tool<Value, Value>) -> ProviderTool {
 
             ProviderTool::Function(function_tool)
         }
-        ToolType::ProviderDefined { id, name, args } => {
+        ToolType::ProviderDefined { id, name: _, args } => {
+            // For provider-defined tools, use the HashMap key as the name
             let provider_tool = ProviderDefinedTool::new(id, name, args);
             ProviderTool::ProviderDefined(provider_tool)
         }

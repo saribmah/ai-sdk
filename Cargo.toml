@@ -28,6 +28,7 @@ ai-sdk-core = { path = "ai-sdk-core" }
 ai-sdk-provider = { path = "ai-sdk-provider" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 tokio = { version = "1.41", features = ["full"] }
+serde_json = "1.0"
 
 [[example]]
 name = "basic_chat"
@@ -36,3 +37,7 @@ path = "examples/basic_chat.rs"
 [[example]]
 name = "conversation"
 path = "examples/conversation.rs"
+
+[[example]]
+name = "tool_calling"
+path = "examples/tool_calling.rs"
