@@ -100,19 +100,22 @@ pub async fn generate_text(
     // and callbacks will be implemented in a future update.
     // For now, the function performs a single generation step.
 
-    // Step 1: Prepare and validate call settings
+    // Step 1: Prepare retries
+    let _retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
+
+    // Step 2: Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
-    // Step 2: Validate and standardize the prompt
+    // Step 3: Validate and standardize the prompt
     let initial_prompt = validate_and_standardize(prompt)?;
 
-    // Step 3: Convert to language model format (provider messages)
+    // Step 4: Convert to language model format (provider messages)
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
-    // Step 4: Prepare tools and tool choice
+    // Step 5: Prepare tools and tool choice
     let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools, tool_choice);
 
-    // Step 5: Build CallOptions
+    // Step 6: Build CallOptions
     let mut call_options = CallOptions::new(messages);
 
     // Add prepared settings
@@ -162,7 +165,7 @@ pub async fn generate_text(
         call_options = call_options.with_provider_options(opts);
     }
 
-    // Step 6: Call model.do_generate
+    // Step 7: Call model.do_generate
     let response = model.do_generate(call_options).await
         .map_err(|e| AISDKError::model_error(e.to_string()))?;
 

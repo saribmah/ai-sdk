@@ -421,7 +421,7 @@ mod tests {
 
         // Call generate_text - this will make an actual HTTP request and fail
         // because we're using a test API key, but it tests the integration
-        let result = generate_text(&*model, prompt, call_settings, None, None, None).await;
+        let result = generate_text(&*model, prompt, call_settings, None, None, None, None, None, None, None).await;
 
         // Expect a ModelError (either network error or API auth error)
         // The important part is that the integration between generate_text and our provider works
