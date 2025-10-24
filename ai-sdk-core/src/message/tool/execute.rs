@@ -1,5 +1,4 @@
 use futures_util::Stream;
-use serde::{Deserialize, Serialize};
 use super::definition::{ToolExecuteFunction, ToolExecutionOutput};
 use super::options::ToolCallOptions;
 

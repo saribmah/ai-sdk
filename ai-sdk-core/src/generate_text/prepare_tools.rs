@@ -1,0 +1,123 @@
+use crate::message::tool::definition::Tool;
+use ai_sdk_provider::{
+    language_model::{
+        call_options::Tool as ProviderTool,
+        function_tool::FunctionTool,
+        provider_defined_tool::ProviderDefinedTool,
+    },
+    language_model::tool_choice::ToolChoice,
+};
+use serde_json::Value;
+use std::collections::HashMap;
+
+/// A set of tools indexed by their names.
+/// The key is the tool name that will be used by the language model.
+///
+/// # Example
+///
+/// ```
+/// use ai_sdk_core::ToolSet;
+/// use ai_sdk_core::message::tool::definition::Tool;
+/// use serde_json::json;
+///
+/// let mut tools = ToolSet::new();
+/// tools.insert("get_weather".to_string(), Tool::function(json!({
+///     "type": "object",
+///     "properties": {
+///         "city": { "type": "string" }
+///     }
+/// })));
+/// ```
+pub type ToolSet = HashMap<String, Tool<Value, Value>>;
+
+/// Prepares tools and tool choice for the language model.
+///
+/// Converts a ToolSet (HashMap of tool names to tools) into provider tools
+/// and prepares the tool choice strategy.
+///
+/// # Arguments
+///
+/// * `tools` - Optional tool set (HashMap of tool names to tools)
+/// * `tool_choice` - Optional tool choice strategy
+///
+/// # Returns
+///
+/// A tuple of (Option<Vec<ProviderTool>>, Option<ToolChoice>)
+///
+/// # Example
+///
+/// ```ignore
+/// use ai_sdk_core::{ToolSet, prepare_tools_and_tool_choice};
+/// use ai_sdk_core::message::tool::definition::Tool;
+///
+/// let mut tools = ToolSet::new();
+/// tools.insert("my_tool".to_string(), Tool::function(...));
+///
+/// let (provider_tools, tool_choice) = prepare_tools_and_tool_choice(Some(tools), None);
+/// ```
+pub fn prepare_tools_and_tool_choice(
+    tools: Option<ToolSet>,
+    tool_choice: Option<ToolChoice>,
+) -> (Option<Vec<ProviderTool>>, Option<ToolChoice>) {
+    // If no tools provided, return None for both
+    if tools.is_none() || tools.as_ref().map(|t| t.is_empty()).unwrap_or(true) {
+        return (None, None);
+    }
+
+    let tools = tools.unwrap();
+    let mut language_model_tools = Vec::new();
+
+    // Convert each tool in the toolset to a provider tool
+    for (name, tool) in tools {
+        let provider_tool = convert_tool_to_provider(name, tool);
+        language_model_tools.push(provider_tool);
+    }
+
+    // Prepare tool choice - if not specified, default to auto
+    let prepared_tool_choice = tool_choice.or(Some(ToolChoice::Auto));
+
+    (Some(language_model_tools), prepared_tool_choice)
+}
+
+/// Convert a core Tool to a provider Tool.
+///
+/// # Arguments
+///
+/// * `name` - The name of the tool (from the ToolSet key)
+/// * `core_tool` - The tool definition
+fn convert_tool_to_provider(name: String, core_tool: Tool<Value, Value>) -> ProviderTool {
+    use crate::message::tool::definition::ToolType;
+
+    match core_tool.tool_type {
+        ToolType::Function => {
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
+
+            if let Some(desc) = core_tool.description {
+                function_tool = function_tool.with_description(desc);
+            }
+            if let Some(opts) = core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts);
+            }
+
+            ProviderTool::Function(function_tool)
+        }
+        ToolType::Dynamic => {
+            // Dynamic tools are treated as function tools in the provider
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
+
+            if let Some(desc) = core_tool.description {
+                function_tool = function_tool.with_description(desc);
+            }
+            if let Some(opts) = core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts);
+            }
+
+            ProviderTool::Function(function_tool)
+        }
+        ToolType::ProviderDefined { id, name: _, args } => {
+            // For provider-defined tools, use the HashMap key as the name
+            let provider_tool = ProviderDefinedTool::new(id, name, args);
+            ProviderTool::ProviderDefined(provider_tool)
+        }
+    }
+}
