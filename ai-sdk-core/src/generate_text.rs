@@ -1,9 +1,10 @@
 mod retries;
+mod prepare_tools;
 
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
+pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
 
 use crate::error::AISDKError;
-use crate::message::tool::definition::Tool;
 use crate::prompt::{
     call_settings::{prepare_call_settings, CallSettings},
     convert_to_language_model_prompt::convert_to_language_model_prompt,
@@ -11,16 +12,10 @@ use crate::prompt::{
     Prompt,
 };
 use ai_sdk_provider::{
-    language_model::{
-        call_options::{CallOptions, Tool as ProviderTool},
-        function_tool::FunctionTool,
-        provider_defined_tool::ProviderDefinedTool,
-        LanguageModel,
-    },
+    language_model::{call_options::CallOptions, LanguageModel},
     language_model::tool_choice::ToolChoice,
     shared::provider_options::ProviderOptions,
 };
-use serde_json::Value;
 
 /// Generate text using a language model.
 ///
@@ -32,7 +27,7 @@ use serde_json::Value;
 /// * `model` - The language model to use for generation
 /// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
 /// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
-/// * `tools` - Optional tools that the model can call. The model needs to support calling tools.
+/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
 /// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
 /// * `provider_options` - Optional provider-specific options.
 ///
@@ -59,7 +54,7 @@ pub async fn generate_text(
     model: &dyn LanguageModel,
     prompt: Prompt,
     settings: CallSettings,
-    tools: Option<Vec<Tool<Value, Value>>>,
+    tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
     provider_options: Option<ProviderOptions>,
 ) -> Result<ai_sdk_provider::language_model::LanguageModelGenerateResponse, AISDKError> {
@@ -72,13 +67,8 @@ pub async fn generate_text(
     // Step 3: Convert to language model format (provider messages)
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
-    // Step 4: Convert tools from core to provider format
-    let provider_tools = tools.map(|core_tools| {
-        core_tools
-            .into_iter()
-            .map(convert_tool_to_provider)
-            .collect::<Vec<_>>()
-    });
+    // Step 4: Prepare tools and tool choice
+    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools, tool_choice);
 
     // Step 5: Build CallOptions
     let mut call_options = CallOptions::new(messages);
@@ -113,7 +103,7 @@ pub async fn generate_text(
     if let Some(tools) = provider_tools {
         call_options = call_options.with_tools(tools);
     }
-    if let Some(choice) = tool_choice {
+    if let Some(choice) = prepared_tool_choice {
         call_options = call_options.with_tool_choice(choice);
     }
 
@@ -138,43 +128,6 @@ pub async fn generate_text(
     Ok(response)
 }
 
-/// Convert a core Tool to a provider Tool.
-fn convert_tool_to_provider(core_tool: Tool<Value, Value>) -> ProviderTool {
-    use crate::message::tool::definition::ToolType;
-
-    match core_tool.tool_type {
-        ToolType::Function => {
-            let mut function_tool = FunctionTool::new("function", core_tool.input_schema);
-
-            if let Some(desc) = core_tool.description {
-                function_tool = function_tool.with_description(desc);
-            }
-            if let Some(opts) = core_tool.provider_options {
-                function_tool = function_tool.with_provider_options(opts);
-            }
-
-            ProviderTool::Function(function_tool)
-        }
-        ToolType::Dynamic => {
-            // Dynamic tools are treated as function tools in the provider
-            let mut function_tool = FunctionTool::new("dynamic", core_tool.input_schema);
-
-            if let Some(desc) = core_tool.description {
-                function_tool = function_tool.with_description(desc);
-            }
-            if let Some(opts) = core_tool.provider_options {
-                function_tool = function_tool.with_provider_options(opts);
-            }
-
-            ProviderTool::Function(function_tool)
-        }
-        ToolType::ProviderDefined { id, name, args } => {
-            let provider_tool = ProviderDefinedTool::new(id, name, args);
-            ProviderTool::ProviderDefined(provider_tool)
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,6 +137,7 @@ mod tests {
     use async_trait::async_trait;
     use std::collections::HashMap;
     use regex::Regex;
+    use serde_json::Value;
 
     // Mock LanguageModel for testing
     struct MockLanguageModel {

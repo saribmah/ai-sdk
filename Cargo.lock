@@ -37,6 +37,7 @@ dependencies = [
  "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
+ "serde_json",
  "tokio",
 ]
 
