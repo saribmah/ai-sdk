@@ -3,6 +3,8 @@ mod prepare_tools;
 mod tool_result;
 mod step_result;
 mod stop_condition;
+mod prepare_step;
+mod callbacks;
 
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
@@ -11,6 +13,8 @@ pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
 };
+pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 
 use crate::error::AISDKError;
 use crate::prompt::{
@@ -40,6 +44,9 @@ use ai_sdk_provider::{
 /// * `provider_options` - Optional provider-specific options.
 /// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
 ///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
+/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
+/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
+/// * `on_finish` - Optional callback called when all steps are finished and response is complete.
 ///
 /// # Returns
 ///
@@ -65,6 +72,9 @@ use ai_sdk_provider::{
 ///     None,
 ///     None,
 ///     Some(vec![Box::new(step_count_is(1))]),
+///     None,
+///     None,
+///     None,
 /// ).await?;
 /// println!("Response: {:?}", response.content);
 /// ```
@@ -76,11 +86,18 @@ pub async fn generate_text(
     tool_choice: Option<ToolChoice>,
     provider_options: Option<ProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    on_step_finish: Option<Box<dyn OnStepFinish>>,
+    on_finish: Option<Box<dyn OnFinish>>,
 ) -> Result<ai_sdk_provider::language_model::LanguageModelGenerateResponse, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let _stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
+    let _prepare_step = prepare_step;
+    let _on_step_finish = on_step_finish;
+    let _on_finish = on_finish;
 
-    // Note: Multi-step generation logic with stop conditions will be implemented in a future update.
+    // Note: Multi-step generation logic with stop conditions, step preparation,
+    // and callbacks will be implemented in a future update.
     // For now, the function performs a single generation step.
 
     // Step 1: Prepare and validate call settings
@@ -218,7 +235,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         // Check that it's a model error (from do_generate), not a validation error
         match result {
@@ -238,7 +255,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -255,7 +272,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, tool_choice, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, tool_choice, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -279,7 +296,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options), None).await;
+        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options), None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -294,7 +311,7 @@ mod tests {
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -311,7 +328,7 @@ mod tests {
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -328,7 +345,7 @@ mod tests {
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
-        let result = generate_text(&model, prompt, settings, None, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidPrompt { message }) => {

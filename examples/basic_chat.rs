@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate text
     println!("⏳ Generating response...\n");
-    let result = generate_text(&*model, prompt, settings, None, None, None, None).await?;
+    let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
 
     // Display the response
     println!("✅ Response received!\n");
