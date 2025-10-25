@@ -5,6 +5,7 @@ mod step_result;
 mod stop_condition;
 mod prepare_step;
 mod callbacks;
+mod response_message;
 
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
@@ -15,6 +16,7 @@ pub use stop_condition::{
 };
 pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
+pub use response_message::ResponseMessage;
 
 use crate::error::AISDKError;
 use crate::prompt::{
@@ -95,6 +97,9 @@ pub async fn generate_text(
     let _prepare_step = prepare_step;
     let _on_step_finish = on_step_finish;
     let _on_finish = on_finish;
+
+    // Initialize response messages array for multi-step generation
+    let _response_messages: Vec<ResponseMessage> = Vec::new();
 
     // Note: Multi-step generation logic with stop conditions, step preparation,
     // and callbacks will be implemented in a future update.
