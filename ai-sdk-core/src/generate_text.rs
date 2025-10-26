@@ -1,6 +1,8 @@
 mod retries;
 mod prepare_tools;
-mod tool_result;
+pub mod tool_result;
+pub mod tool_error;
+pub mod tool_output;
 mod step_result;
 mod stop_condition;
 mod prepare_step;
@@ -11,6 +13,8 @@ mod parse_tool_call;
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
+pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
+pub use tool_output::ToolOutput;
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
@@ -23,6 +27,7 @@ pub use parse_tool_call::{
 };
 
 use crate::error::AISDKError;
+use crate::message::tool::options::ToolCallOptions;
 use crate::prompt::{
     call_settings::{prepare_call_settings, CallSettings},
     convert_to_language_model_prompt::convert_to_language_model_prompt,
@@ -34,6 +39,63 @@ use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
     shared::provider_options::ProviderOptions,
 };
+use serde_json::Value;
+use std::collections::HashMap;
+use tokio_util::sync::CancellationToken;
+
+/// Executes client tool calls and returns the outputs.
+///
+/// This function takes a list of parsed tool calls that need to be executed on the client side
+/// (not provider-executed), looks up each tool in the tool set, and executes them.
+///
+/// # Arguments
+///
+/// * `tool_calls` - References to the parsed tool calls to execute
+/// * `tools` - The tool set containing tool definitions
+/// * `abort_signal` - Optional cancellation token for aborting tool execution
+///
+/// # Returns
+///
+/// A vector of tool outputs (as JSON values). Only successful executions are included.
+///
+/// # Example
+///
+/// ```ignore
+/// let outputs = execute_client_tools(
+///     &client_tool_calls,
+///     tool_set,
+///     Some(abort_signal),
+/// ).await;
+/// ```
+async fn execute_client_tools(
+    tool_calls: &[&ParsedToolCall],
+    tools: &ToolSet,
+    abort_signal: Option<CancellationToken>,
+) -> Vec<Value> {
+    let mut outputs = Vec::new();
+
+    for tool_call in tool_calls {
+        // Look up the tool in the tool set
+        if let Some(tool) = tools.get(&tool_call.tool_name) {
+            // Create tool call options
+            // Note: We pass empty messages for now. In multi-step generation,
+            // we would pass the actual conversation messages.
+            let mut options = ToolCallOptions::new(&tool_call.tool_call_id, vec![]);
+
+            // Add abort signal if available
+            if let Some(signal) = abort_signal.clone() {
+                options = options.with_abort_signal(signal);
+            }
+
+            // Execute the tool
+            if let Some(output) = tool.execute_tool(tool_call.input.clone(), options).await {
+                outputs.push(output);
+            }
+        }
+    }
+
+    outputs
+}
 
 /// Generate text using a language model.
 ///
@@ -217,31 +279,11 @@ pub async fn generate_text(
         .collect();
 
     // Execute client tool calls and collect outputs
-    use crate::message::tool::options::ToolCallOptions;
-
-    let mut _client_tool_outputs: Vec<serde_json::Value> = Vec::new();
-
-    if let Some(tool_set) = tools.as_ref() {
-        for tool_call in client_tool_calls {
-            // Look up the tool in the tool set
-            if let Some(tool) = tool_set.get(&tool_call.tool_name) {
-                // Create tool call options
-                // Note: We pass empty messages for now. In multi-step generation,
-                // we would pass the actual conversation messages.
-                let mut options = ToolCallOptions::new(&tool_call.tool_call_id, vec![]);
-
-                // Add abort signal if available
-                if let Some(signal) = abort_signal_for_tools.clone() {
-                    options = options.with_abort_signal(signal);
-                }
-
-                // Execute the tool
-                if let Some(output) = tool.execute_tool(tool_call.input.clone(), options).await {
-                    _client_tool_outputs.push(output);
-                }
-            }
-        }
-    }
+    let _client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
+        execute_client_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
+    } else {
+        Vec::new()
+    };
 
     // Return the response
     Ok(response)

@@ -286,6 +286,18 @@ pub enum TypedToolResult<INPUT, OUTPUT> {
     Dynamic(DynamicToolResult),
 }
 
+impl<INPUT, OUTPUT> From<StaticToolResult<INPUT, OUTPUT>> for TypedToolResult<INPUT, OUTPUT> {
+    fn from(result: StaticToolResult<INPUT, OUTPUT>) -> Self {
+        TypedToolResult::Static(result)
+    }
+}
+
+impl<INPUT, OUTPUT> From<DynamicToolResult> for TypedToolResult<INPUT, OUTPUT> {
+    fn from(result: DynamicToolResult) -> Self {
+        TypedToolResult::Dynamic(result)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
