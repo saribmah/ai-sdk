@@ -14,6 +14,19 @@ pub enum AISDKError {
 
     #[error("Model error: {message}")]
     ModelError { message: String },
+
+    #[error("Invalid tool input for tool '{tool_name}': {message}")]
+    InvalidToolInput {
+        tool_name: String,
+        tool_input: String,
+        message: String,
+    },
+
+    #[error("No such tool: '{tool_name}'. Available tools: {available_tools:?}")]
+    NoSuchTool {
+        tool_name: String,
+        available_tools: Vec<String>,
+    },
 }
 
 impl AISDKError {
@@ -34,6 +47,25 @@ impl AISDKError {
     pub fn model_error(message: impl Into<String>) -> Self {
         Self::ModelError {
             message: message.into(),
+        }
+    }
+
+    pub fn invalid_tool_input(
+        tool_name: impl Into<String>,
+        tool_input: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::InvalidToolInput {
+            tool_name: tool_name.into(),
+            tool_input: tool_input.into(),
+            message: message.into(),
+        }
+    }
+
+    pub fn no_such_tool(tool_name: impl Into<String>, available_tools: Vec<String>) -> Self {
+        Self::NoSuchTool {
+            tool_name: tool_name.into(),
+            available_tools,
         }
     }
 }

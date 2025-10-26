@@ -6,6 +6,7 @@ mod stop_condition;
 mod prepare_step;
 mod callbacks;
 mod response_message;
+mod parse_tool_call;
 
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
@@ -17,6 +18,9 @@ pub use stop_condition::{
 pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use response_message::ResponseMessage;
+pub use parse_tool_call::{
+    parse_provider_executed_dynamic_tool_call, parse_tool_call, ParsedToolCall,
+};
 
 use crate::error::AISDKError;
 use crate::prompt::{
@@ -118,7 +122,7 @@ pub async fn generate_text(
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
     // Step 5: Prepare tools and tool choice
-    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools, tool_choice);
+    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
     // Step 6: Build CallOptions
     let mut call_options = CallOptions::new(messages);
@@ -173,6 +177,30 @@ pub async fn generate_text(
     // Step 7: Call model.do_generate
     let response = model.do_generate(call_options).await
         .map_err(|e| AISDKError::model_error(e.to_string()))?;
+
+    // Step 8: Parse tool calls from the response
+    use ai_sdk_provider::language_model::content::Content;
+
+    let _step_tool_calls: Vec<ParsedToolCall> = if let Some(tool_set) = tools.as_ref() {
+        response
+            .content
+            .iter()
+            .filter_map(|part| {
+                if let Content::ToolCall(tool_call) = part {
+                    Some(tool_call)
+                } else {
+                    None
+                }
+            })
+            .map(|tool_call| {
+                // Parse each tool call against the tool set
+                parse_tool_call(tool_call, tool_set)
+            })
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        // No tools provided, so no tool calls to parse
+        Vec::new()
+    };
 
     // Return the response
     Ok(response)
