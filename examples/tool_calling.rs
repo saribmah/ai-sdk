@@ -58,6 +58,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tool");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
+    use ai_sdk_core::message::tool::definition::ToolExecutionOutput;
+
     let weather_tool = Tool::function(json!({
         "type": "object",
         "properties": {
@@ -68,7 +70,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         "required": ["city"]
     }))
-    .with_description("Get the current weather for a given city");
+    .with_description("Get the current weather for a given city")
+    .with_execute(Box::new(|input: Value, _options| {
+        println!("\n🔧 TOOL EXECUTION TRIGGERED!");
+        println!("🔧 Tool: get_weather");
+        println!("🔧 Input: {}", input);
+
+        let city = input.get("city")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown");
+
+        let weather_data = get_weather(city);
+        println!("🔧 Output: {}\n", weather_data);
+
+        ToolExecutionOutput::Single(Box::pin(async move {
+            weather_data
+        }))
+    }));
 
     // Create a ToolSet (HashMap of tool names to tools)
     let mut tools = ToolSet::new();

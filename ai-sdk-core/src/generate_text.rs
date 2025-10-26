@@ -165,6 +165,8 @@ pub async fn generate_text(
     if let Some(headers) = settings.headers {
         call_options = call_options.with_headers(headers);
     }
+    // Clone abort signal so we can use it later for tool execution
+    let abort_signal_for_tools = settings.abort_signal.clone();
     if let Some(signal) = settings.abort_signal {
         call_options = call_options.with_abort_signal(signal);
     }
@@ -181,7 +183,7 @@ pub async fn generate_text(
     // Step 8: Parse tool calls from the response
     use ai_sdk_provider::language_model::content::Content;
 
-    let _step_tool_calls: Vec<ParsedToolCall> = if let Some(tool_set) = tools.as_ref() {
+    let step_tool_calls: Vec<ParsedToolCall> = if let Some(tool_set) = tools.as_ref() {
         response
             .content
             .iter()
@@ -201,6 +203,45 @@ pub async fn generate_text(
         // No tools provided, so no tool calls to parse
         Vec::new()
     };
+
+    // Step 9: Filter and execute client tool calls
+    // Note: In the TypeScript implementation, invalid tool calls are tracked separately.
+    // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
+
+    // Filter client tool calls (those not executed by the provider)
+    let client_tool_calls: Vec<&ParsedToolCall> = step_tool_calls
+        .iter()
+        .filter(|tool_call| {
+            tool_call.provider_executed != Some(true)
+        })
+        .collect();
+
+    // Execute client tool calls and collect outputs
+    use crate::message::tool::options::ToolCallOptions;
+
+    let mut _client_tool_outputs: Vec<serde_json::Value> = Vec::new();
+
+    if let Some(tool_set) = tools.as_ref() {
+        for tool_call in client_tool_calls {
+            // Look up the tool in the tool set
+            if let Some(tool) = tool_set.get(&tool_call.tool_name) {
+                // Create tool call options
+                // Note: We pass empty messages for now. In multi-step generation,
+                // we would pass the actual conversation messages.
+                let mut options = ToolCallOptions::new(&tool_call.tool_call_id, vec![]);
+
+                // Add abort signal if available
+                if let Some(signal) = abort_signal_for_tools.clone() {
+                    options = options.with_abort_signal(signal);
+                }
+
+                // Execute the tool
+                if let Some(output) = tool.execute_tool(tool_call.input.clone(), options).await {
+                    _client_tool_outputs.push(output);
+                }
+            }
+        }
+    }
 
     // Return the response
     Ok(response)
