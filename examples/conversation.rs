@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create OpenAI provider
     let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
+        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
             .with_api_key(api_key),
     );
 

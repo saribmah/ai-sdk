@@ -82,6 +82,97 @@ impl OpenAICompatibleLanguageModel {
     }
 }
 
+/// Convert provider messages to OpenAI-specific format
+fn convert_messages_to_openai(
+    messages: Vec<ai_sdk_provider::language_model::prompt::Message>,
+) -> Result<Vec<OpenAIRequestMessage>, Box<dyn std::error::Error>> {
+    use ai_sdk_provider::language_model::prompt::{AssistantMessagePart, Message};
+
+    let mut openai_messages = Vec::new();
+
+    for message in messages {
+        let openai_msg = match message {
+            Message::System { content, .. } => OpenAIRequestMessage::System { content },
+
+            Message::User { content, .. } => {
+                // Serialize user content to JSON value
+                let content_json = serde_json::to_value(&content)?;
+                OpenAIRequestMessage::User {
+                    content: content_json,
+                }
+            }
+
+            Message::Assistant { content, .. } => {
+                // Separate tool calls from other content
+                let mut tool_calls_vec = Vec::new();
+                let mut other_content = Vec::new();
+
+                for part in content {
+                    match part {
+                        AssistantMessagePart::ToolCall {
+                            tool_call_id,
+                            tool_name,
+                            input,
+                            ..
+                        } => {
+                            // Convert Value to JSON string for OpenAI
+                            let arguments_str = serde_json::to_string(&input)?;
+                            tool_calls_vec.push(OpenAIRequestToolCall {
+                                id: tool_call_id,
+                                tool_type: "function".to_string(),
+                                function: OpenAIRequestFunctionCall {
+                                    name: tool_name,
+                                    arguments: arguments_str,
+                                },
+                            });
+                        }
+                        _ => other_content.push(part),
+                    }
+                }
+
+                // Build content value (text, reasoning, etc.)
+                let content_value = if other_content.is_empty() {
+                    None
+                } else {
+                    Some(serde_json::to_value(&other_content)?)
+                };
+
+                // Build tool_calls array
+                let tool_calls = if tool_calls_vec.is_empty() {
+                    None
+                } else {
+                    Some(tool_calls_vec)
+                };
+
+                OpenAIRequestMessage::Assistant {
+                    content: content_value,
+                    tool_calls,
+                }
+            }
+
+            Message::Tool { content, .. } => {
+                // Tool messages contain tool results
+                // OpenAI requires one tool message per tool result with matching tool_call_id
+                // So we need to expand this into multiple messages
+                for result in content {
+                    let result_content = serde_json::to_string(&result.output)
+                        .unwrap_or_else(|_| "{}".to_string());
+
+                    openai_messages.push(OpenAIRequestMessage::Tool {
+                        content: result_content,
+                        tool_call_id: result.tool_call_id.clone(),
+                    });
+                }
+                continue; // Skip the push at the end since we already added messages
+            }
+        };
+
+        openai_messages.push(openai_msg);
+    }
+
+    Ok(openai_messages)
+}
+
 #[async_trait]
 impl LanguageModel for OpenAICompatibleLanguageModel {
     fn provider(&self) -> &str {
@@ -117,10 +208,13 @@ impl LanguageModel for OpenAICompatibleLanguageModel {
         use ai_sdk_provider::language_model::usage::Usage;
         use ai_sdk_provider::language_model::RequestMetadata;
 
+        // Convert provider messages to OpenAI format
+        let openai_messages = convert_messages_to_openai(options.prompt.clone())?;
+
         // Build the request body
         let request = OpenAIChatRequest {
             model: self.model_id.clone(),
-            messages: options.prompt.clone(),
+            messages: openai_messages,
             max_tokens: options.max_output_tokens,
             temperature: options.temperature,
             top_p: options.top_p,
@@ -300,11 +394,49 @@ pub fn create_language_model(
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// OpenAI-specific message format for requests
+#[derive(Debug, Serialize)]
+#[serde(tag = "role", rename_all = "lowercase")]
+enum OpenAIRequestMessage {
+    System {
+        content: String,
+    },
+    User {
+        content: Value,
+    },
+    Assistant {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        content: Option<Value>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        tool_calls: Option<Vec<OpenAIRequestToolCall>>,
+    },
+    Tool {
+        content: String,
+        tool_call_id: String,
+    },
+}
+
+/// OpenAI tool call in assistant message for requests
+#[derive(Debug, Serialize)]
+struct OpenAIRequestToolCall {
+    id: String,
+    #[serde(rename = "type")]
+    tool_type: String,
+    function: OpenAIRequestFunctionCall,
+}
+
+/// OpenAI function call details for requests
+#[derive(Debug, Serialize)]
+struct OpenAIRequestFunctionCall {
+    name: String,
+    arguments: String,
+}
+
 /// OpenAI chat completion request
 #[derive(Debug, Serialize)]
 struct OpenAIChatRequest {
     model: String,
-    messages: Vec<ai_sdk_provider::language_model::prompt::Message>,
+    messages: Vec<OpenAIRequestMessage>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     max_tokens: Option<u32>,

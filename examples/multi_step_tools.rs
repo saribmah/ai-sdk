@@ -11,7 +11,7 @@
 /// cargo run --example multi_step_tools
 /// ```
 
-use ai_sdk_core::{generate_text, ToolSet};
+use ai_sdk_core::{generate_text, step_count_is, ToolSet};
 use ai_sdk_core::message::tool::definition::Tool;
 use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
 use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
@@ -98,11 +98,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create OpenAI provider
     let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
+        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
             .with_api_key(api_key),
     );
 
-    let model = provider.chat_model("gpt-4o-mini");
+    let model = provider.chat_model("openai/gpt-4o");
     println!("✓ Model loaded: {}\n", model.model_id());
 
     // Define tools
@@ -202,7 +202,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_output_tokens(1000);
 
     // Generate with tools - this will execute multiple steps
-    println!("⏳ Starting multi-step generation...\n");
+    println!("⏳ Starting multi-step generation (max 10 steps)...\n");
 
     let result = generate_text(
         &*model,
@@ -211,7 +211,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(tools),
         None,
         None,
-        None, // Using default stop condition (1 step) will be overridden by tool calls
+        Some(vec![Box::new(step_count_is(10))]), // Allow up to 10 steps for multi-step tool execution
         None,
         None,
         None,
@@ -272,7 +272,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\nNote: This example demonstrates how generate_text can:");
     println!("  • Make multiple tool calls in a single step");
     println!("  • Execute tools and incorporate results");
-    println!("  • Continue generation across multiple steps");
+    println!("  • Continue generation across multiple steps (with step_count_is(10))");
     println!("  • Accumulate token usage across all steps\n");
 
     Ok(())
