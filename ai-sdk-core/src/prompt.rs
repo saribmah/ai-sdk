@@ -1,5 +1,6 @@
 pub mod call_settings;
 pub mod convert_to_language_model_prompt;
+pub mod create_tool_model_output;
 pub mod standardize;
 
 use crate::message::ModelMessage;

@@ -77,13 +77,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  • Cached input tokens: {}", result.usage.cached_input_tokens);
     }
 
-    if let Some(response_meta) = &result.response {
-        if let Some(id) = &response_meta.id {
-            println!("  • Response ID: {}", id);
-        }
-        if let Some(model_id) = &response_meta.model_id {
-            println!("  • Model ID: {}", model_id);
-        }
+    if let Some(id) = &result.response.id {
+        println!("  • Response ID: {}", id);
+    }
+    if let Some(model_id) = &result.response.model_id {
+        println!("  • Model ID: {}", model_id);
     }
 
     println!("\n✅ Example completed successfully!");
