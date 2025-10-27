@@ -46,7 +46,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use tokio_util::sync::CancellationToken;
 
-/// Executes client tool calls and returns the outputs.
+/// Executes tool calls and returns the outputs.
 ///
 /// This function takes a list of parsed tool calls that need to be executed on the client side
 /// (not provider-executed), looks up each tool in the tool set, and executes them.
@@ -64,13 +64,13 @@ use tokio_util::sync::CancellationToken;
 /// # Example
 ///
 /// ```ignore
-/// let outputs = execute_client_tools(
-///     &client_tool_calls,
+/// let outputs = execute_tools(
+///     &tool_calls,
 ///     tool_set,
 ///     Some(abort_signal),
 /// ).await;
 /// ```
-async fn execute_client_tools(
+async fn execute_tools(
     tool_calls: &[&ParsedToolCall],
     tools: &ToolSet,
     abort_signal: Option<CancellationToken>,
@@ -307,7 +307,7 @@ pub async fn generate_text(
 
     // Execute client tool calls and collect outputs
     let _client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
-        execute_client_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
+        execute_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
     } else {
         Vec::new()
     };
