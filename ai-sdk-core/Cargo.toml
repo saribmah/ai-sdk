@@ -18,6 +18,8 @@ url = "2.5.7"          # For URL parsing
 ai-sdk-provider = { path = "../ai-sdk-provider" }  # Provider types and traits
 async-stream = "0.3"   # For async generators
 futures-util = "0.3"   # For Stream trait and StreamExt
+async-trait = "0.1.89" # For async trait implementations
+futures = "0.3"        # For future utilities like join_all
 
 [dev-dependencies]
 tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests

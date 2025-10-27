@@ -37,7 +37,7 @@ pub type ToolSet = HashMap<String, Tool<Value, Value>>;
 ///
 /// # Arguments
 ///
-/// * `tools` - Optional tool set (HashMap of tool names to tools)
+/// * `tools` - Optional reference to tool set (HashMap of tool names to tools)
 /// * `tool_choice` - Optional tool choice strategy
 ///
 /// # Returns
@@ -53,14 +53,14 @@ pub type ToolSet = HashMap<String, Tool<Value, Value>>;
 /// let mut tools = ToolSet::new();
 /// tools.insert("my_tool".to_string(), Tool::function(...));
 ///
-/// let (provider_tools, tool_choice) = prepare_tools_and_tool_choice(Some(tools), None);
+/// let (provider_tools, tool_choice) = prepare_tools_and_tool_choice(Some(&tools), None);
 /// ```
 pub fn prepare_tools_and_tool_choice(
-    tools: Option<ToolSet>,
+    tools: Option<&ToolSet>,
     tool_choice: Option<ToolChoice>,
 ) -> (Option<Vec<ProviderTool>>, Option<ToolChoice>) {
     // If no tools provided, return None for both
-    if tools.is_none() || tools.as_ref().map(|t| t.is_empty()).unwrap_or(true) {
+    if tools.is_none() || tools.map(|t| t.is_empty()).unwrap_or(true) {
         return (None, None);
     }
 
@@ -69,7 +69,7 @@ pub fn prepare_tools_and_tool_choice(
 
     // Convert each tool in the toolset to a provider tool
     for (name, tool) in tools {
-        let provider_tool = convert_tool_to_provider(name, tool);
+        let provider_tool = convert_tool_to_provider(name.clone(), tool);
         language_model_tools.push(provider_tool);
     }
 
@@ -85,38 +85,38 @@ pub fn prepare_tools_and_tool_choice(
 ///
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
-fn convert_tool_to_provider(name: String, core_tool: Tool<Value, Value>) -> ProviderTool {
+fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> ProviderTool {
     use crate::message::tool::definition::ToolType;
 
-    match core_tool.tool_type {
+    match &core_tool.tool_type {
         ToolType::Function => {
-            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema.clone());
 
-            if let Some(desc) = core_tool.description {
-                function_tool = function_tool.with_description(desc);
+            if let Some(desc) = &core_tool.description {
+                function_tool = function_tool.with_description(desc.clone());
             }
-            if let Some(opts) = core_tool.provider_options {
-                function_tool = function_tool.with_provider_options(opts);
+            if let Some(opts) = &core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts.clone());
             }
 
             ProviderTool::Function(function_tool)
         }
         ToolType::Dynamic => {
             // Dynamic tools are treated as function tools in the provider
-            let mut function_tool = FunctionTool::new(name, core_tool.input_schema);
+            let mut function_tool = FunctionTool::new(name, core_tool.input_schema.clone());
 
-            if let Some(desc) = core_tool.description {
-                function_tool = function_tool.with_description(desc);
+            if let Some(desc) = &core_tool.description {
+                function_tool = function_tool.with_description(desc.clone());
             }
-            if let Some(opts) = core_tool.provider_options {
-                function_tool = function_tool.with_provider_options(opts);
+            if let Some(opts) = &core_tool.provider_options {
+                function_tool = function_tool.with_provider_options(opts.clone());
             }
 
             ProviderTool::Function(function_tool)
         }
         ToolType::ProviderDefined { id, name: _, args } => {
             // For provider-defined tools, use the HashMap key as the name
-            let provider_tool = ProviderDefinedTool::new(id, name, args);
+            let provider_tool = ProviderDefinedTool::new(id.clone(), name, args.clone());
             ProviderTool::ProviderDefined(provider_tool)
         }
     }

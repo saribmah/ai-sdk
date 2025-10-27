@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_output_tokens(150);
 
     println!("⏳ Generating response...\n");
-    let result = generate_text(&*model, prompt, settings, None, None, None).await?;
+    let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
 
     println!("📝 Response:");
     for content in &result.content {
@@ -83,6 +83,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         None,
         None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
@@ -103,6 +107,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         &*model,
         creative_prompt,
         creative_settings,
+        None,
+        None,
+        None,
+        None,
         None,
         None,
         None,

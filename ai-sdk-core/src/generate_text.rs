@@ -1,8 +1,34 @@
 mod retries;
 mod prepare_tools;
+pub mod tool_result;
+pub mod tool_error;
+pub mod tool_output;
+pub mod tool_call;
+pub mod execute_tool_call;
+mod step_result;
+mod stop_condition;
+mod prepare_step;
+mod callbacks;
+mod response_message;
+mod parse_tool_call;
 
 pub use retries::{prepare_retries, RetryConfig, RetryFunction};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
+pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
+pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
+pub use tool_output::ToolOutput;
+pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+pub use execute_tool_call::{execute_tool_call, OnPreliminaryToolResult};
+pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
+pub use stop_condition::{
+    has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
+};
+pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
+pub use response_message::ResponseMessage;
+pub use parse_tool_call::{
+    parse_provider_executed_dynamic_tool_call, parse_tool_call, ParsedToolCall,
+};
 
 use crate::error::AISDKError;
 use crate::prompt::{
@@ -16,6 +42,87 @@ use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
     shared::provider_options::ProviderOptions,
 };
+use serde_json::Value;
+use std::collections::HashMap;
+use tokio_util::sync::CancellationToken;
+
+/// Executes tool calls and returns the outputs.
+///
+/// This function takes a list of parsed tool calls that need to be executed on the client side
+/// (not provider-executed), looks up each tool in the tool set, and executes them.
+///
+/// # Arguments
+///
+/// * `tool_calls` - References to the parsed tool calls to execute
+/// * `tools` - The tool set containing tool definitions
+/// * `abort_signal` - Optional cancellation token for aborting tool execution
+///
+/// # Returns
+///
+/// A vector of tool outputs (results or errors). Tools that cannot be executed are skipped.
+///
+/// # Example
+///
+/// ```ignore
+/// let outputs = execute_tools(
+///     &tool_calls,
+///     tool_set,
+///     Some(abort_signal),
+/// ).await;
+/// ```
+async fn execute_tools(
+    tool_calls: &[&ParsedToolCall],
+    tools: &ToolSet,
+    abort_signal: Option<CancellationToken>,
+) -> Vec<ToolOutput<Value, Value>> {
+    let mut outputs = Vec::new();
+
+    for tool_call in tool_calls {
+        // Convert ParsedToolCall to TypedToolCall
+        let typed_tool_call = if tool_call.dynamic == Some(true) {
+            TypedToolCall::Dynamic(DynamicToolCall {
+                call_type: tool_call.call_type.clone(),
+                tool_call_id: tool_call.tool_call_id.clone(),
+                tool_name: tool_call.tool_name.clone(),
+                input: tool_call.input.clone(),
+                provider_executed: tool_call.provider_executed,
+                provider_metadata: tool_call.provider_metadata.clone(),
+                dynamic: true,
+                invalid: None,
+                error: None,
+            })
+        } else {
+            TypedToolCall::Static(StaticToolCall {
+                call_type: tool_call.call_type.clone(),
+                tool_call_id: tool_call.tool_call_id.clone(),
+                tool_name: tool_call.tool_name.clone(),
+                input: tool_call.input.clone(),
+                provider_executed: tool_call.provider_executed,
+                provider_metadata: tool_call.provider_metadata.clone(),
+                dynamic: tool_call.dynamic,
+                invalid: None,
+            })
+        };
+
+        // Execute the tool call
+        // Note: We pass empty messages for now. In multi-step generation,
+        // we would pass the actual conversation messages.
+        if let Some(output) = execute_tool_call(
+            typed_tool_call,
+            tools,
+            vec![],
+            abort_signal.clone(),
+            None,
+            None,
+        )
+        .await
+        {
+            outputs.push(output);
+        }
+    }
+
+    outputs
+}
 
 /// Generate text using a language model.
 ///
@@ -30,6 +137,11 @@ use ai_sdk_provider::{
 /// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
 /// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
 /// * `provider_options` - Optional provider-specific options.
+/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
+///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
+/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
+/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
+/// * `on_finish` - Optional callback called when all steps are finished and response is complete.
 ///
 /// # Returns
 ///
@@ -42,12 +154,23 @@ use ai_sdk_provider::{
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::generate_text;
+/// use ai_sdk_core::{generate_text, step_count_is};
 /// use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 ///
 /// let prompt = Prompt::text("Tell me a joke");
 /// let settings = CallSettings::default();
-/// let response = generate_text(model, prompt, settings, None, None, None).await?;
+/// let response = generate_text(
+///     model,
+///     prompt,
+///     settings,
+///     None,
+///     None,
+///     None,
+///     Some(vec![Box::new(step_count_is(1))]),
+///     None,
+///     None,
+///     None,
+/// ).await?;
 /// println!("Response: {:?}", response.content);
 /// ```
 pub async fn generate_text(
@@ -57,20 +180,40 @@ pub async fn generate_text(
     tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
     provider_options: Option<ProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    on_step_finish: Option<Box<dyn OnStepFinish>>,
+    on_finish: Option<Box<dyn OnFinish>>,
 ) -> Result<ai_sdk_provider::language_model::LanguageModelGenerateResponse, AISDKError> {
-    // Step 1: Prepare and validate call settings
+    // Prepare stop conditions - default to step_count_is(1)
+    let _stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
+    let _prepare_step = prepare_step;
+    let _on_step_finish = on_step_finish;
+    let _on_finish = on_finish;
+
+    // Initialize response messages array for multi-step generation
+    let _response_messages: Vec<ResponseMessage> = Vec::new();
+
+    // Note: Multi-step generation logic with stop conditions, step preparation,
+    // and callbacks will be implemented in a future update.
+    // For now, the function performs a single generation step.
+
+    // Step 1: Prepare retries
+    let _retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
+
+    // Step 2: Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
-    // Step 2: Validate and standardize the prompt
+    // Step 3: Validate and standardize the prompt
     let initial_prompt = validate_and_standardize(prompt)?;
 
-    // Step 3: Convert to language model format (provider messages)
+    // Step 4: Convert to language model format (provider messages)
     let messages = convert_to_language_model_prompt(initial_prompt.clone())?;
 
-    // Step 4: Prepare tools and tool choice
-    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools, tool_choice);
+    // Step 5: Prepare tools and tool choice
+    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
-    // Step 5: Build CallOptions
+    // Step 6: Build CallOptions
     let mut call_options = CallOptions::new(messages);
 
     // Add prepared settings
@@ -111,6 +254,8 @@ pub async fn generate_text(
     if let Some(headers) = settings.headers {
         call_options = call_options.with_headers(headers);
     }
+    // Clone abort signal so we can use it later for tool execution
+    let abort_signal_for_tools = settings.abort_signal.clone();
     if let Some(signal) = settings.abort_signal {
         call_options = call_options.with_abort_signal(signal);
     }
@@ -120,9 +265,52 @@ pub async fn generate_text(
         call_options = call_options.with_provider_options(opts);
     }
 
-    // Step 6: Call model.do_generate
+    // Step 7: Call model.do_generate
     let response = model.do_generate(call_options).await
         .map_err(|e| AISDKError::model_error(e.to_string()))?;
+
+    // Step 8: Parse tool calls from the response
+    use ai_sdk_provider::language_model::content::Content;
+
+    let step_tool_calls: Vec<ParsedToolCall> = if let Some(tool_set) = tools.as_ref() {
+        response
+            .content
+            .iter()
+            .filter_map(|part| {
+                if let Content::ToolCall(tool_call) = part {
+                    Some(tool_call)
+                } else {
+                    None
+                }
+            })
+            .map(|tool_call| {
+                // Parse each tool call against the tool set
+                parse_tool_call(tool_call, tool_set)
+            })
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        // No tools provided, so no tool calls to parse
+        Vec::new()
+    };
+
+    // Step 9: Filter and execute client tool calls
+    // Note: In the TypeScript implementation, invalid tool calls are tracked separately.
+    // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
+
+    // Filter client tool calls (those not executed by the provider)
+    let client_tool_calls: Vec<&ParsedToolCall> = step_tool_calls
+        .iter()
+        .filter(|tool_call| {
+            tool_call.provider_executed != Some(true)
+        })
+        .collect();
+
+    // Execute client tool calls and collect outputs
+    let _client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
+        execute_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
+    } else {
+        Vec::new()
+    };
 
     // Return the response
     Ok(response)
@@ -193,7 +381,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         // Check that it's a model error (from do_generate), not a validation error
         match result {
@@ -213,7 +401,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -230,7 +418,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, tool_choice, None).await;
+        let result = generate_text(&model, prompt, settings, None, tool_choice, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -254,7 +442,7 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options)).await;
+        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options), None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -269,7 +457,7 @@ mod tests {
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -286,7 +474,7 @@ mod tests {
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -303,7 +491,7 @@ mod tests {
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
-        let result = generate_text(&model, prompt, settings, None, None, None).await;
+        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidPrompt { message }) => {
