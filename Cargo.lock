@@ -49,6 +49,7 @@ dependencies = [
  "ai-sdk-core",
  "ai-sdk-provider",
  "async-trait",
+ "base64",
  "futures-util",
  "regex",
  "reqwest",
