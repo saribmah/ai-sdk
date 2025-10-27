@@ -3,6 +3,8 @@ mod prepare_tools;
 pub mod tool_result;
 pub mod tool_error;
 pub mod tool_output;
+pub mod tool_call;
+pub mod execute_tool_call;
 mod step_result;
 mod stop_condition;
 mod prepare_step;
@@ -15,6 +17,8 @@ pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 pub use tool_output::ToolOutput;
+pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+pub use execute_tool_call::{execute_tool_call, OnPreliminaryToolResult};
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
@@ -27,7 +31,6 @@ pub use parse_tool_call::{
 };
 
 use crate::error::AISDKError;
-use crate::message::tool::options::ToolCallOptions;
 use crate::prompt::{
     call_settings::{prepare_call_settings, CallSettings},
     convert_to_language_model_prompt::convert_to_language_model_prompt,
@@ -56,7 +59,7 @@ use tokio_util::sync::CancellationToken;
 ///
 /// # Returns
 ///
-/// A vector of tool outputs (as JSON values). Only successful executions are included.
+/// A vector of tool outputs (results or errors). Tools that cannot be executed are skipped.
 ///
 /// # Example
 ///
@@ -71,26 +74,50 @@ async fn execute_client_tools(
     tool_calls: &[&ParsedToolCall],
     tools: &ToolSet,
     abort_signal: Option<CancellationToken>,
-) -> Vec<Value> {
+) -> Vec<ToolOutput<Value, Value>> {
     let mut outputs = Vec::new();
 
     for tool_call in tool_calls {
-        // Look up the tool in the tool set
-        if let Some(tool) = tools.get(&tool_call.tool_name) {
-            // Create tool call options
-            // Note: We pass empty messages for now. In multi-step generation,
-            // we would pass the actual conversation messages.
-            let mut options = ToolCallOptions::new(&tool_call.tool_call_id, vec![]);
+        // Convert ParsedToolCall to TypedToolCall
+        let typed_tool_call = if tool_call.dynamic == Some(true) {
+            TypedToolCall::Dynamic(DynamicToolCall {
+                call_type: tool_call.call_type.clone(),
+                tool_call_id: tool_call.tool_call_id.clone(),
+                tool_name: tool_call.tool_name.clone(),
+                input: tool_call.input.clone(),
+                provider_executed: tool_call.provider_executed,
+                provider_metadata: tool_call.provider_metadata.clone(),
+                dynamic: true,
+                invalid: None,
+                error: None,
+            })
+        } else {
+            TypedToolCall::Static(StaticToolCall {
+                call_type: tool_call.call_type.clone(),
+                tool_call_id: tool_call.tool_call_id.clone(),
+                tool_name: tool_call.tool_name.clone(),
+                input: tool_call.input.clone(),
+                provider_executed: tool_call.provider_executed,
+                provider_metadata: tool_call.provider_metadata.clone(),
+                dynamic: tool_call.dynamic,
+                invalid: None,
+            })
+        };
 
-            // Add abort signal if available
-            if let Some(signal) = abort_signal.clone() {
-                options = options.with_abort_signal(signal);
-            }
-
-            // Execute the tool
-            if let Some(output) = tool.execute_tool(tool_call.input.clone(), options).await {
-                outputs.push(output);
-            }
+        // Execute the tool call
+        // Note: We pass empty messages for now. In multi-step generation,
+        // we would pass the actual conversation messages.
+        if let Some(output) = execute_tool_call(
+            typed_tool_call,
+            tools,
+            vec![],
+            abort_signal.clone(),
+            None,
+            None,
+        )
+        .await
+        {
+            outputs.push(output);
         }
     }
 
