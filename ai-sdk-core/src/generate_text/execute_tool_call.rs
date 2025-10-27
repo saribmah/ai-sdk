@@ -144,29 +144,18 @@ async fn execute_single_tool(
     input: Value,
     is_dynamic: bool,
 ) -> Result<ToolOutput<Value, Value>, ToolOutput<Value, Value>> {
-    match tokio::task::spawn(async move { future.await }).await {
-        Ok(output) => {
-            // Create successful result
-            if is_dynamic {
-                let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
-                Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
-            } else {
-                let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
-                Ok(ToolOutput::Result(TypedToolResult::Static(result)))
-            }
-        }
-        Err(error) => {
-            // Create error result
-            let error_value = Value::String(error.to_string());
-            if is_dynamic {
-                let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
-                Err(ToolOutput::Error(TypedToolError::Dynamic(err)))
-            } else {
-                let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
-                Err(ToolOutput::Error(TypedToolError::Static(err)))
-            }
-        }
+    // Execute the future directly
+    let output = future.await;
+
+    // Create successful result
+    if is_dynamic {
+        let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
+        Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
+    } else {
+        let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
+        Ok(ToolOutput::Result(TypedToolResult::Static(result)))
     }
+
 }
 
 /// Executes a streaming tool and handles preliminary results.
