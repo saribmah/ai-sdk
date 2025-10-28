@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🔧 Output: {}\n", weather_data);
 
         ToolExecutionOutput::Single(Box::pin(async move {
-            weather_data
+            Ok(weather_data)
         }))
     }));
 

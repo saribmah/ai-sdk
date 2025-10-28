@@ -9,15 +9,21 @@ use super::options::ToolCallOptions;
 use crate::message::content_parts::ToolResultOutput;
 
 /// The output from a tool execution, which can be either a single value or a stream of values.
+///
+/// Tools can return `Result<OUTPUT, Value>` to surface errors. When `Err(error_value)` is returned,
+/// the error will be converted to a `ToolError` and returned to the model.
 pub enum ToolExecutionOutput<OUTPUT>
 where
     OUTPUT: Send + 'static,
 {
     /// A single output value (non-streaming).
-    Single(Pin<Box<dyn Future<Output = OUTPUT> + Send>>),
+    /// Returns `Ok(output)` on success or `Err(error)` on failure.
+    Single(Pin<Box<dyn Future<Output = Result<OUTPUT, Value>> + Send>>),
 
     /// A stream of output values (streaming).
-    Streaming(Pin<Box<dyn Stream<Item = OUTPUT> + Send>>),
+    /// Each item is `Ok(output)` on success or `Err(error)` on failure.
+    /// The first error terminates the stream and is returned as a `ToolError`.
+    Streaming(Pin<Box<dyn Stream<Item = Result<OUTPUT, Value>> + Send>>),
 }
 
 /// Function that executes a tool with the given input and options.
@@ -296,11 +302,12 @@ where
     /// For non-streaming tools, this will await and return the single output.
     ///
     /// Returns None if the tool has no execute function.
+    /// Returns Some(Err(error)) if the tool execution fails.
     pub async fn execute_tool(
         &self,
         input: INPUT,
         options: ToolCallOptions,
-    ) -> Option<OUTPUT>
+    ) -> Option<Result<OUTPUT, Value>>
     where
         OUTPUT: Clone,
     {
@@ -311,8 +318,12 @@ where
             match result {
                 ToolExecutionOutput::Single(future) => Some(future.await),
                 ToolExecutionOutput::Streaming(mut stream) => {
-                    let mut last_output: Option<OUTPUT> = None;
+                    let mut last_output: Option<Result<OUTPUT, Value>> = None;
                     while let Some(output) = stream.next().await {
+                        // If we encounter an error in the stream, return it immediately
+                        if output.is_err() {
+                            return Some(output);
+                        }
                         last_output = Some(output);
                     }
                     last_output
@@ -456,7 +467,7 @@ mod tests {
         let tool: Tool = Tool::function(schema)
             .with_execute(Box::new(|input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move {
-                    json!({"result": input})
+                    Ok(json!({"result": input}))
                 }))
             }));
 
@@ -464,6 +475,8 @@ mod tests {
         let result = tool.execute_tool(json!({"city": "SF"}), options).await;
 
         assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_ok());
         assert_eq!(result.unwrap(), json!({"result": {"city": "SF"}}));
     }
 
@@ -485,9 +498,9 @@ mod tests {
         let tool: Tool = Tool::function(schema)
             .with_execute(Box::new(|_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
-                    yield json!({"step": 1});
-                    yield json!({"step": 2});
-                    yield json!({"step": 3});
+                    yield Ok(json!({"step": 1}));
+                    yield Ok(json!({"step": 2}));
+                    yield Ok(json!({"step": 3}));
                 }))
             }));
 
@@ -496,6 +509,52 @@ mod tests {
 
         // Should return the last output
         assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_ok());
         assert_eq!(result.unwrap(), json!({"step": 3}));
+    }
+
+    #[tokio::test]
+    async fn test_tool_execute_with_error() {
+        let schema = json!({"type": "object"});
+
+        let tool: Tool = Tool::function(schema)
+            .with_execute(Box::new(|_input: Value, _options| {
+                ToolExecutionOutput::Single(Box::pin(async move {
+                    Err(json!({"error": "Something went wrong"}))
+                }))
+            }));
+
+        let options = ToolCallOptions::new("call_123", vec![]);
+        let result = tool.execute_tool(json!({}), options).await;
+
+        // Should return an error
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), json!({"error": "Something went wrong"}));
+    }
+
+    #[tokio::test]
+    async fn test_tool_execute_streaming_with_error() {
+        let schema = json!({"type": "object"});
+
+        let tool: Tool = Tool::function(schema)
+            .with_execute(Box::new(|_input: Value, _options| {
+                ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
+                    yield Ok(json!({"step": 1}));
+                    yield Err(json!("Error in stream"));
+                    yield Ok(json!({"step": 3})); // This should not be reached
+                }))
+            }));
+
+        let options = ToolCallOptions::new("call_123", vec![]);
+        let result = tool.execute_tool(json!({}), options).await;
+
+        // Should return the error immediately
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), json!("Error in stream"));
     }
 }

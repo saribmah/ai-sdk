@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let weather_data = get_weather(city);
 
         ToolExecutionOutput::Single(Box::pin(async move {
-            weather_data
+            Ok(weather_data)
         }))
     }));
 
@@ -170,7 +170,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let result = convert_temperature(value, from_unit, to_unit);
 
         ToolExecutionOutput::Single(Box::pin(async move {
-            result
+            Ok(result)
         }))
     }));
 

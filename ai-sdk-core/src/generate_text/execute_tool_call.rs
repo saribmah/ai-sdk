@@ -138,29 +138,40 @@ pub async fn execute_tool_call(
 
 /// Executes a single (non-streaming) tool and returns the output.
 async fn execute_single_tool(
-    future: std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send>>,
+    future: std::pin::Pin<Box<dyn std::future::Future<Output = Result<Value, Value>> + Send>>,
     tool_call_id: String,
     tool_name: String,
     input: Value,
     is_dynamic: bool,
 ) -> Result<ToolOutput<Value, Value>, ToolOutput<Value, Value>> {
-    // Execute the future directly
-    let output = future.await;
-
-    // Create successful result
-    if is_dynamic {
-        let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
-        Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
-    } else {
-        let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
-        Ok(ToolOutput::Result(TypedToolResult::Static(result)))
+    // Execute the future and handle Result
+    match future.await {
+        Ok(output) => {
+            // Create successful result
+            if is_dynamic {
+                let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
+                Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
+            } else {
+                let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
+                Ok(ToolOutput::Result(TypedToolResult::Static(result)))
+            }
+        }
+        Err(error_value) => {
+            // Create error result
+            if is_dynamic {
+                let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
+                Err(ToolOutput::Error(TypedToolError::Dynamic(err)))
+            } else {
+                let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
+                Err(ToolOutput::Error(TypedToolError::Static(err)))
+            }
+        }
     }
-
 }
 
 /// Executes a streaming tool and handles preliminary results.
 async fn execute_streaming_tool(
-    mut stream: std::pin::Pin<Box<dyn futures_util::Stream<Item = Value> + Send>>,
+    mut stream: std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<Value, Value>> + Send>>,
     tool_call_id: String,
     tool_name: String,
     input: Value,
@@ -170,38 +181,52 @@ async fn execute_streaming_tool(
     let mut final_output: Option<Value> = None;
 
     // Process stream
-    while let Some(output) = stream.next().await {
-        // If this is not the last item, it's a preliminary result
-        if on_preliminary_tool_result.is_some() {
-            // Create preliminary result
-            if is_dynamic {
-                let preliminary = DynamicToolResult::new(
-                    &tool_call_id,
-                    &tool_name,
-                    input.clone(),
-                    output.clone(),
-                )
-                .with_preliminary(true);
+    while let Some(result) = stream.next().await {
+        match result {
+            Ok(output) => {
+                // If this is not the last item, it's a preliminary result
+                if on_preliminary_tool_result.is_some() {
+                    // Create preliminary result
+                    if is_dynamic {
+                        let preliminary = DynamicToolResult::new(
+                            &tool_call_id,
+                            &tool_name,
+                            input.clone(),
+                            output.clone(),
+                        )
+                        .with_preliminary(true);
 
-                if let Some(ref callback) = on_preliminary_tool_result {
-                    callback(TypedToolResult::Dynamic(preliminary));
+                        if let Some(ref callback) = on_preliminary_tool_result {
+                            callback(TypedToolResult::Dynamic(preliminary));
+                        }
+                    } else {
+                        let preliminary = StaticToolResult::new(
+                            &tool_call_id,
+                            &tool_name,
+                            input.clone(),
+                            output.clone(),
+                        )
+                        .with_preliminary(true);
+
+                        if let Some(ref callback) = on_preliminary_tool_result {
+                            callback(TypedToolResult::Static(preliminary));
+                        }
+                    }
                 }
-            } else {
-                let preliminary = StaticToolResult::new(
-                    &tool_call_id,
-                    &tool_name,
-                    input.clone(),
-                    output.clone(),
-                )
-                .with_preliminary(true);
 
-                if let Some(ref callback) = on_preliminary_tool_result {
-                    callback(TypedToolResult::Static(preliminary));
+                final_output = Some(output);
+            }
+            Err(error_value) => {
+                // Error encountered in stream - return it immediately
+                if is_dynamic {
+                    let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
+                    return Err(ToolOutput::Error(TypedToolError::Dynamic(err)));
+                } else {
+                    let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
+                    return Err(ToolOutput::Error(TypedToolError::Static(err)));
                 }
             }
         }
-
-        final_output = Some(output);
     }
 
     // Return final result
@@ -246,7 +271,7 @@ mod tests {
         }))
         .with_execute(Box::new(|input: Value, _options| {
             ToolExecutionOutput::Single(Box::pin(async move {
-                json!({"temperature": 72, "city": input["city"]})
+                Ok(json!({"temperature": 72, "city": input["city"]}))
             }))
         }));
 
@@ -348,9 +373,9 @@ mod tests {
         }))
         .with_execute(Box::new(|_input: Value, _options| {
             let values = vec![
-                json!({"step": 1}),
-                json!({"step": 2}),
-                json!({"step": 3}),
+                Ok(json!({"step": 1})),
+                Ok(json!({"step": 2})),
+                Ok(json!({"step": 3})),
             ];
             ToolExecutionOutput::Streaming(Box::pin(stream::iter(values)))
         }));
@@ -381,5 +406,112 @@ mod tests {
         // Check preliminary results were called
         let prelim = preliminary_results.lock().unwrap();
         assert_eq!(prelim.len(), 3);
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_single_error() {
+        // Create a tool that returns an error
+        let tool = Tool::function(json!({
+            "type": "object",
+            "properties": {
+                "value": {"type": "number"}
+            }
+        }))
+        .with_execute(Box::new(|input: Value, _options| {
+            ToolExecutionOutput::Single(Box::pin(async move {
+                if input["value"].as_i64() == Some(0) {
+                    Err(json!("Division by zero"))
+                } else {
+                    Ok(json!({"result": 100 / input["value"].as_i64().unwrap()}))
+                }
+            }))
+        }));
+
+        let mut tools = ToolSet::new();
+        tools.insert("divide".to_string(), tool);
+
+        let tool_call = TypedToolCall::Static(StaticToolCall::new(
+            "call_123",
+            "divide",
+            json!({"value": 0}),
+        ));
+
+        let result = execute_tool_call(
+            tool_call,
+            &tools,
+            vec![],
+            None,
+            None,
+            None,
+        )
+        .await;
+
+        assert!(result.is_some());
+        let output = result.unwrap();
+        assert!(output.is_error());
+
+        if let Some(error) = output.as_error() {
+            match error {
+                TypedToolError::Static(err) => {
+                    assert_eq!(err.tool_call_id, "call_123");
+                    assert_eq!(err.tool_name, "divide");
+                    assert_eq!(err.error, json!("Division by zero"));
+                }
+                _ => panic!("Expected Static error"),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_streaming_error() {
+        use futures_util::stream;
+
+        // Create a streaming tool that returns an error mid-stream
+        let tool = Tool::function(json!({
+            "type": "object",
+            "properties": {}
+        }))
+        .with_execute(Box::new(|_input: Value, _options| {
+            let values = vec![
+                Ok(json!({"step": 1})),
+                Err(json!("Unexpected error")),
+                Ok(json!({"step": 3})), // This should not be reached
+            ];
+            ToolExecutionOutput::Streaming(Box::pin(stream::iter(values)))
+        }));
+
+        let mut tools = ToolSet::new();
+        tools.insert("streaming_error".to_string(), tool);
+
+        let tool_call = TypedToolCall::Static(StaticToolCall::new(
+            "call_456",
+            "streaming_error",
+            json!({}),
+        ));
+
+        let result = execute_tool_call(
+            tool_call,
+            &tools,
+            vec![],
+            None,
+            None,
+            None,
+        )
+        .await;
+
+        assert!(result.is_some());
+        let output = result.unwrap();
+        assert!(output.is_error());
+
+        if let Some(error) = output.as_error() {
+            match error {
+                TypedToolError::Static(err) => {
+                    assert_eq!(err.tool_call_id, "call_456");
+                    assert_eq!(err.tool_name, "streaming_error");
+                    assert_eq!(err.error, json!("Unexpected error"));
+                }
+                _ => panic!("Expected Static error"),
+            }
+        }
     }
 }
