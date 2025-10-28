@@ -67,6 +67,7 @@ use tokio_util::sync::CancellationToken;
 ///
 /// * `tool_calls` - References to the parsed tool calls to execute
 /// * `tools` - The tool set containing tool definitions
+/// * `messages` - The conversation messages for context (passed to each tool)
 /// * `abort_signal` - Optional cancellation token for aborting tool execution
 ///
 /// # Returns
@@ -79,12 +80,14 @@ use tokio_util::sync::CancellationToken;
 /// let outputs = execute_tools(
 ///     &tool_calls,
 ///     tool_set,
+///     &messages,
 ///     Some(abort_signal),
 /// ).await;
 /// ```
 async fn execute_tools(
     tool_calls: &[&ParsedToolCall],
     tools: &ToolSet,
+    messages: &[ModelMessage],
     abort_signal: Option<CancellationToken>,
 ) -> Vec<ToolOutput<Value, Value>> {
     let mut outputs = Vec::new();
@@ -116,13 +119,11 @@ async fn execute_tools(
             })
         };
 
-        // Execute the tool call
-        // Note: We pass empty messages for now. In multi-step generation,
-        // we would pass the actual conversation messages.
+        // Execute the tool call with conversation context
         if let Some(output) = execute_tool_call(
             typed_tool_call,
             tools,
-            vec![],
+            messages.to_vec(),
             abort_signal.clone(),
             None,
             None,
@@ -404,7 +405,7 @@ pub async fn generate_text(
 
         // Create a prompt from the step input messages
         let step_prompt = StandardizedPrompt {
-            messages: step_input_messages,
+            messages: step_input_messages.clone(),
             system: initial_prompt.system.clone(),
         };
 
@@ -509,7 +510,7 @@ pub async fn generate_text(
 
         // Execute client tool calls and collect outputs
         let client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
-            execute_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
+            execute_tools(&client_tool_calls, tool_set, &step_input_messages, abort_signal_for_tools).await
         } else {
             Vec::new()
         };
