@@ -399,20 +399,13 @@ pub async fn generate_text(
             step_input_messages.push(model_msg);
         }
 
-        // Convert to language model format for prepare_step
-        let step_prompt_for_prepare = StandardizedPrompt {
-            messages: step_input_messages.clone(),
-            system: initial_prompt.system.clone(),
-        };
-        let messages_for_prepare = convert_to_language_model_prompt(step_prompt_for_prepare)?;
-
         // Call prepare_step callback to allow step customization
         let prepare_step_result = if let Some(ref prepare_fn) = prepare_step {
             prepare_fn
                 .prepare(&PrepareStepOptions {
                     steps: &steps,
                     step_number: steps.len(),
-                    messages: &messages_for_prepare,
+                    messages: &step_input_messages,
                 })
                 .await
         } else {
@@ -425,6 +418,11 @@ pub async fn generate_text(
             .and_then(|r| r.system.clone())
             .or_else(|| initial_prompt.system.clone());
 
+        let step_messages = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.messages.clone())
+            .unwrap_or_else(|| step_input_messages.clone());
+
         let step_tool_choice = prepare_step_result
             .as_ref()
             .and_then(|r| r.tool_choice.clone())
@@ -434,9 +432,9 @@ pub async fn generate_text(
             .as_ref()
             .and_then(|r| r.active_tools.clone());
 
-        // Create a prompt from the step input messages with potentially overridden system
+        // Create a prompt from the step input messages with potentially overridden system and messages
         let step_prompt = StandardizedPrompt {
-            messages: step_input_messages.clone(),
+            messages: step_messages,
             system: step_system,
         };
 
