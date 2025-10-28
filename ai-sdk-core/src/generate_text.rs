@@ -364,9 +364,6 @@ pub async fn generate_text(
 ) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
-    let _prepare_step = prepare_step;
-    let _on_step_finish = on_step_finish;
-    let _on_finish = on_finish;
 
     // Initialize response messages array for multi-step generation
     let mut response_messages: Vec<ResponseMessage> = Vec::new();
@@ -403,10 +400,45 @@ pub async fn generate_text(
             step_input_messages.push(model_msg);
         }
 
-        // Create a prompt from the step input messages
-        let step_prompt = StandardizedPrompt {
+        // Convert to language model format for prepare_step
+        let step_prompt_for_prepare = StandardizedPrompt {
             messages: step_input_messages.clone(),
             system: initial_prompt.system.clone(),
+        };
+        let messages_for_prepare = convert_to_language_model_prompt(step_prompt_for_prepare)?;
+
+        // Call prepare_step callback to allow step customization
+        let prepare_step_result = if let Some(ref prepare_fn) = prepare_step {
+            prepare_fn
+                .prepare(&PrepareStepOptions {
+                    steps: &steps,
+                    step_number: steps.len(),
+                    messages: &messages_for_prepare,
+                })
+                .await
+        } else {
+            None
+        };
+
+        // Apply prepare_step overrides
+        let step_system = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.system.clone())
+            .or_else(|| initial_prompt.system.clone());
+
+        let step_tool_choice = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.tool_choice.clone())
+            .or(prepared_tool_choice.clone());
+
+        let step_active_tools = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.active_tools.clone());
+
+        // Create a prompt from the step input messages with potentially overridden system
+        let step_prompt = StandardizedPrompt {
+            messages: step_input_messages.clone(),
+            system: step_system,
         };
 
         // Step 6: Convert to language model format (provider messages)
@@ -442,10 +474,36 @@ pub async fn generate_text(
         }
 
         // Add tools and tool choice
-        if let Some(ref tools_vec) = provider_tools {
+        // Filter tools based on active_tools if provided by prepare_step
+        let step_provider_tools = if let Some(ref active_tool_names) = step_active_tools {
+            provider_tools.as_ref().map(|tools_vec| {
+                tools_vec
+                    .iter()
+                    .filter(|tool| {
+                        // Check if this tool is in the active_tools list
+                        active_tool_names.iter().any(|name| {
+                            // Match against the tool name from the provider tool
+                            match tool {
+                                ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
+                                    f.name == *name
+                                }
+                                ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
+                                    p.name == *name
+                                }
+                            }
+                        })
+                    })
+                    .cloned()
+                    .collect()
+            })
+        } else {
+            provider_tools.clone()
+        };
+
+        if let Some(ref tools_vec) = step_provider_tools {
             call_options = call_options.with_tools(tools_vec.clone());
         }
-        if let Some(ref choice) = prepared_tool_choice {
+        if let Some(ref choice) = step_tool_choice {
             call_options = call_options.with_tool_choice(choice.clone());
         }
 
@@ -583,7 +641,12 @@ pub async fn generate_text(
             response.provider_metadata.clone(),
         );
 
-        steps.push(current_step_result);
+        steps.push(current_step_result.clone());
+
+        // Call on_step_finish callback
+        if let Some(ref callback) = on_step_finish {
+            callback.call(current_step_result).await;
+        }
 
         // Check loop termination conditions (do-while loop pattern)
         // Continue if:
@@ -618,6 +681,15 @@ pub async fn generate_text(
 
     // Create the resolved output (placeholder for now, as there's no output specification yet)
     let resolved_output = Value::Null;
+
+    // Call on_finish callback before returning
+    if let Some(ref callback) = on_finish {
+        // Get the final step
+        if let Some(final_step) = steps.last() {
+            let finish_event = FinishEvent::new(final_step, steps.clone());
+            callback.call(finish_event).await;
+        }
+    }
 
     // Return the GenerateTextResult
     Ok(GenerateTextResult::from_steps(
