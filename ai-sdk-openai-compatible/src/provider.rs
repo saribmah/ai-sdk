@@ -2,9 +2,13 @@ use ai_sdk_provider::error::ProviderError;
 use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::provider::Provider;
 use std::collections::HashMap;
-use std::sync::Arc;
 
-use crate::language_model::{create_language_model, OpenAICompatibleChatConfig, UrlOptions};
+use crate::chat::{
+    OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
+};
+use crate::completion::{
+    OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
+};
 
 /// Configuration options for creating an OpenAI-compatible provider.
 #[derive(Debug, Clone)]
@@ -31,6 +35,12 @@ pub struct OpenAICompatibleProviderSettings {
 
     /// Optional custom URL query parameters to include in request URLs.
     pub query_params: Option<HashMap<String, String>>,
+
+    /// Include usage information in streaming responses.
+    pub include_usage: bool,
+
+    /// Whether the provider supports structured outputs in chat models.
+    pub supports_structured_outputs: bool,
 }
 
 /// OpenAI-compatible provider implementation.
@@ -55,13 +65,21 @@ impl OpenAICompatibleProvider {
     /// Creates a chat language model with the given model ID.
     pub fn chat_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
         let model_id = model_id.into();
-        let config = self.create_config();
+        let config = self.create_chat_config();
 
-        create_language_model(model_id, config)
+        Box::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
     }
 
-    /// Creates the configuration for language models
-    fn create_config(&self) -> OpenAICompatibleChatConfig {
+    /// Creates a completion language model with the given model ID.
+    pub fn completion_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+        let model_id = model_id.into();
+        let config = self.create_completion_config();
+
+        Box::new(OpenAICompatibleCompletionLanguageModel::new(model_id, config))
+    }
+
+    /// Creates the configuration for chat models
+    fn create_chat_config(&self) -> OpenAICompatibleChatConfig {
         let api_key = self.settings.api_key.clone();
         let custom_headers = self.settings.headers.clone().unwrap_or_default();
         let organization = self.settings.organization.clone();
@@ -71,7 +89,7 @@ impl OpenAICompatibleProvider {
 
         OpenAICompatibleChatConfig {
             provider: format!("{}.chat", self.settings.name),
-            headers: Arc::new(move || {
+            headers: Box::new(move || {
                 let mut headers = HashMap::new();
 
                 // Add Authorization header if API key is present
@@ -96,8 +114,8 @@ impl OpenAICompatibleProvider {
 
                 headers
             }),
-            url: Arc::new(move |opts: &UrlOptions| {
-                let mut url = format!("{}{}", base_url, opts.path);
+            url: Box::new(move |model_id: &str, path: &str| {
+                let mut url = format!("{}{}", base_url, path);
 
                 // Add query parameters if present
                 if !query_params.is_empty() {
@@ -110,10 +128,65 @@ impl OpenAICompatibleProvider {
 
                 url
             }),
-            api_key: self.settings.api_key.clone(),
-            organization: self.settings.organization.clone(),
-            project: self.settings.project.clone(),
-            query_params: self.settings.query_params.clone().unwrap_or_default(),
+            fetch: None,
+            include_usage: self.settings.include_usage,
+            supports_structured_outputs: self.settings.supports_structured_outputs,
+            supported_urls: None,
+        }
+    }
+
+    /// Creates the configuration for completion models
+    fn create_completion_config(&self) -> OpenAICompatibleCompletionConfig {
+        let api_key = self.settings.api_key.clone();
+        let custom_headers = self.settings.headers.clone().unwrap_or_default();
+        let organization = self.settings.organization.clone();
+        let project = self.settings.project.clone();
+        let base_url = self.settings.base_url.clone();
+        let query_params = self.settings.query_params.clone().unwrap_or_default();
+
+        OpenAICompatibleCompletionConfig {
+            provider: format!("{}.completion", self.settings.name),
+            headers: Box::new(move || {
+                let mut headers = HashMap::new();
+
+                // Add Authorization header if API key is present
+                if let Some(ref key) = api_key {
+                    headers.insert("Authorization".to_string(), format!("Bearer {}", key));
+                }
+
+                // Add organization header if present
+                if let Some(ref org) = organization {
+                    headers.insert("OpenAI-Organization".to_string(), org.clone());
+                }
+
+                // Add project header if present
+                if let Some(ref proj) = project {
+                    headers.insert("OpenAI-Project".to_string(), proj.clone());
+                }
+
+                // Add custom headers
+                for (key, value) in &custom_headers {
+                    headers.insert(key.clone(), value.clone());
+                }
+
+                headers
+            }),
+            url: Box::new(move |model_id: &str, path: &str| {
+                let mut url = format!("{}{}", base_url, path);
+
+                // Add query parameters if present
+                if !query_params.is_empty() {
+                    let params: Vec<String> = query_params
+                        .iter()
+                        .map(|(k, v)| format!("{}={}", k, v))
+                        .collect();
+                    url = format!("{}?{}", url, params.join("&"));
+                }
+
+                url
+            }),
+            fetch: None,
+            include_usage: self.settings.include_usage,
         }
     }
 
@@ -145,6 +218,8 @@ impl Default for OpenAICompatibleProviderSettings {
             project: None,
             headers: None,
             query_params: None,
+            include_usage: false,
+            supports_structured_outputs: false,
         }
     }
 }
@@ -160,6 +235,8 @@ impl OpenAICompatibleProviderSettings {
             project: None,
             headers: None,
             query_params: None,
+            include_usage: false,
+            supports_structured_outputs: false,
         }
     }
 
@@ -208,6 +285,18 @@ impl OpenAICompatibleProviderSettings {
         self.query_params = Some(query_params);
         self
     }
+
+    /// Sets whether to include usage information in streaming responses.
+    pub fn with_include_usage(mut self, include_usage: bool) -> Self {
+        self.include_usage = include_usage;
+        self
+    }
+
+    /// Sets whether the provider supports structured outputs.
+    pub fn with_supports_structured_outputs(mut self, supports: bool) -> Self {
+        self.supports_structured_outputs = supports;
+        self
+    }
 }
 
 /// Creates an OpenAI-compatible provider.
@@ -228,7 +317,7 @@ impl OpenAICompatibleProviderSettings {
 /// ```ignore
 /// use openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 ///
-/// // Create an OpenAI provider and get a model
+/// // Create an OpenAI provider and get a chat model
 /// let provider = create_openai_compatible(
 ///     OpenAICompatibleProviderSettings::new(
 ///         "https://api.openai.com/v1",
@@ -237,7 +326,10 @@ impl OpenAICompatibleProviderSettings {
 ///     .with_api_key("your-api-key")
 /// );
 ///
-/// let model = provider.chat_model("gpt-4");
+/// let chat_model = provider.chat_model("gpt-4");
+///
+/// // Or get a completion model
+/// let completion_model = provider.completion_model("gpt-3.5-turbo-instruct");
 ///
 /// // Or chain it directly
 /// let model = create_openai_compatible(
@@ -289,6 +381,21 @@ mod tests {
     }
 
     #[test]
+    fn test_completion_model() {
+        let settings = OpenAICompatibleProviderSettings::new(
+            "https://api.openai.com/v1",
+            "openai"
+        )
+        .with_api_key("test-key");
+
+        let provider = create_openai_compatible(settings);
+        let model = provider.completion_model("gpt-3.5-turbo-instruct");
+
+        assert_eq!(model.provider(), "openai.completion");
+        assert_eq!(model.model_id(), "gpt-3.5-turbo-instruct");
+    }
+
+    #[test]
     fn test_language_model_alias() {
         let settings = OpenAICompatibleProviderSettings::new(
             "https://api.openai.com/v1",
@@ -329,13 +436,17 @@ mod tests {
         .with_organization("org")
         .with_project("proj")
         .with_header("X-Custom-Header", "value")
-        .with_query_param("version", "2024-01");
+        .with_query_param("version", "2024-01")
+        .with_include_usage(true)
+        .with_supports_structured_outputs(true);
 
         assert_eq!(settings.base_url, "https://api.example.com/v1");
         assert_eq!(settings.name, "custom");
         assert_eq!(settings.api_key, Some("key".to_string()));
         assert_eq!(settings.organization, Some("org".to_string()));
         assert_eq!(settings.project, Some("proj".to_string()));
+        assert!(settings.include_usage);
+        assert!(settings.supports_structured_outputs);
 
         let headers = settings.headers.unwrap();
         assert_eq!(headers.get("X-Custom-Header"), Some(&"value".to_string()));
@@ -383,21 +494,26 @@ mod tests {
 
         let provider = create_openai_compatible(settings);
 
-        // Test Vercel-style API (direct struct method)
+        // Test chat model
         let model1 = provider.chat_model("model-1");
         assert_eq!(model1.provider(), "example.chat");
         assert_eq!(model1.model_id(), "model-1");
 
-        // Test Provider trait API (via trait object)
-        let provider_trait: &dyn Provider = &provider;
-        let model2 = provider_trait.language_model("model-2").unwrap();
-        assert_eq!(model2.provider(), "example.chat");
+        // Test completion model
+        let model2 = provider.completion_model("model-2");
+        assert_eq!(model2.provider(), "example.completion");
         assert_eq!(model2.model_id(), "model-2");
 
-        // Test language_model as struct method (alias for chat_model)
-        let model3 = provider.language_model("model-3");
+        // Test Provider trait API (via trait object)
+        let provider_trait: &dyn Provider = &provider;
+        let model3 = provider_trait.language_model("model-3").unwrap();
         assert_eq!(model3.provider(), "example.chat");
         assert_eq!(model3.model_id(), "model-3");
+
+        // Test language_model as struct method (alias for chat_model)
+        let model4 = provider.language_model("model-4");
+        assert_eq!(model4.provider(), "example.chat");
+        assert_eq!(model4.model_id(), "model-4");
     }
 
     #[tokio::test]

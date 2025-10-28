@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create OpenAI provider
     let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
+        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
             .with_api_key(api_key),
     );
 
@@ -144,43 +144,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!();
 
-    // Check if the model made a tool call
+    // Check if the model made a tool call by looking at the steps
     use ai_sdk_provider::language_model::content::Content;
     let mut found_tool_call = false;
 
-    for content in &result.content {
-        if let Content::ToolCall(tool_call) = content {
-            found_tool_call = true;
-            println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            println!("Tool Call Detected!");
-            println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-
-            println!("🔧 Tool Call Details:");
-            println!("  • Tool ID: {}", tool_call.tool_call_id);
-            println!("  • Tool Name: {}", tool_call.tool_name);
-            println!("  • Arguments: {}\n", tool_call.input);
-
-            // Parse the arguments
-            let args: Value = serde_json::from_str(&tool_call.input)?;
-            if let Some(city) = args.get("city").and_then(|v| v.as_str()) {
-                println!("📍 Executing tool: get_weather(city=\"{}\")\n", city);
-
-                // Execute the tool
-                let weather_data = get_weather(city);
-
-                println!("☁️  Weather Results:");
+    // Check the last step for tool calls
+    if let Some(last_step) = result.steps.last() {
+        for content in &last_step.content {
+            if let Content::ToolCall(tool_call) = content {
+                found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                println!("  City: {}", weather_data["city"]);
-                println!("  Temperature: {}°{}", weather_data["temperature"], weather_data["unit"]);
-                println!("  Conditions: {}", weather_data["conditions"]);
-                println!("  Humidity: {}%", weather_data["humidity"]);
-                println!("  Wind Speed: {} mph", weather_data["wind_speed"]);
+                println!("Tool Call Detected!");
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-                println!("💡 In a real application, you would:");
-                println!("   1. Execute the tool with these arguments");
-                println!("   2. Create a tool result message with the weather data");
-                println!("   3. Send it back to the model for a final response");
+                println!("🔧 Tool Call Details:");
+                println!("  • Tool ID: {}", tool_call.tool_call_id);
+                println!("  • Tool Name: {}", tool_call.tool_name);
+                println!("  • Arguments: {}\n", tool_call.input);
+
+                // Parse the arguments
+                let args: Value = serde_json::from_str(&tool_call.input)?;
+                if let Some(city) = args.get("city").and_then(|v| v.as_str()) {
+                    println!("📍 Executing tool: get_weather(city=\"{}\")\n", city);
+
+                    // Execute the tool
+                    let weather_data = get_weather(city);
+
+                    println!("☁️  Weather Results:");
+                    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    println!("  City: {}", weather_data["city"]);
+                    println!("  Temperature: {}°{}", weather_data["temperature"], weather_data["unit"]);
+                    println!("  Conditions: {}", weather_data["conditions"]);
+                    println!("  Humidity: {}%", weather_data["humidity"]);
+                    println!("  Wind Speed: {} mph", weather_data["wind_speed"]);
+                    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+                    println!("💡 In a real application, you would:");
+                    println!("   1. Execute the tool with these arguments");
+                    println!("   2. Create a tool result message with the weather data");
+                    println!("   3. Send it back to the model for a final response");
+                }
             }
         }
     }

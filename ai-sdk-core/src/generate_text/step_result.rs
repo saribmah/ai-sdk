@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// Metadata about the request sent to the language model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct RequestMetadata {
     /// The request body (if available).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,7 +23,7 @@ pub struct RequestMetadata {
 }
 
 /// Response metadata including messages generated during the call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct StepResponseMetadata {
     /// Response ID (if available).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,7 +82,7 @@ impl From<ResponseMetadata> for StepResponseMetadata {
 /// let text = result.text();
 /// let tool_calls = result.tool_calls();
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StepResult {
     /// The content that was generated in the step.
     pub content: Vec<Content>,

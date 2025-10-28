@@ -56,11 +56,13 @@
 //! ```
 
 mod provider;
-mod language_model;
+pub mod chat;
+pub mod completion;
+pub mod error;
 
 pub use provider::{
     create_openai_compatible, OpenAICompatibleProvider, OpenAICompatibleProviderSettings,
 };
-pub use language_model::{
-    create_language_model, OpenAICompatibleChatConfig, OpenAICompatibleLanguageModel, UrlOptions,
-};
+pub use chat::*;
+pub use completion::*;
+pub use error::*;

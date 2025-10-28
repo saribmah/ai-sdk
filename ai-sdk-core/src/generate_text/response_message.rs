@@ -1,4 +1,4 @@
-use crate::message::{AssistantModelMessage, ToolModelMessage};
+use crate::message::{AssistantModelMessage, ModelMessage, ToolModelMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -93,6 +93,18 @@ impl ResponseMessage {
     }
 }
 
+impl From<ModelMessage> for ResponseMessage {
+    fn from(message: ModelMessage) -> Self {
+        match message {
+            ModelMessage::Assistant(msg) => ResponseMessage::Assistant(msg),
+            ModelMessage::Tool(msg) => ResponseMessage::Tool(msg),
+            ModelMessage::System(_) | ModelMessage::User(_) => {
+                panic!("Cannot convert System or User messages to ResponseMessage")
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -157,5 +169,25 @@ mod tests {
         let cloned = response.clone();
 
         assert_eq!(response, cloned);
+    }
+
+    #[test]
+    fn test_from_model_message_assistant() {
+        let assistant_msg = AssistantModelMessage::new("Hello");
+        let model_msg = ModelMessage::Assistant(assistant_msg.clone());
+        let response = ResponseMessage::from(model_msg);
+
+        assert!(response.is_assistant());
+        assert_eq!(response.as_assistant(), Some(&assistant_msg));
+    }
+
+    #[test]
+    fn test_from_model_message_tool() {
+        let tool_msg = ToolModelMessage::new(vec![]);
+        let model_msg = ModelMessage::Tool(tool_msg.clone());
+        let response = ResponseMessage::from(model_msg);
+
+        assert!(response.is_tool());
+        assert_eq!(response.as_tool(), Some(&tool_msg));
     }
 }
