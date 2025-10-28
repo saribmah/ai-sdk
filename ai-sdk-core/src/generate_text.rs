@@ -18,7 +18,7 @@ mod callbacks;
 mod response_message;
 mod parse_tool_call;
 
-pub use retries::{prepare_retries, RetryConfig, RetryFunction};
+pub use retries::{prepare_retries, RetryConfig};
 pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
@@ -56,7 +56,6 @@ use ai_sdk_provider::{
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
-use std::collections::HashMap;
 use tokio_util::sync::CancellationToken;
 
 /// Executes tool calls and returns the outputs.
@@ -375,7 +374,7 @@ pub async fn generate_text(
     let mut steps: Vec<StepResult> = Vec::new();
 
     // Step 1: Prepare retries
-    let _retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
+    let retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
 
     // Step 2: Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
@@ -464,9 +463,13 @@ pub async fn generate_text(
             call_options = call_options.with_provider_options(opts.clone());
         }
 
-        // Step 8: Call model.do_generate
-        let response = model.do_generate(call_options).await
-            .map_err(|e| AISDKError::model_error(e.to_string()))?;
+        // Step 8: Call model.do_generate with retry logic
+        let response = retry_config
+            .execute_with_boxed_error(|| {
+                let call_options_clone = call_options.clone();
+                async move { model.do_generate(call_options_clone).await }
+            })
+            .await?;
 
         // Step 9: Parse tool calls from the response
         use ai_sdk_provider::language_model::content::Content;

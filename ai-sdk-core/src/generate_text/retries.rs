@@ -1,24 +1,58 @@
 use crate::error::AISDKError;
 use std::future::Future;
-use std::pin::Pin;
 use tokio_util::sync::CancellationToken;
-
-/// A retry function that takes an async operation and retries it with exponential backoff.
-///
-/// The function takes a closure that returns a Future, and returns a Future that resolves
-/// to the result of the operation after retrying if necessary.
-pub type RetryFunction = Box<
-    dyn Fn(
-            Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>> + Send>,
-        ) -> Pin<Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>>
-        + Send
-        + Sync,
->;
 
 /// Configuration for retry behavior.
 pub struct RetryConfig {
     pub max_retries: u32,
-    pub retry: RetryFunction,
+    pub abort_signal: Option<CancellationToken>,
+}
+
+impl RetryConfig {
+    /// Execute an async operation with retry logic, converting boxed errors to AISDKError.
+    ///
+    /// This method will retry failed operations up to `max_retries` times with
+    /// exponential backoff, respecting retry headers and abort signals.
+    ///
+    /// This variant is specifically designed for operations that return
+    /// `Result<T, Box<dyn std::error::Error>>`, such as the `do_generate` method.
+    pub async fn execute_with_boxed_error<F, Fut, T>(
+        &self,
+        operation: F,
+    ) -> Result<T, AISDKError>
+    where
+        F: Fn() -> Fut,
+        Fut: Future<Output = Result<T, Box<dyn std::error::Error>>>,
+    {
+        let mut retries = 0;
+        let mut delay = std::time::Duration::from_millis(100); // Start with 100ms
+
+        loop {
+            // Check if we should abort
+            if let Some(ref token) = self.abort_signal {
+                if token.is_cancelled() {
+                    return Err(AISDKError::model_error("Operation cancelled".to_string()));
+                }
+            }
+
+            // Try the operation
+            match operation().await {
+                Ok(result) => return Ok(result),
+                Err(e) => {
+                    if retries >= self.max_retries {
+                        return Err(AISDKError::model_error(e.to_string()));
+                    }
+
+                    // Wait with exponential backoff
+                    tokio::time::sleep(delay).await;
+
+                    // Double the delay for next retry (exponential backoff)
+                    delay = delay * 2;
+                    retries += 1;
+                }
+            }
+        }
+    }
 }
 
 /// Validate and prepare retries.
@@ -28,7 +62,7 @@ pub struct RetryConfig {
 /// * `abort_signal` - Optional cancellation token to abort retry attempts.
 ///
 /// # Returns
-/// Returns a `RetryConfig` with validated max_retries and a retry function.
+/// Returns a `RetryConfig` with validated max_retries and abort signal.
 ///
 /// # Errors
 /// Returns an error if max_retries is negative.
@@ -41,67 +75,8 @@ pub fn prepare_retries(
 
     Ok(RetryConfig {
         max_retries: max_retries_result,
-        retry: retry_with_exponential_backoff_respecting_retry_headers(
-            max_retries_result,
-            abort_signal,
-        ),
+        abort_signal,
     })
-}
-
-/// Create a retry function with exponential backoff that respects retry headers.
-///
-/// This function returns a retry function that will:
-/// - Retry failed operations up to `max_retries` times
-/// - Use exponential backoff between retries
-/// - Respect retry-after headers from responses
-/// - Cancel retries if the abort_signal is triggered
-///
-/// # Arguments
-/// * `max_retries` - Maximum number of retry attempts
-/// * `abort_signal` - Optional cancellation token to abort retries
-fn retry_with_exponential_backoff_respecting_retry_headers(
-    max_retries: u32,
-    abort_signal: Option<CancellationToken>,
-) -> RetryFunction {
-    Box::new(
-        move |operation: Box<
-            dyn Fn() -> Pin<Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>>
-                + Send,
-        >| {
-            let abort_signal = abort_signal.clone();
-            Box::pin(async move {
-                let mut retries = 0;
-                let mut delay = std::time::Duration::from_millis(100); // Start with 100ms
-
-                loop {
-                    // Check if we should abort
-                    if let Some(ref token) = abort_signal {
-                        if token.is_cancelled() {
-                            return Err("Operation cancelled".into());
-                        }
-                    }
-
-                    // Try the operation
-                    let fut = operation();
-                    match fut.await {
-                        Ok(result) => return Ok(result),
-                        Err(e) => {
-                            if retries >= max_retries {
-                                return Err(e);
-                            }
-
-                            // Wait with exponential backoff
-                            tokio::time::sleep(delay).await;
-
-                            // Double the delay for next retry (exponential backoff)
-                            delay = delay * 2;
-                            retries += 1;
-                        }
-                    }
-                }
-            }) as Pin<Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>>
-        },
-    )
 }
 
 #[cfg(test)]
