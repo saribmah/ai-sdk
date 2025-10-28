@@ -25,10 +25,10 @@ pub struct OpenAICompatibleChatConfig {
     pub provider: String,
 
     /// Function to generate headers for API requests
-    pub headers: fn() -> HashMap<String, String>,
+    pub headers: Box<dyn Fn() -> HashMap<String, String> + Send + Sync>,
 
     /// Function to generate the URL for API requests
-    pub url: fn(model_id: &str, path: &str) -> String,
+    pub url: Box<dyn Fn(&str, &str) -> String + Send + Sync>,
 
     /// Optional custom fetch function
     pub fetch: Option<fn()>, // TODO: proper fetch function type
@@ -47,8 +47,8 @@ impl Default for OpenAICompatibleChatConfig {
     fn default() -> Self {
         Self {
             provider: "openai-compatible".to_string(),
-            headers: || HashMap::new(),
-            url: |_model_id, path| format!("https://api.openai.com/v1{}", path),
+            headers: Box::new(|| HashMap::new()),
+            url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
             fetch: None,
             include_usage: false,
             supports_structured_outputs: false,
