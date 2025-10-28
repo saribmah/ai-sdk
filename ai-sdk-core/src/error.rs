@@ -1,4 +1,5 @@
 use thiserror::Error;
+use std::time::Duration;
 
 #[derive(Debug, Error)]
 pub enum AISDKError {
@@ -14,6 +15,13 @@ pub enum AISDKError {
 
     #[error("Model error: {message}")]
     ModelError { message: String },
+
+    #[error("Retryable error: {message}")]
+    RetryableError {
+        message: String,
+        /// Optional retry delay hint from the provider (e.g., from Retry-After header)
+        retry_after: Option<Duration>,
+    },
 
     #[error("Invalid tool input for tool '{tool_name}': {message}")]
     InvalidToolInput {
@@ -47,6 +55,20 @@ impl AISDKError {
     pub fn model_error(message: impl Into<String>) -> Self {
         Self::ModelError {
             message: message.into(),
+        }
+    }
+
+    pub fn retryable_error(message: impl Into<String>) -> Self {
+        Self::RetryableError {
+            message: message.into(),
+            retry_after: None,
+        }
+    }
+
+    pub fn retryable_error_with_delay(message: impl Into<String>, retry_after: Duration) -> Self {
+        Self::RetryableError {
+            message: message.into(),
+            retry_after: Some(retry_after),
         }
     }
 

@@ -246,7 +246,25 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         if !status.is_success() {
             let error_body = response.text().await?;
-            return Err(format!("API request failed with status {}: {}", status, error_body).into());
+
+            // Check for Retry-After header to include in error message
+            let retry_info = if let Some(retry_after) = response_headers.get("retry-after") {
+                if let Ok(retry_str) = retry_after.to_str() {
+                    // Try to parse as seconds (integer)
+                    if let Ok(seconds) = retry_str.parse::<u64>() {
+                        format!(" (Retry after {} seconds)", seconds)
+                    } else {
+                        // Could be HTTP-date format, but for now just include the raw value
+                        format!(" (Retry-After: {})", retry_str)
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+
+            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
         }
 
         let response_body = response.text().await?;
@@ -360,7 +378,25 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         if !status.is_success() {
             let error_body = response.text().await?;
-            return Err(format!("API request failed with status {}: {}", status, error_body).into());
+
+            // Check for Retry-After header to include in error message
+            let retry_info = if let Some(retry_after) = response_headers.get("retry-after") {
+                if let Ok(retry_str) = retry_after.to_str() {
+                    // Try to parse as seconds (integer)
+                    if let Ok(seconds) = retry_str.parse::<u64>() {
+                        format!(" (Retry after {} seconds)", seconds)
+                    } else {
+                        // Could be HTTP-date format, but for now just include the raw value
+                        format!(" (Retry-After: {})", retry_str)
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+
+            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
         }
 
         // Build headers map from HTTP response headers
