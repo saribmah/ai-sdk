@@ -145,25 +145,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
 
     // Check if the model made a tool call by looking at the steps
-    use ai_sdk_provider::language_model::content::Content;
     let mut found_tool_call = false;
 
     // Check the last step for tool calls
     if let Some(last_step) = result.steps.last() {
         for content in &last_step.content {
-            if let Content::ToolCall(tool_call) = content {
+            use ai_sdk_core::{ContentPart, TypedToolCall};
+            if let ContentPart::ToolCall(tool_call) = content {
                 found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 println!("Tool Call Detected!");
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
+                // Extract tool call details based on the variant
+                let (tool_call_id, tool_name, input_str) = match tool_call {
+                    TypedToolCall::Static(call) => {
+                        (&call.tool_call_id, &call.tool_name, serde_json::to_string(&call.input)?)
+                    }
+                    TypedToolCall::Dynamic(call) => {
+                        (&call.tool_call_id, &call.tool_name, serde_json::to_string(&call.input)?)
+                    }
+                };
+
                 println!("🔧 Tool Call Details:");
-                println!("  • Tool ID: {}", tool_call.tool_call_id);
-                println!("  • Tool Name: {}", tool_call.tool_name);
-                println!("  • Arguments: {}\n", tool_call.input);
+                println!("  • Tool ID: {}", tool_call_id);
+                println!("  • Tool Name: {}", tool_name);
+                println!("  • Arguments: {}\n", input_str);
 
                 // Parse the arguments
-                let args: Value = serde_json::from_str(&tool_call.input)?;
+                let args: Value = serde_json::from_str(&input_str)?;
                 if let Some(city) = args.get("city").and_then(|v| v.as_str()) {
                     println!("📍 Executing tool: get_weather(city=\"{}\")\n", city);
 

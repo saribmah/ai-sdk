@@ -631,9 +631,9 @@ pub async fn generate_text(
             response_messages.push(ResponseMessage::from(msg));
         }
 
-        // Create and push the current step result
+        // Create and push the current step result (using step_content, NOT response.content)
         let current_step_result = StepResult::new(
-            response.content.clone(),
+            step_content.clone(),  // ← Use ContentPart, not provider Content
             response.finish_reason.clone(),
             response.usage.clone(),
             if response.warnings.is_empty() {
@@ -701,6 +701,103 @@ pub async fn generate_text(
             callback.call(finish_event).await;
         }
     }
+
+    // Debug logging: Show all steps
+    eprintln!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    eprintln!("🔍 DEBUG: Generation Steps Summary");
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    eprintln!("Total steps: {}", steps.len());
+    eprintln!("Total usage: {} input, {} output, {} total tokens",
+        total_usage.input_tokens,
+        total_usage.output_tokens,
+        total_usage.total_tokens
+    );
+
+    for (i, step) in steps.iter().enumerate() {
+        eprintln!("\n📍 Step {} of {}:", i + 1, steps.len());
+        eprintln!("  Finish reason: {:?}", step.finish_reason);
+        eprintln!("  Usage: {} in, {} out, {} total",
+            step.usage.input_tokens,
+            step.usage.output_tokens,
+            step.usage.total_tokens
+        );
+
+        // Show text content
+        let text = step.text();
+        if !text.is_empty() {
+            eprintln!("  Text: {}", if text.len() > 100 {
+                format!("{}...", &text[..100])
+            } else {
+                text
+            });
+        }
+
+        // Show tool calls
+        let tool_calls = step.tool_calls();
+        if !tool_calls.is_empty() {
+            eprintln!("  Tool calls ({}):", tool_calls.len());
+            for tc in tool_calls {
+                use super::TypedToolCall;
+                match tc {
+                    TypedToolCall::Static(call) => {
+                        eprintln!("    - {} (id: {})", call.tool_name, call.tool_call_id);
+                        eprintln!("      Input: {:?}", call.input);
+                        if let Some(executed) = call.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                    TypedToolCall::Dynamic(call) => {
+                        eprintln!("    - {} (id: {}) [dynamic]", call.tool_name, call.tool_call_id);
+                        eprintln!("      Input: {}", call.input);
+                        if let Some(executed) = call.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show tool results
+        let tool_results = step.tool_results();
+        if !tool_results.is_empty() {
+            eprintln!("  Tool results ({}):", tool_results.len());
+            for tr in tool_results {
+                use super::TypedToolResult;
+                match tr {
+                    TypedToolResult::Static(result) => {
+                        eprintln!("    - {} (call_id: {})", result.tool_name, result.tool_call_id);
+                        eprintln!("      Output: {:?}", result.output);
+                        if let Some(executed) = result.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                    TypedToolResult::Dynamic(result) => {
+                        eprintln!("    - {} (call_id: {}) [dynamic]", result.tool_name, result.tool_call_id);
+                        eprintln!("      Output: {}", result.output);
+                        if let Some(executed) = result.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show content types
+        eprintln!("  Content parts: {}", step.content.len());
+        for (j, content) in step.content.iter().enumerate() {
+            let content_type = match content {
+                ContentPart::Text(_) => "Text",
+                ContentPart::ToolCall(_) => "ToolCall",
+                ContentPart::ToolResult(_) => "ToolResult",
+                ContentPart::ToolError(_) => "ToolError",
+                ContentPart::Reasoning(_) => "Reasoning",
+                ContentPart::Source(_) => "Source",
+            };
+            eprintln!("    [{}] {}", j, content_type);
+        }
+    }
+
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // Return the GenerateTextResult
     Ok(GenerateTextResult::from_steps(

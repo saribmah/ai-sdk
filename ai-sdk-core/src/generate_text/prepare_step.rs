@@ -148,12 +148,14 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, text::Text, usage::Usage,
+        finish_reason::FinishReason, usage::Usage,
     };
+    use super::super::content_part::ContentPart;
+    use super::super::text_output::TextOutput;
 
     fn create_test_step() -> StepResult {
         StepResult::new(
-            vec![Content::Text(Text::new("Test"))],
+            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
             FinishReason::Stop,
             Usage::new(10, 20),
             None,
