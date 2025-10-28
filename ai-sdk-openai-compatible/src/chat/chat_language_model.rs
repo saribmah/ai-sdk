@@ -101,10 +101,10 @@ impl OpenAICompatibleChatLanguageModel {
             reasoning_id: None,
             tool_calls: HashMap::new(),
         };
-        let mut emitted_start = false;
 
         Box::pin(async_stream::stream! {
             // Emit stream start with warnings
+            // This is outside the event loop and only emitted once per stream instance
             yield StreamPart::stream_start(warnings);
 
             let mut stream = Box::pin(byte_stream);
@@ -582,9 +582,22 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             Usage::default()
         };
 
-        // Build provider metadata
+        // Build provider metadata with response headers
         let mut provider_metadata = HashMap::new();
         let mut provider_data = HashMap::new();
+
+        // Add HTTP response headers to provider metadata for debugging
+        // Headers are prefixed with "header." to distinguish them from other metadata
+        // Common useful headers: x-ratelimit-*, x-request-id, retry-after, etc.
+        for (key, value) in response_headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                provider_data.insert(
+                    format!("header.{}", key.as_str()),
+                    json!(value_str),
+                );
+            }
+        }
+
         provider_metadata.insert(self.provider_options_name().to_string(), provider_data);
 
         // Build response metadata
@@ -648,10 +661,19 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         let response = request.body(body_string.clone()).send().await?;
         let status = response.status();
+        let response_headers = response.headers().clone();
 
         if !status.is_success() {
             let error_body = response.text().await?;
             return Err(format!("API request failed with status {}: {}", status, error_body).into());
+        }
+
+        // Build headers map from HTTP response headers
+        let mut headers_map = HashMap::new();
+        for (key, value) in response_headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                headers_map.insert(key.as_str().to_string(), value_str.to_string());
+            }
         }
 
         // Create the stream processor
@@ -666,7 +688,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                 body: Some(body),
             }),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
-                headers: None,
+                headers: Some(headers_map),
             }),
         })
     }
