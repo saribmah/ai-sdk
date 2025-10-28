@@ -524,9 +524,20 @@ pub async fn generate_text(
 
         // Step 8: Call model.do_generate with retry logic
         let response = retry_config
-            .execute_with_boxed_error(|| {
+            .execute(|| {
                 let call_options_clone = call_options.clone();
-                async move { model.do_generate(call_options_clone).await }
+                async move {
+                    model.do_generate(call_options_clone).await
+                        .map_err(|e| {
+                            let error_string = e.to_string();
+                            // Check if error contains retry hint and create appropriate error type
+                            if let Some(retry_after) = retries::extract_retry_delay_from_error(&error_string) {
+                                AISDKError::retryable_error_with_delay(error_string, retry_after)
+                            } else {
+                                AISDKError::model_error(error_string)
+                            }
+                        })
+                }
             })
             .await?;
 
