@@ -9,7 +9,7 @@ pub use generate_text::{
     parse_provider_executed_dynamic_tool_call, parse_tool_call, prepare_tools_and_tool_choice,
     step_count_is, to_response_messages, ContentPart, DynamicToolCall, DynamicToolError,
     DynamicToolResult, FinishEvent, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
-    OnPreliminaryToolResult, OnStepFinish, ParsedToolCall, PrepareStep, PrepareStepOptions,
+    OnPreliminaryToolResult, OnStepFinish, PrepareStep, PrepareStepOptions,
     PrepareStepResult, ReasoningOutput, RequestMetadata, ResponseMessage, ResponseMetadata,
     SourceOutput, StaticToolCall, StaticToolError, StaticToolResult, StepCountIs,
     StepResponseMetadata, StepResult, StopCondition, TextOutput, ToolOutput, ToolSet, TypedToolCall,

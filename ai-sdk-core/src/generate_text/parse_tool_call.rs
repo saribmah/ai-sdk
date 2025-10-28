@@ -25,83 +25,10 @@
 
 use crate::error::AISDKError;
 use crate::message::tool::definition::Tool;
+use crate::generate_text::tool_call::{TypedToolCall, StaticToolCall, DynamicToolCall};
 use ai_sdk_provider::language_model::tool_call::ToolCall;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-
-/// A tool call that has been parsed and validated.
-///
-/// This represents a tool call with parsed input, unlike the provider's ToolCall
-/// which contains unparsed input as a string.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ParsedToolCall {
-    /// Type is always "tool-call".
-    #[serde(rename = "type")]
-    pub call_type: String,
-
-    /// The ID of the tool call.
-    pub tool_call_id: String,
-
-    /// The name of the tool that was called.
-    pub tool_name: String,
-
-    /// The parsed input to the tool.
-    pub input: Value,
-
-    /// Whether the tool was executed by the provider.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_executed: Option<bool>,
-
-    /// Provider-specific metadata for this tool call.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
-
-    /// Whether this is a dynamic tool.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dynamic: Option<bool>,
-}
-
-impl ParsedToolCall {
-    /// Creates a new parsed tool call.
-    pub fn new(
-        tool_call_id: impl Into<String>,
-        tool_name: impl Into<String>,
-        input: Value,
-    ) -> Self {
-        Self {
-            call_type: "tool-call".to_string(),
-            tool_call_id: tool_call_id.into(),
-            tool_name: tool_name.into(),
-            input,
-            provider_executed: None,
-            provider_metadata: None,
-            dynamic: None,
-        }
-    }
-
-    /// Creates a parsed tool call with all options.
-    pub fn with_options(
-        tool_call_id: impl Into<String>,
-        tool_name: impl Into<String>,
-        input: Value,
-        provider_executed: Option<bool>,
-        provider_metadata: Option<ProviderMetadata>,
-        dynamic: Option<bool>,
-    ) -> Self {
-        Self {
-            call_type: "tool-call".to_string(),
-            tool_call_id: tool_call_id.into(),
-            tool_name: tool_name.into(),
-            input,
-            provider_executed,
-            provider_metadata,
-            dynamic,
-        }
-    }
-}
 
 /// Validates tool input against a JSON Schema.
 ///
@@ -168,14 +95,14 @@ fn validate_tool_input(
 ///
 /// # Returns
 ///
-/// Returns a `ParsedToolCall` with the parsed input and dynamic flag set to true.
+/// Returns a `TypedToolCall::Dynamic` with the parsed input.
 ///
 /// # Errors
 ///
 /// Returns an error if the input cannot be parsed as JSON.
 pub fn parse_provider_executed_dynamic_tool_call(
     tool_call: &ToolCall,
-) -> Result<ParsedToolCall, AISDKError> {
+) -> Result<TypedToolCall<Value>, AISDKError> {
     // Empty input is treated as an empty object
     let input = if tool_call.input.trim().is_empty() {
         Value::Object(serde_json::Map::new())
@@ -189,14 +116,18 @@ pub fn parse_provider_executed_dynamic_tool_call(
         })?
     };
 
-    Ok(ParsedToolCall::with_options(
+    let mut dynamic_call = DynamicToolCall::new(
         &tool_call.tool_call_id,
         &tool_call.tool_name,
         input,
-        Some(true), // provider_executed
-        tool_call.provider_metadata.clone(),
-        Some(true), // dynamic
-    ))
+    )
+    .with_provider_executed(true);
+
+    if let Some(metadata) = tool_call.provider_metadata.clone() {
+        dynamic_call = dynamic_call.with_provider_metadata(metadata);
+    }
+
+    Ok(TypedToolCall::Dynamic(dynamic_call))
 }
 
 /// Parses a tool call from the provider against a set of available tools.
@@ -205,7 +136,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 /// 1. Looks up the tool in the tool set
 /// 2. Parses the input as JSON
 /// 3. Validates the input against the tool's JSON Schema
-/// 4. Returns a parsed tool call with the validated input
+/// 4. Returns a typed tool call with the validated input
 ///
 /// # Arguments
 ///
@@ -214,7 +145,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 ///
 /// # Returns
 ///
-/// Returns a `ParsedToolCall` with the parsed and validated input.
+/// Returns a `TypedToolCall` (either Static or Dynamic) with the parsed and validated input.
 ///
 /// # Errors
 ///
@@ -226,7 +157,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::generate_text::parse_tool_call::parse_tool_call;
+/// use ai_sdk_core::generate_text::parse_tool_call;
 /// use ai_sdk_provider::language_model::tool_call::ToolCall;
 /// use std::collections::HashMap;
 ///
@@ -237,7 +168,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 pub fn parse_tool_call(
     tool_call: &ToolCall,
     tools: &HashMap<String, Tool<Value, Value>>,
-) -> Result<ParsedToolCall, AISDKError> {
+) -> Result<TypedToolCall<Value>, AISDKError> {
     let tool_name = &tool_call.tool_name;
 
     // Look up the tool in the tool set
@@ -278,14 +209,41 @@ pub fn parse_tool_call(
     // Return different structures based on whether the tool is dynamic
     let is_dynamic = tool.is_dynamic();
 
-    Ok(ParsedToolCall::with_options(
-        &tool_call.tool_call_id,
-        tool_name,
-        input,
-        tool_call.provider_executed,
-        tool_call.provider_metadata.clone(),
-        if is_dynamic { Some(true) } else { None },
-    ))
+    if is_dynamic {
+        // Dynamic tool
+        let mut dynamic_call = DynamicToolCall::new(
+            &tool_call.tool_call_id,
+            tool_name,
+            input,
+        );
+
+        if let Some(executed) = tool_call.provider_executed {
+            dynamic_call = dynamic_call.with_provider_executed(executed);
+        }
+
+        if let Some(metadata) = tool_call.provider_metadata.clone() {
+            dynamic_call = dynamic_call.with_provider_metadata(metadata);
+        }
+
+        Ok(TypedToolCall::Dynamic(dynamic_call))
+    } else {
+        // Static tool
+        let mut static_call = StaticToolCall::new(
+            &tool_call.tool_call_id,
+            tool_name,
+            input,
+        );
+
+        if let Some(executed) = tool_call.provider_executed {
+            static_call = static_call.with_provider_executed(executed);
+        }
+
+        if let Some(metadata) = tool_call.provider_metadata.clone() {
+            static_call = static_call.with_provider_metadata(metadata);
+        }
+
+        Ok(TypedToolCall::Static(static_call))
+    }
 }
 
 #[cfg(test)]
@@ -295,46 +253,23 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_parsed_tool_call_new() {
-        let parsed = ParsedToolCall::new("call_123", "tool_name", json!({"key": "value"}));
-
-        assert_eq!(parsed.call_type, "tool-call");
-        assert_eq!(parsed.tool_call_id, "call_123");
-        assert_eq!(parsed.tool_name, "tool_name");
-        assert_eq!(parsed.input, json!({"key": "value"}));
-        assert_eq!(parsed.provider_executed, None);
-        assert_eq!(parsed.provider_metadata, None);
-        assert_eq!(parsed.dynamic, None);
-    }
-
-    #[test]
-    fn test_parsed_tool_call_with_options() {
-        let parsed = ParsedToolCall::with_options(
-            "call_123",
-            "tool_name",
-            json!({"key": "value"}),
-            Some(true),
-            None,
-            Some(true),
-        );
-
-        assert_eq!(parsed.provider_executed, Some(true));
-        assert_eq!(parsed.dynamic, Some(true));
-    }
-
-    #[test]
     fn test_parse_provider_executed_dynamic_tool_call_with_input() {
         let tool_call = ToolCall::new("call_123", "dynamic_tool", r#"{"city": "SF"}"#);
 
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.tool_call_id, "call_123");
-        assert_eq!(parsed.tool_name, "dynamic_tool");
-        assert_eq!(parsed.input, json!({"city": "SF"}));
-        assert_eq!(parsed.provider_executed, Some(true));
-        assert_eq!(parsed.dynamic, Some(true));
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Dynamic(parsed) => {
+                assert_eq!(parsed.tool_call_id, "call_123");
+                assert_eq!(parsed.tool_name, "dynamic_tool");
+                assert_eq!(parsed.input, json!({"city": "SF"}));
+                assert_eq!(parsed.provider_executed, Some(true));
+                assert_eq!(parsed.dynamic, true);
+            }
+            TypedToolCall::Static(_) => panic!("Expected Dynamic variant"),
+        }
     }
 
     #[test]
@@ -344,8 +279,13 @@ mod tests {
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.input, json!({}));
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Dynamic(parsed) => {
+                assert_eq!(parsed.input, json!({}));
+            }
+            TypedToolCall::Static(_) => panic!("Expected Dynamic variant"),
+        }
     }
 
     #[test]
@@ -379,11 +319,16 @@ mod tests {
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.tool_call_id, "call_123");
-        assert_eq!(parsed.tool_name, "get_weather");
-        assert_eq!(parsed.input, json!({"city": "SF"}));
-        assert_eq!(parsed.dynamic, None); // Function tools are not dynamic
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Static(parsed) => {
+                assert_eq!(parsed.tool_call_id, "call_123");
+                assert_eq!(parsed.tool_name, "get_weather");
+                assert_eq!(parsed.input, json!({"city": "SF"}));
+                assert_eq!(parsed.dynamic, None); // Function tools are not dynamic
+            }
+            TypedToolCall::Dynamic(_) => panic!("Expected Static variant for function tool"),
+        }
     }
 
     #[test]
@@ -397,10 +342,15 @@ mod tests {
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.tool_name, "dynamic_tool");
-        assert_eq!(parsed.input, json!({"data": "test"}));
-        assert_eq!(parsed.dynamic, Some(true)); // Dynamic tools have dynamic flag
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Dynamic(parsed) => {
+                assert_eq!(parsed.tool_name, "dynamic_tool");
+                assert_eq!(parsed.input, json!({"data": "test"}));
+                assert_eq!(parsed.dynamic, true); // Dynamic tools have dynamic flag
+            }
+            TypedToolCall::Static(_) => panic!("Expected Dynamic variant for dynamic tool"),
+        }
     }
 
     #[test]
@@ -414,8 +364,13 @@ mod tests {
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.input, json!({})); // Empty string becomes empty object
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Static(parsed) => {
+                assert_eq!(parsed.input, json!({})); // Empty string becomes empty object
+            }
+            TypedToolCall::Dynamic(_) => panic!("Expected Static variant"),
+        }
     }
 
     #[test]
@@ -472,10 +427,15 @@ mod tests {
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.tool_name, "provider_tool");
-        assert_eq!(parsed.provider_executed, Some(true));
-        assert_eq!(parsed.dynamic, Some(true)); // Treated as dynamic
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Dynamic(parsed) => {
+                assert_eq!(parsed.tool_name, "provider_tool");
+                assert_eq!(parsed.provider_executed, Some(true));
+                assert_eq!(parsed.dynamic, true); // Treated as dynamic
+            }
+            TypedToolCall::Static(_) => panic!("Expected Dynamic variant for provider-executed tool"),
+        }
     }
 
     // Schema validation tests
@@ -508,9 +468,14 @@ mod tests {
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
 
-        let parsed = result.unwrap();
-        assert_eq!(parsed.input["city"], "San Francisco");
-        assert_eq!(parsed.input["units"], "celsius");
+        let typed_call = result.unwrap();
+        match typed_call {
+            TypedToolCall::Static(parsed) => {
+                assert_eq!(parsed.input["city"], "San Francisco");
+                assert_eq!(parsed.input["units"], "celsius");
+            }
+            TypedToolCall::Dynamic(_) => panic!("Expected Static variant"),
+        }
     }
 
     #[test]
@@ -669,6 +634,8 @@ mod tests {
         );
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
+        // Verify it's a Static variant
+        matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid nested object (missing required field)
         let tool_call = ToolCall::new("call_124", "get_info", r#"{"location": {"city": "Paris"}}"#);
@@ -698,6 +665,7 @@ mod tests {
         let tool_call = ToolCall::new("call_123", "tag_tool", r#"{"tags": ["tag1", "tag2"]}"#);
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
+        matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid array (wrong item type)
         let tool_call = ToolCall::new("call_124", "tag_tool", r#"{"tags": ["tag1", 123]}"#);
@@ -741,6 +709,7 @@ mod tests {
         );
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
+        matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid username (too short)
         let tool_call = ToolCall::new(
@@ -776,6 +745,7 @@ mod tests {
             ToolCall::new("call_123", "data_tool", r#"{"age": 25, "temperature": 20.5}"#);
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
+        matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid age (negative)
         let tool_call =
@@ -807,6 +777,7 @@ mod tests {
         );
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
+        matches!(result.unwrap(), TypedToolCall::Static(_));
     }
 
     #[test]
