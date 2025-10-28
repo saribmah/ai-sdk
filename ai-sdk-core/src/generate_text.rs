@@ -365,33 +365,32 @@ pub async fn generate_text(
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
 
-    // Initialize response messages array for multi-step generation
-    let mut response_messages: Vec<ResponseMessage> = Vec::new();
-
-    // Initialize steps array for tracking all generation steps
-    let mut steps: Vec<StepResult> = Vec::new();
-
-    // Step 1: Prepare retries
+    // Prepare retries
     let retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
 
-    // Step 2: Prepare and validate call settings
+    // Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
-    // Step 3: Validate and standardize the prompt
+    // Initialize response messages array for multi-step generation
     let initial_prompt = validate_and_standardize(prompt)?;
 
     // Store the initial messages before the loop
     let initial_messages = initial_prompt.messages.clone();
 
-    // Step 4: Prepare tools and tool choice (done once before the loop)
+    // Validate and standardize the prompt
+    let mut response_messages: Vec<ResponseMessage> = Vec::new();
+
+    // Initialize steps array for tracking all generation steps
+    let mut steps: Vec<StepResult> = Vec::new();
+
+    // Prepare tools and tool choice (done once before the loop)
     let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
     // Do-while loop for multi-step generation
     loop {
         // Step 5: Create step input messages by combining initial messages with accumulated response messages
         let mut step_input_messages = initial_messages.clone();
-
-        // Convert response messages to model messages and append
+        // Convert response messages to model messages and append to step_input_messages
         for response_msg in &response_messages {
             let model_msg = match response_msg {
                 ResponseMessage::Assistant(msg) => ModelMessage::Assistant(msg.clone()),
