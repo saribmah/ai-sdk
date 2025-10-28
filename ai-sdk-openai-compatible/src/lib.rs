@@ -58,6 +58,7 @@
 mod provider;
 mod language_model;
 pub mod chat;
+pub mod completion;
 pub mod error;
 
 pub use provider::{

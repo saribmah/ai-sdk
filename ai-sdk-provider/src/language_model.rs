@@ -30,7 +30,7 @@ pub mod usage;
 pub mod function_tool;
 pub mod call_warning;
 pub mod content;
-mod stream_part;
+pub mod stream_part;
 
 #[async_trait]
 pub trait LanguageModel {

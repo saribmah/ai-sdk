@@ -1,14 +1,14 @@
+use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     call_options::CallOptions, call_warning::CallWarning, content::Content,
-    finish_reason::FinishReason, reasoning::Reasoning, response_metadata::ResponseMetadata,
-    text::Text, tool_call::ToolCall, usage::Usage, LanguageModel, LanguageModelGenerateResponse,
-    LanguageModelStreamResponse,
+    reasoning::Reasoning, text::Text, tool_call::ToolCall, usage::Usage, LanguageModel,
+    LanguageModelGenerateResponse, LanguageModelStreamResponse,
 };
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use async_trait::async_trait;
+use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
@@ -88,6 +88,211 @@ impl OpenAICompatibleChatLanguageModel {
             .split('.')
             .next()
             .unwrap_or(&self.config.provider)
+    }
+
+    /// Process SSE byte stream and convert to StreamPart events
+    fn process_stream(
+        byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
+        warnings: Vec<CallWarning>,
+    ) -> impl Stream<Item = StreamPart> + Unpin + Send {
+        let mut buffer = String::new();
+        let mut state = StreamState {
+            text_id: None,
+            reasoning_id: None,
+            tool_calls: HashMap::new(),
+        };
+        let mut emitted_start = false;
+
+        Box::pin(async_stream::stream! {
+            // Emit stream start with warnings
+            yield StreamPart::stream_start(warnings);
+
+            let mut stream = Box::pin(byte_stream);
+
+            while let Some(result) = stream.next().await {
+                match result {
+                    Ok(bytes) => {
+                        // Append to buffer
+                        if let Ok(text) = std::str::from_utf8(&bytes) {
+                            buffer.push_str(text);
+
+                            // Process complete lines
+                            while let Some(pos) = buffer.find('\n') {
+                                let line = buffer[..pos].trim().to_string();
+                                buffer.drain(..=pos);
+
+                                // Skip empty lines
+                                if line.is_empty() {
+                                    continue;
+                                }
+
+                                // Parse SSE format
+                                if let Some(data) = line.strip_prefix("data: ") {
+                                    // Check for [DONE] marker
+                                    if data == "[DONE]" {
+                                        break;
+                                    }
+
+                                    // Parse JSON chunk
+                                    if let Ok(chunk) = serde_json::from_str::<OpenAIStreamChunk>(data) {
+                                        // Process the chunk and emit stream parts
+                                        for part in Self::process_chunk(&mut state, chunk) {
+                                            yield part;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        yield StreamPart::error(json!({ "message": e.to_string() }));
+                        break;
+                    }
+                }
+            }
+        })
+    }
+
+    /// Process a single streaming chunk and emit StreamPart events
+    fn process_chunk(state: &mut StreamState, chunk: OpenAIStreamChunk) -> Vec<StreamPart> {
+        let mut parts = Vec::new();
+
+        // Get the first choice (we only handle single choice for now)
+        let choice = match chunk.choices.first() {
+            Some(c) => c,
+            None => return parts,
+        };
+
+        let delta = &choice.delta;
+
+        // Handle text content
+        if let Some(content) = &delta.content {
+            if !content.is_empty() {
+                if state.text_id.is_none() {
+                    let id = format!("text-{}", uuid::Uuid::new_v4());
+                    parts.push(StreamPart::text_start(&id));
+                    state.text_id = Some(id.clone());
+                }
+
+                if let Some(id) = &state.text_id {
+                    parts.push(StreamPart::text_delta(id, content));
+                }
+            }
+        }
+
+        // Handle reasoning content
+        let reasoning = delta.reasoning_content.as_ref().or(delta.reasoning.as_ref());
+        if let Some(reasoning_text) = reasoning {
+            if !reasoning_text.is_empty() {
+                if state.reasoning_id.is_none() {
+                    let id = format!("reasoning-{}", uuid::Uuid::new_v4());
+                    parts.push(StreamPart::reasoning_start(&id));
+                    state.reasoning_id = Some(id.clone());
+                }
+
+                if let Some(id) = &state.reasoning_id {
+                    parts.push(StreamPart::reasoning_delta(id, reasoning_text));
+                }
+            }
+        }
+
+        // Handle tool calls
+        if let Some(tool_calls) = &delta.tool_calls {
+            for tool_call in tool_calls {
+                let index = tool_call.index.unwrap_or(0) as usize;
+
+                // Get or create tool call state
+                if !state.tool_calls.contains_key(&index) {
+                    if let Some(id) = &tool_call.id {
+                        state.tool_calls.insert(
+                            index,
+                            ToolCallState {
+                                id: id.clone(),
+                                name: String::new(),
+                                arguments: String::new(),
+                                started: false,
+                            },
+                        );
+                    }
+                }
+
+                if let Some(tool_state) = state.tool_calls.get_mut(&index) {
+                    // Update tool name if present
+                    if let Some(function) = &tool_call.function {
+                        if let Some(name) = &function.name {
+                            if !name.is_empty() {
+                                tool_state.name = name.clone();
+                            }
+                        }
+
+                        // Emit start event if we have both ID and name
+                        if !tool_state.started && !tool_state.id.is_empty() && !tool_state.name.is_empty() {
+                            parts.push(StreamPart::tool_input_start(&tool_state.id, &tool_state.name));
+                            tool_state.started = true;
+                        }
+
+                        // Handle arguments delta
+                        if let Some(args) = &function.arguments {
+                            if !args.is_empty() {
+                                tool_state.arguments.push_str(args);
+                                if tool_state.started {
+                                    parts.push(StreamPart::tool_input_delta(&tool_state.id, args));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handle finish reason
+        if let Some(finish_reason) = &choice.finish_reason {
+            // End any open text block
+            if let Some(id) = state.text_id.take() {
+                parts.push(StreamPart::text_end(&id));
+            }
+
+            // End any open reasoning block
+            if let Some(id) = state.reasoning_id.take() {
+                parts.push(StreamPart::reasoning_end(&id));
+            }
+
+            // End all open tool calls
+            for tool_state in state.tool_calls.values() {
+                if tool_state.started {
+                    parts.push(StreamPart::tool_input_end(&tool_state.id));
+                }
+            }
+
+            // Build usage information
+            let usage = if let Some(api_usage) = &chunk.usage {
+                Usage {
+                    input_tokens: api_usage.prompt_tokens.unwrap_or(0),
+                    output_tokens: api_usage.completion_tokens.unwrap_or(0),
+                    total_tokens: api_usage.total_tokens.unwrap_or(0),
+                    reasoning_tokens: api_usage
+                        .completion_tokens_details
+                        .as_ref()
+                        .and_then(|d| d.reasoning_tokens)
+                        .unwrap_or(0),
+                    cached_input_tokens: api_usage
+                        .prompt_tokens_details
+                        .as_ref()
+                        .and_then(|d| d.cached_tokens)
+                        .unwrap_or(0),
+                }
+            } else {
+                Usage::default()
+            };
+
+            // Map finish reason
+            let mapped_finish_reason = map_openai_compatible_finish_reason(Some(finish_reason));
+
+            // Emit finish event
+            parts.push(StreamPart::finish(usage, mapped_finish_reason));
+        }
+
+        parts
     }
 
     /// Prepare arguments for API request
@@ -198,6 +403,61 @@ struct OpenAICompletionTokensDetails {
 #[derive(Debug, Deserialize)]
 struct OpenAIPromptTokensDetails {
     cached_tokens: Option<u64>,
+}
+
+/// OpenAI streaming response chunk
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamChunk {
+    id: Option<String>,
+    created: Option<i64>,
+    model: Option<String>,
+    choices: Vec<OpenAIStreamChoice>,
+    usage: Option<OpenAIUsage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamChoice {
+    index: Option<u64>,
+    delta: OpenAIStreamDelta,
+    finish_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamDelta {
+    role: Option<String>,
+    content: Option<String>,
+    reasoning_content: Option<String>,
+    reasoning: Option<String>,
+    tool_calls: Option<Vec<OpenAIStreamToolCall>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamToolCall {
+    index: Option<u64>,
+    id: Option<String>,
+    #[serde(rename = "type")]
+    tool_type: Option<String>,
+    function: Option<OpenAIStreamFunction>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamFunction {
+    name: Option<String>,
+    arguments: Option<String>,
+}
+
+/// Helper struct to track streaming state across chunks
+struct StreamState {
+    text_id: Option<String>,
+    reasoning_id: Option<String>,
+    tool_calls: HashMap<usize, ToolCallState>,
+}
+
+struct ToolCallState {
+    id: String,
+    name: String,
+    arguments: String,
+    started: bool,
 }
 
 
@@ -354,10 +614,61 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
     async fn do_stream(
         &self,
-        _options: CallOptions,
+        options: CallOptions,
     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
-        // TODO: Implement in Stage 3
-        todo!("do_stream will be implemented in Stage 3")
+        // Prepare request body with streaming enabled
+        let (mut body, warnings) = self.prepare_request_body(&options)?;
+        body["stream"] = json!(true);
+
+        // Add stream_options if include_usage is enabled
+        if self.config.include_usage {
+            body["stream_options"] = json!({
+                "include_usage": true
+            });
+        }
+
+        let body_string = serde_json::to_string(&body)?;
+
+        // Build URL
+        let url = (self.config.url)(&self.model_id, "/chat/completions");
+
+        // Build headers
+        let mut headers = (self.config.headers)();
+        if let Some(option_headers) = &options.headers {
+            headers.extend(option_headers.clone());
+        }
+
+        // Make streaming API request
+        let client = reqwest::Client::new();
+        let mut request = client.post(&url).header("Content-Type", "application/json");
+
+        for (key, value) in headers {
+            request = request.header(key, value);
+        }
+
+        let response = request.body(body_string.clone()).send().await?;
+        let status = response.status();
+
+        if !status.is_success() {
+            let error_body = response.text().await?;
+            return Err(format!("API request failed with status {}: {}", status, error_body).into());
+        }
+
+        // Create the stream processor
+        let byte_stream = response.bytes_stream();
+
+        // Process SSE events and convert to StreamPart
+        let stream = Self::process_stream(byte_stream, warnings);
+
+        Ok(LanguageModelStreamResponse {
+            stream: Box::new(stream),
+            request: Some(ai_sdk_provider::language_model::RequestMetadata {
+                body: Some(body),
+            }),
+            response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
+                headers: None,
+            }),
+        })
     }
 }
 
