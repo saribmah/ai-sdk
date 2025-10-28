@@ -1,3 +1,28 @@
+//! Tool call parsing and validation.
+//!
+//! This module provides functionality to parse and validate tool calls from LLM providers.
+//! It includes JSON Schema validation to ensure tool inputs conform to their defined schemas,
+//! providing similar error reporting to the TypeScript AI SDK.
+//!
+//! # Features
+//!
+//! - Parses JSON tool call inputs from provider responses
+//! - Validates tool inputs against JSON Schemas using the `jsonschema` crate
+//! - Supports both function tools and dynamic tools
+//! - Provides detailed error messages for validation failures
+//! - Handles provider-executed dynamic tools
+//!
+//! # Schema Validation
+//!
+//! Tool inputs are validated against JSON Schemas (Draft 7) that define:
+//! - Required and optional properties
+//! - Type constraints (string, number, object, array, etc.)
+//! - Format constraints (email, date, etc.)
+//! - Value constraints (min/max, enum, pattern, etc.)
+//! - Nested object and array validation
+//!
+//! When validation fails, detailed error messages indicate which constraints were violated.
+
 use crate::error::AISDKError;
 use crate::message::tool::definition::Tool;
 use ai_sdk_provider::language_model::tool_call::ToolCall;
@@ -178,8 +203,9 @@ pub fn parse_provider_executed_dynamic_tool_call(
 ///
 /// This function:
 /// 1. Looks up the tool in the tool set
-/// 2. Parses and validates the input against the tool's schema
-/// 3. Returns a parsed tool call with the validated input
+/// 2. Parses the input as JSON
+/// 3. Validates the input against the tool's JSON Schema
+/// 4. Returns a parsed tool call with the validated input
 ///
 /// # Arguments
 ///
@@ -195,7 +221,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 /// Returns an error if:
 /// - The tool is not found in the tool set
 /// - The input cannot be parsed as JSON
-/// - The input does not validate against the tool's schema (future implementation)
+/// - The input does not validate against the tool's JSON Schema
 ///
 /// # Example
 ///
