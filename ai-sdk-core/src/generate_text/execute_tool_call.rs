@@ -3,7 +3,8 @@ use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedT
 use crate::generate_text::tool_output::ToolOutput;
 use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 use crate::generate_text::ToolSet;
-use crate::message::tool::definition::{Tool, ToolExecutionOutput};
+use crate::message::tool::definition::Tool;
+use crate::message::tool::execute::{execute_tool, ToolExecutionEvent};
 use crate::message::tool::options::ToolCallOptions;
 use crate::message::ModelMessage;
 use futures_util::StreamExt;
@@ -96,159 +97,87 @@ pub async fn execute_tool_call(
         options = options.with_experimental_context(context);
     }
 
-    // Execute the tool
+    // Execute the tool using the execute_tool function
     let execute_fn = tool.execute.as_ref().unwrap();
-    let execution_output = execute_fn(input.clone(), options);
+    let mut event_stream = Box::pin(execute_tool(execute_fn, input.clone(), options));
 
-    // Handle the execution output (single or streaming)
-    match execution_output {
-        ToolExecutionOutput::Single(future) => {
-            // Execute single output tool
-            match execute_single_tool(
-                future,
-                tool_call_id,
-                tool_name,
-                input,
-                is_dynamic,
-            )
-            .await
-            {
-                Ok(output) => Some(output),
-                Err(err_output) => Some(err_output),
-            }
-        }
-        ToolExecutionOutput::Streaming(stream) => {
-            // Execute streaming tool with preliminary result handling
-            match execute_streaming_tool(
-                stream,
-                tool_call_id,
-                tool_name,
-                input,
-                is_dynamic,
-                on_preliminary_tool_result,
-            )
-            .await
-            {
-                Ok(output) => Some(output),
-                Err(err_output) => Some(err_output),
-            }
-        }
-    }
-}
-
-/// Executes a single (non-streaming) tool and returns the output.
-async fn execute_single_tool(
-    future: std::pin::Pin<Box<dyn std::future::Future<Output = Result<Value, Value>> + Send>>,
-    tool_call_id: String,
-    tool_name: String,
-    input: Value,
-    is_dynamic: bool,
-) -> Result<ToolOutput<Value, Value>, ToolOutput<Value, Value>> {
-    // Execute the future and handle Result
-    match future.await {
-        Ok(output) => {
-            // Create successful result
-            if is_dynamic {
-                let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
-                Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
-            } else {
-                let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
-                Ok(ToolOutput::Result(TypedToolResult::Static(result)))
-            }
-        }
-        Err(error_value) => {
-            // Create error result
-            if is_dynamic {
-                let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
-                Err(ToolOutput::Error(TypedToolError::Dynamic(err)))
-            } else {
-                let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
-                Err(ToolOutput::Error(TypedToolError::Static(err)))
-            }
-        }
-    }
-}
-
-/// Executes a streaming tool and handles preliminary results.
-async fn execute_streaming_tool(
-    mut stream: std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<Value, Value>> + Send>>,
-    tool_call_id: String,
-    tool_name: String,
-    input: Value,
-    is_dynamic: bool,
-    on_preliminary_tool_result: Option<OnPreliminaryToolResult>,
-) -> Result<ToolOutput<Value, Value>, ToolOutput<Value, Value>> {
     let mut final_output: Option<Value> = None;
 
-    // Process stream
-    while let Some(result) = stream.next().await {
-        match result {
-            Ok(output) => {
-                // If this is not the last item, it's a preliminary result
-                if on_preliminary_tool_result.is_some() {
-                    // Create preliminary result
-                    if is_dynamic {
-                        let preliminary = DynamicToolResult::new(
-                            &tool_call_id,
-                            &tool_name,
-                            input.clone(),
-                            output.clone(),
+    // Process events from the stream
+    while let Some(event) = event_stream.next().await {
+        match event {
+            ToolExecutionEvent::Preliminary { output } => {
+                // Handle preliminary results via callback
+                if let Some(ref callback) = on_preliminary_tool_result {
+                    let preliminary_result = if is_dynamic {
+                        TypedToolResult::Dynamic(
+                            DynamicToolResult::new(
+                                &tool_call_id,
+                                &tool_name,
+                                input.clone(),
+                                output.clone(),
+                            )
+                            .with_preliminary(true),
                         )
-                        .with_preliminary(true);
-
-                        if let Some(ref callback) = on_preliminary_tool_result {
-                            callback(TypedToolResult::Dynamic(preliminary));
-                        }
                     } else {
-                        let preliminary = StaticToolResult::new(
-                            &tool_call_id,
-                            &tool_name,
-                            input.clone(),
-                            output.clone(),
+                        TypedToolResult::Static(
+                            StaticToolResult::new(
+                                &tool_call_id,
+                                &tool_name,
+                                input.clone(),
+                                output.clone(),
+                            )
+                            .with_preliminary(true),
                         )
-                        .with_preliminary(true);
-
-                        if let Some(ref callback) = on_preliminary_tool_result {
-                            callback(TypedToolResult::Static(preliminary));
-                        }
-                    }
+                    };
+                    callback(preliminary_result);
                 }
-
                 final_output = Some(output);
             }
-            Err(error_value) => {
-                // Error encountered in stream - return it immediately
-                if is_dynamic {
-                    let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
-                    return Err(ToolOutput::Error(TypedToolError::Dynamic(err)));
+            ToolExecutionEvent::Final { output } => {
+                final_output = Some(output);
+            }
+            ToolExecutionEvent::Error { error } => {
+                // Return error immediately
+                let tool_error = if is_dynamic {
+                    TypedToolError::Dynamic(DynamicToolError::new(
+                        &tool_call_id,
+                        &tool_name,
+                        input,
+                        error,
+                    ))
                 } else {
-                    let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
-                    return Err(ToolOutput::Error(TypedToolError::Static(err)));
-                }
+                    TypedToolError::Static(StaticToolError::new(
+                        &tool_call_id,
+                        &tool_name,
+                        input,
+                        error,
+                    ))
+                };
+                return Some(ToolOutput::Error(tool_error));
             }
         }
     }
 
     // Return final result
-    if let Some(output) = final_output {
-        if is_dynamic {
-            let result = DynamicToolResult::new(&tool_call_id, &tool_name, input, output);
-            Ok(ToolOutput::Result(TypedToolResult::Dynamic(result)))
+    final_output.map(|output| {
+        let result = if is_dynamic {
+            TypedToolResult::Dynamic(DynamicToolResult::new(
+                &tool_call_id,
+                &tool_name,
+                input,
+                output,
+            ))
         } else {
-            let result = StaticToolResult::new(&tool_call_id, &tool_name, input, output);
-            Ok(ToolOutput::Result(TypedToolResult::Static(result)))
-        }
-    } else {
-        // Stream was empty - treat as error
-        let error_value = Value::String("Tool execution produced no output".to_string());
-        if is_dynamic {
-            let err = DynamicToolError::new(&tool_call_id, &tool_name, input, error_value);
-            Err(ToolOutput::Error(TypedToolError::Dynamic(err)))
-        } else {
-            let err = StaticToolError::new(&tool_call_id, &tool_name, input, error_value);
-            Err(ToolOutput::Error(TypedToolError::Static(err)))
-        }
-    }
+            TypedToolResult::Static(StaticToolResult::new(
+                &tool_call_id,
+                &tool_name,
+                input,
+                output,
+            ))
+        };
+        ToolOutput::Result(result)
+    })
 }
 
 #[cfg(test)]
