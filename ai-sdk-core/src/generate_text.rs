@@ -7,6 +7,7 @@ pub mod tool_call;
 pub mod execute_tool_call;
 pub mod is_approval_needed;
 pub mod tool_approval_request_output;
+pub mod collect_tool_approvals;
 pub mod content_part;
 pub mod reasoning_output;
 pub mod text_output;
@@ -30,6 +31,9 @@ pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
 pub use execute_tool_call::{execute_tool_call, OnPreliminaryToolResult};
 pub use is_approval_needed::is_approval_needed;
 pub use tool_approval_request_output::ToolApprovalRequestOutput;
+pub use collect_tool_approvals::{
+    collect_tool_approvals, CollectedToolApproval, CollectedToolApprovals,
+};
 pub use content_part::ContentPart;
 pub use reasoning_output::ReasoningOutput;
 pub use text_output::TextOutput;
