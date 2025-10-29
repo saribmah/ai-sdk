@@ -44,8 +44,8 @@ pub fn convert_stream_part_to_text_stream_part<INPUT, OUTPUT>(
     stream_part: StreamPart,
 ) -> TextStreamPart<INPUT, OUTPUT>
 where
-    INPUT: Clone,
-    OUTPUT: Clone,
+    INPUT: Clone + serde::de::DeserializeOwned,
+    OUTPUT: Clone + serde::de::DeserializeOwned,
 {
     match stream_part {
         // Text blocks
@@ -102,48 +102,137 @@ where
             provider_metadata,
         },
 
-        // Tool calls
-        StreamPart::ToolCallStart {
+        // Tool input streaming
+        StreamPart::ToolInputStart {
             id,
-            tool_call_id,
             tool_name,
+            provider_metadata,
+            provider_executed,
         } => TextStreamPart::ToolInputStart {
             id,
             tool_name,
-            provider_metadata: None,
-            provider_executed: None,
+            provider_metadata,
+            provider_executed,
             dynamic: None,
             title: None,
         },
 
-        StreamPart::ToolCallDelta { id, delta } => TextStreamPart::ToolInputDelta {
+        StreamPart::ToolInputDelta {
             id,
             delta,
-            provider_metadata: None,
+            provider_metadata,
+        } => TextStreamPart::ToolInputDelta {
+            id,
+            delta,
+            provider_metadata,
         },
 
-        StreamPart::ToolCallEnd { id } => TextStreamPart::ToolInputEnd {
+        StreamPart::ToolInputEnd {
             id,
-            provider_metadata: None,
+            provider_metadata,
+        } => TextStreamPart::ToolInputEnd {
+            id,
+            provider_metadata,
         },
+
+        // Complete tool call and result (pass through)
+        StreamPart::ToolCall(tool_call) => {
+            // Convert provider ToolCall to our typed tool call
+            // Parse the input JSON string
+            let parsed_input: INPUT = serde_json::from_str(&tool_call.input)
+                .unwrap_or_else(|_| serde_json::from_value(Value::Null).unwrap());
+
+            TextStreamPart::ToolCall {
+                tool_call: crate::generate_text::TypedToolCall::Static(
+                    crate::generate_text::StaticToolCall::new(
+                        tool_call.tool_call_id,
+                        tool_call.tool_name,
+                        parsed_input,
+                    )
+                ),
+            }
+        }
+
+        StreamPart::ToolResult(tool_result) => {
+            // Convert provider ToolResult to our typed tool result
+            // Parse the result value as OUTPUT
+            let parsed_result: OUTPUT = serde_json::from_value(tool_result.result.clone())
+                .unwrap_or_else(|_| serde_json::from_value(Value::Null).unwrap());
+
+            // Input is not available in ToolResult, use Null
+            let null_input: INPUT = serde_json::from_value(Value::Null).unwrap();
+
+            TextStreamPart::ToolResult {
+                tool_result: crate::generate_text::TypedToolResult::Static(
+                    crate::generate_text::StaticToolResult::new(
+                        tool_result.tool_call_id,
+                        tool_result.tool_name,
+                        null_input,
+                        parsed_result,
+                    )
+                ),
+            }
+        }
+
+        // Files and sources
+        StreamPart::File(file) => {
+            // Convert FileData to base64 string
+            use ai_sdk_provider::language_model::file::FileData;
+            let base64_content = match file.data {
+                FileData::Base64(ref s) => s.clone(),
+                FileData::Binary(ref bytes) => {
+                    use base64::Engine;
+                    base64::engine::general_purpose::STANDARD.encode(bytes)
+                }
+            };
+
+            TextStreamPart::File {
+                file: crate::stream_text::StreamGeneratedFile {
+                    base64: base64_content,
+                    media_type: file.media_type,
+                    name: None, // File doesn't have a name field
+                },
+            }
+        }
+
+        StreamPart::Source(source) => {
+            // Convert Source to SourceOutput
+            TextStreamPart::Source {
+                source: crate::generate_text::SourceOutput {
+                    source_type: "source".to_string(),
+                    source,
+                    provider_metadata: None,
+                },
+            }
+        }
+
+        // Stream metadata
+        StreamPart::StreamStart { .. } => {
+            // TextStreamPart::Start has no fields
+            TextStreamPart::Start
+        }
+
+        StreamPart::ResponseMetadata(metadata) => {
+            // For Phase 2, we'll skip response metadata
+            // This will be handled in later phases
+            // For now, return a raw chunk
+            TextStreamPart::Raw {
+                raw_value: serde_json::to_value(metadata).unwrap_or(Value::Null),
+            }
+        }
 
         // Finish
         StreamPart::Finish {
             finish_reason,
             usage,
-            provider_metadata,
             ..
         } => TextStreamPart::Finish {
             finish_reason,
             total_usage: usage,
-            provider_metadata,
-            provider_response_metadata: None,
         },
 
         // Error
-        StreamPart::Error { error } => TextStreamPart::Error {
-            error: Value::String(error),
-        },
+        StreamPart::Error { error } => TextStreamPart::Error { error },
 
         // Raw (for debugging or custom handling)
         StreamPart::Raw { raw_value } => TextStreamPart::Raw { raw_value },

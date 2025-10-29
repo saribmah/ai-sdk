@@ -136,6 +136,7 @@ pub async fn stream_text(
     // 7. Create and return StreamTextResult
 
     use crate::prompt::convert_to_language_model_prompt::convert_to_language_model_prompt;
+    use crate::prompt::standardize::validate_and_standardize;
     use crate::generate_text::prepare_tools_and_tool_choice;
     use crate::stream_text::convert_stream_part::convert_stream_part_to_text_stream_part;
     use crate::stream_text::EnrichedStreamPart;
@@ -145,35 +146,62 @@ pub async fn stream_text(
     use tokio::sync::Mutex;
     use std::collections::HashMap;
 
-    // Step 1: Validate settings
-    settings.validate()?;
+    // Step 1: Validate and standardize prompt
+    let standardized_prompt = validate_and_standardize(prompt)?;
 
     // Step 2: Convert prompt to language model format
-    let language_model_prompt = convert_to_language_model_prompt(prompt)?;
+    let language_model_prompt = convert_to_language_model_prompt(standardized_prompt)?;
 
     // Step 3: Prepare tools and tool choice
     let (prepared_tools, prepared_tool_choice) =
-        prepare_tools_and_tool_choice(tools.clone(), tool_choice)?;
+        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
-    // Step 4: Create CallOptions for the model
-    let call_options = CallOptions {
-        prompt: language_model_prompt,
-        temperature: settings.temperature,
-        top_p: settings.top_p,
-        top_k: settings.top_k,
-        frequency_penalty: settings.frequency_penalty,
-        presence_penalty: settings.presence_penalty,
-        seed: settings.seed,
-        max_output_tokens: settings.max_output_tokens,
-        stop_sequences: settings.stop_sequences.clone(),
-        tool_choice: prepared_tool_choice,
-        tools: prepared_tools,
-        response_format: settings.response_format.clone(),
-        provider_options: provider_options.clone(),
-    };
+    // Step 4: Create CallOptions for the model using builder pattern
+    let mut call_options = CallOptions::new(language_model_prompt);
+
+    // Add settings using builder pattern
+    if let Some(temp) = settings.temperature {
+        call_options = call_options.with_temperature(temp);
+    }
+    if let Some(top_p) = settings.top_p {
+        call_options = call_options.with_top_p(top_p);
+    }
+    if let Some(top_k) = settings.top_k {
+        call_options = call_options.with_top_k(top_k);
+    }
+    if let Some(freq_penalty) = settings.frequency_penalty {
+        call_options = call_options.with_frequency_penalty(freq_penalty);
+    }
+    if let Some(pres_penalty) = settings.presence_penalty {
+        call_options = call_options.with_presence_penalty(pres_penalty);
+    }
+    if let Some(seed) = settings.seed {
+        call_options = call_options.with_seed(seed);
+    }
+    if let Some(max_tokens) = settings.max_output_tokens {
+        call_options = call_options.with_max_output_tokens(max_tokens);
+    }
+    if let Some(ref stop_seqs) = settings.stop_sequences {
+        call_options = call_options.with_stop_sequences(stop_seqs.clone());
+    }
+
+    // Add tools and tool choice
+    if let Some(ref tools_vec) = prepared_tools {
+        call_options = call_options.with_tools(tools_vec.clone());
+    }
+    if let Some(tc) = prepared_tool_choice {
+        call_options = call_options.with_tool_choice(tc);
+    }
+
+    // Add provider options
+    if let Some(ref provider_opts) = provider_options {
+        call_options = call_options.with_provider_options(provider_opts.clone());
+    }
 
     // Step 5: Call model.do_stream() to get the provider's stream
-    let stream_response = model.do_stream(call_options).await?;
+    let stream_response = model.do_stream(call_options).await.map_err(|e| {
+        AISDKError::model_error(e.to_string())
+    })?;
     let provider_stream = stream_response.stream;
 
     // Step 6: Convert the stream pipeline
@@ -186,7 +214,7 @@ pub async fn stream_text(
     // Create shared state for event processor
     let active_text_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
     let active_reasoning_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
-    let recorded_content = Arc::new(Mutex::new(Vec::new()));
+    let recorded_content: Arc<Mutex<Vec<crate::generate_text::ContentPart<Value, Value>>>> = Arc::new(Mutex::new(Vec::new()));
     let recorded_finish_reason = Arc::new(Mutex::new(None));
     let recorded_total_usage = Arc::new(Mutex::new(None));
 
