@@ -5,7 +5,7 @@ pub mod execute_tool_call;
 pub mod generate_text_result;
 pub mod generated_file;
 pub mod is_approval_needed;
-mod parse_tool_call;
+pub mod parse_tool_call;
 mod prepare_step;
 mod prepare_tools;
 pub mod reasoning_output;

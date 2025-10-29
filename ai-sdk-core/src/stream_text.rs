@@ -1,6 +1,8 @@
 pub mod callbacks;
 pub mod default_stream_text_result;
 pub mod enriched_stream_part;
+pub mod run_tools_transformation;
+pub mod single_request_text_stream_part;
 pub mod stream_text_result;
 pub mod stream_text_transform;
 pub mod text_stream_part;
@@ -21,6 +23,10 @@ pub use stream_text_transform::{
     StreamTextTransform, StreamTextTransformOptions, create_logging_transform,
     create_passthrough_transform,
 };
+pub use run_tools_transformation::{
+    RunToolsTransformationOptions, run_tools_transformation,
+};
+pub use single_request_text_stream_part::SingleRequestTextStreamPart;
 pub use text_stream_part::{StreamGeneratedFile, TextStreamPart};
 
 use crate::error::AISDKError;

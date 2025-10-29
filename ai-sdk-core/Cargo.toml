@@ -8,6 +8,7 @@ repository.workspace = true
 
 [dependencies]
 tokio = { version = "1.41", features = ["time"] }  # For async runtime and sleep
+tokio-stream = { version = "0.1", features = ["sync"] }  # For async stream utilities
 tokio-util = "0.7.16"  # For CancellationToken (equivalent to AbortSignal)
 thiserror = "2.0.9"    # For error handling
 base64 = "0.22.1"      # For base64 encoding/decoding
