@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let weather_data = get_weather(city);
 
         ToolExecutionOutput::Single(Box::pin(async move {
-            weather_data
+            Ok(weather_data)
         }))
     }));
 
@@ -170,7 +170,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let result = convert_temperature(value, from_unit, to_unit);
 
         ToolExecutionOutput::Single(Box::pin(async move {
-            result
+            Ok(result)
         }))
     }));
 
@@ -248,7 +248,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !tool_calls.is_empty() {
             println!("    Tool calls made: {}", tool_calls.len());
             for tc in tool_calls {
-                println!("      → {} ({})", tc.tool_name, tc.tool_call_id);
+                use ai_sdk_core::TypedToolCall;
+                match tc {
+                    TypedToolCall::Static(call) => {
+                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
+                    }
+                    TypedToolCall::Dynamic(call) => {
+                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
+                    }
+                }
             }
         }
 

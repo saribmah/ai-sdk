@@ -27,12 +27,13 @@ pub struct CallSettings {
     /// Maximum number of tokens to generate.
     pub max_output_tokens: Option<u32>,
 
-    /// Temperature setting. The range depends on the provider and model.
+    /// Temperature setting. Must be >= 0. The range depends on the provider and model.
+    /// Most providers accept values from 0 to 2.
     ///
     /// It is recommended to set either `temperature` or `top_p`, but not both.
     pub temperature: Option<f64>,
 
-    /// Nucleus sampling. This is a number between 0 and 1.
+    /// Nucleus sampling. Must be in the range (0, 1] (greater than 0 and up to 1).
     ///
     /// E.g. 0.1 would mean that only tokens with the top 10% probability mass
     /// are considered.
@@ -41,6 +42,7 @@ pub struct CallSettings {
     pub top_p: Option<f64>,
 
     /// Only sample from the top K options for each subsequent token.
+    /// Must be > 0 if specified.
     ///
     /// Used to remove "long tail" low probability responses.
     /// Recommended for advanced use cases only. You usually only need to use temperature.
@@ -49,15 +51,15 @@ pub struct CallSettings {
     /// Presence penalty setting. It affects the likelihood of the model to
     /// repeat information that is already in the prompt.
     ///
-    /// The presence penalty is a number between -1 (increase repetition)
-    /// and 1 (maximum penalty, decrease repetition). 0 means no penalty.
+    /// The presence penalty is a number between -2 and 2.
+    /// Negative values increase repetition, positive values decrease it. 0 means no penalty.
     pub presence_penalty: Option<f64>,
 
     /// Frequency penalty setting. It affects the likelihood of the model
     /// to repeatedly use the same words or phrases.
     ///
-    /// The frequency penalty is a number between -1 (increase repetition)
-    /// and 1 (maximum penalty, decrease repetition). 0 means no penalty.
+    /// The frequency penalty is a number between -2 and 2.
+    /// Negative values increase repetition, positive values decrease it. 0 means no penalty.
     pub frequency_penalty: Option<f64>,
 
     /// Stop sequences.
@@ -185,7 +187,11 @@ impl CallSettings {
 /// # Errors
 /// Returns an error if:
 /// - `max_output_tokens` is less than 1
-/// - Any numeric value is not finite (NaN or infinity)
+/// - `temperature` is not finite or is negative
+/// - `top_p` is not finite or not in the range (0, 1]
+/// - `top_k` is 0
+/// - `presence_penalty` is not finite or not in the range [-2, 2]
+/// - `frequency_penalty` is not finite or not in the range [-2, 2]
 pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSettings, AISDKError> {
     // Validate max_output_tokens
     if let Some(max_tokens) = settings.max_output_tokens {
@@ -198,7 +204,7 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
         }
     }
 
-    // Validate temperature (must be finite)
+    // Validate temperature (must be finite and >= 0)
     if let Some(temp) = settings.temperature {
         if !temp.is_finite() {
             return Err(AISDKError::invalid_argument(
@@ -207,9 +213,16 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "temperature must be a finite number",
             ));
         }
+        if temp < 0.0 {
+            return Err(AISDKError::invalid_argument(
+                "temperature",
+                temp,
+                "temperature must be >= 0",
+            ));
+        }
     }
 
-    // Validate top_p (must be finite)
+    // Validate top_p (must be finite and in range (0, 1])
     if let Some(top_p) = settings.top_p {
         if !top_p.is_finite() {
             return Err(AISDKError::invalid_argument(
@@ -218,9 +231,27 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "topP must be a finite number",
             ));
         }
+        if top_p <= 0.0 || top_p > 1.0 {
+            return Err(AISDKError::invalid_argument(
+                "topP",
+                top_p,
+                "topP must be in the range (0, 1]",
+            ));
+        }
     }
 
-    // Validate presence_penalty (must be finite)
+    // Validate top_k (must be > 0)
+    if let Some(top_k) = settings.top_k {
+        if top_k == 0 {
+            return Err(AISDKError::invalid_argument(
+                "topK",
+                top_k,
+                "topK must be > 0",
+            ));
+        }
+    }
+
+    // Validate presence_penalty (must be finite and in range [-2, 2])
     if let Some(penalty) = settings.presence_penalty {
         if !penalty.is_finite() {
             return Err(AISDKError::invalid_argument(
@@ -229,9 +260,16 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "presencePenalty must be a finite number",
             ));
         }
+        if penalty < -2.0 || penalty > 2.0 {
+            return Err(AISDKError::invalid_argument(
+                "presencePenalty",
+                penalty,
+                "presencePenalty must be in the range [-2, 2]",
+            ));
+        }
     }
 
-    // Validate frequency_penalty (must be finite)
+    // Validate frequency_penalty (must be finite and in range [-2, 2])
     if let Some(penalty) = settings.frequency_penalty {
         if !penalty.is_finite() {
             return Err(AISDKError::invalid_argument(
@@ -240,10 +278,14 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "frequencyPenalty must be a finite number",
             ));
         }
+        if penalty < -2.0 || penalty > 2.0 {
+            return Err(AISDKError::invalid_argument(
+                "frequencyPenalty",
+                penalty,
+                "frequencyPenalty must be in the range [-2, 2]",
+            ));
+        }
     }
-
-    // Note: Rust's u32 type ensures top_k and seed are already valid integers,
-    // so no additional validation needed for those fields.
 
     Ok(PreparedCallSettings {
         max_output_tokens: settings.max_output_tokens,
@@ -445,5 +487,208 @@ mod tests {
         assert_eq!(prepared.frequency_penalty, Some(0.3));
         assert_eq!(prepared.seed, Some(42));
         assert_eq!(prepared.stop_sequences, Some(vec!["END".to_string()]));
+    }
+
+    // Tests for new validation bounds
+
+    #[test]
+    fn test_prepare_call_settings_temperature_negative() {
+        let settings = CallSettings::new().with_temperature(-0.5);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "temperature");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_temperature_zero() {
+        let settings = CallSettings::new().with_temperature(0.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().temperature, Some(0.0));
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_p_zero() {
+        let settings = CallSettings::new().with_top_p(0.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "topP");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_p_negative() {
+        let settings = CallSettings::new().with_top_p(-0.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "topP");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_p_greater_than_one() {
+        let settings = CallSettings::new().with_top_p(1.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "topP");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_p_valid_boundaries() {
+        // Test 1.0 (upper boundary, inclusive)
+        let settings = CallSettings::new().with_top_p(1.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().top_p, Some(1.0));
+
+        // Test 0.5 (middle of range)
+        let settings = CallSettings::new().with_top_p(0.5);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().top_p, Some(0.5));
+
+        // Test very small positive value
+        let settings = CallSettings::new().with_top_p(0.0001);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().top_p, Some(0.0001));
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_k_zero() {
+        let settings = CallSettings::new().with_top_k(0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "topK");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_top_k_valid() {
+        let settings = CallSettings::new().with_top_k(1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().top_k, Some(1));
+
+        let settings = CallSettings::new().with_top_k(50);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().top_k, Some(50));
+    }
+
+    #[test]
+    fn test_prepare_call_settings_presence_penalty_below_min() {
+        let settings = CallSettings::new().with_presence_penalty(-2.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "presencePenalty");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_presence_penalty_above_max() {
+        let settings = CallSettings::new().with_presence_penalty(2.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "presencePenalty");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_presence_penalty_valid_boundaries() {
+        // Test -2.0 (lower boundary)
+        let settings = CallSettings::new().with_presence_penalty(-2.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().presence_penalty, Some(-2.0));
+
+        // Test 2.0 (upper boundary)
+        let settings = CallSettings::new().with_presence_penalty(2.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().presence_penalty, Some(2.0));
+
+        // Test 0.0 (middle)
+        let settings = CallSettings::new().with_presence_penalty(0.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().presence_penalty, Some(0.0));
+    }
+
+    #[test]
+    fn test_prepare_call_settings_frequency_penalty_below_min() {
+        let settings = CallSettings::new().with_frequency_penalty(-2.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "frequencyPenalty");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_frequency_penalty_above_max() {
+        let settings = CallSettings::new().with_frequency_penalty(2.1);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            AISDKError::InvalidArgument { parameter, .. } => {
+                assert_eq!(parameter, "frequencyPenalty");
+            }
+            _ => panic!("Expected InvalidArgument error"),
+        }
+    }
+
+    #[test]
+    fn test_prepare_call_settings_frequency_penalty_valid_boundaries() {
+        // Test -2.0 (lower boundary)
+        let settings = CallSettings::new().with_frequency_penalty(-2.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().frequency_penalty, Some(-2.0));
+
+        // Test 2.0 (upper boundary)
+        let settings = CallSettings::new().with_frequency_penalty(2.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().frequency_penalty, Some(2.0));
+
+        // Test 0.0 (middle)
+        let settings = CallSettings::new().with_frequency_penalty(0.0);
+        let result = prepare_call_settings(&settings);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().frequency_penalty, Some(0.0));
     }
 }

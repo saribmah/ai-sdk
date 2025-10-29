@@ -246,7 +246,25 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         if !status.is_success() {
             let error_body = response.text().await?;
-            return Err(format!("API request failed with status {}: {}", status, error_body).into());
+
+            // Check for Retry-After header to include in error message
+            let retry_info = if let Some(retry_after) = response_headers.get("retry-after") {
+                if let Ok(retry_str) = retry_after.to_str() {
+                    // Try to parse as seconds (integer)
+                    if let Ok(seconds) = retry_str.parse::<u64>() {
+                        format!(" (Retry after {} seconds)", seconds)
+                    } else {
+                        // Could be HTTP-date format, but for now just include the raw value
+                        format!(" (Retry-After: {})", retry_str)
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+
+            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
         }
 
         let response_body = response.text().await?;
@@ -278,6 +296,24 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
             Usage::default()
         };
 
+        // Build provider metadata with response headers
+        let mut provider_metadata = HashMap::new();
+        let mut provider_data = HashMap::new();
+
+        // Add HTTP response headers to provider metadata for debugging
+        // Headers are prefixed with "header." to distinguish them from other metadata
+        // Common useful headers: x-ratelimit-*, x-request-id, retry-after, etc.
+        for (key, value) in response_headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                provider_data.insert(
+                    format!("header.{}", key.as_str()),
+                    json!(value_str),
+                );
+            }
+        }
+
+        provider_metadata.insert(self.provider_options_name().to_string(), provider_data);
+
         // Build response metadata
         let response_metadata = get_response_metadata(
             api_response.id.clone(),
@@ -293,7 +329,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
             content,
             finish_reason,
             usage,
-            provider_metadata: None,
+            provider_metadata: Some(provider_metadata),
             request: Some(ai_sdk_provider::language_model::RequestMetadata {
                 body: Some(body),
             }),
@@ -338,10 +374,37 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         let response = request.body(body_string.clone()).send().await?;
         let status = response.status();
+        let response_headers = response.headers().clone();
 
         if !status.is_success() {
             let error_body = response.text().await?;
-            return Err(format!("API request failed with status {}: {}", status, error_body).into());
+
+            // Check for Retry-After header to include in error message
+            let retry_info = if let Some(retry_after) = response_headers.get("retry-after") {
+                if let Ok(retry_str) = retry_after.to_str() {
+                    // Try to parse as seconds (integer)
+                    if let Ok(seconds) = retry_str.parse::<u64>() {
+                        format!(" (Retry after {} seconds)", seconds)
+                    } else {
+                        // Could be HTTP-date format, but for now just include the raw value
+                        format!(" (Retry-After: {})", retry_str)
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+
+            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
+        }
+
+        // Build headers map from HTTP response headers
+        let mut headers_map = HashMap::new();
+        for (key, value) in response_headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                headers_map.insert(key.as_str().to_string(), value_str.to_string());
+            }
         }
 
         // Create the stream processor
@@ -356,7 +419,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
                 body: Some(body),
             }),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
-                headers: None,
+                headers: Some(headers_map),
             }),
         })
     }

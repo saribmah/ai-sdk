@@ -102,7 +102,13 @@ impl StopCondition for HasToolCall {
             last_step
                 .tool_calls()
                 .iter()
-                .any(|tc| tc.tool_name == self.tool_name)
+                .any(|tc| {
+                    use super::TypedToolCall;
+                    match tc {
+                        TypedToolCall::Static(call) => call.tool_name == self.tool_name,
+                        TypedToolCall::Dynamic(call) => call.tool_name == self.tool_name,
+                    }
+                })
         } else {
             false
         }
@@ -197,10 +203,17 @@ mod tests {
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
-        let mut content: Vec<Content> = vec![Content::Text(Text::new("Test"))];
+        use super::super::content_part::ContentPart;
+        use super::super::text_output::TextOutput;
+        use super::super::tool_call::{DynamicToolCall, TypedToolCall};
+        use serde_json::json;
+
+        let mut content: Vec<ContentPart> = vec![ContentPart::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
-            content.push(Content::ToolCall(ToolCall::new(id, name, "{}")));
+            content.push(ContentPart::ToolCall(TypedToolCall::Dynamic(
+                DynamicToolCall::new(id.to_string(), name.to_string(), json!({}))
+            )));
         }
 
         StepResult::new(

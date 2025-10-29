@@ -73,11 +73,11 @@ pub struct FinishEvent {
     /// The generated text from the final step.
     pub text: String,
 
-    /// Tool calls from the final step.
-    pub tool_calls: Vec<ai_sdk_provider::language_model::tool_call::ToolCall>,
+    /// Tool calls from the final step (user-facing types).
+    pub tool_calls: Vec<super::TypedToolCall<serde_json::Value>>,
 
-    /// Tool results from the final step.
-    pub tool_results: Vec<ai_sdk_provider::language_model::tool_result::ToolResult>,
+    /// Tool results from the final step (user-facing types).
+    pub tool_results: Vec<super::TypedToolResult<serde_json::Value, serde_json::Value>>,
 
     /// The reason why the generation finished.
     pub finish_reason: ai_sdk_provider::language_model::finish_reason::FinishReason,
@@ -91,7 +91,7 @@ pub struct FinishEvent {
     /// Details for all steps.
     ///
     /// This includes all intermediate steps plus the final step.
-    pub steps: Vec<StepResult>,
+    pub steps: Vec<StepResult<serde_json::Value, serde_json::Value>>,
 
     /// Total usage for all steps.
     ///
@@ -129,8 +129,8 @@ impl FinishEvent {
 
         Self {
             text: final_step.text(),
-            tool_calls: final_step.tool_calls().into_iter().cloned().collect(),
-            tool_results: final_step.tool_results().into_iter().cloned().collect(),
+            tool_calls: final_step.tool_calls().iter().map(|tc| (*tc).clone()).collect(),
+            tool_results: final_step.tool_results().iter().map(|tr| (*tr).clone()).collect(),
             finish_reason: final_step.finish_reason.clone(),
             usage: final_step.usage,
             warnings: final_step.warnings.clone(),
@@ -188,13 +188,17 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, text::Text, tool_call::ToolCall,
+        finish_reason::FinishReason,
         usage::Usage,
     };
+    use serde_json::json;
+    use crate::generate_text::content_part::ContentPart;
+    use crate::generate_text::text_output::TextOutput;
+    use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {
         StepResult::new(
-            vec![Content::Text(Text::new("Test response"))],
+            vec![ContentPart::Text(TextOutput::new("Test response".to_string()))],
             FinishReason::Stop,
             Usage::new(input_tokens, output_tokens),
             None,
@@ -270,8 +274,14 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_with_tool_calls() {
         let content = vec![
-            Content::Text(Text::new("Calling tool")),
-            Content::ToolCall(ToolCall::new("call_1", "get_weather", "{}")),
+            ContentPart::Text(TextOutput::new("Calling tool".to_string())),
+            ContentPart::ToolCall(TypedToolCall::Dynamic(
+                DynamicToolCall::new(
+                    "call_1".to_string(),
+                    "get_weather".to_string(),
+                    json!({}),
+                )
+            )),
         ];
 
         let step = StepResult::new(
@@ -293,7 +303,12 @@ mod tests {
         let event = FinishEvent::new(&step, all_steps);
 
         assert_eq!(event.tool_calls.len(), 1);
-        assert_eq!(event.tool_calls[0].tool_name, "get_weather");
+        match &event.tool_calls[0] {
+            TypedToolCall::Dynamic(call) => {
+                assert_eq!(call.tool_name, "get_weather");
+            }
+            _ => panic!("Expected dynamic tool call"),
+        }
         assert_eq!(event.finish_reason, FinishReason::ToolCalls);
     }
 
@@ -317,7 +332,7 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_with_reasoning_tokens() {
         let step = StepResult::new(
-            vec![Content::Text(Text::new("Test"))],
+            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
             FinishReason::Stop,
             Usage {
                 input_tokens: 10,
@@ -347,7 +362,7 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_aggregates_all_usage_fields() {
         let step1 = StepResult::new(
-            vec![Content::Text(Text::new("Step 1"))],
+            vec![ContentPart::Text(TextOutput::new("Step 1".to_string()))],
             FinishReason::Stop,
             Usage {
                 input_tokens: 10,
@@ -368,7 +383,7 @@ mod tests {
         );
 
         let step2 = StepResult::new(
-            vec![Content::Text(Text::new("Step 2"))],
+            vec![ContentPart::Text(TextOutput::new("Step 2".to_string()))],
             FinishReason::Stop,
             Usage {
                 input_tokens: 15,

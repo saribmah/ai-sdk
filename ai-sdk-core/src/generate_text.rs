@@ -1,15 +1,21 @@
 mod retries;
 mod prepare_tools;
+pub mod tool_set;
 pub mod tool_result;
 pub mod tool_error;
 pub mod tool_output;
 pub mod tool_call;
 pub mod execute_tool_call;
+pub mod is_approval_needed;
+pub mod tool_approval_request_output;
+pub mod collect_tool_approvals;
+pub mod tool_call_repair_function;
 pub mod content_part;
 pub mod reasoning_output;
 pub mod text_output;
 pub mod source_output;
 pub mod to_response_messages;
+pub mod generated_file;
 pub mod generate_text_result;
 mod step_result;
 mod stop_condition;
@@ -18,19 +24,29 @@ mod callbacks;
 mod response_message;
 mod parse_tool_call;
 
-pub use retries::{prepare_retries, RetryConfig, RetryFunction};
-pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
+pub use retries::{prepare_retries, RetryConfig};
+pub use prepare_tools::prepare_tools_and_tool_choice;
+pub use tool_set::ToolSet;
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 pub use tool_output::ToolOutput;
 pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
 pub use execute_tool_call::{execute_tool_call, OnPreliminaryToolResult};
+pub use is_approval_needed::is_approval_needed;
+pub use tool_approval_request_output::ToolApprovalRequestOutput;
+pub use collect_tool_approvals::{
+    collect_tool_approvals, CollectedToolApproval, CollectedToolApprovals,
+};
+pub use tool_call_repair_function::{
+    no_repair, ToolCallRepairFunction, ToolCallRepairOptions,
+};
 pub use content_part::ContentPart;
 pub use reasoning_output::ReasoningOutput;
 pub use text_output::TextOutput;
 pub use source_output::SourceOutput;
 pub use to_response_messages::to_response_messages;
-pub use generate_text_result::{GenerateTextResult, GeneratedFile, ResponseMetadata};
+pub use generated_file::{GeneratedFile, GeneratedFileWithType};
+pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
@@ -39,7 +55,7 @@ pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use response_message::ResponseMessage;
 pub use parse_tool_call::{
-    parse_provider_executed_dynamic_tool_call, parse_tool_call, ParsedToolCall,
+    parse_provider_executed_dynamic_tool_call, parse_tool_call,
 };
 
 use crate::error::AISDKError;
@@ -56,18 +72,18 @@ use ai_sdk_provider::{
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
-use std::collections::HashMap;
 use tokio_util::sync::CancellationToken;
 
 /// Executes tool calls and returns the outputs.
 ///
-/// This function takes a list of parsed tool calls that need to be executed on the client side
+/// This function takes a list of typed tool calls that need to be executed on the client side
 /// (not provider-executed), looks up each tool in the tool set, and executes them.
 ///
 /// # Arguments
 ///
-/// * `tool_calls` - References to the parsed tool calls to execute
+/// * `tool_calls` - References to the typed tool calls to execute
 /// * `tools` - The tool set containing tool definitions
+/// * `messages` - The conversation messages for context (passed to each tool)
 /// * `abort_signal` - Optional cancellation token for aborting tool execution
 ///
 /// # Returns
@@ -80,50 +96,24 @@ use tokio_util::sync::CancellationToken;
 /// let outputs = execute_tools(
 ///     &tool_calls,
 ///     tool_set,
+///     &messages,
 ///     Some(abort_signal),
 /// ).await;
 /// ```
 async fn execute_tools(
-    tool_calls: &[&ParsedToolCall],
+    tool_calls: &[&TypedToolCall<Value>],
     tools: &ToolSet,
+    messages: &[ModelMessage],
     abort_signal: Option<CancellationToken>,
 ) -> Vec<ToolOutput<Value, Value>> {
     let mut outputs = Vec::new();
 
-    for tool_call in tool_calls {
-        // Convert ParsedToolCall to TypedToolCall
-        let typed_tool_call = if tool_call.dynamic == Some(true) {
-            TypedToolCall::Dynamic(DynamicToolCall {
-                call_type: tool_call.call_type.clone(),
-                tool_call_id: tool_call.tool_call_id.clone(),
-                tool_name: tool_call.tool_name.clone(),
-                input: tool_call.input.clone(),
-                provider_executed: tool_call.provider_executed,
-                provider_metadata: tool_call.provider_metadata.clone(),
-                dynamic: true,
-                invalid: None,
-                error: None,
-            })
-        } else {
-            TypedToolCall::Static(StaticToolCall {
-                call_type: tool_call.call_type.clone(),
-                tool_call_id: tool_call.tool_call_id.clone(),
-                tool_name: tool_call.tool_name.clone(),
-                input: tool_call.input.clone(),
-                provider_executed: tool_call.provider_executed,
-                provider_metadata: tool_call.provider_metadata.clone(),
-                dynamic: tool_call.dynamic,
-                invalid: None,
-            })
-        };
-
-        // Execute the tool call
-        // Note: We pass empty messages for now. In multi-step generation,
-        // we would pass the actual conversation messages.
+    for &tool_call in tool_calls {
+        // Execute the tool call with conversation context
         if let Some(output) = execute_tool_call(
-            typed_tool_call,
+            tool_call.clone(),
             tools,
-            vec![],
+            messages.to_vec(),
             abort_signal.clone(),
             None,
             None,
@@ -364,37 +354,33 @@ pub async fn generate_text(
 ) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
-    let _prepare_step = prepare_step;
-    let _on_step_finish = on_step_finish;
-    let _on_finish = on_finish;
 
-    // Initialize response messages array for multi-step generation
-    let mut response_messages: Vec<ResponseMessage> = Vec::new();
+    // Prepare retries
+    let retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
 
-    // Initialize steps array for tracking all generation steps
-    let mut steps: Vec<StepResult> = Vec::new();
-
-    // Step 1: Prepare retries
-    let _retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
-
-    // Step 2: Prepare and validate call settings
+    // Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
-    // Step 3: Validate and standardize the prompt
+    // Initialize response messages array for multi-step generation
     let initial_prompt = validate_and_standardize(prompt)?;
 
     // Store the initial messages before the loop
     let initial_messages = initial_prompt.messages.clone();
 
-    // Step 4: Prepare tools and tool choice (done once before the loop)
+    // Validate and standardize the prompt
+    let mut response_messages: Vec<ResponseMessage> = Vec::new();
+
+    // Initialize steps array for tracking all generation steps
+    let mut steps: Vec<StepResult> = Vec::new();
+
+    // Prepare tools and tool choice (done once before the loop)
     let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
     // Do-while loop for multi-step generation
     loop {
         // Step 5: Create step input messages by combining initial messages with accumulated response messages
         let mut step_input_messages = initial_messages.clone();
-
-        // Convert response messages to model messages and append
+        // Convert response messages to model messages and append to step_input_messages
         for response_msg in &response_messages {
             let model_msg = match response_msg {
                 ResponseMessage::Assistant(msg) => ModelMessage::Assistant(msg.clone()),
@@ -403,18 +389,47 @@ pub async fn generate_text(
             step_input_messages.push(model_msg);
         }
 
-        // Create a prompt from the step input messages
-        let step_prompt = StandardizedPrompt {
-            messages: step_input_messages,
-            system: initial_prompt.system.clone(),
+        // Call prepare_step callback to allow step customization
+        let prepare_step_result = if let Some(ref prepare_fn) = prepare_step {
+            prepare_fn
+                .prepare(&PrepareStepOptions {
+                    steps: &steps,
+                    step_number: steps.len(),
+                    messages: &step_input_messages,
+                })
+                .await
+        } else {
+            None
         };
 
+        // Apply prepare_step overrides
+        let step_system = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.system.clone())
+            .or_else(|| initial_prompt.system.clone());
+
+        let step_messages = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.messages.clone())
+            .unwrap_or_else(|| step_input_messages.clone());
+
+        let step_tool_choice = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.tool_choice.clone())
+            .or(prepared_tool_choice.clone());
+
+        let step_active_tools = prepare_step_result
+            .as_ref()
+            .and_then(|r| r.active_tools.clone());
+
         // Step 6: Convert to language model format (provider messages)
-        let messages = convert_to_language_model_prompt(step_prompt)?;
+        let messages = convert_to_language_model_prompt(StandardizedPrompt {
+            messages: step_messages,
+            system: step_system,
+        })?;
 
         // Step 7: Build CallOptions
         let mut call_options = CallOptions::new(messages);
-
         // Add prepared settings
         if let Some(max_tokens) = prepared_settings.max_output_tokens {
             call_options = call_options.with_max_output_tokens(max_tokens);
@@ -442,10 +457,36 @@ pub async fn generate_text(
         }
 
         // Add tools and tool choice
-        if let Some(ref tools_vec) = provider_tools {
+        // Filter tools based on active_tools if provided by prepare_step
+        let step_provider_tools = if let Some(ref active_tool_names) = step_active_tools {
+            provider_tools.as_ref().map(|tools_vec| {
+                tools_vec
+                    .iter()
+                    .filter(|tool| {
+                        // Check if this tool is in the active_tools list
+                        active_tool_names.iter().any(|name| {
+                            // Match against the tool name from the provider tool
+                            match tool {
+                                ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
+                                    f.name == *name
+                                }
+                                ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
+                                    p.name == *name
+                                }
+                            }
+                        })
+                    })
+                    .cloned()
+                    .collect()
+            })
+        } else {
+            provider_tools.clone()
+        };
+
+        if let Some(ref tools_vec) = step_provider_tools {
             call_options = call_options.with_tools(tools_vec.clone());
         }
-        if let Some(ref choice) = prepared_tool_choice {
+        if let Some(ref choice) = step_tool_choice {
             call_options = call_options.with_tool_choice(choice.clone());
         }
 
@@ -464,14 +505,29 @@ pub async fn generate_text(
             call_options = call_options.with_provider_options(opts.clone());
         }
 
-        // Step 8: Call model.do_generate
-        let response = model.do_generate(call_options).await
-            .map_err(|e| AISDKError::model_error(e.to_string()))?;
+        // Step 8: Call model.do_generate with retry logic
+        let response = retry_config
+            .execute(|| {
+                let call_options_clone = call_options.clone();
+                async move {
+                    model.do_generate(call_options_clone).await
+                        .map_err(|e| {
+                            let error_string = e.to_string();
+                            // Check if error contains retry hint and create appropriate error type
+                            if let Some(retry_after) = retries::extract_retry_delay_from_error(&error_string) {
+                                AISDKError::retryable_error_with_delay(error_string, retry_after)
+                            } else {
+                                AISDKError::model_error(error_string)
+                            }
+                        })
+                }
+            })
+            .await?;
 
         // Step 9: Parse tool calls from the response
         use ai_sdk_provider::language_model::content::Content;
 
-        let step_tool_calls: Vec<ParsedToolCall> = if let Some(tool_set) = tools.as_ref() {
+        let step_tool_calls: Vec<TypedToolCall<Value>> = if let Some(tool_set) = tools.as_ref() {
             response
                 .content
                 .iter()
@@ -497,58 +553,31 @@ pub async fn generate_text(
         // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
 
         // Filter client tool calls (those not executed by the provider)
-        let client_tool_calls: Vec<&ParsedToolCall> = step_tool_calls
+        let client_tool_calls: Vec<&TypedToolCall<Value>> = step_tool_calls
             .iter()
             .filter(|tool_call| {
-                tool_call.provider_executed != Some(true)
+                let provider_executed = match tool_call {
+                    TypedToolCall::Static(c) => c.provider_executed,
+                    TypedToolCall::Dynamic(c) => c.provider_executed,
+                };
+                provider_executed != Some(true)
             })
             .collect();
 
         // Execute client tool calls and collect outputs
         let client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
-            execute_tools(&client_tool_calls, tool_set, abort_signal_for_tools).await
+            execute_tools(&client_tool_calls, tool_set, &step_input_messages, abort_signal_for_tools).await
         } else {
             Vec::new()
         };
 
-        // Convert ParsedToolCall to TypedToolCall for as_content
-        let typed_tool_calls: Vec<TypedToolCall<Value>> = step_tool_calls
-            .iter()
-            .map(|parsed_call| {
-                if parsed_call.dynamic == Some(true) {
-                    TypedToolCall::Dynamic(DynamicToolCall {
-                        call_type: parsed_call.call_type.clone(),
-                        tool_call_id: parsed_call.tool_call_id.clone(),
-                        tool_name: parsed_call.tool_name.clone(),
-                        input: parsed_call.input.clone(),
-                        provider_executed: parsed_call.provider_executed,
-                        provider_metadata: parsed_call.provider_metadata.clone(),
-                        dynamic: true,
-                        invalid: None,
-                        error: None,
-                    })
-                } else {
-                    TypedToolCall::Static(StaticToolCall {
-                        call_type: parsed_call.call_type.clone(),
-                        tool_call_id: parsed_call.tool_call_id.clone(),
-                        tool_name: parsed_call.tool_name.clone(),
-                        input: parsed_call.input.clone(),
-                        provider_executed: parsed_call.provider_executed,
-                        provider_metadata: parsed_call.provider_metadata.clone(),
-                        dynamic: parsed_call.dynamic,
-                        invalid: None,
-                    })
-                }
-            })
-            .collect();
-
         // Store the count before moving client_tool_outputs
         let client_tool_outputs_count = client_tool_outputs.len();
 
-        // Create step content using as_content
+        // Create step content using as_content (clone step_tool_calls since we borrowed it above)
         let step_content = as_content(
             response.content.clone(),
-            typed_tool_calls,
+            step_tool_calls.clone(),
             client_tool_outputs,
         );
 
@@ -558,9 +587,9 @@ pub async fn generate_text(
             response_messages.push(ResponseMessage::from(msg));
         }
 
-        // Create and push the current step result
+        // Create and push the current step result (using step_content, NOT response.content)
         let current_step_result = StepResult::new(
-            response.content.clone(),
+            step_content.clone(),  // ← Use ContentPart, not provider Content
             response.finish_reason.clone(),
             response.usage.clone(),
             if response.warnings.is_empty() {
@@ -579,7 +608,12 @@ pub async fn generate_text(
             response.provider_metadata.clone(),
         );
 
-        steps.push(current_step_result);
+        steps.push(current_step_result.clone());
+
+        // Call on_step_finish callback
+        if let Some(ref callback) = on_step_finish {
+            callback.call(current_step_result).await;
+        }
 
         // Check loop termination conditions (do-while loop pattern)
         // Continue if:
@@ -614,6 +648,112 @@ pub async fn generate_text(
 
     // Create the resolved output (placeholder for now, as there's no output specification yet)
     let resolved_output = Value::Null;
+
+    // Call on_finish callback before returning
+    if let Some(ref callback) = on_finish {
+        // Get the final step
+        if let Some(final_step) = steps.last() {
+            let finish_event = FinishEvent::new(final_step, steps.clone());
+            callback.call(finish_event).await;
+        }
+    }
+
+    // Debug logging: Show all steps
+    eprintln!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    eprintln!("🔍 DEBUG: Generation Steps Summary");
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    eprintln!("Total steps: {}", steps.len());
+    eprintln!("Total usage: {} input, {} output, {} total tokens",
+        total_usage.input_tokens,
+        total_usage.output_tokens,
+        total_usage.total_tokens
+    );
+
+    for (i, step) in steps.iter().enumerate() {
+        eprintln!("\n📍 Step {} of {}:", i + 1, steps.len());
+        eprintln!("  Finish reason: {:?}", step.finish_reason);
+        eprintln!("  Usage: {} in, {} out, {} total",
+            step.usage.input_tokens,
+            step.usage.output_tokens,
+            step.usage.total_tokens
+        );
+
+        // Show text content
+        let text = step.text();
+        if !text.is_empty() {
+            eprintln!("  Text: {}", if text.len() > 100 {
+                format!("{}...", &text[..100])
+            } else {
+                text
+            });
+        }
+
+        // Show tool calls
+        let tool_calls = step.tool_calls();
+        if !tool_calls.is_empty() {
+            eprintln!("  Tool calls ({}):", tool_calls.len());
+            for tc in tool_calls {
+                use super::TypedToolCall;
+                match tc {
+                    TypedToolCall::Static(call) => {
+                        eprintln!("    - {} (id: {})", call.tool_name, call.tool_call_id);
+                        eprintln!("      Input: {:?}", call.input);
+                        if let Some(executed) = call.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                    TypedToolCall::Dynamic(call) => {
+                        eprintln!("    - {} (id: {}) [dynamic]", call.tool_name, call.tool_call_id);
+                        eprintln!("      Input: {}", call.input);
+                        if let Some(executed) = call.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show tool results
+        let tool_results = step.tool_results();
+        if !tool_results.is_empty() {
+            eprintln!("  Tool results ({}):", tool_results.len());
+            for tr in tool_results {
+                use super::TypedToolResult;
+                match tr {
+                    TypedToolResult::Static(result) => {
+                        eprintln!("    - {} (call_id: {})", result.tool_name, result.tool_call_id);
+                        eprintln!("      Output: {:?}", result.output);
+                        if let Some(executed) = result.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                    TypedToolResult::Dynamic(result) => {
+                        eprintln!("    - {} (call_id: {}) [dynamic]", result.tool_name, result.tool_call_id);
+                        eprintln!("      Output: {}", result.output);
+                        if let Some(executed) = result.provider_executed {
+                            eprintln!("      Provider executed: {}", executed);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show content types
+        eprintln!("  Content parts: {}", step.content.len());
+        for (j, content) in step.content.iter().enumerate() {
+            let content_type = match content {
+                ContentPart::Text(_) => "Text",
+                ContentPart::ToolCall(_) => "ToolCall",
+                ContentPart::ToolResult(_) => "ToolResult",
+                ContentPart::ToolError(_) => "ToolError",
+                ContentPart::Reasoning(_) => "Reasoning",
+                ContentPart::Source(_) => "Source",
+            };
+            eprintln!("    [{}] {}", j, content_type);
+        }
+    }
+
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // Return the GenerateTextResult
     Ok(GenerateTextResult::from_steps(

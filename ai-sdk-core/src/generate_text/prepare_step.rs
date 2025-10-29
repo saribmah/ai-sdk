@@ -1,6 +1,7 @@
 use super::step_result::StepResult;
+use crate::message::ModelMessage;
 use ai_sdk_provider::language_model::{
-    prompt::Message as ProviderMessage, tool_choice::ToolChoice, LanguageModel,
+    tool_choice::ToolChoice,
 };
 use async_trait::async_trait;
 use std::future::Future;
@@ -35,7 +36,7 @@ pub struct PrepareStepOptions<'a> {
     pub step_number: usize,
 
     /// The messages being sent to the model for this step.
-    pub messages: &'a [ProviderMessage],
+    pub messages: &'a [ModelMessage],
 }
 
 /// Result returned by a prepare step function.
@@ -54,6 +55,7 @@ pub struct PrepareStepOptions<'a> {
 ///     tool_choice: Some(ToolChoice::Required),
 ///     active_tools: Some(vec!["get_weather".to_string()]),
 ///     system: Some("Be concise".to_string()),
+///     messages: None,
 /// };
 /// ```
 #[derive(Debug, Clone, Default)]
@@ -83,6 +85,11 @@ pub struct PrepareStepResult {
     ///
     /// If provided, this will replace or add a system message for this specific step.
     pub system: Option<String>,
+
+    /// Optional messages override for this step.
+    ///
+    /// If provided, this will replace the messages for this specific step.
+    pub messages: Option<Vec<ModelMessage>>,
 }
 
 /// A trait for implementing step preparation logic.
@@ -148,12 +155,14 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, text::Text, usage::Usage,
+        finish_reason::FinishReason, usage::Usage,
     };
+    use super::super::content_part::ContentPart;
+    use super::super::text_output::TextOutput;
 
     fn create_test_step() -> StepResult {
         StepResult::new(
-            vec![Content::Text(Text::new("Test"))],
+            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
             FinishReason::Stop,
             Usage::new(10, 20),
             None,
@@ -171,7 +180,7 @@ mod tests {
     #[tokio::test]
     async fn test_prepare_step_options() {
         let steps = vec![create_test_step()];
-        let messages = vec![];
+        let messages: Vec<ModelMessage> = vec![];
 
         let options = PrepareStepOptions {
             steps: &steps,
@@ -190,6 +199,7 @@ mod tests {
         assert!(result.tool_choice.is_none());
         assert!(result.active_tools.is_none());
         assert!(result.system.is_none());
+        assert!(result.messages.is_none());
     }
 
     #[tokio::test]
@@ -198,11 +208,13 @@ mod tests {
             tool_choice: Some(ToolChoice::Required),
             active_tools: Some(vec!["tool1".to_string(), "tool2".to_string()]),
             system: Some("Test system".to_string()),
+            messages: None,
         };
 
         assert!(matches!(result.tool_choice, Some(ToolChoice::Required)));
         assert_eq!(result.active_tools.as_ref().unwrap().len(), 2);
         assert_eq!(result.system.as_ref().unwrap(), "Test system");
+        assert!(result.messages.is_none());
     }
 
     #[tokio::test]

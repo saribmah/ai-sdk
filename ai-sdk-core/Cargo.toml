@@ -20,6 +20,7 @@ async-stream = "0.3"   # For async generators
 futures-util = "0.3"   # For Stream trait and StreamExt
 async-trait = "0.1.89" # For async trait implementations
 futures = "0.3"        # For future utilities like join_all
+jsonschema = "0.29"    # For JSON Schema validation
 
 [dev-dependencies]
 tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests

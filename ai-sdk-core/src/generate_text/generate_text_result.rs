@@ -6,6 +6,7 @@ use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde_json::Value;
 
 use super::content_part::ContentPart;
+use super::generated_file::GeneratedFile;
 use super::reasoning_output::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
@@ -33,21 +34,6 @@ pub struct ResponseMetadata {
 
     /// Timestamp of the response.
     pub timestamp: Option<i64>,
-}
-
-/// A file that was generated during the generation process.
-///
-/// This represents a file with its content and metadata.
-#[derive(Debug, Clone, PartialEq)]
-pub struct GeneratedFile {
-    /// The filename.
-    pub name: String,
-
-    /// The file content as base64-encoded data.
-    pub data: String,
-
-    /// The IANA media type of the file.
-    pub media_type: String,
 }
 
 /// The result of a `generate_text` call.
@@ -140,13 +126,7 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     ///
     /// You can use this to get information about intermediate steps,
     /// such as the tool calls or the response headers.
-    pub steps: Vec<StepResult>,
-
-    /// The generated structured output. It uses the `output` specification.
-    ///
-    /// **Deprecated**: Use `output` instead.
-    #[deprecated(note = "Use `output` instead")]
-    pub experimental_output: OUTPUT,
+    pub steps: Vec<StepResult<INPUT, OUTPUT>>,
 
     /// The generated structured output. It uses the `output` specification.
     pub output: OUTPUT,
@@ -171,68 +151,67 @@ where
     /// # Panics
     ///
     /// Panics if `steps` is empty.
-    pub fn from_steps(steps: Vec<StepResult>, total_usage: Usage, output: OUTPUT) -> Self
+    pub fn from_steps(steps: Vec<StepResult<INPUT, OUTPUT>>, total_usage: Usage, output: OUTPUT) -> Self
     where
         Self: Sized,
     {
         let final_step = steps.last().expect("steps cannot be empty");
 
-        // Convert StepResult content to ContentPart
-        let content: Vec<ContentPart<INPUT, OUTPUT>> = final_step
-            .content
-            .iter()
-            .filter_map(|part| {
-                use ai_sdk_provider::language_model::content::Content;
-                match part {
-                    Content::Text(text) => Some(ContentPart::Text(super::text_output::TextOutput::new(
-                        text.text.clone(),
-                    ))),
-                    Content::Reasoning(reasoning) => Some(ContentPart::Reasoning(
-                        super::reasoning_output::ReasoningOutput::new(reasoning.text.clone()),
-                    )),
-                    Content::Source(source) => Some(ContentPart::Source(
-                        super::source_output::SourceOutput::new(source.clone()),
-                    )),
-                    _ => None,
-                }
-            })
-            .collect();
+        // Content is already ContentPart, just clone it
+        let content: Vec<ContentPart<INPUT, OUTPUT>> = final_step.content.clone();
 
         let text = final_step.text();
-        let reasoning: Vec<ReasoningOutput> = final_step
-            .reasoning()
-            .iter()
-            .map(|r| ReasoningOutput::new(r.text.clone()))
-            .collect();
+        let reasoning: Vec<ReasoningOutput> = final_step.reasoning().iter().cloned().cloned().collect();
         let reasoning_text = final_step.reasoning_text();
 
-        let files: Vec<GeneratedFile> = final_step
-            .files()
-            .iter()
-            .map(|f| {
-                use ai_sdk_provider::language_model::file::FileData;
-
-                // Convert FileData to String (base64)
-                let data_str = match &f.data {
-                    FileData::Base64(s) => s.clone(),
-                    FileData::Binary(bytes) => {
-                        use base64::{Engine as _, engine::general_purpose};
-                        general_purpose::STANDARD.encode(bytes)
-                    }
-                };
-
-                GeneratedFile::new(
-                    String::new(), // File doesn't have a name field
-                    data_str,
-                    f.media_type.clone(),
-                )
-            })
-            .collect();
+        // Files are extracted directly from ContentPart (though currently empty)
+        let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
         let sources: Vec<Source> = final_step
             .sources()
             .iter()
-            .map(|s| (*s).clone())
+            .cloned()
+            .cloned()
+            .collect();
+
+        // Tool calls are already TypedToolCall in StepResult
+        let all_tool_calls: Vec<TypedToolCall<INPUT>> = final_step.tool_calls().iter().cloned().cloned().collect();
+
+        // Split into static and dynamic
+        let static_tool_calls: Vec<StaticToolCall<INPUT>> = all_tool_calls
+            .iter()
+            .filter_map(|tc| match tc {
+                TypedToolCall::Static(call) => Some(call.clone()),
+                _ => None,
+            })
+            .collect();
+
+        let dynamic_tool_calls: Vec<DynamicToolCall> = all_tool_calls
+            .iter()
+            .filter_map(|tc| match tc {
+                TypedToolCall::Dynamic(call) => Some(call.clone()),
+                _ => None,
+            })
+            .collect();
+
+        // Tool results are already TypedToolResult in StepResult
+        let all_tool_results: Vec<TypedToolResult<INPUT, OUTPUT>> = final_step.tool_results().iter().cloned().cloned().collect();
+
+        // Split into static and dynamic
+        let static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>> = all_tool_results
+            .iter()
+            .filter_map(|tr| match tr {
+                TypedToolResult::Static(result) => Some(result.clone()),
+                _ => None,
+            })
+            .collect();
+
+        let dynamic_tool_results: Vec<DynamicToolResult> = all_tool_results
+            .iter()
+            .filter_map(|tr| match tr {
+                TypedToolResult::Dynamic(result) => Some(result.clone()),
+                _ => None,
+            })
             .collect();
 
         Self {
@@ -242,12 +221,12 @@ where
             reasoning_text,
             files,
             sources,
-            tool_calls: vec![],
-            static_tool_calls: vec![],
-            dynamic_tool_calls: vec![],
-            tool_results: vec![],
-            static_tool_results: vec![],
-            dynamic_tool_results: vec![],
+            tool_calls: all_tool_calls,
+            static_tool_calls,
+            dynamic_tool_calls,
+            tool_results: all_tool_results,
+            static_tool_results,
+            dynamic_tool_results,
             finish_reason: final_step.finish_reason.clone(),
             usage: final_step.usage.clone(),
             total_usage,
@@ -256,7 +235,6 @@ where
             response: ResponseMetadata::from_step_metadata(vec![], final_step.response.clone()),
             provider_metadata: final_step.provider_metadata.clone(),
             steps,
-            experimental_output: output.clone(),
             output,
         }
     }
@@ -283,7 +261,7 @@ where
         request: RequestMetadata,
         response: ResponseMetadata,
         provider_metadata: Option<ProviderMetadata>,
-        steps: Vec<StepResult>,
+        steps: Vec<StepResult<INPUT, OUTPUT>>,
         output: OUTPUT,
     ) -> Self
     where
@@ -310,7 +288,6 @@ where
             response,
             provider_metadata,
             steps,
-            experimental_output: output.clone(),
             output,
         }
     }
@@ -367,17 +344,6 @@ impl ResponseMetadata {
     }
 }
 
-impl GeneratedFile {
-    /// Creates a new `GeneratedFile`.
-    pub fn new(name: String, data: String, media_type: String) -> Self {
-        Self {
-            name,
-            data,
-            media_type,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -385,14 +351,11 @@ mod tests {
 
     #[test]
     fn test_generated_file_new() {
-        let file = GeneratedFile::new(
-            "test.txt".to_string(),
-            "SGVsbG8gV29ybGQ=".to_string(),
-            "text/plain".to_string(),
-        );
+        let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQ=", "text/plain")
+            .with_name("test.txt");
 
-        assert_eq!(file.name, "test.txt");
-        assert_eq!(file.data, "SGVsbG8gV29ybGQ=");
+        assert_eq!(file.name, Some("test.txt".to_string()));
+        assert_eq!(file.base64(), "SGVsbG8gV29ybGQ=");
         assert_eq!(file.media_type, "text/plain");
     }
 
@@ -475,10 +438,6 @@ mod tests {
         assert_eq!(result.text, "Hello");
         assert_eq!(result.finish_reason, FinishReason::Stop);
         assert_eq!(result.output, "output");
-        #[allow(deprecated)]
-        {
-            assert_eq!(result.experimental_output, "output");
-        }
     }
 
     #[test]
@@ -511,5 +470,80 @@ mod tests {
         assert_eq!(result.reasoning_text, Some("Reasoning text".to_string()));
         assert_eq!(result.finish_reason, FinishReason::Length);
         assert_eq!(result.output, json!({"key": "value"}));
+    }
+
+    #[test]
+    fn test_generate_text_result_from_steps_with_tool_calls() {
+        use super::super::{TextOutput, TypedToolCall, DynamicToolCall, TypedToolResult, DynamicToolResult};
+
+        // Create a step with tool calls and tool results using ContentPart
+        let content = vec![
+            ContentPart::Text(TextOutput::new("Hello".to_string())),
+            ContentPart::ToolCall(TypedToolCall::Dynamic(
+                DynamicToolCall::new(
+                    "call_1".to_string(),
+                    "get_weather".to_string(),
+                    json!({"city": "SF"}),
+                )
+            )),
+            ContentPart::ToolResult(TypedToolResult::Dynamic(
+                DynamicToolResult::new(
+                    "call_1".to_string(),
+                    "get_weather".to_string(),
+                    json!({"city": "SF"}),
+                    json!({"temp": 72}),
+                ).with_provider_executed(true)
+            )),
+        ];
+
+        let step = StepResult::new(
+            content,
+            FinishReason::Stop,
+            Usage::new(10, 20),
+            None,
+            RequestMetadata { body: None },
+            StepResponseMetadata {
+                id: Some("resp_123".to_string()),
+                timestamp: None,
+                model_id: Some("gpt-4".to_string()),
+                body: None,
+            },
+            None,
+        );
+
+        let result: GenerateTextResult<Value, Value> =
+            GenerateTextResult::from_steps(vec![step], Usage::new(10, 20), json!(null));
+
+        // Verify tool calls are populated
+        assert_eq!(result.tool_calls.len(), 1);
+        assert_eq!(result.dynamic_tool_calls.len(), 1);
+        assert_eq!(result.static_tool_calls.len(), 0);
+
+        // Verify tool call details
+        match &result.tool_calls[0] {
+            TypedToolCall::Dynamic(call) => {
+                assert_eq!(call.tool_call_id, "call_1");
+                assert_eq!(call.tool_name, "get_weather");
+                assert_eq!(call.input, json!({"city": "SF"}));
+            }
+            _ => panic!("Expected dynamic tool call"),
+        }
+
+        // Verify tool results are populated
+        assert_eq!(result.tool_results.len(), 1);
+        assert_eq!(result.dynamic_tool_results.len(), 1);
+        assert_eq!(result.static_tool_results.len(), 0);
+
+        // Verify tool result details
+        match &result.tool_results[0] {
+            TypedToolResult::Dynamic(res) => {
+                assert_eq!(res.tool_call_id, "call_1");
+                assert_eq!(res.tool_name, "get_weather");
+                assert_eq!(res.input, json!({"city": "SF"}));
+                assert_eq!(res.output, json!({"temp": 72}));
+                assert_eq!(res.provider_executed, Some(true));
+            }
+            _ => panic!("Expected dynamic tool result"),
+        }
     }
 }
