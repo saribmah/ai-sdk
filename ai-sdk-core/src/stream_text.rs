@@ -29,17 +29,28 @@ use serde_json::Value;
 ///
 /// # Arguments
 ///
-/// * `model` - The language model to use for generation
-/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
 /// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
+/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
+/// * `model` - The language model to use for generation
 /// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
 /// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
-/// * `provider_options` - Optional provider-specific options.
 /// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
 ///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
+/// * `provider_options` - Optional provider-specific options.
 /// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
+/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
+///   When enabled, you will receive raw chunks with type 'raw' that contain the unprocessed data
+///   from the provider. This allows access to cutting-edge provider features not yet wrapped by the AI SDK.
+///   Defaults to false.
+/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
+///   The stream processing will pause until the callback promise is resolved.
+/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
+///   You can use it to log errors. The stream processing will pause until the callback promise is resolved.
 /// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
-/// * `on_finish` - Optional callback called when all steps are finished and response is complete.
+///   The stream processing will pause until the callback promise is resolved.
+/// * `on_finish` - Optional callback that is called when the LLM response and all request tool executions
+///   (for tools that have an `execute` function) are finished. The usage is the combined usage of all steps.
+/// * `on_abort` - Optional callback that is called when the generation is aborted.
 ///
 /// # Returns
 ///
@@ -59,13 +70,17 @@ use serde_json::Value;
 /// let prompt = Prompt::text("Tell me a joke");
 /// let settings = CallSettings::default();
 /// let result = stream_text(
-///     model,
-///     prompt,
 ///     settings,
-///     None,
+///     prompt,
+///     model,
 ///     None,
 ///     None,
 ///     Some(vec![Box::new(step_count_is(1))]),
+///     None,
+///     None,
+///     false,
+///     None,
+///     None,
 ///     None,
 ///     None,
 ///     None,
@@ -78,16 +93,20 @@ use serde_json::Value;
 /// }
 /// ```
 pub async fn stream_text(
-    _model: &dyn LanguageModel,
-    _prompt: Prompt,
     _settings: CallSettings,
+    _prompt: Prompt,
+    _model: &dyn LanguageModel,
     _tools: Option<ToolSet>,
     _tool_choice: Option<ToolChoice>,
-    _provider_options: Option<ProviderOptions>,
     _stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
+    _provider_options: Option<ProviderOptions>,
     _prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
+    _include_raw_chunks: bool,
+    _on_chunk: Option<OnChunkCallback>,
+    _on_error: Option<OnErrorCallback>,
     _on_step_finish: Option<OnStepFinishCallback>,
     _on_finish: Option<OnFinishCallback>,
+    _on_abort: Option<OnAbortCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
     // TODO: Implement stream_text functionality
     // This will involve:
