@@ -11,7 +11,7 @@ use serde_json::Value;
 
 use super::content_part::ContentPart;
 use super::reasoning_output::ReasoningOutput;
-use super::generate_text_result::GeneratedFile;
+use super::generated_file::GeneratedFile;
 
 /// Metadata about the request sent to the language model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]

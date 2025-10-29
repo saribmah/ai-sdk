@@ -6,6 +6,7 @@ use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde_json::Value;
 
 use super::content_part::ContentPart;
+use super::generated_file::GeneratedFile;
 use super::reasoning_output::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
@@ -33,21 +34,6 @@ pub struct ResponseMetadata {
 
     /// Timestamp of the response.
     pub timestamp: Option<i64>,
-}
-
-/// A file that was generated during the generation process.
-///
-/// This represents a file with its content and metadata.
-#[derive(Debug, Clone, PartialEq)]
-pub struct GeneratedFile {
-    /// The filename.
-    pub name: String,
-
-    /// The file content as base64-encoded data.
-    pub data: String,
-
-    /// The IANA media type of the file.
-    pub media_type: String,
 }
 
 /// The result of a `generate_text` call.
@@ -141,12 +127,6 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     /// You can use this to get information about intermediate steps,
     /// such as the tool calls or the response headers.
     pub steps: Vec<StepResult<INPUT, OUTPUT>>,
-
-    /// The generated structured output. It uses the `output` specification.
-    ///
-    /// **Deprecated**: Use `output` instead.
-    #[deprecated(note = "Use `output` instead")]
-    pub experimental_output: OUTPUT,
 
     /// The generated structured output. It uses the `output` specification.
     pub output: OUTPUT,
@@ -255,7 +235,6 @@ where
             response: ResponseMetadata::from_step_metadata(vec![], final_step.response.clone()),
             provider_metadata: final_step.provider_metadata.clone(),
             steps,
-            experimental_output: output.clone(),
             output,
         }
     }
@@ -309,7 +288,6 @@ where
             response,
             provider_metadata,
             steps,
-            experimental_output: output.clone(),
             output,
         }
     }
@@ -366,17 +344,6 @@ impl ResponseMetadata {
     }
 }
 
-impl GeneratedFile {
-    /// Creates a new `GeneratedFile`.
-    pub fn new(name: String, data: String, media_type: String) -> Self {
-        Self {
-            name,
-            data,
-            media_type,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -384,14 +351,11 @@ mod tests {
 
     #[test]
     fn test_generated_file_new() {
-        let file = GeneratedFile::new(
-            "test.txt".to_string(),
-            "SGVsbG8gV29ybGQ=".to_string(),
-            "text/plain".to_string(),
-        );
+        let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQ=", "text/plain")
+            .with_name("test.txt");
 
-        assert_eq!(file.name, "test.txt");
-        assert_eq!(file.data, "SGVsbG8gV29ybGQ=");
+        assert_eq!(file.name, Some("test.txt".to_string()));
+        assert_eq!(file.base64(), "SGVsbG8gV29ybGQ=");
         assert_eq!(file.media_type, "text/plain");
     }
 
@@ -474,10 +438,6 @@ mod tests {
         assert_eq!(result.text, "Hello");
         assert_eq!(result.finish_reason, FinishReason::Stop);
         assert_eq!(result.output, "output");
-        #[allow(deprecated)]
-        {
-            assert_eq!(result.experimental_output, "output");
-        }
     }
 
     #[test]

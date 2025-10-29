@@ -10,6 +10,7 @@ pub mod reasoning_output;
 pub mod text_output;
 pub mod source_output;
 pub mod to_response_messages;
+pub mod generated_file;
 pub mod generate_text_result;
 mod step_result;
 mod stop_condition;
@@ -30,7 +31,8 @@ pub use reasoning_output::ReasoningOutput;
 pub use text_output::TextOutput;
 pub use source_output::SourceOutput;
 pub use to_response_messages::to_response_messages;
-pub use generate_text_result::{GenerateTextResult, GeneratedFile, ResponseMetadata};
+pub use generated_file::{GeneratedFile, GeneratedFileWithType};
+pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
