@@ -1,4 +1,5 @@
 pub mod callbacks;
+pub mod convert_stream_part;
 pub mod default_stream_text_result;
 pub mod enriched_stream_part;
 pub mod run_tools_transformation;
@@ -108,28 +109,189 @@ use serde_json::Value;
 /// }
 /// ```
 pub async fn stream_text(
-    _settings: CallSettings,
-    _prompt: Prompt,
-    _model: &dyn LanguageModel,
-    _tools: Option<ToolSet>,
-    _tool_choice: Option<ToolChoice>,
+    settings: CallSettings,
+    prompt: Prompt,
+    model: &dyn LanguageModel,
+    tools: Option<ToolSet>,
+    tool_choice: Option<ToolChoice>,
     _stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
-    _provider_options: Option<ProviderOptions>,
+    provider_options: Option<ProviderOptions>,
     _prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
-    _include_raw_chunks: bool,
-    _on_chunk: Option<OnChunkCallback>,
-    _on_error: Option<OnErrorCallback>,
+    include_raw_chunks: bool,
+    on_chunk: Option<OnChunkCallback>,
+    on_error: Option<OnErrorCallback>,
     _on_step_finish: Option<OnStepFinishCallback>,
     _on_finish: Option<OnFinishCallback>,
     _on_abort: Option<OnAbortCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
-    // TODO: Implement stream_text functionality
-    // This will involve:
-    // 1. Validating and preparing settings (similar to generate_text)
-    // 2. Converting the prompt to language model format
-    // 3. Calling model.do_stream instead of model.do_generate
-    // 4. Handling multi-step streaming with tool calls
-    // 5. Creating and returning a StreamTextResult
+    // Phase 2: Basic single-step streaming without multi-step or full tool execution
+    //
+    // This implementation provides the core streaming pipeline:
+    // 1. Validate settings
+    // 2. Convert prompt to language model format
+    // 3. Prepare tools and tool choice
+    // 4. Call model.do_stream()
+    // 5. Convert stream parts (StreamPart -> TextStreamPart -> EnrichedStreamPart)
+    // 6. Apply event processor
+    // 7. Create and return StreamTextResult
 
-    unimplemented!("stream_text will be implemented in a future step")
+    use crate::prompt::convert_to_language_model_prompt::convert_to_language_model_prompt;
+    use crate::generate_text::prepare_tools_and_tool_choice;
+    use crate::stream_text::convert_stream_part::convert_stream_part_to_text_stream_part;
+    use crate::stream_text::EnrichedStreamPart;
+    use ai_sdk_provider::language_model::call_options::CallOptions;
+    use futures_util::StreamExt;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+    use std::collections::HashMap;
+
+    // Step 1: Validate settings
+    settings.validate()?;
+
+    // Step 2: Convert prompt to language model format
+    let language_model_prompt = convert_to_language_model_prompt(prompt)?;
+
+    // Step 3: Prepare tools and tool choice
+    let (prepared_tools, prepared_tool_choice) =
+        prepare_tools_and_tool_choice(tools.clone(), tool_choice)?;
+
+    // Step 4: Create CallOptions for the model
+    let call_options = CallOptions {
+        prompt: language_model_prompt,
+        temperature: settings.temperature,
+        top_p: settings.top_p,
+        top_k: settings.top_k,
+        frequency_penalty: settings.frequency_penalty,
+        presence_penalty: settings.presence_penalty,
+        seed: settings.seed,
+        max_output_tokens: settings.max_output_tokens,
+        stop_sequences: settings.stop_sequences.clone(),
+        tool_choice: prepared_tool_choice,
+        tools: prepared_tools,
+        response_format: settings.response_format.clone(),
+        provider_options: provider_options.clone(),
+    };
+
+    // Step 5: Call model.do_stream() to get the provider's stream
+    let stream_response = model.do_stream(call_options).await?;
+    let provider_stream = stream_response.stream;
+
+    // Step 6: Convert the stream pipeline
+    // StreamPart -> TextStreamPart -> EnrichedStreamPart
+
+    // Wrap callbacks in Arc for sharing across async tasks
+    let on_chunk = Arc::new(on_chunk);
+    let on_error = Arc::new(on_error);
+
+    // Create shared state for event processor
+    let active_text_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
+    let active_reasoning_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
+    let recorded_content = Arc::new(Mutex::new(Vec::new()));
+    let recorded_finish_reason = Arc::new(Mutex::new(None));
+    let recorded_total_usage = Arc::new(Mutex::new(None));
+
+    // Convert provider StreamPart to TextStreamPart
+    let text_stream = provider_stream.map(|stream_part| {
+        let text_part: TextStreamPart<Value, Value> =
+            convert_stream_part_to_text_stream_part(stream_part);
+        text_part
+    });
+
+    // Wrap in EnrichedStreamPart (no partial output parsing in Phase 2)
+    let enriched_stream = text_stream.map(|text_part| {
+        EnrichedStreamPart::new(text_part)
+    });
+
+    // Box the stream to make it Pin<Box<dyn Stream>>
+    let boxed_enriched_stream: AsyncIterableStream<EnrichedStreamPart<Value, Value>> =
+        Box::pin(enriched_stream);
+
+    // Step 7: Apply event processor
+    // Create a simple event processor that forwards chunks and tracks state
+    let processed_stream = Box::pin(async_stream::stream! {
+        use futures_util::pin_mut;
+
+        pin_mut!(boxed_enriched_stream);
+
+        while let Some(enriched_part) = boxed_enriched_stream.next().await {
+            // Forward the chunk downstream
+            yield enriched_part.clone();
+
+            let part = &enriched_part.part;
+
+            // Call onChunk for relevant events
+            if matches!(
+                part,
+                TextStreamPart::TextDelta { .. }
+                    | TextStreamPart::ReasoningDelta { .. }
+            ) {
+                if let Some(callback) = on_chunk.as_ref() {
+                    if let Some(chunk_part) = crate::stream_text::ChunkStreamPart::from_stream_part(part) {
+                        let event = crate::stream_text::ChunkEvent {
+                            chunk: chunk_part,
+                        };
+                        callback(event).await;
+                    }
+                }
+            }
+
+            // Handle error events
+            if let TextStreamPart::Error { error } = part {
+                if let Some(callback) = on_error.as_ref() {
+                    let event = crate::stream_text::ErrorEvent {
+                        error: error.clone(),
+                    };
+                    callback(event).await;
+                }
+            }
+
+            // Track active text content (simplified for Phase 2)
+            match part {
+                TextStreamPart::TextStart { id, .. } => {
+                    let mut active_texts = active_text_content.lock().await;
+                    active_texts.insert(id.clone(), String::new());
+                }
+                TextStreamPart::TextDelta { id, text, .. } => {
+                    let mut active_texts = active_text_content.lock().await;
+                    if let Some(active_text) = active_texts.get_mut(id) {
+                        active_text.push_str(text);
+                    }
+                }
+                TextStreamPart::TextEnd { id, .. } => {
+                    let mut active_texts = active_text_content.lock().await;
+                    active_texts.remove(id);
+                }
+                TextStreamPart::ReasoningStart { id, .. } => {
+                    let mut active_reasoning = active_reasoning_content.lock().await;
+                    active_reasoning.insert(id.clone(), String::new());
+                }
+                TextStreamPart::ReasoningDelta { id, text, .. } => {
+                    let mut active_reasoning = active_reasoning_content.lock().await;
+                    if let Some(active) = active_reasoning.get_mut(id) {
+                        active.push_str(text);
+                    }
+                }
+                TextStreamPart::ReasoningEnd { id, .. } => {
+                    let mut active_reasoning = active_reasoning_content.lock().await;
+                    active_reasoning.remove(id);
+                }
+                TextStreamPart::Finish { finish_reason, total_usage, .. } => {
+                    // Record finish reason
+                    let mut recorded_finish = recorded_finish_reason.lock().await;
+                    *recorded_finish = Some(finish_reason.clone());
+
+                    // Record usage
+                    let mut recorded_usage = recorded_total_usage.lock().await;
+                    *recorded_usage = Some(total_usage.clone());
+                }
+                _ => {}
+            }
+        }
+    });
+
+    // Step 8: Create StreamTextResult wrapper
+    // For Phase 2, we create a simple StreamTextResult that wraps our stream
+    // The actual DefaultStreamTextResult integration will come in subsequent phases
+
+    todo!("Phase 2 (partial): Stream pipeline complete. Next: Create StreamTextResult wrapper and implement accessors.")
 }

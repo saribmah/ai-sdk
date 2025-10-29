@@ -12,7 +12,7 @@ use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::language_model::tool_choice::ToolChoice;
 use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use futures_util::stream::Stream;
+use futures_util::stream::{Stream, StreamExt};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::pin::Pin;
@@ -443,6 +443,152 @@ where
     /// Gets a reference to the tool set, if provided.
     pub fn tools(&self) -> Option<&ToolSet> {
         self.tools.as_ref()
+    }
+
+    /// Creates an event processor transform stream that processes all events.
+    ///
+    /// The event processor:
+    /// - Forwards all chunks downstream
+    /// - Executes callbacks (onChunk, onError) for relevant events
+    /// - Accumulates state (active text/reasoning content, recorded content)
+    /// - Tracks usage and finish reason
+    ///
+    /// This is a simplified version for Phase 2 that handles basic text streaming.
+    fn create_event_processor(
+        &self,
+        on_chunk: Arc<Option<OnChunkCallback<INPUT, OUTPUT>>>,
+        on_error: Arc<Option<OnErrorCallback>>,
+        active_text_content: Arc<Mutex<HashMap<String, ActiveTextContent>>>,
+        active_reasoning_content: Arc<Mutex<HashMap<String, ActiveReasoningContent>>>,
+        recorded_content: Arc<Mutex<Vec<crate::generate_text::ContentPart<INPUT, OUTPUT>>>>,
+        recorded_finish_reason: Arc<Mutex<Option<FinishReason>>>,
+        recorded_total_usage: Arc<Mutex<Option<Usage>>>,
+    ) -> impl Fn(
+        AsyncIterableStream<EnrichedStreamPart<INPUT, OUTPUT>>,
+    ) -> AsyncIterableStream<EnrichedStreamPart<INPUT, OUTPUT>>
+           + Send
+           + 'static {
+        move |input_stream| {
+            let on_chunk = on_chunk.clone();
+            let on_error = on_error.clone();
+            let active_text_content = active_text_content.clone();
+            let active_reasoning_content = active_reasoning_content.clone();
+            let recorded_content = recorded_content.clone();
+            let recorded_finish_reason = recorded_finish_reason.clone();
+            let recorded_total_usage = recorded_total_usage.clone();
+
+            Box::pin(async_stream::stream! {
+                tokio::pin!(input_stream);
+
+                while let Some(enriched_part) = input_stream.next().await {
+                    // Forward the chunk downstream
+                    yield enriched_part.clone();
+
+                    let part = &enriched_part.part;
+
+                    // Call onChunk for relevant events
+                    if matches!(
+                        part,
+                        TextStreamPart::TextDelta { .. }
+                            | TextStreamPart::ReasoningDelta { .. }
+                            | TextStreamPart::Source { .. }
+                            | TextStreamPart::ToolCall { .. }
+                            | TextStreamPart::ToolResult { .. }
+                            | TextStreamPart::ToolInputStart { .. }
+                            | TextStreamPart::ToolInputDelta { .. }
+                    ) {
+                        if let Some(callback) = on_chunk.as_ref() {
+                            if let Some(chunk_part) = crate::stream_text::ChunkStreamPart::from_stream_part(part) {
+                                let event = crate::stream_text::ChunkEvent {
+                                    chunk: chunk_part,
+                                };
+                                callback(event).await;
+                            }
+                        }
+                    }
+
+                    // Handle error events
+                    if let TextStreamPart::Error { error } = part {
+                        if let Some(callback) = on_error.as_ref() {
+                            let event = crate::stream_text::ErrorEvent {
+                                error: error.clone(),
+                            };
+                            callback(event).await;
+                        }
+                    }
+
+                    // Track active text content
+                    match part {
+                        TextStreamPart::TextStart { id, provider_metadata } => {
+                            let mut active_texts = active_text_content.lock().await;
+                            let content = ActiveTextContent {
+                                text: String::new(),
+                                provider_metadata: provider_metadata.clone(),
+                            };
+                            active_texts.insert(id.clone(), content.clone());
+
+                            // Record the text content - we'll update it as deltas come in
+                            // For now, we just track it in active_text_content
+                        }
+                        TextStreamPart::TextDelta { id, text, provider_metadata } => {
+                            let mut active_texts = active_text_content.lock().await;
+                            if let Some(active_text) = active_texts.get_mut(id) {
+                                active_text.text.push_str(text);
+                                if provider_metadata.is_some() {
+                                    active_text.provider_metadata = provider_metadata.clone();
+                                }
+                            }
+                        }
+                        TextStreamPart::TextEnd { id, provider_metadata } => {
+                            let mut active_texts = active_text_content.lock().await;
+                            if let Some(mut active_text) = active_texts.remove(id) {
+                                if provider_metadata.is_some() {
+                                    active_text.provider_metadata = provider_metadata.clone();
+                                }
+                            }
+                        }
+                        TextStreamPart::ReasoningStart { id, provider_metadata } => {
+                            let mut active_reasoning = active_reasoning_content.lock().await;
+                            let content = ActiveReasoningContent {
+                                text: String::new(),
+                                provider_metadata: provider_metadata.clone(),
+                            };
+                            active_reasoning.insert(id.clone(), content.clone());
+
+                            // Record the reasoning content - we'll update it as deltas come in
+                            // For now, we just track it in active_reasoning_content
+                        }
+                        TextStreamPart::ReasoningDelta { id, text, provider_metadata } => {
+                            let mut active_reasoning = active_reasoning_content.lock().await;
+                            if let Some(active) = active_reasoning.get_mut(id) {
+                                active.text.push_str(text);
+                                if provider_metadata.is_some() {
+                                    active.provider_metadata = provider_metadata.clone();
+                                }
+                            }
+                        }
+                        TextStreamPart::ReasoningEnd { id, provider_metadata } => {
+                            let mut active_reasoning = active_reasoning_content.lock().await;
+                            if let Some(mut active) = active_reasoning.remove(id) {
+                                if provider_metadata.is_some() {
+                                    active.provider_metadata = provider_metadata.clone();
+                                }
+                            }
+                        }
+                        TextStreamPart::Finish { finish_reason, total_usage, .. } => {
+                            // Record finish reason
+                            let mut recorded_finish = recorded_finish_reason.lock().await;
+                            *recorded_finish = Some(finish_reason.clone());
+
+                            // Record/accumulate usage
+                            let mut recorded_usage = recorded_total_usage.lock().await;
+                            *recorded_usage = Some(total_usage.clone());
+                        }
+                        _ => {}
+                    }
+                }
+            })
+        }
     }
 
     // TODO: Additional methods will be added:

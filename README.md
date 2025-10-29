@@ -198,6 +198,16 @@ cargo run --example conversation
 # Tool calling example - function calling with a weather tool
 export OPENAI_API_KEY="your-api-key"
 cargo run --example tool_calling
+
+# Multi-step tools example - multi-step tool execution workflow
+export OPENAI_API_KEY="your-api-key"
+cargo run --example multi_step_tools
+
+# Streaming example - real-time text generation (⚠️ IN DEVELOPMENT)
+# Note: This example is ready but stream_text() is not yet fully implemented
+# See STREAM_TEXT_IMPLEMENTATION_PLAN.md for current status
+export OPENAI_API_KEY="your-api-key"
+cargo run --example streaming_basic
 ```
 
 The examples demonstrate:
@@ -207,8 +217,27 @@ The examples demonstrate:
 - System messages and temperature settings
 - Token usage tracking
 - Tool/function calling and handling tool call responses
+- Multi-step tool execution workflows
+- Streaming text generation (in development)
 
 ## Development
+
+### Code Conventions
+
+**Module Structure**: This project uses file-based Rust modules (Rust 2018+ pattern). To create a module:
+- Create a module file (e.g., `util.rs`)
+- Create a directory with the same name (e.g., `util/`)
+- Place submodules inside the directory (e.g., `util/stitchable_stream.rs`)
+
+**Example:**
+```
+src/
+├── util.rs              # Module definition
+└── util/                # Submodules directory
+    └── stitchable_stream.rs
+```
+
+**Note:** Do not use `mod.rs` files. The module file (`util.rs`) replaces the old `util/mod.rs` pattern.
 
 ### Running Tests
 
