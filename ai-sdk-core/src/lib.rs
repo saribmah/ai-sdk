@@ -3,6 +3,7 @@ pub mod generate_text;
 pub mod message;
 pub mod prompt;
 pub mod stream_text;
+pub mod util;
 
 pub use error::AISDKError;
 pub use generate_text::{
@@ -26,3 +27,4 @@ pub use stream_text::{
     StreamTextTransform, StreamTextTransformOptions, TextStreamPart, create_logging_transform,
     create_passthrough_transform, stream_text,
 };
+pub use util::StitchableStream;
