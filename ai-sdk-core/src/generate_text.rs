@@ -1,5 +1,6 @@
 mod retries;
 mod prepare_tools;
+pub mod tool_set;
 pub mod tool_result;
 pub mod tool_error;
 pub mod tool_output;
@@ -24,7 +25,8 @@ mod response_message;
 mod parse_tool_call;
 
 pub use retries::{prepare_retries, RetryConfig};
-pub use prepare_tools::{prepare_tools_and_tool_choice, ToolSet};
+pub use prepare_tools::prepare_tools_and_tool_choice;
+pub use tool_set::ToolSet;
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 pub use tool_output::ToolOutput;

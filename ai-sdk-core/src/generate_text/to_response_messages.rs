@@ -7,7 +7,7 @@ use crate::prompt::create_tool_model_output::{create_tool_model_output, ErrorMod
 use serde_json::Value;
 
 use super::content_part::ContentPart;
-use super::prepare_tools::ToolSet;
+use super::tool_set::ToolSet;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///

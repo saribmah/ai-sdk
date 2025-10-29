@@ -1,3 +1,4 @@
+use crate::generate_text::tool_set::ToolSet;
 use crate::message::tool::definition::Tool;
 use ai_sdk_provider::{
     language_model::{
@@ -8,27 +9,6 @@ use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
 };
 use serde_json::Value;
-use std::collections::HashMap;
-
-/// A set of tools indexed by their names.
-/// The key is the tool name that will be used by the language model.
-///
-/// # Example
-///
-/// ```
-/// use ai_sdk_core::ToolSet;
-/// use ai_sdk_core::message::tool::definition::Tool;
-/// use serde_json::json;
-///
-/// let mut tools = ToolSet::new();
-/// tools.insert("get_weather".to_string(), Tool::function(json!({
-///     "type": "object",
-///     "properties": {
-///         "city": { "type": "string" }
-///     }
-/// })));
-/// ```
-pub type ToolSet = HashMap<String, Tool<Value, Value>>;
 
 /// Prepares tools and tool choice for the language model.
 ///
