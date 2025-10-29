@@ -131,6 +131,9 @@ impl<T: Send + 'static> StitchableStream<T> {
     /// After calling `close()`, the output stream will complete once all
     /// added streams have been consumed.
     ///
+    /// This method is async and waits for all pending stream tasks to complete
+    /// before returning, ensuring the sender is properly dropped.
+    ///
     /// # Example
     ///
     /// ```rust,no_run
@@ -138,32 +141,26 @@ impl<T: Send + 'static> StitchableStream<T> {
     /// # async fn example() {
     /// let stitchable = StitchableStream::<i32>::new();
     /// // Add streams...
-    /// stitchable.close();
+    /// stitchable.close().await;
     /// # }
     /// ```
-    pub fn close(&self) {
+    pub async fn close(&self) {
         // Mark as closed immediately (synchronous)
         *self.closed.lock().unwrap() = true;
 
-        let tx = self.tx.clone();
-        let tasks = self.tasks.clone();
+        // Wait for all stream tasks to complete
+        let handles = {
+            let mut tasks_guard = self.tasks.lock().await;
+            std::mem::take(&mut *tasks_guard)
+        };
 
-        // Spawn a task to wait for all streams to complete and then close the channel
-        tokio::spawn(async move {
-            // Wait for all stream tasks to complete
-            let handles = {
-                let mut tasks_guard = tasks.lock().await;
-                std::mem::take(&mut *tasks_guard)
-            };
+        for handle in handles {
+            let _ = handle.await;
+        }
 
-            for handle in handles {
-                let _ = handle.await;
-            }
-
-            // Drop the sender to signal completion
-            // Take the sender out of the Option and drop it
-            tx.lock().await.take();
-        });
+        // Drop the sender to signal completion
+        // Take the sender out of the Option and drop it
+        self.tx.lock().await.take();
     }
 
     /// Terminate the stream immediately, canceling any pending stream segments
@@ -253,7 +250,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_stitchable_stream() {
         let stitchable = StitchableStream::<i32>::new();
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -268,7 +265,7 @@ mod tests {
         let stream1 = stream::iter(vec![1, 2, 3]);
         stitchable.add_stream(stream1).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -288,7 +285,7 @@ mod tests {
         stitchable.add_stream(stream2).await;
         stitchable.add_stream(stream3).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -306,7 +303,7 @@ mod tests {
         stitchable.add_stream(stream1).await;
         stitchable.add_stream(stream2).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<String> = output.collect().await;
@@ -318,7 +315,7 @@ mod tests {
     async fn test_close_before_adding_streams() {
         let stitchable = StitchableStream::<i32>::new();
 
-        stitchable.close();
+        stitchable.close().await;
 
         // Adding streams after close should not add items
         let stream1 = stream::iter(vec![1, 2, 3]);
@@ -353,7 +350,7 @@ mod tests {
         let stream1 = stream::iter(vec![]);
         stitchable.add_stream(stream1).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -375,7 +372,7 @@ mod tests {
         stitchable.add_stream(stream3).await;
         stitchable.add_stream(stream4).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -390,7 +387,7 @@ mod tests {
         let stream1 = stream::iter(vec![1, 2, 3]);
         stitchable.add_stream(stream1).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         // First consumption
         let mut output1 = stitchable.stream();
@@ -416,7 +413,7 @@ mod tests {
         stitchable.add_stream(stream2).await;
         stitchable.add_stream(stream3).await;
 
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;
@@ -438,7 +435,7 @@ mod tests {
         };
 
         stitchable.add_stream(async_stream).await;
-        stitchable.close();
+        stitchable.close().await;
 
         let mut output = stitchable.stream();
         let result: Vec<i32> = output.collect().await;

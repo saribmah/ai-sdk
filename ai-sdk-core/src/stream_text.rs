@@ -321,5 +321,10 @@ pub async fn stream_text(
     // For Phase 2, we create a simple StreamTextResult that wraps our stream
     // The actual DefaultStreamTextResult integration will come in subsequent phases
 
-    todo!("Phase 2 (partial): Stream pipeline complete. Next: Create StreamTextResult wrapper and implement accessors.")
+    // Convert the processed stream to a stream of TextStreamPart
+    // We need to extract the TextStreamPart from EnrichedStreamPart
+    let text_stream_parts = Box::pin(processed_stream.map(|enriched| enriched.part));
+
+    // Create and return the StreamTextResult
+    Ok(StreamTextResult::new(text_stream_parts))
 }

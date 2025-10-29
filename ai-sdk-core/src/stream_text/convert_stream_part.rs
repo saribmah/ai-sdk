@@ -307,13 +307,8 @@ mod tests {
     fn test_convert_finish() {
         let provider_part = StreamPart::Finish {
             finish_reason: FinishReason::Stop,
-            usage: Usage {
-                prompt_tokens: 10,
-                completion_tokens: 20,
-                total_tokens: 30,
-            },
+            usage: Usage::new(10, 20),
             provider_metadata: None,
-            log_probs: None,
         };
 
         let text_part: TextStreamPart<Value, Value> =
@@ -326,7 +321,8 @@ mod tests {
                 ..
             } => {
                 assert_eq!(finish_reason, FinishReason::Stop);
-                assert_eq!(total_usage.total_tokens, 30);
+                assert_eq!(total_usage.input_tokens, 10);
+                assert_eq!(total_usage.output_tokens, 20);
             }
             _ => panic!("Expected Finish"),
         }
@@ -335,7 +331,7 @@ mod tests {
     #[test]
     fn test_convert_error() {
         let provider_part = StreamPart::Error {
-            error: "Test error".to_string(),
+            error: serde_json::json!({"message": "Test error"}),
         };
 
         let text_part: TextStreamPart<Value, Value> =
@@ -343,7 +339,7 @@ mod tests {
 
         match text_part {
             TextStreamPart::Error { error } => {
-                assert_eq!(error, Value::String("Test error".to_string()));
+                assert_eq!(error, serde_json::json!({"message": "Test error"}));
             }
             _ => panic!("Expected Error"),
         }
