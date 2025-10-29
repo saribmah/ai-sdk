@@ -1,7 +1,7 @@
 use thiserror::Error;
 use std::time::Duration;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error)]
 pub enum AISDKError {
     #[error("Invalid argument for parameter '{parameter}': {message} (value: {value})")]
     InvalidArgument {
