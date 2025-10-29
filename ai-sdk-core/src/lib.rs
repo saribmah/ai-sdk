@@ -19,8 +19,10 @@ pub use generate_text::{
     step_count_is, to_response_messages,
 };
 pub use stream_text::{
-    AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
+    AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions,
+    DefaultStreamTextResult, DefaultStreamTextResultParams, EnrichedStreamPart, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
-    OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamTextResult, TextStreamPart,
-    stream_text,
+    OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamTextResult,
+    StreamTextTransform, StreamTextTransformOptions, TextStreamPart, create_logging_transform,
+    create_passthrough_transform, stream_text,
 };

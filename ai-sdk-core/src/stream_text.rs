@@ -1,5 +1,8 @@
 pub mod callbacks;
+pub mod default_stream_text_result;
+pub mod enriched_stream_part;
 pub mod stream_text_result;
+pub mod stream_text_transform;
 pub mod text_stream_part;
 
 pub use callbacks::{
@@ -9,8 +12,14 @@ pub use callbacks::{
     StreamTextOnErrorCallback as OnErrorCallback, StreamTextOnFinishCallback as OnFinishCallback,
     StreamTextOnStepFinishCallback as OnStepFinishCallback,
 };
+pub use default_stream_text_result::{DefaultStreamTextResult, DefaultStreamTextResultParams};
+pub use enriched_stream_part::EnrichedStreamPart;
 pub use stream_text_result::{
     AsyncIterableStream, ConsumeStreamOptions, ErrorHandler, StreamTextResult,
+};
+pub use stream_text_transform::{
+    StreamTextTransform, StreamTextTransformOptions, create_logging_transform,
+    create_passthrough_transform,
 };
 pub use text_stream_part::{StreamGeneratedFile, TextStreamPart};
 
