@@ -1,12 +1,12 @@
-pub mod system;
-pub mod user;
 pub mod assistant;
+pub mod system;
 pub mod tool;
+pub mod user;
 
+pub use assistant::{AssistantContent, AssistantContentPart, AssistantModelMessage};
 pub use system::SystemModelMessage;
-pub use user::{UserModelMessage, UserContent, UserContentPart};
-pub use assistant::{AssistantModelMessage, AssistantContent, AssistantContentPart};
-pub use tool::{ToolModelMessage, ToolContent, ToolContentPart};
+pub use tool::{ToolContent, ToolContentPart, ToolModelMessage};
+pub use user::{UserContent, UserContentPart, UserModelMessage};
 
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -45,26 +45,18 @@ impl<'de> Deserialize<'de> for ModelMessage {
             .ok_or_else(|| D::Error::missing_field("role"))?;
 
         match role {
-            "system" => {
-                serde_json::from_value(value)
-                    .map(ModelMessage::System)
-                    .map_err(D::Error::custom)
-            }
-            "user" => {
-                serde_json::from_value(value)
-                    .map(ModelMessage::User)
-                    .map_err(D::Error::custom)
-            }
-            "assistant" => {
-                serde_json::from_value(value)
-                    .map(ModelMessage::Assistant)
-                    .map_err(D::Error::custom)
-            }
-            "tool" => {
-                serde_json::from_value(value)
-                    .map(ModelMessage::Tool)
-                    .map_err(D::Error::custom)
-            }
+            "system" => serde_json::from_value(value)
+                .map(ModelMessage::System)
+                .map_err(D::Error::custom),
+            "user" => serde_json::from_value(value)
+                .map(ModelMessage::User)
+                .map_err(D::Error::custom),
+            "assistant" => serde_json::from_value(value)
+                .map(ModelMessage::Assistant)
+                .map_err(D::Error::custom),
+            "tool" => serde_json::from_value(value)
+                .map(ModelMessage::Tool)
+                .map_err(D::Error::custom),
             _ => Err(D::Error::unknown_variant(
                 role,
                 &["system", "user", "assistant", "tool"],
@@ -171,15 +163,11 @@ mod tests {
 
     #[test]
     fn test_model_message_tool() {
-        use super::super::content_parts::{ToolResultPart, ToolResultOutput};
+        use super::super::content_parts::{ToolResultOutput, ToolResultPart};
 
-        let tool_msg = ToolModelMessage::new(vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ]);
+        let tool_msg = ToolModelMessage::new(vec![ToolContentPart::ToolResult(
+            ToolResultPart::new("call_123", "tool_name", ToolResultOutput::text("Success")),
+        )]);
         let message = ModelMessage::from(tool_msg);
 
         assert_eq!(message.role(), "tool");

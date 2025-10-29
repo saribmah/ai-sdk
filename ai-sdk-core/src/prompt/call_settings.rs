@@ -348,7 +348,10 @@ mod tests {
 
         assert!(settings.headers.is_some());
         let headers = settings.headers.unwrap();
-        assert_eq!(headers.get("Authorization"), Some(&"Bearer token".to_string()));
+        assert_eq!(
+            headers.get("Authorization"),
+            Some(&"Bearer token".to_string())
+        );
         assert_eq!(headers.get("Custom-Header"), Some(&"value".to_string()));
     }
 

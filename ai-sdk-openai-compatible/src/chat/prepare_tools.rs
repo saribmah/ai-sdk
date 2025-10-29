@@ -1,7 +1,5 @@
 use ai_sdk_provider::language_model::{
-    call_options::Tool,
-    call_warning::CallWarning,
-    tool_choice::ToolChoice,
+    call_options::Tool, call_warning::CallWarning, tool_choice::ToolChoice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -205,17 +203,17 @@ mod tests {
     #[test]
     fn test_prepare_tools_with_description() {
         let tool = Tool::Function(
-            FunctionTool::new(
-                "get_weather",
-                json!({"type": "object"}),
-            )
-            .with_description("Get the current weather"),
+            FunctionTool::new("get_weather", json!({"type": "object"}))
+                .with_description("Get the current weather"),
         );
 
         let result = prepare_tools(Some(vec![tool]), None);
 
         let tools = result.tools.unwrap();
-        assert_eq!(tools[0].function.description, Some("Get the current weather".to_string()));
+        assert_eq!(
+            tools[0].function.description,
+            Some("Get the current weather".to_string())
+        );
     }
 
     #[test]
@@ -306,7 +304,11 @@ mod tests {
             Some(OpenAICompatibleToolChoice::Tool { .. })
         ));
 
-        if let Some(OpenAICompatibleToolChoice::Tool { tool_type, function }) = result.tool_choice {
+        if let Some(OpenAICompatibleToolChoice::Tool {
+            tool_type,
+            function,
+        }) = result.tool_choice
+        {
             assert_eq!(tool_type, "function");
             assert_eq!(function.name, "get_weather");
         }

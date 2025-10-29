@@ -221,7 +221,10 @@ impl OpenAICompatibleAssistantMessage {
     }
 
     /// Creates a new assistant message with both content and tool calls
-    pub fn new(content: Option<String>, tool_calls: Option<Vec<OpenAICompatibleMessageToolCall>>) -> Self {
+    pub fn new(
+        content: Option<String>,
+        tool_calls: Option<Vec<OpenAICompatibleMessageToolCall>>,
+    ) -> Self {
         Self {
             content,
             tool_calls,
@@ -274,9 +277,9 @@ mod tests {
 
     #[test]
     fn test_user_message_parts() {
-        let parts = vec![
-            OpenAICompatibleContentPart::Text(OpenAICompatibleContentPartText::new("Hello".to_string())),
-        ];
+        let parts = vec![OpenAICompatibleContentPart::Text(
+            OpenAICompatibleContentPartText::new("Hello".to_string()),
+        )];
         let msg = OpenAICompatibleUserMessage::new_parts(parts);
         match msg.content {
             Some(UserMessageContent::Parts(parts)) => assert_eq!(parts.len(), 1),
@@ -312,9 +315,8 @@ mod tests {
 
     #[test]
     fn test_message_serialization() {
-        let msg = OpenAICompatibleMessage::System(
-            OpenAICompatibleSystemMessage::new("Test".to_string())
-        );
+        let msg =
+            OpenAICompatibleMessage::System(OpenAICompatibleSystemMessage::new("Test".to_string()));
         let json = serde_json::to_string(&msg).unwrap();
         assert!(json.contains(r#""role":"system"#));
         assert!(json.contains(r#""content":"Test"#));

@@ -74,10 +74,7 @@ pub fn convert_to_openai_compatible_completion_prompt(
     for message in prompt {
         match message {
             Message::System { content, .. } => {
-                return Err(format!(
-                    "Unexpected system message in prompt: {}",
-                    content
-                ));
+                return Err(format!("Unexpected system message in prompt: {}", content));
             }
 
             Message::User { content, .. } => {
@@ -109,10 +106,7 @@ pub fn convert_to_openai_compatible_completion_prompt(
                     }
                 }
 
-                text.push_str(&format!(
-                    "{}:\n{}\n\n",
-                    assistant_prefix, assistant_message
-                ));
+                text.push_str(&format!("{}:\n{}\n\n", assistant_prefix, assistant_message));
             }
 
             Message::Tool { .. } => {
@@ -144,8 +138,7 @@ mod tests {
             provider_options: None,
         }];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         assert_eq!(result.prompt, "user:\nHello!\n\nassistant:\n");
         assert_eq!(result.stop_sequences, Some(vec!["\nuser:".to_string()]));
@@ -167,8 +160,7 @@ mod tests {
             },
         ];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         assert_eq!(
             result.prompt,
@@ -225,8 +217,7 @@ mod tests {
             },
         ];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         assert_eq!(
             result.prompt,
@@ -268,8 +259,7 @@ mod tests {
             provider_options: None,
         }];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         assert_eq!(result.prompt, "user:\nHello world!\n\nassistant:\n");
     }
@@ -320,8 +310,7 @@ mod tests {
     fn test_empty_prompt() {
         let prompt = vec![];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         assert_eq!(result.prompt, "assistant:\n");
         assert_eq!(result.stop_sequences, Some(vec!["\nuser:".to_string()]));
@@ -351,8 +340,7 @@ mod tests {
             provider_options: None,
         }];
 
-        let result =
-            convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
+        let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
         // File parts should be filtered out
         assert_eq!(result.prompt, "user:\nLook at this: Cool!\n\nassistant:\n");

@@ -328,11 +328,7 @@ mod tests {
 
     #[test]
     fn test_static_tool_call_new() {
-        let call = StaticToolCall::new(
-            "call_123",
-            "get_weather",
-            json!({"city": "SF"}),
-        );
+        let call = StaticToolCall::new("call_123", "get_weather", json!({"city": "SF"}));
 
         assert_eq!(call.call_type, "tool-call");
         assert_eq!(call.tool_call_id, "call_123");
@@ -346,12 +342,7 @@ mod tests {
 
     #[test]
     fn test_static_tool_call_with_provider_executed() {
-        let call = StaticToolCall::new(
-            "call_123",
-            "tool",
-            json!({}),
-        )
-        .with_provider_executed(true);
+        let call = StaticToolCall::new("call_123", "tool", json!({})).with_provider_executed(true);
 
         assert_eq!(call.provider_executed, Some(true));
     }
@@ -364,23 +355,15 @@ mod tests {
         inner.insert("key".to_string(), json!("value"));
         metadata.insert("provider".to_string(), inner);
 
-        let call = StaticToolCall::new(
-            "call_123",
-            "tool",
-            json!({}),
-        )
-        .with_provider_metadata(metadata.clone());
+        let call = StaticToolCall::new("call_123", "tool", json!({}))
+            .with_provider_metadata(metadata.clone());
 
         assert_eq!(call.provider_metadata, Some(metadata));
     }
 
     #[test]
     fn test_dynamic_tool_call_new() {
-        let call = DynamicToolCall::new(
-            "call_456",
-            "unknown_tool",
-            json!({"param": "value"}),
-        );
+        let call = DynamicToolCall::new("call_456", "unknown_tool", json!({"param": "value"}));
 
         assert_eq!(call.call_type, "tool-call");
         assert_eq!(call.tool_call_id, "call_456");
@@ -395,37 +378,24 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_call_with_invalid() {
-        let call = DynamicToolCall::new(
-            "call_456",
-            "tool",
-            json!({}),
-        )
-        .with_invalid(true);
+        let call = DynamicToolCall::new("call_456", "tool", json!({})).with_invalid(true);
 
         assert_eq!(call.invalid, Some(true));
     }
 
     #[test]
     fn test_dynamic_tool_call_with_error() {
-        let call = DynamicToolCall::new(
-            "call_456",
-            "tool",
-            json!({}),
-        )
-        .with_error(json!({"message": "Tool not found"}));
+        let call = DynamicToolCall::new("call_456", "tool", json!({}))
+            .with_error(json!({"message": "Tool not found"}));
 
         assert_eq!(call.error, Some(json!({"message": "Tool not found"})));
     }
 
     #[test]
     fn test_dynamic_tool_call_invalid_with_error() {
-        let call = DynamicToolCall::new(
-            "call_789",
-            "nonexistent_tool",
-            json!({}),
-        )
-        .with_invalid(true)
-        .with_error(json!({"message": "Tool does not exist"}));
+        let call = DynamicToolCall::new("call_789", "nonexistent_tool", json!({}))
+            .with_invalid(true)
+            .with_error(json!({"message": "Tool does not exist"}));
 
         assert_eq!(call.invalid, Some(true));
         assert_eq!(call.error, Some(json!({"message": "Tool does not exist"})));
@@ -433,11 +403,7 @@ mod tests {
 
     #[test]
     fn test_typed_tool_call_static() {
-        let static_call = StaticToolCall::new(
-            "call_1",
-            "add",
-            json!({"a": 1}),
-        );
+        let static_call = StaticToolCall::new("call_1", "add", json!({"a": 1}));
 
         let typed: TypedToolCall<Value> = TypedToolCall::Static(static_call.clone());
 
@@ -449,11 +415,7 @@ mod tests {
 
     #[test]
     fn test_typed_tool_call_dynamic() {
-        let dynamic_call = DynamicToolCall::new(
-            "call_2",
-            "unknown",
-            json!({}),
-        );
+        let dynamic_call = DynamicToolCall::new("call_2", "unknown", json!({}));
 
         let typed: TypedToolCall<Value> = TypedToolCall::Dynamic(dynamic_call.clone());
 
@@ -465,12 +427,8 @@ mod tests {
 
     #[test]
     fn test_static_tool_call_serialization() {
-        let call = StaticToolCall::new(
-            "call_123",
-            "test_tool",
-            json!({"key": "value"}),
-        )
-        .with_provider_executed(true);
+        let call = StaticToolCall::new("call_123", "test_tool", json!({"key": "value"}))
+            .with_provider_executed(true);
 
         let serialized = serde_json::to_value(&call).unwrap();
 
@@ -483,14 +441,10 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_call_serialization() {
-        let call = DynamicToolCall::new(
-            "call_456",
-            "unknown_tool",
-            json!({"param": "value"}),
-        )
-        .with_provider_executed(false)
-        .with_invalid(true)
-        .with_error(json!({"message": "Parse error"}));
+        let call = DynamicToolCall::new("call_456", "unknown_tool", json!({"param": "value"}))
+            .with_provider_executed(false)
+            .with_invalid(true)
+            .with_error(json!({"message": "Parse error"}));
 
         let serialized = serde_json::to_value(&call).unwrap();
 
@@ -506,28 +460,21 @@ mod tests {
 
     #[test]
     fn test_typed_tool_call_serialization() {
-        let typed: TypedToolCall<Value> = TypedToolCall::Static(
-            StaticToolCall::new(
-                "call_1",
-                "add",
-                json!({"a": 1, "b": 2}),
-            ),
-        );
+        let typed: TypedToolCall<Value> = TypedToolCall::Static(StaticToolCall::new(
+            "call_1",
+            "add",
+            json!({"a": 1, "b": 2}),
+        ));
 
         let serialized = serde_json::to_string(&typed).unwrap();
-        let deserialized: TypedToolCall<Value> =
-            serde_json::from_str(&serialized).unwrap();
+        let deserialized: TypedToolCall<Value> = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(typed, deserialized);
     }
 
     #[test]
     fn test_static_tool_call_clone() {
-        let call = StaticToolCall::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-        );
+        let call = StaticToolCall::new("call_123", "test_tool", json!({}));
 
         let cloned = call.clone();
         assert_eq!(call, cloned);
@@ -535,11 +482,7 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_call_clone() {
-        let call = DynamicToolCall::new(
-            "call_456",
-            "test_tool",
-            json!({}),
-        );
+        let call = DynamicToolCall::new("call_456", "test_tool", json!({}));
 
         let cloned = call.clone();
         assert_eq!(call, cloned);
@@ -547,11 +490,7 @@ mod tests {
 
     #[test]
     fn test_from_static_tool_call() {
-        let static_call = StaticToolCall::new(
-            "call_1",
-            "tool",
-            json!({}),
-        );
+        let static_call = StaticToolCall::new("call_1", "tool", json!({}));
 
         let typed: TypedToolCall<Value> = static_call.clone().into();
 
@@ -563,11 +502,7 @@ mod tests {
 
     #[test]
     fn test_from_dynamic_tool_call() {
-        let dynamic_call = DynamicToolCall::new(
-            "call_2",
-            "tool",
-            json!({}),
-        );
+        let dynamic_call = DynamicToolCall::new("call_2", "tool", json!({}));
 
         let typed: TypedToolCall<Value> = dynamic_call.clone().into();
 

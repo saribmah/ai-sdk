@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::shared::provider_metadata::ProviderMetadata;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Reasoning {
@@ -9,7 +9,7 @@ pub struct Reasoning {
     pub text: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>
+    pub provider_metadata: Option<ProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,7 +29,7 @@ impl Reasoning {
         Self {
             content_type: ReasoningType,
             text: text.into(),
-            provider_metadata: Some(provider_metadata)
+            provider_metadata: Some(provider_metadata),
         }
     }
 }

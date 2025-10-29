@@ -65,9 +65,7 @@ pub enum ToolResultOutput {
     },
 
     /// Content array with various content types.
-    Content {
-        value: Vec<ToolResultContentPart>,
-    },
+    Content { value: Vec<ToolResultContentPart> },
 }
 
 /// Content part within a tool result output.

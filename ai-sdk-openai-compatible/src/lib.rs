@@ -55,14 +55,14 @@
 //! let model = provider.language_model("gpt-4");
 //! ```
 
-mod provider;
 pub mod chat;
 pub mod completion;
 pub mod error;
+mod provider;
 
-pub use provider::{
-    create_openai_compatible, OpenAICompatibleProvider, OpenAICompatibleProviderSettings,
-};
 pub use chat::*;
 pub use completion::*;
 pub use error::*;
+pub use provider::{
+    OpenAICompatibleProvider, OpenAICompatibleProviderSettings, create_openai_compatible,
+};

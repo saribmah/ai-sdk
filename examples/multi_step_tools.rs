@@ -1,3 +1,5 @@
+use ai_sdk_core::message::tool::definition::Tool;
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Multi-step tool execution example demonstrating iterative tool calling.
 ///
 /// This example shows how to:
@@ -10,12 +12,9 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example multi_step_tools
 /// ```
-
-use ai_sdk_core::{generate_text, step_count_is, ToolSet};
-use ai_sdk_core::message::tool::definition::Tool;
-use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
-use serde_json::{json, Value};
+use ai_sdk_core::{ToolSet, generate_text, step_count_is};
+use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use serde_json::{Value, json};
 use std::env;
 
 /// Simulates getting the current weather for a city
@@ -60,8 +59,10 @@ fn get_weather(city: &str) -> Value {
 
 /// Simulates converting temperature between units
 fn convert_temperature(value: f64, from_unit: &str, to_unit: &str) -> Value {
-    println!("    🌡️  Executing: convert_temperature(value={}, from=\"{}\", to=\"{}\")",
-             value, from_unit, to_unit);
+    println!(
+        "    🌡️  Executing: convert_temperature(value={}, from=\"{}\", to=\"{}\")",
+        value, from_unit, to_unit
+    );
 
     let celsius = if from_unit.to_lowercase() == "fahrenheit" {
         (value - 32.0) * 5.0 / 9.0
@@ -75,7 +76,10 @@ fn convert_temperature(value: f64, from_unit: &str, to_unit: &str) -> Value {
         celsius
     };
 
-    println!("    ✓ Converted {} {}° to {:.1} {}°", value, from_unit, result, to_unit);
+    println!(
+        "    ✓ Converted {} {}° to {:.1} {}°",
+        value, from_unit, result, to_unit
+    );
 
     json!({
         "value": result,
@@ -90,9 +94,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤖 AI SDK Rust - Multi-Step Tool Execution Example\n");
 
     // Get API key from environment
-    let api_key = env::var("OPENAI_API_KEY").map_err(|_| {
-        "OPENAI_API_KEY environment variable not set. Please set it with your API key."
-    })?;
+    let api_key = env::var("OPENAI_API_KEY").map_err(
+        |_| "OPENAI_API_KEY environment variable not set. Please set it with your API key.",
+    )?;
 
     println!("✓ API key loaded from environment");
 
@@ -125,15 +129,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }))
     .with_description("Get the current weather for a given city")
     .with_execute(Box::new(|input: Value, _options| {
-        let city = input.get("city")
+        let city = input
+            .get("city")
             .and_then(|v| v.as_str())
             .unwrap_or("Unknown");
 
         let weather_data = get_weather(city);
 
-        ToolExecutionOutput::Single(Box::pin(async move {
-            Ok(weather_data)
-        }))
+        ToolExecutionOutput::Single(Box::pin(async move { Ok(weather_data) }))
     }));
 
     // Temperature conversion tool
@@ -157,21 +160,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }))
     .with_description("Convert temperature between fahrenheit and celsius")
     .with_execute(Box::new(|input: Value, _options| {
-        let value = input.get("value")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let from_unit = input.get("from_unit")
+        let value = input.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let from_unit = input
+            .get("from_unit")
             .and_then(|v| v.as_str())
             .unwrap_or("fahrenheit");
-        let to_unit = input.get("to_unit")
+        let to_unit = input
+            .get("to_unit")
             .and_then(|v| v.as_str())
             .unwrap_or("celsius");
 
         let result = convert_temperature(value, from_unit, to_unit);
 
-        ToolExecutionOutput::Single(Box::pin(async move {
-            Ok(result)
-        }))
+        ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
     }));
 
     // Create tool set
@@ -186,7 +187,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a prompt that will require multiple tool calls
     let prompt = Prompt::text(
         "What's the weather in San Francisco and New York? \
-         Also, convert the San Francisco temperature to Celsius."
+         Also, convert the San Francisco temperature to Celsius.",
     );
 
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -225,17 +226,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📊 Summary:");
     println!("  • Total steps: {}", result.steps.len());
     println!("  • Finish reason: {:?}", result.finish_reason);
-    println!("  • Total input tokens: {}", result.total_usage.input_tokens);
-    println!("  • Total output tokens: {}", result.total_usage.output_tokens);
+    println!(
+        "  • Total input tokens: {}",
+        result.total_usage.input_tokens
+    );
+    println!(
+        "  • Total output tokens: {}",
+        result.total_usage.output_tokens
+    );
     println!("  • Total tokens: {}", result.total_usage.total_tokens);
 
     println!("\n📝 Step-by-Step Breakdown:\n");
 
     for (i, step) in result.steps.iter().enumerate() {
         println!("  Step {} ({:?}):", i + 1, step.finish_reason);
-        println!("    Tokens: {} in, {} out",
-                 step.usage.input_tokens,
-                 step.usage.output_tokens);
+        println!(
+            "    Tokens: {} in, {} out",
+            step.usage.input_tokens, step.usage.output_tokens
+        );
 
         // Check for text content
         let text = step.text();

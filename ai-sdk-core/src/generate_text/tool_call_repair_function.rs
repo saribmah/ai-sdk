@@ -102,9 +102,7 @@ pub type ToolCallRepairFunction = Box<
 /// // This repair function will always return None, indicating no repair is possible
 /// ```
 pub fn no_repair() -> ToolCallRepairFunction {
-    Box::new(|_options: ToolCallRepairOptions| {
-        Box::pin(async move { None })
-    })
+    Box::new(|_options: ToolCallRepairOptions| Box::pin(async move { None }))
 }
 
 #[cfg(test)]
@@ -227,7 +225,8 @@ mod tests {
                 match &options.error {
                     AISDKError::NoSuchTool { tool_name, .. } => {
                         // Try to find a similar tool name and repair
-                        if tool_name == "get_wheather" && options.tools.contains_key("get_weather") {
+                        if tool_name == "get_wheather" && options.tools.contains_key("get_weather")
+                        {
                             return Some(ToolCall::new(
                                 options.tool_call.tool_call_id,
                                 "get_weather", // Corrected tool name
@@ -274,7 +273,11 @@ mod tests {
             Box::pin(async move {
                 // Check if it's an InvalidToolInput error
                 match &options.error {
-                    AISDKError::InvalidToolInput { tool_name, tool_input, .. } => {
+                    AISDKError::InvalidToolInput {
+                        tool_name,
+                        tool_input,
+                        ..
+                    } => {
                         // Try to repair invalid JSON
                         if tool_input.contains("city") && !tool_input.starts_with("{") {
                             // Add missing braces

@@ -8,5 +8,5 @@ pub enum FinishReason {
     ToolCalls,
     Error,
     Other,
-    Unknown
+    Unknown,
 }

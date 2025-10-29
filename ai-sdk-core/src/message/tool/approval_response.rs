@@ -75,25 +75,27 @@ mod tests {
 
     #[test]
     fn test_tool_approval_response_with_reason() {
-        let response = ToolApprovalResponse::granted("approval_123")
-            .with_reason("User confirmed action");
+        let response =
+            ToolApprovalResponse::granted("approval_123").with_reason("User confirmed action");
 
         assert_eq!(response.reason, Some("User confirmed action".to_string()));
     }
 
     #[test]
     fn test_tool_approval_response_denied_with_reason() {
-        let response = ToolApprovalResponse::denied("approval_123")
-            .with_reason("Insufficient permissions");
+        let response =
+            ToolApprovalResponse::denied("approval_123").with_reason("Insufficient permissions");
 
         assert_eq!(response.approved, false);
-        assert_eq!(response.reason, Some("Insufficient permissions".to_string()));
+        assert_eq!(
+            response.reason,
+            Some("Insufficient permissions".to_string())
+        );
     }
 
     #[test]
     fn test_tool_approval_response_clone() {
-        let response = ToolApprovalResponse::granted("approval_123")
-            .with_reason("Approved");
+        let response = ToolApprovalResponse::granted("approval_123").with_reason("Approved");
         let cloned = response.clone();
 
         assert_eq!(response, cloned);

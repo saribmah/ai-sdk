@@ -1,7 +1,7 @@
+use serde::de::Unexpected::Seq;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use serde::de::Unexpected::Seq;
 
 /// The configuration of a tool that is defined by the provider.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -13,7 +13,7 @@ pub struct ProviderDefinedTool {
 
     pub name: String,
 
-    pub args: HashMap<String, Value>
+    pub args: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,7 +38,7 @@ impl ProviderDefinedTool {
             tool_type: ProviderDefinedToolType::ProviderDefined,
             id: id.into(),
             name: name.into(),
-            args
+            args,
         }
     }
 }

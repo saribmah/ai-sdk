@@ -41,3 +41,7 @@ path = "examples/conversation.rs"
 [[example]]
 name = "tool_calling"
 path = "examples/tool_calling.rs"
+
+[[example]]
+name = "multi_step_tools"
+path = "examples/multi_step_tools.rs"

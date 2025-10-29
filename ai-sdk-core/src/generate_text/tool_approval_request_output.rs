@@ -80,7 +80,7 @@ impl<INPUT> ToolApprovalRequestOutput<INPUT> {
 mod tests {
     use super::*;
     use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
 
     #[test]
     fn test_new_with_static_tool_call() {
@@ -164,16 +164,10 @@ mod tests {
 
     #[test]
     fn test_equality() {
-        let tool_call1 = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test",
-            json!({"a": 1}),
-        ));
-        let tool_call2 = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test",
-            json!({"a": 1}),
-        ));
+        let tool_call1 =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "test", json!({"a": 1})));
+        let tool_call2 =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "test", json!({"a": 1})));
 
         let request1 = ToolApprovalRequestOutput::new("approval_1", tool_call1);
         let request2 = ToolApprovalRequestOutput::new("approval_1", tool_call2);
@@ -183,16 +177,10 @@ mod tests {
 
     #[test]
     fn test_inequality_different_approval_id() {
-        let tool_call1 = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test",
-            json!({"a": 1}),
-        ));
-        let tool_call2 = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test",
-            json!({"a": 1}),
-        ));
+        let tool_call1 =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "test", json!({"a": 1})));
+        let tool_call2 =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "test", json!({"a": 1})));
 
         let request1 = ToolApprovalRequestOutput::new("approval_1", tool_call1);
         let request2 = ToolApprovalRequestOutput::new("approval_2", tool_call2);
@@ -202,16 +190,10 @@ mod tests {
 
     #[test]
     fn test_inequality_different_tool_call() {
-        let tool_call1 = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test",
-            json!({"a": 1}),
-        ));
-        let tool_call2 = TypedToolCall::Static(StaticToolCall::new(
-            "call_456",
-            "test",
-            json!({"a": 1}),
-        ));
+        let tool_call1 =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "test", json!({"a": 1})));
+        let tool_call2 =
+            TypedToolCall::Static(StaticToolCall::new("call_456", "test", json!({"a": 1})));
 
         let request1 = ToolApprovalRequestOutput::new("approval_1", tool_call1);
         let request2 = ToolApprovalRequestOutput::new("approval_1", tool_call2);

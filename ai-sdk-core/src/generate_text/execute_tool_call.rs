@@ -1,20 +1,19 @@
+use crate::generate_text::ToolSet;
 use crate::generate_text::tool_call::TypedToolCall;
 use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 use crate::generate_text::tool_output::ToolOutput;
 use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-use crate::generate_text::ToolSet;
-use crate::message::tool::definition::Tool;
-use crate::message::tool::execute::{execute_tool, ToolExecutionEvent};
-use crate::message::tool::options::ToolCallOptions;
 use crate::message::ModelMessage;
+use crate::message::tool::definition::Tool;
+use crate::message::tool::execute::{ToolExecutionEvent, execute_tool};
+use crate::message::tool::options::ToolCallOptions;
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
 /// Callback function for preliminary tool results during streaming.
-pub type OnPreliminaryToolResult =
-    Arc<dyn Fn(TypedToolResult<Value, Value>) + Send + Sync>;
+pub type OnPreliminaryToolResult = Arc<dyn Fn(TypedToolResult<Value, Value>) + Send + Sync>;
 
 /// Executes a tool call and returns the output or error.
 ///
@@ -213,15 +212,7 @@ mod tests {
             json!({"city": "SF"}),
         ));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_some());
         let output = result.unwrap();
@@ -247,15 +238,7 @@ mod tests {
             json!({"city": "SF"}),
         ));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_none());
     }
@@ -270,15 +253,7 @@ mod tests {
             json!({"city": "SF"}),
         ));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_none());
     }
@@ -312,21 +287,10 @@ mod tests {
         let mut tools = ToolSet::new();
         tools.insert("streaming_tool".to_string(), tool);
 
-        let tool_call = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "streaming_tool",
-            json!({}),
-        ));
+        let tool_call =
+            TypedToolCall::Static(StaticToolCall::new("call_123", "streaming_tool", json!({})));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            Some(callback),
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, Some(callback)).await;
 
         assert!(result.is_some());
         let output = result.unwrap();
@@ -365,15 +329,7 @@ mod tests {
             json!({"value": 0}),
         ));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_some());
         let output = result.unwrap();
@@ -418,15 +374,7 @@ mod tests {
             json!({}),
         ));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_some());
         let output = result.unwrap();

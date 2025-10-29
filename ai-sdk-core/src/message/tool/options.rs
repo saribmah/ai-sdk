@@ -1,5 +1,5 @@
-use tokio_util::sync::CancellationToken;
 use crate::message::ModelMessage;
+use tokio_util::sync::CancellationToken;
 
 /// Additional options that are sent into each tool call.
 #[derive(Debug, Clone)]
@@ -66,26 +66,21 @@ mod tests {
 
     #[test]
     fn test_tool_call_options_with_abort_signal() {
-        let messages = vec![
-            ModelMessage::from(UserModelMessage::new("Hello!")),
-        ];
+        let messages = vec![ModelMessage::from(UserModelMessage::new("Hello!"))];
 
         let token = CancellationToken::new();
-        let options = ToolCallOptions::new("call_123", messages)
-            .with_abort_signal(token.clone());
+        let options = ToolCallOptions::new("call_123", messages).with_abort_signal(token.clone());
 
         assert!(options.abort_signal.is_some());
     }
 
     #[test]
     fn test_tool_call_options_with_experimental_context() {
-        let messages = vec![
-            ModelMessage::from(UserModelMessage::new("Hello!")),
-        ];
+        let messages = vec![ModelMessage::from(UserModelMessage::new("Hello!"))];
 
         let context = serde_json::json!({"key": "value"});
-        let options = ToolCallOptions::new("call_123", messages)
-            .with_experimental_context(context.clone());
+        let options =
+            ToolCallOptions::new("call_123", messages).with_experimental_context(context.clone());
 
         assert_eq!(options.experimental_context, Some(context));
     }

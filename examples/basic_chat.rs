@@ -10,10 +10,9 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_chat
 /// ```
-
 use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use std::env;
 
 #[tokio::main]
@@ -21,9 +20,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤖 AI SDK Rust - Basic Chat Example\n");
 
     // Get API key from environment
-    let api_key = env::var("OPENAI_API_KEY").map_err(|_| {
-        "OPENAI_API_KEY environment variable not set. Please set it with your API key."
-    })?;
+    let api_key = env::var("OPENAI_API_KEY").map_err(
+        |_| "OPENAI_API_KEY environment variable not set. Please set it with your API key.",
+    )?;
 
     println!("✓ API key loaded from environment");
 
@@ -52,7 +51,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate text
     println!("⏳ Generating response...\n");
-    let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
+    let result = generate_text(
+        &*model, prompt, settings, None, None, None, None, None, None, None,
+    )
+    .await?;
 
     // Display the response
     println!("✅ Response received!\n");
@@ -74,7 +76,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if result.usage.cached_input_tokens > 0 {
-        println!("  • Cached input tokens: {}", result.usage.cached_input_tokens);
+        println!(
+            "  • Cached input tokens: {}",
+            result.usage.cached_input_tokens
+        );
     }
 
     if let Some(id) = &result.response.id {

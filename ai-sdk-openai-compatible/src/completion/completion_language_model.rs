@@ -1,19 +1,20 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
+    LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::CallOptions, call_warning::CallWarning, content::Content, text::Text,
-    usage::Usage, LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
+    usage::Usage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 
 use crate::completion::{
-    convert_to_openai_compatible_completion_prompt, get_response_metadata,
-    map_openai_compatible_finish_reason, OpenAICompatibleCompletionModelId,
+    OpenAICompatibleCompletionModelId, convert_to_openai_compatible_completion_prompt,
+    get_response_metadata, map_openai_compatible_finish_reason,
 };
 use crate::error::DefaultOpenAICompatibleErrorStructure;
 
@@ -264,7 +265,11 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
                 String::new()
             };
 
-            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
+            return Err(format!(
+                "API request failed with status {}: {}{}",
+                status, error_body, retry_info
+            )
+            .into());
         }
 
         let response_body = response.text().await?;
@@ -305,10 +310,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
         // Common useful headers: x-ratelimit-*, x-request-id, retry-after, etc.
         for (key, value) in response_headers.iter() {
             if let Ok(value_str) = value.to_str() {
-                provider_data.insert(
-                    format!("header.{}", key.as_str()),
-                    json!(value_str),
-                );
+                provider_data.insert(format!("header.{}", key.as_str()), json!(value_str));
             }
         }
 
@@ -322,17 +324,14 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
         );
 
         // Map finish reason
-        let finish_reason =
-            map_openai_compatible_finish_reason(Some(&choice.finish_reason));
+        let finish_reason = map_openai_compatible_finish_reason(Some(&choice.finish_reason));
 
         Ok(LanguageModelGenerateResponse {
             content,
             finish_reason,
             usage,
             provider_metadata: Some(provider_metadata),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata {
-                body: Some(body),
-            }),
+            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
             response: Some(response_metadata),
             warnings,
         })
@@ -396,7 +395,11 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
                 String::new()
             };
 
-            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
+            return Err(format!(
+                "API request failed with status {}: {}{}",
+                status, error_body, retry_info
+            )
+            .into());
         }
 
         // Build headers map from HTTP response headers
@@ -415,9 +418,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata {
-                body: Some(body),
-            }),
+            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),
@@ -555,10 +556,8 @@ mod tests {
     fn test_provider_options_name_no_dot() {
         let mut config = OpenAICompatibleCompletionConfig::default();
         config.provider = "custom".to_string();
-        let model = OpenAICompatibleCompletionLanguageModel::new(
-            "custom-model".to_string(),
-            config,
-        );
+        let model =
+            OpenAICompatibleCompletionLanguageModel::new("custom-model".to_string(), config);
 
         assert_eq!(model.provider_options_name(), "custom");
     }

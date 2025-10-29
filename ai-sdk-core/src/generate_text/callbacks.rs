@@ -117,20 +117,26 @@ impl FinishEvent {
     /// ```
     pub fn new(final_step: &StepResult, all_steps: Vec<StepResult>) -> Self {
         // Calculate total usage across all steps
-        let total_usage = all_steps.iter().fold(Usage::new(0, 0), |acc, step| {
-            Usage {
-                input_tokens: acc.input_tokens + step.usage.input_tokens,
-                output_tokens: acc.output_tokens + step.usage.output_tokens,
-                total_tokens: acc.total_tokens + step.usage.total_tokens,
-                reasoning_tokens: acc.reasoning_tokens + step.usage.reasoning_tokens,
-                cached_input_tokens: acc.cached_input_tokens + step.usage.cached_input_tokens,
-            }
+        let total_usage = all_steps.iter().fold(Usage::new(0, 0), |acc, step| Usage {
+            input_tokens: acc.input_tokens + step.usage.input_tokens,
+            output_tokens: acc.output_tokens + step.usage.output_tokens,
+            total_tokens: acc.total_tokens + step.usage.total_tokens,
+            reasoning_tokens: acc.reasoning_tokens + step.usage.reasoning_tokens,
+            cached_input_tokens: acc.cached_input_tokens + step.usage.cached_input_tokens,
         });
 
         Self {
             text: final_step.text(),
-            tool_calls: final_step.tool_calls().iter().map(|tc| (*tc).clone()).collect(),
-            tool_results: final_step.tool_results().iter().map(|tr| (*tr).clone()).collect(),
+            tool_calls: final_step
+                .tool_calls()
+                .iter()
+                .map(|tc| (*tc).clone())
+                .collect(),
+            tool_results: final_step
+                .tool_results()
+                .iter()
+                .map(|tr| (*tr).clone())
+                .collect(),
             finish_reason: final_step.finish_reason.clone(),
             usage: final_step.usage,
             warnings: final_step.warnings.clone(),
@@ -187,18 +193,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::{
-        finish_reason::FinishReason,
-        usage::Usage,
-    };
-    use serde_json::json;
     use crate::generate_text::content_part::ContentPart;
     use crate::generate_text::text_output::TextOutput;
     use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
+    use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
+    use serde_json::json;
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {
         StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Test response".to_string()))],
+            vec![ContentPart::Text(TextOutput::new(
+                "Test response".to_string(),
+            ))],
             FinishReason::Stop,
             Usage::new(input_tokens, output_tokens),
             None,
@@ -275,13 +280,11 @@ mod tests {
     async fn test_finish_event_with_tool_calls() {
         let content = vec![
             ContentPart::Text(TextOutput::new("Calling tool".to_string())),
-            ContentPart::ToolCall(TypedToolCall::Dynamic(
-                DynamicToolCall::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({}),
-                )
-            )),
+            ContentPart::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+                "call_1".to_string(),
+                "get_weather".to_string(),
+                json!({}),
+            ))),
         ];
 
         let step = StepResult::new(

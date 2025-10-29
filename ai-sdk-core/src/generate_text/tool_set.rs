@@ -148,8 +148,14 @@ mod tests {
     fn test_toolset_clear() {
         let mut tools = ToolSet::new();
 
-        tools.insert("tool1".to_string(), Tool::function(json!({"type": "object"})));
-        tools.insert("tool2".to_string(), Tool::function(json!({"type": "object"})));
+        tools.insert(
+            "tool1".to_string(),
+            Tool::function(json!({"type": "object"})),
+        );
+        tools.insert(
+            "tool2".to_string(),
+            Tool::function(json!({"type": "object"})),
+        );
 
         assert_eq!(tools.len(), 2);
 

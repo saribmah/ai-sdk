@@ -95,8 +95,8 @@ mod tests {
         inner.insert("key".to_string(), serde_json::json!("value"));
         metadata.insert("provider".to_string(), inner);
 
-        let reasoning = ReasoningOutput::new("Thinking...")
-            .with_provider_metadata(metadata.clone());
+        let reasoning =
+            ReasoningOutput::new("Thinking...").with_provider_metadata(metadata.clone());
 
         assert_eq!(reasoning.provider_metadata, Some(metadata));
     }
@@ -133,8 +133,7 @@ mod tests {
         inner.insert("tokens".to_string(), serde_json::json!(100));
         metadata.insert("openai".to_string(), inner);
 
-        let reasoning = ReasoningOutput::new("Reasoning text")
-            .with_provider_metadata(metadata);
+        let reasoning = ReasoningOutput::new("Reasoning text").with_provider_metadata(metadata);
 
         let serialized = serde_json::to_value(&reasoning).unwrap();
 

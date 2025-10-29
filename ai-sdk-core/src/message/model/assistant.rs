@@ -1,7 +1,9 @@
-use serde::{Deserialize, Serialize};
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::super::content_parts::{TextPart, FilePart, ReasoningPart, ToolCallPart, ToolResultPart};
+use super::super::content_parts::{
+    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart,
+};
 use super::super::tool::ToolApprovalRequest;
+use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// Content of an assistant message.
 /// It can be a string or an array of text, file, reasoning, and tool call parts.
@@ -125,8 +127,8 @@ impl From<ToolApprovalRequest> for AssistantContentPart {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use url::Url;
     use crate::message::content_parts::ToolResultOutput;
+    use url::Url;
 
     #[test]
     fn test_assistant_model_message_new_text() {
@@ -168,8 +170,8 @@ mod tests {
     fn test_assistant_model_message_with_provider_options() {
         let provider_options = ProviderOptions::new();
 
-        let message = AssistantModelMessage::new("Hello")
-            .with_provider_options(provider_options.clone());
+        let message =
+            AssistantModelMessage::new("Hello").with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
@@ -216,8 +218,9 @@ mod tests {
     fn test_assistant_content_part_from_file() {
         let part: AssistantContentPart = FilePart::from_url(
             Url::parse("https://example.com/file.pdf").unwrap(),
-            "application/pdf"
-        ).into();
+            "application/pdf",
+        )
+        .into();
 
         assert!(matches!(part, AssistantContentPart::File(_)));
     }
@@ -231,32 +234,25 @@ mod tests {
 
     #[test]
     fn test_assistant_content_part_from_tool_call() {
-        let part: AssistantContentPart = ToolCallPart::new(
-            "call_123",
-            "get_weather",
-            serde_json::json!({"city": "SF"}),
-        ).into();
+        let part: AssistantContentPart =
+            ToolCallPart::new("call_123", "get_weather", serde_json::json!({"city": "SF"})).into();
 
         assert!(matches!(part, AssistantContentPart::ToolCall(_)));
     }
 
     #[test]
     fn test_assistant_content_part_from_tool_result() {
-        let part: AssistantContentPart = ToolResultPart::new(
-            "call_123",
-            "get_weather",
-            ToolResultOutput::text("Success"),
-        ).into();
+        let part: AssistantContentPart =
+            ToolResultPart::new("call_123", "get_weather", ToolResultOutput::text("Success"))
+                .into();
 
         assert!(matches!(part, AssistantContentPart::ToolResult(_)));
     }
 
     #[test]
     fn test_assistant_content_part_from_tool_approval_request() {
-        let part: AssistantContentPart = ToolApprovalRequest::new(
-            "approval_123",
-            "call_123",
-        ).into();
+        let part: AssistantContentPart =
+            ToolApprovalRequest::new("approval_123", "call_123").into();
 
         assert!(matches!(part, AssistantContentPart::ToolApprovalRequest(_)));
     }
@@ -274,9 +270,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_serialization_parts() {
-        let parts = vec![
-            AssistantContentPart::Text(TextPart::new("Response")),
-        ];
+        let parts = vec![AssistantContentPart::Text(TextPart::new("Response"))];
 
         let message = AssistantModelMessage::with_parts(parts);
 
@@ -291,8 +285,7 @@ mod tests {
     fn test_assistant_model_message_serialization_with_provider_options() {
         let provider_options = ProviderOptions::new();
 
-        let message = AssistantModelMessage::new("Hello")
-            .with_provider_options(provider_options);
+        let message = AssistantModelMessage::new("Hello").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 

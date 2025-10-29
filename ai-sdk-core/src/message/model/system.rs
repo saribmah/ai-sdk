@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// A system message. It can contain system information.
 ///
@@ -91,8 +91,8 @@ mod tests {
     fn test_system_model_message_serialization_with_provider_options() {
         let provider_options = ProviderOptions::new();
 
-        let message = SystemModelMessage::new("You are helpful.")
-            .with_provider_options(provider_options);
+        let message =
+            SystemModelMessage::new("You are helpful.").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 

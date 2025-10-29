@@ -1,3 +1,5 @@
+use ai_sdk_core::message::tool::definition::Tool;
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Tool calling example demonstrating function calling with a weather tool.
 ///
 /// This example shows how to:
@@ -11,12 +13,9 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example tool_calling
 /// ```
-
-use ai_sdk_core::{generate_text, ToolSet};
-use ai_sdk_core::message::tool::definition::Tool;
-use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
-use serde_json::{json, Value};
+use ai_sdk_core::{ToolSet, generate_text};
+use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use serde_json::{Value, json};
 use std::env;
 
 /// Simulates fetching weather data for a given city
@@ -37,9 +36,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤖 AI SDK Rust - Tool Calling Example\n");
 
     // Get API key from environment
-    let api_key = env::var("OPENAI_API_KEY").map_err(|_| {
-        "OPENAI_API_KEY environment variable not set. Please set it with your API key."
-    })?;
+    let api_key = env::var("OPENAI_API_KEY").map_err(
+        |_| "OPENAI_API_KEY environment variable not set. Please set it with your API key.",
+    )?;
 
     println!("✓ API key loaded from environment");
 
@@ -76,16 +75,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🔧 Tool: get_weather");
         println!("🔧 Input: {}", input);
 
-        let city = input.get("city")
+        let city = input
+            .get("city")
             .and_then(|v| v.as_str())
             .unwrap_or("Unknown");
 
         let weather_data = get_weather(city);
         println!("🔧 Output: {}\n", weather_data);
 
-        ToolExecutionOutput::Single(Box::pin(async move {
-            Ok(weather_data)
-        }))
+        ToolExecutionOutput::Single(Box::pin(async move { Ok(weather_data) }))
     }));
 
     // Create a ToolSet (HashMap of tool names to tools)
@@ -159,12 +157,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 // Extract tool call details based on the variant
                 let (tool_call_id, tool_name, input_str) = match tool_call {
-                    TypedToolCall::Static(call) => {
-                        (&call.tool_call_id, &call.tool_name, serde_json::to_string(&call.input)?)
-                    }
-                    TypedToolCall::Dynamic(call) => {
-                        (&call.tool_call_id, &call.tool_name, serde_json::to_string(&call.input)?)
-                    }
+                    TypedToolCall::Static(call) => (
+                        &call.tool_call_id,
+                        &call.tool_name,
+                        serde_json::to_string(&call.input)?,
+                    ),
+                    TypedToolCall::Dynamic(call) => (
+                        &call.tool_call_id,
+                        &call.tool_name,
+                        serde_json::to_string(&call.input)?,
+                    ),
                 };
 
                 println!("🔧 Tool Call Details:");
@@ -183,7 +185,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("☁️  Weather Results:");
                     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                     println!("  City: {}", weather_data["city"]);
-                    println!("  Temperature: {}°{}", weather_data["temperature"], weather_data["unit"]);
+                    println!(
+                        "  Temperature: {}°{}",
+                        weather_data["temperature"], weather_data["unit"]
+                    );
                     println!("  Conditions: {}", weather_data["conditions"]);
                     println!("  Humidity: {}%", weather_data["humidity"]);
                     println!("  Wind Speed: {} mph", weather_data["wind_speed"]);

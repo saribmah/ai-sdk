@@ -88,8 +88,7 @@ mod tests {
 
     #[test]
     fn test_with_echo() {
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_echo(true);
+        let options = OpenAICompatibleCompletionProviderOptions::new().with_echo(true);
 
         assert_eq!(options.echo, Some(true));
         assert_eq!(options.logit_bias, None);
@@ -103,8 +102,8 @@ mod tests {
         bias_map.insert("50256".to_string(), -100.0);
         bias_map.insert("198".to_string(), 50.0);
 
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_logit_bias(bias_map.clone());
+        let options =
+            OpenAICompatibleCompletionProviderOptions::new().with_logit_bias(bias_map.clone());
 
         assert_eq!(options.echo, None);
         assert_eq!(options.logit_bias, Some(bias_map));
@@ -114,8 +113,8 @@ mod tests {
 
     #[test]
     fn test_with_suffix() {
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_suffix("\n\nEnd of text");
+        let options =
+            OpenAICompatibleCompletionProviderOptions::new().with_suffix("\n\nEnd of text");
 
         assert_eq!(options.echo, None);
         assert_eq!(options.logit_bias, None);
@@ -125,8 +124,7 @@ mod tests {
 
     #[test]
     fn test_with_user() {
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_user("user-123");
+        let options = OpenAICompatibleCompletionProviderOptions::new().with_user("user-123");
 
         assert_eq!(options.echo, None);
         assert_eq!(options.logit_bias, None);
@@ -207,7 +205,8 @@ mod tests {
             "user": "user-xyz"
         });
 
-        let options: OpenAICompatibleCompletionProviderOptions = serde_json::from_value(json).unwrap();
+        let options: OpenAICompatibleCompletionProviderOptions =
+            serde_json::from_value(json).unwrap();
         assert_eq!(options.echo, Some(true));
 
         let bias_map = options.logit_bias.unwrap();
@@ -221,7 +220,8 @@ mod tests {
     #[test]
     fn test_deserialize_empty() {
         let json = json!({});
-        let options: OpenAICompatibleCompletionProviderOptions = serde_json::from_value(json).unwrap();
+        let options: OpenAICompatibleCompletionProviderOptions =
+            serde_json::from_value(json).unwrap();
 
         assert_eq!(options.echo, None);
         assert_eq!(options.logit_bias, None);
@@ -236,7 +236,8 @@ mod tests {
             "suffix": "PARTIAL"
         });
 
-        let options: OpenAICompatibleCompletionProviderOptions = serde_json::from_value(json).unwrap();
+        let options: OpenAICompatibleCompletionProviderOptions =
+            serde_json::from_value(json).unwrap();
         assert_eq!(options.echo, Some(false));
         assert_eq!(options.logit_bias, None);
         assert_eq!(options.suffix, Some("PARTIAL".to_string()));
@@ -250,8 +251,8 @@ mod tests {
         bias_map.insert("max".to_string(), 100.0);
         bias_map.insert("mid".to_string(), 0.0);
 
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_logit_bias(bias_map.clone());
+        let options =
+            OpenAICompatibleCompletionProviderOptions::new().with_logit_bias(bias_map.clone());
 
         assert_eq!(options.logit_bias, Some(bias_map));
     }
@@ -270,8 +271,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_user("debug-user");
+        let options = OpenAICompatibleCompletionProviderOptions::new().with_user("debug-user");
 
         let debug_str = format!("{:?}", options);
         assert!(debug_str.contains("user"));
@@ -280,8 +280,7 @@ mod tests {
 
     #[test]
     fn test_echo_false() {
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_echo(false);
+        let options = OpenAICompatibleCompletionProviderOptions::new().with_echo(false);
 
         assert_eq!(options.echo, Some(false));
     }
@@ -289,8 +288,8 @@ mod tests {
     #[test]
     fn test_empty_logit_bias() {
         let bias_map = HashMap::new();
-        let options = OpenAICompatibleCompletionProviderOptions::new()
-            .with_logit_bias(bias_map.clone());
+        let options =
+            OpenAICompatibleCompletionProviderOptions::new().with_logit_bias(bias_map.clone());
 
         assert_eq!(options.logit_bias, Some(bias_map));
     }

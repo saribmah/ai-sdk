@@ -5,7 +5,5 @@ pub enum ToolChoice {
     Auto,
     None,
     Required,
-    Tool {
-        name: String,
-    }
+    Tool { name: String },
 }

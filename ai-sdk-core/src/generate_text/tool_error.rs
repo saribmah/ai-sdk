@@ -280,13 +280,8 @@ mod tests {
 
     #[test]
     fn test_static_tool_error_with_provider_executed() {
-        let error = StaticToolError::new(
-            "call_123",
-            "tool",
-            json!({}),
-            "Error",
-        )
-        .with_provider_executed(true);
+        let error = StaticToolError::new("call_123", "tool", json!({}), "Error")
+            .with_provider_executed(true);
 
         assert_eq!(error.provider_executed, Some(true));
     }
@@ -311,25 +306,15 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_error_with_provider_executed() {
-        let error = DynamicToolError::new(
-            "call_456",
-            "tool",
-            json!({}),
-            "Error",
-        )
-        .with_provider_executed(false);
+        let error = DynamicToolError::new("call_456", "tool", json!({}), "Error")
+            .with_provider_executed(false);
 
         assert_eq!(error.provider_executed, Some(false));
     }
 
     #[test]
     fn test_typed_tool_error_static() {
-        let static_error = StaticToolError::new(
-            "call_1",
-            "add",
-            json!({"a": 1}),
-            "Invalid input",
-        );
+        let static_error = StaticToolError::new("call_1", "add", json!({"a": 1}), "Invalid input");
 
         let typed: TypedToolError<Value> = TypedToolError::Static(static_error.clone());
 
@@ -341,12 +326,7 @@ mod tests {
 
     #[test]
     fn test_typed_tool_error_dynamic() {
-        let dynamic_error = DynamicToolError::new(
-            "call_2",
-            "unknown",
-            json!({}),
-            "Unknown error",
-        );
+        let dynamic_error = DynamicToolError::new("call_2", "unknown", json!({}), "Unknown error");
 
         let typed: TypedToolError<Value> = TypedToolError::Dynamic(dynamic_error.clone());
 
@@ -399,30 +379,22 @@ mod tests {
 
     #[test]
     fn test_typed_tool_error_serialization() {
-        let typed: TypedToolError<Value> = TypedToolError::Static(
-            StaticToolError::new(
-                "call_1",
-                "add",
-                json!({"a": 1, "b": 2}),
-                "Invalid operation",
-            ),
-        );
+        let typed: TypedToolError<Value> = TypedToolError::Static(StaticToolError::new(
+            "call_1",
+            "add",
+            json!({"a": 1, "b": 2}),
+            "Invalid operation",
+        ));
 
         let serialized = serde_json::to_string(&typed).unwrap();
-        let deserialized: TypedToolError<Value> =
-            serde_json::from_str(&serialized).unwrap();
+        let deserialized: TypedToolError<Value> = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(typed, deserialized);
     }
 
     #[test]
     fn test_static_tool_error_clone() {
-        let error = StaticToolError::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            "Error message",
-        );
+        let error = StaticToolError::new("call_123", "test_tool", json!({}), "Error message");
 
         let cloned = error.clone();
         assert_eq!(error, cloned);
@@ -430,12 +402,7 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_error_clone() {
-        let error = DynamicToolError::new(
-            "call_456",
-            "test_tool",
-            json!({}),
-            "Error message",
-        );
+        let error = DynamicToolError::new("call_456", "test_tool", json!({}), "Error message");
 
         let cloned = error.clone();
         assert_eq!(error, cloned);
@@ -443,12 +410,7 @@ mod tests {
 
     #[test]
     fn test_from_static_tool_error() {
-        let static_error = StaticToolError::new(
-            "call_1",
-            "tool",
-            json!({}),
-            "Error",
-        );
+        let static_error = StaticToolError::new("call_1", "tool", json!({}), "Error");
 
         let typed: TypedToolError<Value> = static_error.clone().into();
 
@@ -460,12 +422,7 @@ mod tests {
 
     #[test]
     fn test_from_dynamic_tool_error() {
-        let dynamic_error = DynamicToolError::new(
-            "call_2",
-            "tool",
-            json!({}),
-            "Error",
-        );
+        let dynamic_error = DynamicToolError::new("call_2", "tool", json!({}), "Error");
 
         let typed: TypedToolError<Value> = dynamic_error.clone().into();
 

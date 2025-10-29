@@ -1,5 +1,5 @@
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use crate::message::DataContent;
+use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -92,8 +92,7 @@ mod tests {
     #[test]
     fn test_image_part_with_media_type() {
         let data = DataContent::base64("data");
-        let part = ImagePart::from_data(data)
-            .with_media_type("image/png");
+        let part = ImagePart::from_data(data).with_media_type("image/png");
 
         assert_eq!(part.media_type, Some("image/png".to_string()));
     }

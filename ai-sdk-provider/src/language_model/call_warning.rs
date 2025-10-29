@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::language_model::call_options::Tool;
+use serde::{Deserialize, Serialize};
 
 /// Warning from the model provider for this call. The call will proceed, but e.g.
 /// some settings might not be supported, which can lead to suboptimal results.
@@ -64,10 +64,7 @@ impl CallWarning {
     }
 
     /// Create an unsupported tool warning with details
-    pub fn unsupported_tool_with_details(
-        tool: Tool,
-        details: impl Into<String>,
-    ) -> Self {
+    pub fn unsupported_tool_with_details(tool: Tool, details: impl Into<String>) -> Self {
         Self::UnsupportedTool {
             tool,
             details: Some(details.into()),

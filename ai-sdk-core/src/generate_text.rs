@@ -1,74 +1,70 @@
-mod retries;
-mod prepare_tools;
-pub mod tool_set;
-pub mod tool_result;
-pub mod tool_error;
-pub mod tool_output;
-pub mod tool_call;
-pub mod execute_tool_call;
-pub mod is_approval_needed;
-pub mod tool_approval_request_output;
+mod callbacks;
 pub mod collect_tool_approvals;
-pub mod tool_call_repair_function;
 pub mod content_part;
-pub mod reasoning_output;
-pub mod text_output;
-pub mod source_output;
-pub mod to_response_messages;
-pub mod generated_file;
+pub mod execute_tool_call;
 pub mod generate_text_result;
+pub mod generated_file;
+pub mod is_approval_needed;
+mod parse_tool_call;
+mod prepare_step;
+mod prepare_tools;
+pub mod reasoning_output;
+mod response_message;
+mod retries;
+pub mod source_output;
 mod step_result;
 mod stop_condition;
-mod prepare_step;
-mod callbacks;
-mod response_message;
-mod parse_tool_call;
+pub mod text_output;
+pub mod to_response_messages;
+pub mod tool_approval_request_output;
+pub mod tool_call;
+pub mod tool_call_repair_function;
+pub mod tool_error;
+pub mod tool_output;
+pub mod tool_result;
+pub mod tool_set;
 
-pub use retries::{prepare_retries, RetryConfig};
-pub use prepare_tools::prepare_tools_and_tool_choice;
-pub use tool_set::ToolSet;
-pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
-pub use tool_output::ToolOutput;
-pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
-pub use execute_tool_call::{execute_tool_call, OnPreliminaryToolResult};
-pub use is_approval_needed::is_approval_needed;
-pub use tool_approval_request_output::ToolApprovalRequestOutput;
+pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use collect_tool_approvals::{
-    collect_tool_approvals, CollectedToolApproval, CollectedToolApprovals,
-};
-pub use tool_call_repair_function::{
-    no_repair, ToolCallRepairFunction, ToolCallRepairOptions,
+    CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
 };
 pub use content_part::ContentPart;
-pub use reasoning_output::ReasoningOutput;
-pub use text_output::TextOutput;
-pub use source_output::SourceOutput;
-pub use to_response_messages::to_response_messages;
-pub use generated_file::{GeneratedFile, GeneratedFileWithType};
+pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
+pub use generated_file::{GeneratedFile, GeneratedFileWithType};
+pub use is_approval_needed::is_approval_needed;
+pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};
+pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+pub use prepare_tools::prepare_tools_and_tool_choice;
+pub use reasoning_output::ReasoningOutput;
+pub use response_message::ResponseMessage;
+pub use retries::{RetryConfig, prepare_retries};
+pub use source_output::SourceOutput;
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
-    has_tool_call, is_stop_condition_met, step_count_is, HasToolCall, StepCountIs, StopCondition,
+    HasToolCall, StepCountIs, StopCondition, has_tool_call, is_stop_condition_met, step_count_is,
 };
-pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
-pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
-pub use response_message::ResponseMessage;
-pub use parse_tool_call::{
-    parse_provider_executed_dynamic_tool_call, parse_tool_call,
-};
+pub use text_output::TextOutput;
+pub use to_response_messages::to_response_messages;
+pub use tool_approval_request_output::ToolApprovalRequestOutput;
+pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
+pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
+pub use tool_output::ToolOutput;
+pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
+pub use tool_set::ToolSet;
 
 use crate::error::AISDKError;
 use crate::message::ModelMessage;
 use crate::prompt::{
-    call_settings::{prepare_call_settings, CallSettings},
-    convert_to_language_model_prompt::convert_to_language_model_prompt,
-    standardize::{validate_and_standardize, StandardizedPrompt},
     Prompt,
+    call_settings::{CallSettings, prepare_call_settings},
+    convert_to_language_model_prompt::convert_to_language_model_prompt,
+    standardize::{StandardizedPrompt, validate_and_standardize},
 };
 use ai_sdk_provider::{
-    language_model::{call_options::CallOptions, usage::Usage, LanguageModel},
     language_model::tool_choice::ToolChoice,
+    language_model::{LanguageModel, call_options::CallOptions, usage::Usage},
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
@@ -374,7 +370,8 @@ pub async fn generate_text(
     let mut steps: Vec<StepResult> = Vec::new();
 
     // Prepare tools and tool choice (done once before the loop)
-    let (provider_tools, prepared_tool_choice) = prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
+    let (provider_tools, prepared_tool_choice) =
+        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
     // Do-while loop for multi-step generation
     loop {
@@ -510,16 +507,17 @@ pub async fn generate_text(
             .execute(|| {
                 let call_options_clone = call_options.clone();
                 async move {
-                    model.do_generate(call_options_clone).await
-                        .map_err(|e| {
-                            let error_string = e.to_string();
-                            // Check if error contains retry hint and create appropriate error type
-                            if let Some(retry_after) = retries::extract_retry_delay_from_error(&error_string) {
-                                AISDKError::retryable_error_with_delay(error_string, retry_after)
-                            } else {
-                                AISDKError::model_error(error_string)
-                            }
-                        })
+                    model.do_generate(call_options_clone).await.map_err(|e| {
+                        let error_string = e.to_string();
+                        // Check if error contains retry hint and create appropriate error type
+                        if let Some(retry_after) =
+                            retries::extract_retry_delay_from_error(&error_string)
+                        {
+                            AISDKError::retryable_error_with_delay(error_string, retry_after)
+                        } else {
+                            AISDKError::model_error(error_string)
+                        }
+                    })
                 }
             })
             .await?;
@@ -566,7 +564,13 @@ pub async fn generate_text(
 
         // Execute client tool calls and collect outputs
         let client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
-            execute_tools(&client_tool_calls, tool_set, &step_input_messages, abort_signal_for_tools).await
+            execute_tools(
+                &client_tool_calls,
+                tool_set,
+                &step_input_messages,
+                abort_signal_for_tools,
+            )
+            .await
         } else {
             Vec::new()
         };
@@ -589,7 +593,7 @@ pub async fn generate_text(
 
         // Create and push the current step result (using step_content, NOT response.content)
         let current_step_result = StepResult::new(
-            step_content.clone(),  // ← Use ContentPart, not provider Content
+            step_content.clone(), // ← Use ContentPart, not provider Content
             response.finish_reason.clone(),
             response.usage.clone(),
             if response.warnings.is_empty() {
@@ -663,29 +667,30 @@ pub async fn generate_text(
     eprintln!("🔍 DEBUG: Generation Steps Summary");
     eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     eprintln!("Total steps: {}", steps.len());
-    eprintln!("Total usage: {} input, {} output, {} total tokens",
-        total_usage.input_tokens,
-        total_usage.output_tokens,
-        total_usage.total_tokens
+    eprintln!(
+        "Total usage: {} input, {} output, {} total tokens",
+        total_usage.input_tokens, total_usage.output_tokens, total_usage.total_tokens
     );
 
     for (i, step) in steps.iter().enumerate() {
         eprintln!("\n📍 Step {} of {}:", i + 1, steps.len());
         eprintln!("  Finish reason: {:?}", step.finish_reason);
-        eprintln!("  Usage: {} in, {} out, {} total",
-            step.usage.input_tokens,
-            step.usage.output_tokens,
-            step.usage.total_tokens
+        eprintln!(
+            "  Usage: {} in, {} out, {} total",
+            step.usage.input_tokens, step.usage.output_tokens, step.usage.total_tokens
         );
 
         // Show text content
         let text = step.text();
         if !text.is_empty() {
-            eprintln!("  Text: {}", if text.len() > 100 {
-                format!("{}...", &text[..100])
-            } else {
-                text
-            });
+            eprintln!(
+                "  Text: {}",
+                if text.len() > 100 {
+                    format!("{}...", &text[..100])
+                } else {
+                    text
+                }
+            );
         }
 
         // Show tool calls
@@ -703,7 +708,10 @@ pub async fn generate_text(
                         }
                     }
                     TypedToolCall::Dynamic(call) => {
-                        eprintln!("    - {} (id: {}) [dynamic]", call.tool_name, call.tool_call_id);
+                        eprintln!(
+                            "    - {} (id: {}) [dynamic]",
+                            call.tool_name, call.tool_call_id
+                        );
                         eprintln!("      Input: {}", call.input);
                         if let Some(executed) = call.provider_executed {
                             eprintln!("      Provider executed: {}", executed);
@@ -721,14 +729,20 @@ pub async fn generate_text(
                 use super::TypedToolResult;
                 match tr {
                     TypedToolResult::Static(result) => {
-                        eprintln!("    - {} (call_id: {})", result.tool_name, result.tool_call_id);
+                        eprintln!(
+                            "    - {} (call_id: {})",
+                            result.tool_name, result.tool_call_id
+                        );
                         eprintln!("      Output: {:?}", result.output);
                         if let Some(executed) = result.provider_executed {
                             eprintln!("      Provider executed: {}", executed);
                         }
                     }
                     TypedToolResult::Dynamic(result) => {
-                        eprintln!("    - {} (call_id: {}) [dynamic]", result.tool_name, result.tool_call_id);
+                        eprintln!(
+                            "    - {} (call_id: {}) [dynamic]",
+                            result.tool_name, result.tool_call_id
+                        );
                         eprintln!("      Output: {}", result.output);
                         if let Some(executed) = result.provider_executed {
                             eprintln!("      Provider executed: {}", executed);
@@ -767,12 +781,12 @@ pub async fn generate_text(
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        call_options::CallOptions, LanguageModelGenerateResponse, LanguageModelStreamResponse,
+        LanguageModelGenerateResponse, LanguageModelStreamResponse, call_options::CallOptions,
     };
     use async_trait::async_trait;
-    use std::collections::HashMap;
     use regex::Regex;
     use serde_json::Value;
+    use std::collections::HashMap;
 
     // Mock LanguageModel for testing
     struct MockLanguageModel {
@@ -828,7 +842,10 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
+        let result = generate_text(
+            &model, prompt, settings, None, None, None, None, None, None, None,
+        )
+        .await;
         assert!(result.is_err());
         // Check that it's a model error (from do_generate), not a validation error
         match result {
@@ -848,7 +865,10 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
+        let result = generate_text(
+            &model, prompt, settings, None, None, None, None, None, None, None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -865,7 +885,19 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, tool_choice, None, None, None, None, None).await;
+        let result = generate_text(
+            &model,
+            prompt,
+            settings,
+            None,
+            tool_choice,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -889,7 +921,19 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(&model, prompt, settings, None, None, Some(provider_options), None, None, None, None).await;
+        let result = generate_text(
+            &model,
+            prompt,
+            settings,
+            None,
+            None,
+            Some(provider_options),
+            None,
+            None,
+            None,
+            None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -904,7 +948,10 @@ mod tests {
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
+        let result = generate_text(
+            &model, prompt, settings, None, None, None, None, None, None, None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -921,7 +968,10 @@ mod tests {
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
-        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
+        let result = generate_text(
+            &model, prompt, settings, None, None, None, None, None, None, None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -938,7 +988,10 @@ mod tests {
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
-        let result = generate_text(&model, prompt, settings, None, None, None, None, None, None, None).await;
+        let result = generate_text(
+            &model, prompt, settings, None, None, None, None, None, None, None,
+        )
+        .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidPrompt { message }) => {

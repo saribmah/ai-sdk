@@ -18,9 +18,7 @@ use ai_sdk_provider::language_model::finish_reason::FinishReason;
 /// - `"function_call"` → `FinishReason::ToolCalls`
 /// - `"tool_calls"` → `FinishReason::ToolCalls`
 /// - `None` or unknown → `FinishReason::Unknown`
-pub fn map_openai_compatible_finish_reason(
-    finish_reason: Option<&str>,
-) -> FinishReason {
+pub fn map_openai_compatible_finish_reason(finish_reason: Option<&str>) -> FinishReason {
     match finish_reason {
         Some("stop") => FinishReason::Stop,
         Some("length") => FinishReason::Length,

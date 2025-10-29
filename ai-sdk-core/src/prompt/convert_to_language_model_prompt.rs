@@ -1,12 +1,17 @@
 use crate::error::AISDKError;
 use crate::message::{
-    content_parts::{FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart, ToolResultPart},
-    AssistantContent, AssistantContentPart, ModelMessage, ToolContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, ModelMessage, ToolContentPart, UserContent,
+    UserContentPart,
+    content_parts::{
+        FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart,
+        ToolResultPart,
+    },
 };
 use crate::prompt::standardize::StandardizedPrompt;
 use ai_sdk_provider::language_model::prompt::{
-    AssistantMessagePart, DataContent as ProviderDataContent, Message, ToolResultOutput as ProviderToolResultOutput,
-    ToolResultPart as ProviderToolResultPart, UserMessagePart,
+    AssistantMessagePart, DataContent as ProviderDataContent, Message,
+    ToolResultOutput as ProviderToolResultOutput, ToolResultPart as ProviderToolResultPart,
+    UserMessagePart,
 };
 
 /// Convert a `StandardizedPrompt` to a provider `Prompt` (Vec<Message>).
@@ -162,7 +167,9 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
             provider_options,
         }) => {
             let (data, detected_media_type) = convert_image_source_to_data_content(image)?;
-            let final_media_type = detected_media_type.or(media_type).unwrap_or_else(|| "image/*".to_string());
+            let final_media_type = detected_media_type
+                .or(media_type)
+                .unwrap_or_else(|| "image/*".to_string());
 
             Ok(UserMessagePart::File {
                 filename: None,
@@ -241,14 +248,12 @@ fn convert_assistant_content_part(
             provider_options,
         }),
 
-        AssistantContentPart::ToolResult(tool_result) => {
-            Ok(AssistantMessagePart::ToolResult {
-                tool_call_id: tool_result.tool_call_id,
-                tool_name: tool_result.tool_name,
-                output: convert_tool_result_output(tool_result.output)?,
-                provider_options: tool_result.provider_options,
-            })
-        }
+        AssistantContentPart::ToolResult(tool_result) => Ok(AssistantMessagePart::ToolResult {
+            tool_call_id: tool_result.tool_call_id,
+            tool_name: tool_result.tool_name,
+            output: convert_tool_result_output(tool_result.output)?,
+            provider_options: tool_result.provider_options,
+        }),
 
         AssistantContentPart::ToolApprovalRequest(_) => {
             // This should have been filtered out earlier
@@ -284,10 +289,22 @@ fn convert_tool_result_output(
     use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
 
     match output {
-        CoreOutput::Text { value, provider_options: _ } => Ok(ProviderToolResultOutput::Text { value }),
-        CoreOutput::Json { value, provider_options: _ } => Ok(ProviderToolResultOutput::Json { value }),
-        CoreOutput::ErrorText { value, provider_options: _ } => Ok(ProviderToolResultOutput::ErrorText { value }),
-        CoreOutput::ErrorJson { value, provider_options: _ } => Ok(ProviderToolResultOutput::ErrorJson { value }),
+        CoreOutput::Text {
+            value,
+            provider_options: _,
+        } => Ok(ProviderToolResultOutput::Text { value }),
+        CoreOutput::Json {
+            value,
+            provider_options: _,
+        } => Ok(ProviderToolResultOutput::Json { value }),
+        CoreOutput::ErrorText {
+            value,
+            provider_options: _,
+        } => Ok(ProviderToolResultOutput::ErrorText { value }),
+        CoreOutput::ErrorJson {
+            value,
+            provider_options: _,
+        } => Ok(ProviderToolResultOutput::ErrorJson { value }),
         CoreOutput::Content { value } => {
             // Convert content items from core to provider format
             let converted_items: Vec<ToolResultContentItem> = value
@@ -299,8 +316,14 @@ fn convert_tool_result_output(
                 value: converted_items,
             })
         }
-        CoreOutput::ExecutionDenied { reason, provider_options: _ } => Ok(ProviderToolResultOutput::ErrorText {
-            value: format!("Execution denied: {}", reason.unwrap_or_else(|| "No reason provided".to_string())),
+        CoreOutput::ExecutionDenied {
+            reason,
+            provider_options: _,
+        } => Ok(ProviderToolResultOutput::ErrorText {
+            value: format!(
+                "Execution denied: {}",
+                reason.unwrap_or_else(|| "No reason provided".to_string())
+            ),
         }),
     }
 }
@@ -315,24 +338,36 @@ fn convert_tool_result_content_part(
     use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
 
     match part {
-        CorePart::Text { text, provider_options: _ } => Some(ToolResultContentItem::Text { text }),
+        CorePart::Text {
+            text,
+            provider_options: _,
+        } => Some(ToolResultContentItem::Text { text }),
 
         #[allow(deprecated)]
-        CorePart::Media { data, media_type } => Some(ToolResultContentItem::Media { data, media_type }),
+        CorePart::Media { data, media_type } => {
+            Some(ToolResultContentItem::Media { data, media_type })
+        }
 
-        CorePart::FileData { data, media_type, .. } => {
+        CorePart::FileData {
+            data, media_type, ..
+        } => {
             // Convert FileData to Media (provider doesn't have FileData variant)
             Some(ToolResultContentItem::Media { data, media_type })
         }
 
-        CorePart::ImageData { data, media_type, .. } => {
+        CorePart::ImageData {
+            data, media_type, ..
+        } => {
             // Convert ImageData to Media
             Some(ToolResultContentItem::Media { data, media_type })
         }
 
         // For URL-based and ID-based items, we can't convert them directly
         // The provider expects base64 data, not URLs
-        CorePart::FileUrl { .. } | CorePart::FileId { .. } | CorePart::ImageUrl { .. } | CorePart::ImageFileId { .. } => {
+        CorePart::FileUrl { .. }
+        | CorePart::FileId { .. }
+        | CorePart::ImageUrl { .. }
+        | CorePart::ImageFileId { .. } => {
             // TODO: In a real implementation, we might want to download these
             // For now, skip them
             None
@@ -409,7 +444,7 @@ fn combine_consecutive_tool_messages(messages: Vec<Message>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::{UserModelMessage, SystemModelMessage};
+    use crate::message::{SystemModelMessage, UserModelMessage};
 
     #[test]
     fn test_convert_text_prompt() {

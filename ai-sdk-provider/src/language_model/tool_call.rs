@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
 use crate::shared::provider_metadata::ProviderMetadata;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]  // ← Add this!
+#[serde(rename_all = "camelCase")] // ← Add this!
 pub struct ToolCall {
     #[serde(rename = "type")]
     pub content_type: ToolCallType,
@@ -17,7 +17,7 @@ pub struct ToolCall {
     pub provider_executed: Option<bool>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>
+    pub provider_metadata: Option<ProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -25,7 +25,11 @@ pub struct ToolCall {
 struct ToolCallType;
 
 impl ToolCall {
-    pub fn new(tool_call_id: impl Into<String>, tool_name: impl Into<String>, input: impl Into<String>) -> Self {
+    pub fn new(
+        tool_call_id: impl Into<String>,
+        tool_name: impl Into<String>,
+        input: impl Into<String>,
+    ) -> Self {
         Self {
             content_type: ToolCallType,
             tool_call_id: tool_call_id.into(),
