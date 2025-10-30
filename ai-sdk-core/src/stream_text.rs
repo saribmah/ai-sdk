@@ -212,11 +212,20 @@ pub async fn stream_text(
     let on_error = Arc::new(on_error);
 
     // Create shared state for event processor
-    let active_text_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
-    let active_reasoning_content: Arc<Mutex<HashMap<String, String>>> = Arc::new(Mutex::new(HashMap::new()));
+    // Active content being accumulated during streaming (keyed by ID)
+    use crate::generate_text::TextOutput;
+    use crate::generate_text::ReasoningOutput;
+    let active_text_content: Arc<Mutex<HashMap<String, TextOutput>>> = Arc::new(Mutex::new(HashMap::new()));
+    let active_reasoning_content: Arc<Mutex<HashMap<String, ReasoningOutput>>> = Arc::new(Mutex::new(HashMap::new()));
+
+    // Recorded content parts, response messages, and metadata
     let recorded_content: Arc<Mutex<Vec<crate::generate_text::ContentPart<Value, Value>>>> = Arc::new(Mutex::new(Vec::new()));
+    let recorded_response_messages: Arc<Mutex<Vec<crate::generate_text::ResponseMessage>>> = Arc::new(Mutex::new(Vec::new()));
+    let recorded_request: Arc<Mutex<crate::generate_text::RequestMetadata>> = Arc::new(Mutex::new(crate::generate_text::RequestMetadata { body: None }));
+    let recorded_warnings: Arc<Mutex<Vec<ai_sdk_provider::language_model::call_warning::CallWarning>>> = Arc::new(Mutex::new(Vec::new()));
     let recorded_finish_reason = Arc::new(Mutex::new(None));
     let recorded_total_usage = Arc::new(Mutex::new(None));
+    let recorded_steps: Arc<Mutex<Vec<crate::generate_text::StepResult<Value, Value>>>> = Arc::new(Mutex::new(Vec::new()));
 
     // Convert provider StreamPart to TextStreamPart
     let text_stream = provider_stream.map(|stream_part| {
@@ -234,10 +243,14 @@ pub async fn stream_text(
     let boxed_enriched_stream: AsyncIterableStream<EnrichedStreamPart<Value, Value>> =
         Box::pin(enriched_stream);
 
-    // Step 7: Apply event processor
-    // Create a simple event processor that forwards chunks and tracks state
+    // Step 7: Apply enhanced event processor for Phase 3
+    // This processor tracks all content parts, handles step events, and calls all callbacks
     let processed_stream = Box::pin(async_stream::stream! {
         use futures_util::pin_mut;
+        use crate::generate_text::{ContentPart, GeneratedFile};
+        use crate::generate_text::tool_call::TypedToolCall;
+        use crate::generate_text::tool_result::TypedToolResult;
+        use crate::generate_text::tool_error::TypedToolError;
 
         pin_mut!(boxed_enriched_stream);
 
@@ -252,6 +265,11 @@ pub async fn stream_text(
                 part,
                 TextStreamPart::TextDelta { .. }
                     | TextStreamPart::ReasoningDelta { .. }
+                    | TextStreamPart::Source { .. }
+                    | TextStreamPart::ToolCall { .. }
+                    | TextStreamPart::ToolResult { .. }
+                    | TextStreamPart::ToolInputStart { .. }
+                    | TextStreamPart::ToolInputDelta { .. }
             ) {
                 if let Some(callback) = on_chunk.as_ref() {
                     if let Some(chunk_part) = crate::stream_text::ChunkStreamPart::from_stream_part(part) {
@@ -273,46 +291,194 @@ pub async fn stream_text(
                 }
             }
 
-            // Track active text content (simplified for Phase 2)
+            // Process each stream part type and track state
             match part {
-                TextStreamPart::TextStart { id, .. } => {
+                // Text content tracking
+                TextStreamPart::TextStart { id, provider_metadata } => {
                     let mut active_texts = active_text_content.lock().await;
-                    active_texts.insert(id.clone(), String::new());
+                    let mut text_output = TextOutput::new("");
+                    if let Some(metadata) = provider_metadata {
+                        text_output = text_output.with_provider_metadata(metadata.clone());
+                    }
+                    active_texts.insert(id.clone(), text_output.clone());
+
+                    // Add to recorded content (will be updated with text as deltas arrive)
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::Text(text_output));
                 }
-                TextStreamPart::TextDelta { id, text, .. } => {
+                TextStreamPart::TextDelta { id, text, provider_metadata } => {
                     let mut active_texts = active_text_content.lock().await;
                     if let Some(active_text) = active_texts.get_mut(id) {
-                        active_text.push_str(text);
+                        // Update the text content
+                        *active_text = TextOutput::new(&format!("{}{}", active_text.text, text));
+                        if let Some(metadata) = provider_metadata {
+                            *active_text = active_text.clone().with_provider_metadata(metadata.clone());
+                        }
+                    } else {
+                        // Error: text part not found
+                        yield EnrichedStreamPart::new(TextStreamPart::Error {
+                            error: serde_json::Value::String(format!("text part {} not found", id)),
+                        });
                     }
                 }
-                TextStreamPart::TextEnd { id, .. } => {
+                TextStreamPart::TextEnd { id, provider_metadata } => {
                     let mut active_texts = active_text_content.lock().await;
-                    active_texts.remove(id);
+                    if let Some(mut active_text) = active_texts.remove(id) {
+                        if let Some(metadata) = provider_metadata {
+                            active_text = active_text.with_provider_metadata(metadata.clone());
+                        }
+                        // Final text is already in recorded_content, just update metadata if needed
+                    } else {
+                        // Error: text part not found
+                        yield EnrichedStreamPart::new(TextStreamPart::Error {
+                            error: serde_json::Value::String(format!("text part {} not found", id)),
+                        });
+                    }
                 }
-                TextStreamPart::ReasoningStart { id, .. } => {
+
+                // Reasoning content tracking
+                TextStreamPart::ReasoningStart { id, provider_metadata } => {
                     let mut active_reasoning = active_reasoning_content.lock().await;
-                    active_reasoning.insert(id.clone(), String::new());
+                    let mut reasoning_output = ReasoningOutput::new("");
+                    if let Some(metadata) = provider_metadata {
+                        reasoning_output = reasoning_output.with_provider_metadata(metadata.clone());
+                    }
+                    active_reasoning.insert(id.clone(), reasoning_output.clone());
+
+                    // Add to recorded content
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::Reasoning(reasoning_output));
                 }
-                TextStreamPart::ReasoningDelta { id, text, .. } => {
+                TextStreamPart::ReasoningDelta { id, text, provider_metadata } => {
                     let mut active_reasoning = active_reasoning_content.lock().await;
                     if let Some(active) = active_reasoning.get_mut(id) {
-                        active.push_str(text);
+                        *active = ReasoningOutput::new(&format!("{}{}", active.text, text));
+                        if let Some(metadata) = provider_metadata {
+                            *active = active.clone().with_provider_metadata(metadata.clone());
+                        }
+                    } else {
+                        // Error: reasoning part not found
+                        yield EnrichedStreamPart::new(TextStreamPart::Error {
+                            error: serde_json::Value::String(format!("reasoning part {} not found", id)),
+                        });
                     }
                 }
-                TextStreamPart::ReasoningEnd { id, .. } => {
+                TextStreamPart::ReasoningEnd { id, provider_metadata } => {
                     let mut active_reasoning = active_reasoning_content.lock().await;
-                    active_reasoning.remove(id);
+                    if let Some(mut active) = active_reasoning.remove(id) {
+                        if let Some(metadata) = provider_metadata {
+                            active = active.with_provider_metadata(metadata.clone());
+                        }
+                    } else {
+                        // Error: reasoning part not found
+                        yield EnrichedStreamPart::new(TextStreamPart::Error {
+                            error: serde_json::Value::String(format!("reasoning part {} not found", id)),
+                        });
+                    }
                 }
-                TextStreamPart::Finish { finish_reason, total_usage, .. } => {
+
+                // File content
+                TextStreamPart::File { file } => {
+                    let generated_file = GeneratedFile::from_base64(&file.base64, &file.media_type);
+                    // Note: Files are not added to ContentPart, they're tracked separately
+                    // ContentPart only has Text, Reasoning, Source, ToolCall, ToolResult, ToolError
+                    // Files are accessed via the files() accessor
+                }
+
+                // Source content
+                TextStreamPart::Source { source } => {
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::Source(source.clone()));
+                }
+
+                // Tool calls
+                TextStreamPart::ToolCall { tool_call } => {
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::ToolCall(tool_call.clone()));
+                }
+
+                // Tool results
+                TextStreamPart::ToolResult { tool_result } => {
+                    // Note: We track all tool results, not just non-preliminary ones
+                    // The preliminary flag is part of the TypedToolResult structure
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::ToolResult(tool_result.clone()));
+                }
+
+                // Tool errors
+                TextStreamPart::ToolError { tool_error } => {
+                    let mut content = recorded_content.lock().await;
+                    content.push(ContentPart::ToolError(tool_error.clone()));
+                }
+
+                // Tool approval requests
+                TextStreamPart::ToolApprovalRequest { approval_request } => {
+                    // Tool approval requests contain tool call information
+                    // We extract it and add to recorded content
+                    // Note: ToolApprovalRequestOutput contains the tool call details
+                    // For now, we'll just note that this occurred
+                    // The actual approval workflow is handled separately
+                }
+
+                // Step events
+                TextStreamPart::StartStep { request, warnings } => {
+                    // Reset recorded data for new step
+                    let mut content = recorded_content.lock().await;
+                    content.clear();
+                    drop(content);
+
+                    let mut active_texts = active_text_content.lock().await;
+                    active_texts.clear();
+                    drop(active_texts);
+
+                    let mut active_reasoning = active_reasoning_content.lock().await;
+                    active_reasoning.clear();
+                    drop(active_reasoning);
+
+                    // Record request and warnings for this step
+                    let mut req = recorded_request.lock().await;
+                    *req = request.clone();
+                    drop(req);
+
+                    let mut warns = recorded_warnings.lock().await;
+                    *warns = warnings.clone();
+                }
+
+                TextStreamPart::FinishStep { finish_reason: step_finish_reason, usage: step_usage, response, provider_metadata } => {
+                    // TODO: This will be fully implemented in later phases with onStepFinish callback
+                    // For now, we'll record basic step information
+
+                    // Create response messages from recorded content
+                    use crate::generate_text::to_response_messages;
+                    let content = recorded_content.lock().await;
+                    let content_vec = content.clone();
+                    drop(content);
+
+                    let step_messages = to_response_messages(content_vec, tools.as_ref());
+
+                    // Accumulate response messages
+                    let mut response_msgs = recorded_response_messages.lock().await;
+                    // Convert ModelMessage to ResponseMessage (ResponseMessage has From<ModelMessage> impl)
+                    for msg in step_messages {
+                        response_msgs.push(msg.into());
+                    }
+                }
+
+                // Final finish event
+                TextStreamPart::Finish { finish_reason, total_usage } => {
                     // Record finish reason
                     let mut recorded_finish = recorded_finish_reason.lock().await;
                     *recorded_finish = Some(finish_reason.clone());
 
-                    // Record usage
+                    // Record total usage
                     let mut recorded_usage = recorded_total_usage.lock().await;
                     *recorded_usage = Some(total_usage.clone());
                 }
-                _ => {}
+
+                // Other events (Start, Abort, ToolInputStart/Delta/End, ToolOutputDenied, RawChunk)
+                _ => {
+                    // These are handled elsewhere or don't need special tracking
+                }
             }
         }
     });

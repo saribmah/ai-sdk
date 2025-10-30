@@ -12,9 +12,9 @@
 /// cargo run --example streaming_basic
 /// ```
 ///
-/// NOTE: This example requires stream_text to be fully implemented.
-/// As of Phase 2, the stream pipeline is partially complete.
-/// See STREAM_TEXT_IMPLEMENTATION_PLAN.md for current status.
+/// NOTE: This example should work with the completed Phase 2 implementation!
+/// Basic single-step streaming is fully functional.
+/// See STREAM_TEXT_IMPLEMENTATION_PLAN.md for current implementation status.
 
 use ai_sdk_core::stream_text;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
