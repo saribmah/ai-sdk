@@ -100,15 +100,15 @@ pub async fn stream_text(
     model: &dyn LanguageModel,
     tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
-    stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
+    _stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
     provider_options: Option<ProviderOptions>,
-    prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
+    _prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
     include_raw_chunks: bool,
     on_chunk: Option<OnChunkCallback>,
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
-    on_abort: Option<OnAbortCallback>,
+    _on_abort: Option<OnAbortCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
     use crate::generate_text::prepare_tools_and_tool_choice;
     use crate::prompt::{
@@ -224,10 +224,7 @@ pub async fn stream_text(
             body: request_body.clone(),
         };
         let step_response = StepResponseMetadata::default();
-        let mut step_usage = Usage::default();
-        let mut step_finish_reason = FinishReason::Unknown;
         let mut step_warnings = None;
-        let mut step_provider_metadata = None;
         let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
         let mut total_usage = Usage::default();
 
@@ -393,9 +390,6 @@ pub async fn stream_text(
                         current_reasoning.clear();
                     }
 
-                    step_usage = usage.clone();
-                    step_finish_reason = finish_reason.clone();
-                    step_provider_metadata = provider_metadata.clone();
                     total_usage = usage.clone(); // For now, single step
 
                     // Create step result

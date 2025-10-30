@@ -53,13 +53,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_temperature(0.7)
         .with_max_output_tokens(200);
 
-    // Stream text
+    // Stream text with callbacks to capture metadata
     println!("⏳ Streaming response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     print!("📝 ");
 
+    // Use Arc to share metadata between callback and main thread
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    let metadata = Arc::new(Mutex::new(None));
+    let metadata_clone = metadata.clone();
+
     let result = stream_text(
-        settings, prompt, &*model, None,  // tools
+        settings,
+        prompt,
+        &*model,
+        None,  // tools
         None,  // tool_choice
         None,  // stop_when
         None,  // provider_options
@@ -68,8 +78,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,  // on_chunk
         None,  // on_error
         None,  // on_step_finish
-        None,  // on_finish
-        None,  // on_abort
+        Some(Box::new(move |event| {
+            let metadata = metadata_clone.clone();
+            Box::pin(async move {
+                let mut meta = metadata.lock().await;
+                *meta = Some((
+                    event.step_result.finish_reason.clone(),
+                    event.step_result.usage.clone(),
+                    event.total_usage.clone(),
+                ));
+            })
+        })),
+        None, // on_abort
     )
     .await?;
 
@@ -82,24 +102,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // Access the final results (automatically consumes the stream if not already consumed)
+    // Access metadata captured from on_finish callback
     println!("\n📊 Metadata:");
-    let finish_reason = result.finish_reason().await?;
-    let usage = result.usage().await?;
-    let total_usage = result.total_usage().await?;
+    if let Some((finish_reason, usage, total_usage)) = metadata.lock().await.as_ref() {
+        println!("  • Finish reason: {:?}", finish_reason);
+        println!("  • Input tokens: {}", usage.input_tokens);
+        println!("  • Output tokens: {}", usage.output_tokens);
+        println!("  • Total tokens: {}", usage.total_tokens);
+        println!("  • Total usage (all steps): {}", total_usage.total_tokens);
 
-    println!("  • Finish reason: {:?}", finish_reason);
-    println!("  • Input tokens: {}", usage.input_tokens);
-    println!("  • Output tokens: {}", usage.output_tokens);
-    println!("  • Total tokens: {}", usage.total_tokens);
-    println!("  • Total usage (all steps): {}", total_usage.total_tokens);
+        if usage.reasoning_tokens > 0 {
+            println!("  • Reasoning tokens: {}", usage.reasoning_tokens);
+        }
 
-    if usage.reasoning_tokens > 0 {
-        println!("  • Reasoning tokens: {}", usage.reasoning_tokens);
-    }
-
-    if usage.cached_input_tokens > 0 {
-        println!("  • Cached input tokens: {}", usage.cached_input_tokens);
+        if usage.cached_input_tokens > 0 {
+            println!("  • Cached input tokens: {}", usage.cached_input_tokens);
+        }
     }
 
     println!("\n✅ Example completed successfully!");
