@@ -209,6 +209,8 @@ pub async fn stream_text(
     let on_step_finish_arc = on_step_finish.map(Arc::new);
     let on_finish_arc = on_finish.map(Arc::new);
     let include_raw = include_raw_chunks;
+    // Move tools into the spawned task
+    let tools_for_task = tools;
 
     tokio::spawn(async move {
         use crate::generate_text::{ContentPart, StepResponseMetadata, StepResult, TextOutput};
@@ -443,8 +445,87 @@ pub async fn stream_text(
                     }
                     TextStreamPart::Error { error }
                 }
-                // Handle tool calls and results - for now, skip them in Phase 1
-                _ => continue,
+                StreamPart::ToolCall(provider_tool_call) => {
+                    // Parse the tool call using parse_tool_call
+                    use crate::generate_text::parse_tool_call;
+                    
+                    let typed_tool_call = if let Some(ref tool_set) = tools_for_task {
+                        parse_tool_call(&provider_tool_call, tool_set)
+                    } else {
+                        // No tools provided, treat as dynamic
+                        use crate::generate_text::parse_provider_executed_dynamic_tool_call;
+                        parse_provider_executed_dynamic_tool_call(&provider_tool_call)
+                    };
+
+                    match typed_tool_call {
+                        Ok(tool_call) => {
+                            // Add to step content
+                            step_content.push(ContentPart::ToolCall(tool_call.clone()));
+                            
+                            TextStreamPart::ToolCall { tool_call }
+                        }
+                        Err(e) => {
+                            // Handle tool parsing error
+                            if let Some(ref callback) = on_error_arc {
+                                let event = callbacks::StreamTextErrorEvent {
+                                    error: serde_json::json!({ "message": e.to_string() }),
+                                };
+                                callback(event).await;
+                            }
+                            TextStreamPart::Error {
+                                error: serde_json::json!({ "message": e.to_string() }),
+                            }
+                        }
+                    }
+                }
+                StreamPart::ToolResult(provider_tool_result) => {
+                    // Convert provider tool result to typed tool result
+                    use crate::generate_text::{StaticToolResult, DynamicToolResult, TypedToolResult};
+                    
+                    // Check if this is a dynamic tool based on whether we have it in our tool set
+                    let is_dynamic = if let Some(ref tool_set) = tools_for_task {
+                        !tool_set.contains_key(&provider_tool_result.tool_name)
+                    } else {
+                        true // No tools provided, treat as dynamic
+                    };
+
+                    let typed_result = if is_dynamic {
+                        let mut dynamic_result = DynamicToolResult::new(
+                            &provider_tool_result.tool_call_id,
+                            &provider_tool_result.tool_name,
+                            serde_json::Value::Null, // input - we don't have it in tool result
+                            provider_tool_result.result.clone(),
+                        );
+                        if let Some(provider_executed) = provider_tool_result.provider_executed {
+                            dynamic_result = dynamic_result.with_provider_executed(provider_executed);
+                        }
+                        TypedToolResult::Dynamic(dynamic_result)
+                    } else {
+                        let mut static_result = StaticToolResult::new(
+                            &provider_tool_result.tool_call_id,
+                            &provider_tool_result.tool_name,
+                            serde_json::Value::Null, // input - we don't have it in tool result
+                            provider_tool_result.result.clone(),
+                        );
+                        if let Some(provider_executed) = provider_tool_result.provider_executed {
+                            static_result = static_result.with_provider_executed(provider_executed);
+                        }
+                        TypedToolResult::Static(static_result)
+                    };
+
+                    // Add to step content
+                    step_content.push(ContentPart::ToolResult(typed_result.clone()));
+
+                    TextStreamPart::ToolResult {
+                        tool_result: typed_result,
+                    }
+                }
+                // Handle response metadata
+                StreamPart::ResponseMetadata(_) => {
+                    // For now, skip response metadata in stream parts
+                    // This is typically sent at the beginning and captured in step_response
+                    continue;
+                }
             };
 
             // Call on_chunk callback if this is a chunk type
