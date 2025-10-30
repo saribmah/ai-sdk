@@ -1,8 +1,6 @@
 use super::step_result::StepResult;
 use crate::message::ModelMessage;
-use ai_sdk_provider::language_model::{
-    tool_choice::ToolChoice,
-};
+use ai_sdk_provider::language_model::tool_choice::ToolChoice;
 use async_trait::async_trait;
 use std::future::Future;
 
@@ -153,12 +151,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use ai_sdk_provider::language_model::{
-        finish_reason::FinishReason, usage::Usage,
-    };
     use super::super::content_part::ContentPart;
     use super::super::text_output::TextOutput;
+    use super::*;
+    use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
 
     fn create_test_step() -> StepResult {
         StepResult::new(
@@ -223,10 +219,7 @@ mod tests {
 
         #[async_trait]
         impl PrepareStep for CustomPrepare {
-            async fn prepare(
-                &self,
-                options: &PrepareStepOptions<'_>,
-            ) -> Option<PrepareStepResult> {
+            async fn prepare(&self, options: &PrepareStepOptions<'_>) -> Option<PrepareStepResult> {
                 if options.step_number > 5 {
                     Some(PrepareStepResult {
                         tool_choice: Some(ToolChoice::Required),
@@ -271,10 +264,7 @@ mod tests {
 
         #[async_trait]
         impl PrepareStep for ToolFilterPrepare {
-            async fn prepare(
-                &self,
-                options: &PrepareStepOptions<'_>,
-            ) -> Option<PrepareStepResult> {
+            async fn prepare(&self, options: &PrepareStepOptions<'_>) -> Option<PrepareStepResult> {
                 // On step 0, allow all tools; on step 1+, only allow final_answer
                 if options.step_number > 0 {
                     Some(PrepareStepResult {

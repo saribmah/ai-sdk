@@ -1,8 +1,8 @@
+use crate::message::ModelMessage;
 use crate::message::tool::definition::{NeedsApproval, Tool};
 use crate::message::tool::options::ToolCallOptions;
-use crate::message::ModelMessage;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 /// Checks if a tool call needs approval before execution.
@@ -87,14 +87,8 @@ mod tests {
             }
         }));
 
-        let result = is_approval_needed(
-            &tool,
-            "call_123",
-            json!({"city": "SF"}),
-            vec![],
-            None,
-        )
-        .await;
+        let result =
+            is_approval_needed(&tool, "call_123", json!({"city": "SF"}), vec![], None).await;
 
         assert!(!result);
     }
@@ -109,14 +103,8 @@ mod tests {
         }));
         tool.needs_approval = NeedsApproval::Yes;
 
-        let result = is_approval_needed(
-            &tool,
-            "call_123",
-            json!({"city": "SF"}),
-            vec![],
-            None,
-        )
-        .await;
+        let result =
+            is_approval_needed(&tool, "call_123", json!({"city": "SF"}), vec![], None).await;
 
         assert!(result);
     }
@@ -141,14 +129,8 @@ mod tests {
             })
         }));
 
-        let result = is_approval_needed(
-            &tool,
-            "call_123",
-            json!({"action": "delete"}),
-            vec![],
-            None,
-        )
-        .await;
+        let result =
+            is_approval_needed(&tool, "call_123", json!({"action": "delete"}), vec![], None).await;
 
         assert!(result);
     }
@@ -173,14 +155,8 @@ mod tests {
             })
         }));
 
-        let result = is_approval_needed(
-            &tool,
-            "call_123",
-            json!({"action": "read"}),
-            vec![],
-            None,
-        )
-        .await;
+        let result =
+            is_approval_needed(&tool, "call_123", json!({"action": "read"}), vec![], None).await;
 
         assert!(!result);
     }

@@ -1,12 +1,12 @@
-use std::future::Future;
-use std::pin::Pin;
-use std::collections::HashMap;
+use super::options::ToolCallOptions;
+use crate::message::content_parts::ToolResultOutput;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use super::options::ToolCallOptions;
-use crate::message::content_parts::ToolResultOutput;
+use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 
 /// The output from a tool execution, which can be either a single value or a stream of values.
 ///
@@ -29,29 +29,24 @@ where
 /// Function that executes a tool with the given input and options.
 ///
 /// Returns either a Future that resolves to a single output, or a Stream of outputs.
-pub type ToolExecuteFunction<INPUT, OUTPUT> = Box<
-    dyn Fn(INPUT, ToolCallOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync,
->;
+pub type ToolExecuteFunction<INPUT, OUTPUT> =
+    Box<dyn Fn(INPUT, ToolCallOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
 
 /// Function that determines if a tool needs approval before execution.
-pub type ToolNeedsApprovalFunction<INPUT> = Box<
-    dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync,
->;
+pub type ToolNeedsApprovalFunction<INPUT> =
+    Box<dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync>;
 
 /// Callback that is called when tool input streaming starts.
-pub type OnInputStartCallback = Box<
-    dyn Fn(ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
+pub type OnInputStartCallback =
+    Box<dyn Fn(ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when a tool input delta is available.
-pub type OnInputDeltaCallback = Box<
-    dyn Fn(String, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
+pub type OnInputDeltaCallback =
+    Box<dyn Fn(String, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when tool input is available.
-pub type OnInputAvailableCallback<INPUT> = Box<
-    dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
+pub type OnInputAvailableCallback<INPUT> =
+    Box<dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Function that converts tool output to model output format.
 pub type ToModelOutputFunction<OUTPUT> = Box<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;
@@ -234,10 +229,7 @@ where
     }
 
     /// Sets the needs approval function.
-    pub fn with_needs_approval_function(
-        mut self,
-        func: ToolNeedsApprovalFunction<INPUT>,
-    ) -> Self {
+    pub fn with_needs_approval_function(mut self, func: ToolNeedsApprovalFunction<INPUT>) -> Self {
         self.needs_approval = NeedsApproval::Function(func);
         self
     }
@@ -375,18 +367,18 @@ mod tests {
         let mut args = HashMap::new();
         args.insert("key".to_string(), json!("value"));
 
-        let tool: Tool = Tool::provider_defined(
-            "provider.tool",
-            "tool_name",
-            args.clone(),
-            schema,
-        );
+        let tool: Tool = Tool::provider_defined("provider.tool", "tool_name", args.clone(), schema);
 
         assert!(!tool.is_function());
         assert!(!tool.is_dynamic());
         assert!(tool.is_provider_defined());
 
-        if let ToolType::ProviderDefined { id, name, args: tool_args } = &tool.tool_type {
+        if let ToolType::ProviderDefined {
+            id,
+            name,
+            args: tool_args,
+        } = &tool.tool_type
+        {
             assert_eq!(id, "provider.tool");
             assert_eq!(name, "tool_name");
             assert_eq!(tool_args, &args);
@@ -399,8 +391,7 @@ mod tests {
     fn test_tool_with_description() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_description("A helpful tool");
+        let tool: Tool = Tool::function(schema).with_description("A helpful tool");
 
         assert_eq!(tool.description, Some("A helpful tool".to_string()));
     }
@@ -410,8 +401,7 @@ mod tests {
         let input_schema = json!({"type": "object"});
         let output_schema = json!({"type": "string"});
 
-        let tool: Tool = Tool::function(input_schema)
-            .with_output_schema(output_schema.clone());
+        let tool: Tool = Tool::function(input_schema).with_output_schema(output_schema.clone());
 
         assert_eq!(tool.output_schema, Some(output_schema));
     }
@@ -420,8 +410,7 @@ mod tests {
     fn test_tool_with_needs_approval() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_needs_approval(true);
+        let tool: Tool = Tool::function(schema).with_needs_approval(true);
 
         assert!(matches!(tool.needs_approval, NeedsApproval::Yes));
     }
@@ -431,8 +420,7 @@ mod tests {
         let schema = json!({"type": "object"});
         let options = ProviderOptions::new();
 
-        let tool: Tool = Tool::function(schema)
-            .with_provider_options(options.clone());
+        let tool: Tool = Tool::function(schema).with_provider_options(options.clone());
 
         assert_eq!(tool.provider_options, Some(options));
     }
@@ -451,8 +439,7 @@ mod tests {
     #[tokio::test]
     async fn test_tool_check_needs_approval_yes() {
         let schema = json!({"type": "object"});
-        let tool: Tool = Tool::function(schema)
-            .with_needs_approval(true);
+        let tool: Tool = Tool::function(schema).with_needs_approval(true);
 
         let options = ToolCallOptions::new("call_123", vec![]);
         let needs_approval = tool.check_needs_approval(json!({}), options).await;
@@ -464,12 +451,9 @@ mod tests {
     async fn test_tool_execute_with_function() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_execute(Box::new(|input: Value, _options| {
-                ToolExecutionOutput::Single(Box::pin(async move {
-                    Ok(json!({"result": input}))
-                }))
-            }));
+        let tool: Tool = Tool::function(schema).with_execute(Box::new(|input: Value, _options| {
+            ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
+        }));
 
         let options = ToolCallOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({"city": "SF"}), options).await;
@@ -495,8 +479,8 @@ mod tests {
     async fn test_tool_execute_with_streaming() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_execute(Box::new(|_input: Value, _options| {
+        let tool: Tool =
+            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));
                     yield Ok(json!({"step": 2}));
@@ -518,8 +502,8 @@ mod tests {
     async fn test_tool_execute_with_error() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_execute(Box::new(|_input: Value, _options| {
+        let tool: Tool =
+            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move {
                     Err(json!({"error": "Something went wrong"}))
                 }))
@@ -532,15 +516,18 @@ mod tests {
         assert!(result.is_some());
         let result = result.unwrap();
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), json!({"error": "Something went wrong"}));
+        assert_eq!(
+            result.unwrap_err(),
+            json!({"error": "Something went wrong"})
+        );
     }
 
     #[tokio::test]
     async fn test_tool_execute_streaming_with_error() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema)
-            .with_execute(Box::new(|_input: Value, _options| {
+        let tool: Tool =
+            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));
                     yield Err(json!("Error in stream"));

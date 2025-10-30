@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use super::super::content_parts::{FilePart, ImagePart, TextPart};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use super::super::content_parts::{TextPart, ImagePart, FilePart};
+use serde::{Deserialize, Serialize};
 
 /// Content of a user message. It can be a string or an array of text, image, and file parts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -121,7 +121,7 @@ mod tests {
         let parts = vec![
             UserContentPart::Text(TextPart::new("Hello")),
             UserContentPart::Image(ImagePart::from_url(
-                Url::parse("https://example.com/image.png").unwrap()
+                Url::parse("https://example.com/image.png").unwrap(),
             )),
         ];
 
@@ -142,8 +142,8 @@ mod tests {
     fn test_user_model_message_with_provider_options() {
         let provider_options = ProviderOptions::new();
 
-        let message = UserModelMessage::new("Hello")
-            .with_provider_options(provider_options.clone());
+        let message =
+            UserModelMessage::new("Hello").with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
@@ -188,9 +188,8 @@ mod tests {
 
     #[test]
     fn test_user_content_part_from_image() {
-        let part: UserContentPart = ImagePart::from_url(
-            Url::parse("https://example.com/image.png").unwrap()
-        ).into();
+        let part: UserContentPart =
+            ImagePart::from_url(Url::parse("https://example.com/image.png").unwrap()).into();
 
         assert!(matches!(part, UserContentPart::Image(_)));
     }
@@ -199,8 +198,9 @@ mod tests {
     fn test_user_content_part_from_file() {
         let part: UserContentPart = FilePart::from_url(
             Url::parse("https://example.com/file.pdf").unwrap(),
-            "application/pdf"
-        ).into();
+            "application/pdf",
+        )
+        .into();
 
         assert!(matches!(part, UserContentPart::File(_)));
     }
@@ -218,9 +218,7 @@ mod tests {
 
     #[test]
     fn test_user_model_message_serialization_parts() {
-        let parts = vec![
-            UserContentPart::Text(TextPart::new("Hello")),
-        ];
+        let parts = vec![UserContentPart::Text(TextPart::new("Hello"))];
 
         let message = UserModelMessage::with_parts(parts);
 
@@ -235,8 +233,7 @@ mod tests {
     fn test_user_model_message_serialization_with_provider_options() {
         let provider_options = ProviderOptions::new();
 
-        let message = UserModelMessage::new("Hello")
-            .with_provider_options(provider_options);
+        let message = UserModelMessage::new("Hello").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -298,12 +295,12 @@ mod tests {
         let parts = vec![
             UserContentPart::Text(TextPart::new("Check out this image:")),
             UserContentPart::Image(ImagePart::from_url(
-                Url::parse("https://example.com/image.png").unwrap()
+                Url::parse("https://example.com/image.png").unwrap(),
             )),
             UserContentPart::Text(TextPart::new("And this file:")),
             UserContentPart::File(FilePart::from_url(
                 Url::parse("https://example.com/file.pdf").unwrap(),
-                "application/pdf"
+                "application/pdf",
             )),
         ];
 

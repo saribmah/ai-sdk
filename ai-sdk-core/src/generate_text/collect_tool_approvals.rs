@@ -1,7 +1,7 @@
 use crate::generate_text::tool_call::{StaticToolCall, TypedToolCall};
+use crate::message::ModelMessage;
 use crate::message::model::{AssistantContent, ToolContentPart};
 use crate::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
-use crate::message::ModelMessage;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -148,8 +148,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
         if let ModelMessage::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
-                    if let crate::message::model::AssistantContentPart::ToolCall(tool_call) = part
-                    {
+                    if let crate::message::model::AssistantContentPart::ToolCall(tool_call) = part {
                         // Convert ToolCallPart to TypedToolCall<Value>
                         let typed_tool_call = TypedToolCall::Static(
                             StaticToolCall::new(
@@ -157,9 +156,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
                                 tool_call.tool_name.clone(),
                                 tool_call.input.clone(),
                             )
-                            .with_provider_executed(
-                                tool_call.provider_executed.unwrap_or(false),
-                            ),
+                            .with_provider_executed(tool_call.provider_executed.unwrap_or(false)),
                         );
                         tool_calls_by_id.insert(tool_call.tool_call_id.clone(), typed_tool_call);
                     }
@@ -259,9 +256,7 @@ mod tests {
 
     #[test]
     fn test_collect_tool_approvals_non_tool_last_message() {
-        let messages = vec![ModelMessage::Assistant(AssistantModelMessage::new(
-            "Hello",
-        ))];
+        let messages = vec![ModelMessage::Assistant(AssistantModelMessage::new("Hello"))];
 
         let result = collect_tool_approvals(&messages);
 
@@ -322,8 +317,7 @@ mod tests {
             ])),
             ModelMessage::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(
-                    ToolApprovalResponse::denied("approval_456")
-                        .with_reason("Too dangerous"),
+                    ToolApprovalResponse::denied("approval_456").with_reason("Too dangerous"),
                 ),
             ])),
         ];
@@ -417,11 +411,7 @@ mod tests {
     fn test_collect_tool_approvals_multiple_messages() {
         let messages = vec![
             ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
-                AssistantContentPart::ToolCall(ToolCallPart::new(
-                    "call_1",
-                    "tool_a",
-                    json!({}),
-                )),
+                AssistantContentPart::ToolCall(ToolCallPart::new("call_1", "tool_a", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_1",
                     "call_1",
@@ -431,11 +421,7 @@ mod tests {
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
             ])),
             ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
-                AssistantContentPart::ToolCall(ToolCallPart::new(
-                    "call_2",
-                    "tool_b",
-                    json!({}),
-                )),
+                AssistantContentPart::ToolCall(ToolCallPart::new("call_2", "tool_b", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_2",
                     "call_2",
@@ -452,9 +438,7 @@ mod tests {
         assert_eq!(result.approved_tool_approvals.len(), 0);
         assert_eq!(result.denied_tool_approvals.len(), 1);
         assert_eq!(
-            result.denied_tool_approvals[0]
-                .approval_request
-                .approval_id,
+            result.denied_tool_approvals[0].approval_request.approval_id,
             "approval_2"
         );
     }
@@ -470,11 +454,8 @@ mod tests {
     fn test_collected_tool_approval_new() {
         let approval_request = ToolApprovalRequest::new("approval_123", "call_456");
         let approval_response = ToolApprovalResponse::granted("approval_123");
-        let tool_call = TypedToolCall::Static(StaticToolCall::new(
-            "call_456",
-            "test_tool",
-            json!({}),
-        ));
+        let tool_call =
+            TypedToolCall::Static(StaticToolCall::new("call_456", "test_tool", json!({})));
 
         let collected = CollectedToolApproval::new(
             approval_request.clone(),

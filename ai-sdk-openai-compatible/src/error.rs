@@ -192,7 +192,10 @@ mod tests {
 
         let error: OpenAICompatibleErrorData = serde_json::from_str(json).unwrap();
         assert_eq!(error.error.message, "Invalid request");
-        assert_eq!(error.error.error_type, Some("invalid_request_error".to_string()));
+        assert_eq!(
+            error.error.error_type,
+            Some("invalid_request_error".to_string())
+        );
         assert_eq!(error.error.param, Some(json!("temperature")));
         match error.error.code {
             Some(ErrorCode::String(s)) => assert_eq!(s, "invalid_value"),

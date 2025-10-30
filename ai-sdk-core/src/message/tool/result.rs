@@ -159,8 +159,8 @@ mod tests {
             condition: "Sunny".to_string(),
         };
 
-        let tool_result = ToolResult::new("call_456", "get_weather", input, output)
-            .with_provider_executed(true);
+        let tool_result =
+            ToolResult::new("call_456", "get_weather", input, output).with_provider_executed(true);
 
         assert_eq!(tool_result.provider_executed, Some(true));
         assert!(tool_result.is_provider_executed());
@@ -178,8 +178,8 @@ mod tests {
             condition: "Rainy".to_string(),
         };
 
-        let tool_result = ToolResult::new("call_789", "get_weather", input, output)
-            .with_dynamic(true);
+        let tool_result =
+            ToolResult::new("call_789", "get_weather", input, output).with_dynamic(true);
 
         assert_eq!(tool_result.dynamic, Some(true));
         assert!(tool_result.is_dynamic());

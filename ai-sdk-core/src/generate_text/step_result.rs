@@ -1,17 +1,14 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning,
-    finish_reason::FinishReason,
-    response_metadata::ResponseMetadata,
-    source::Source,
-    usage::Usage,
+    call_warning::CallWarning, finish_reason::FinishReason, response_metadata::ResponseMetadata,
+    source::Source, usage::Usage,
 };
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::content_part::ContentPart;
-use super::reasoning_output::ReasoningOutput;
 use super::generated_file::GeneratedFile;
+use super::reasoning_output::ReasoningOutput;
 
 /// Metadata about the request sent to the language model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -274,16 +271,24 @@ mod tests {
 
     fn create_test_step_result() -> StepResult {
         let content = vec![
-            ContentPart::Text(super::super::text_output::TextOutput::new("Hello ".to_string())),
-            ContentPart::Text(super::super::text_output::TextOutput::new("world!".to_string())),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new("Thinking step 1. ".to_string())),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new("Thinking step 2.".to_string())),
+            ContentPart::Text(super::super::text_output::TextOutput::new(
+                "Hello ".to_string(),
+            )),
+            ContentPart::Text(super::super::text_output::TextOutput::new(
+                "world!".to_string(),
+            )),
+            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
+                "Thinking step 1. ".to_string(),
+            )),
+            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
+                "Thinking step 2.".to_string(),
+            )),
             ContentPart::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
                 super::super::tool_call::DynamicToolCall::new(
                     "call_1".to_string(),
                     "get_weather".to_string(),
                     json!({"city": "SF"}),
-                )
+                ),
             )),
         ];
 
@@ -341,7 +346,9 @@ mod tests {
     #[test]
     fn test_step_result_reasoning_text_empty() {
         let result: StepResult<Value, Value> = StepResult::new(
-            vec![ContentPart::Text(super::super::text_output::TextOutput::new("Hello".to_string()))],
+            vec![ContentPart::Text(
+                super::super::text_output::TextOutput::new("Hello".to_string()),
+            )],
             FinishReason::Stop,
             Usage::new(5, 5),
             None,

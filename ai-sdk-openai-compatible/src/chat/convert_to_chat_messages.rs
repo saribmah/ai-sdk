@@ -3,7 +3,7 @@ use ai_sdk_provider::language_model::prompt::{
     UserMessagePart,
 };
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use serde_json::Value;
 
 use crate::chat::api_types::{
@@ -125,10 +125,7 @@ pub fn convert_to_openai_compatible_chat_messages(
                                 }
                                 parts.push(OpenAICompatibleContentPart::ImageUrl(image_part));
                             } else {
-                                return Err(format!(
-                                    "Unsupported file media type: {}",
-                                    media_type
-                                ));
+                                return Err(format!("Unsupported file media type: {}", media_type));
                             }
                         }
                     }
@@ -162,8 +159,8 @@ pub fn convert_to_openai_compatible_chat_messages(
                             provider_options: part_options,
                             ..
                         } => {
-                            let arguments = serde_json::to_string(&input)
-                                .unwrap_or_else(|_| "{}".to_string());
+                            let arguments =
+                                serde_json::to_string(&input).unwrap_or_else(|_| "{}".to_string());
                             let mut tool_call = OpenAICompatibleMessageToolCall::new(
                                 tool_call_id,
                                 tool_name,
@@ -179,11 +176,7 @@ pub fn convert_to_openai_compatible_chat_messages(
                     }
                 }
 
-                let content_opt = if text.is_empty() {
-                    None
-                } else {
-                    Some(text)
-                };
+                let content_opt = if text.is_empty() { None } else { Some(text) };
 
                 let tool_calls_opt = if tool_calls.is_empty() {
                     None
@@ -271,12 +264,10 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         match &result[0] {
-            OpenAICompatibleMessage::User(msg) => {
-                match &msg.content {
-                    Some(UserMessageContent::Text(text)) => assert_eq!(text, "Hello!"),
-                    _ => panic!("Expected text content"),
-                }
-            }
+            OpenAICompatibleMessage::User(msg) => match &msg.content {
+                Some(UserMessageContent::Text(text)) => assert_eq!(text, "Hello!"),
+                _ => panic!("Expected text content"),
+            },
             _ => panic!("Expected user message"),
         }
     }
@@ -303,14 +294,12 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         match &result[0] {
-            OpenAICompatibleMessage::User(msg) => {
-                match &msg.content {
-                    Some(UserMessageContent::Parts(parts)) => {
-                        assert_eq!(parts.len(), 2);
-                    }
-                    _ => panic!("Expected parts content"),
+            OpenAICompatibleMessage::User(msg) => match &msg.content {
+                Some(UserMessageContent::Parts(parts)) => {
+                    assert_eq!(parts.len(), 2);
                 }
-            }
+                _ => panic!("Expected parts content"),
+            },
             _ => panic!("Expected user message"),
         }
     }
@@ -406,9 +395,7 @@ mod tests {
         let result = convert_to_openai_compatible_chat_messages(prompt);
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Unsupported file media type"));
+        assert!(result.unwrap_err().contains("Unsupported file media type"));
     }
 
     #[test]
@@ -427,20 +414,18 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         match &result[0] {
-            OpenAICompatibleMessage::User(msg) => {
-                match &msg.content {
-                    Some(UserMessageContent::Parts(parts)) => {
-                        assert_eq!(parts.len(), 1);
-                        match &parts[0] {
-                            OpenAICompatibleContentPart::ImageUrl(img) => {
-                                assert!(img.image_url.url.contains("data:image/jpeg;base64,"));
-                            }
-                            _ => panic!("Expected image URL part"),
+            OpenAICompatibleMessage::User(msg) => match &msg.content {
+                Some(UserMessageContent::Parts(parts)) => {
+                    assert_eq!(parts.len(), 1);
+                    match &parts[0] {
+                        OpenAICompatibleContentPart::ImageUrl(img) => {
+                            assert!(img.image_url.url.contains("data:image/jpeg;base64,"));
                         }
+                        _ => panic!("Expected image URL part"),
                     }
-                    _ => panic!("Expected parts content"),
                 }
-            }
+                _ => panic!("Expected parts content"),
+            },
             _ => panic!("Expected user message"),
         }
     }

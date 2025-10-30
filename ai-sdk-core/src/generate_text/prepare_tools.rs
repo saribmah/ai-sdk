@@ -1,12 +1,11 @@
 use crate::generate_text::tool_set::ToolSet;
 use crate::message::tool::definition::Tool;
 use ai_sdk_provider::{
+    language_model::tool_choice::ToolChoice,
     language_model::{
-        call_options::Tool as ProviderTool,
-        function_tool::FunctionTool,
+        call_options::Tool as ProviderTool, function_tool::FunctionTool,
         provider_defined_tool::ProviderDefinedTool,
     },
-    language_model::tool_choice::ToolChoice,
 };
 use serde_json::Value;
 

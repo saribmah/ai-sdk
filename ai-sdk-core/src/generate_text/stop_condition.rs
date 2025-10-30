@@ -99,16 +99,13 @@ pub struct HasToolCall {
 impl StopCondition for HasToolCall {
     async fn check(&self, steps: &[StepResult]) -> bool {
         if let Some(last_step) = steps.last() {
-            last_step
-                .tool_calls()
-                .iter()
-                .any(|tc| {
-                    use super::TypedToolCall;
-                    match tc {
-                        TypedToolCall::Static(call) => call.tool_name == self.tool_name,
-                        TypedToolCall::Dynamic(call) => call.tool_name == self.tool_name,
-                    }
-                })
+            last_step.tool_calls().iter().any(|tc| {
+                use super::TypedToolCall;
+                match tc {
+                    TypedToolCall::Static(call) => call.tool_name == self.tool_name,
+                    TypedToolCall::Dynamic(call) => call.tool_name == self.tool_name,
+                }
+            })
         } else {
             false
         }
@@ -208,11 +205,12 @@ mod tests {
         use super::super::tool_call::{DynamicToolCall, TypedToolCall};
         use serde_json::json;
 
-        let mut content: Vec<ContentPart> = vec![ContentPart::Text(TextOutput::new("Test".to_string()))];
+        let mut content: Vec<ContentPart> =
+            vec![ContentPart::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
             content.push(ContentPart::ToolCall(TypedToolCall::Dynamic(
-                DynamicToolCall::new(id.to_string(), name.to_string(), json!({}))
+                DynamicToolCall::new(id.to_string(), name.to_string(), json!({})),
             )));
         }
 

@@ -1,6 +1,6 @@
+use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::shared::provider_options::ProviderOptions;
 
 /// A tool has a name, a description, and a set of parameters.
 ///
@@ -36,10 +36,7 @@ struct FunctionToolType;
 
 impl FunctionTool {
     /// Create a new function tool
-    pub fn new(
-        name: impl Into<String>,
-        input_schema: Value,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, input_schema: Value) -> Self {
         Self {
             tool_type: FunctionToolType,
             name: name.into(),

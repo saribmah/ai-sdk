@@ -156,12 +156,8 @@ mod tests {
 
     #[test]
     fn test_tool_output_result_variant() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            json!({"status": "ok"}),
-        );
+        let result =
+            StaticToolResult::new("call_123", "test_tool", json!({}), json!({"status": "ok"}));
 
         let output = ToolOutput::Result(result.into());
 
@@ -173,12 +169,7 @@ mod tests {
 
     #[test]
     fn test_tool_output_error_variant() {
-        let error = StaticToolError::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            "Test error",
-        );
+        let error = StaticToolError::new("call_123", "test_tool", json!({}), "Test error");
 
         let output: ToolOutput<Value, Value> = ToolOutput::Error(error.into());
 
@@ -190,12 +181,8 @@ mod tests {
 
     #[test]
     fn test_tool_output_into_result() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            json!({"data": "value"}),
-        );
+        let result =
+            StaticToolResult::new("call_123", "test_tool", json!({}), json!({"data": "value"}));
 
         let output = ToolOutput::from_result(result.clone().into());
         let extracted = output.into_result();
@@ -205,12 +192,7 @@ mod tests {
 
     #[test]
     fn test_tool_output_into_error() {
-        let error = StaticToolError::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            "Error message",
-        );
+        let error = StaticToolError::new("call_123", "test_tool", json!({}), "Error message");
 
         let output: ToolOutput<Value, Value> = ToolOutput::from_error(error.clone().into());
         let extracted = output.into_error();
@@ -253,12 +235,7 @@ mod tests {
 
     #[test]
     fn test_tool_output_clone() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "test_tool",
-            json!({}),
-            json!({}),
-        );
+        let result = StaticToolResult::new("call_123", "test_tool", json!({}), json!({}));
 
         let output = ToolOutput::from_result(result.into());
         let cloned = output.clone();

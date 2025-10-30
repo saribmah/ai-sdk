@@ -4,5 +4,5 @@ use serde::{Deserialize, Serialize};
 pub enum DataContent {
     Bytes(Vec<u8>),
     Base64(String),
-    Url(url::Url)
+    Url(url::Url),
 }

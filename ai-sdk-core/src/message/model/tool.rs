@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use super::super::content_parts::ToolResultPart;
 use super::super::tool::ToolApprovalResponse;
+use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// Content of a tool message. It is an array of tool result parts.
 pub type ToolContent = Vec<ToolContentPart>;
@@ -52,7 +52,8 @@ impl ToolModelMessage {
 
     /// Adds a tool approval response to the content.
     pub fn add_approval_response(mut self, response: ToolApprovalResponse) -> Self {
-        self.content.push(ToolContentPart::ApprovalResponse(response));
+        self.content
+            .push(ToolContentPart::ApprovalResponse(response));
         self
     }
 }
@@ -65,13 +66,11 @@ mod tests {
 
     #[test]
     fn test_tool_model_message_new() {
-        let content = vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ];
+        let content = vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))];
 
         let message = ToolModelMessage::new(content.clone());
 
@@ -82,30 +81,27 @@ mod tests {
 
     #[test]
     fn test_tool_model_message_with_provider_options() {
-        let content = vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ];
+        let content = vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))];
 
         let provider_options = ProviderOptions::new();
 
-        let message = ToolModelMessage::new(content)
-            .with_provider_options(provider_options.clone());
+        let message =
+            ToolModelMessage::new(content).with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
 
     #[test]
     fn test_tool_model_message_add_result_part() {
-        let message = ToolModelMessage::new(vec![])
-            .add_result_part(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            ));
+        let message = ToolModelMessage::new(vec![]).add_result_part(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ));
 
         assert_eq!(message.content.len(), 1);
         match &message.content[0] {
@@ -119,8 +115,7 @@ mod tests {
     #[test]
     fn test_tool_model_message_add_approval_response() {
         let response = ToolApprovalResponse::granted("approval_123");
-        let message = ToolModelMessage::new(vec![])
-            .add_approval_response(response.clone());
+        let message = ToolModelMessage::new(vec![]).add_approval_response(response.clone());
 
         assert_eq!(message.content.len(), 1);
         match &message.content[0] {
@@ -144,18 +139,19 @@ mod tests {
 
         assert_eq!(message.content.len(), 2);
         assert!(matches!(message.content[0], ToolContentPart::ToolResult(_)));
-        assert!(matches!(message.content[1], ToolContentPart::ApprovalResponse(_)));
+        assert!(matches!(
+            message.content[1],
+            ToolContentPart::ApprovalResponse(_)
+        ));
     }
 
     #[test]
     fn test_tool_model_message_serialization() {
-        let content = vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ];
+        let content = vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))];
 
         let message = ToolModelMessage::new(content);
 
@@ -168,18 +164,15 @@ mod tests {
 
     #[test]
     fn test_tool_model_message_serialization_with_provider_options() {
-        let content = vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ];
+        let content = vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))];
 
         let provider_options = ProviderOptions::new();
 
-        let message = ToolModelMessage::new(content)
-            .with_provider_options(provider_options);
+        let message = ToolModelMessage::new(content).with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -213,13 +206,11 @@ mod tests {
 
     #[test]
     fn test_tool_model_message_clone() {
-        let content = vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Success"),
-            )),
-        ];
+        let content = vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))];
 
         let message = ToolModelMessage::new(content);
         let cloned = message.clone();

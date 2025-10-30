@@ -24,8 +24,8 @@
 //! When validation fails, detailed error messages indicate which constraints were violated.
 
 use crate::error::AISDKError;
+use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
 use crate::message::tool::definition::Tool;
-use crate::generate_text::tool_call::{TypedToolCall, StaticToolCall, DynamicToolCall};
 use ai_sdk_provider::language_model::tool_call::ToolCall;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -47,20 +47,15 @@ use std::collections::HashMap;
 /// Returns an error if:
 /// - The schema itself is invalid
 /// - The input does not conform to the schema
-fn validate_tool_input(
-    tool_name: &str,
-    input: &Value,
-    schema: &Value,
-) -> Result<(), AISDKError> {
+fn validate_tool_input(tool_name: &str, input: &Value, schema: &Value) -> Result<(), AISDKError> {
     // Compile the JSON Schema
-    let compiled_schema = jsonschema::validator_for(schema)
-        .map_err(|e| {
-            AISDKError::invalid_tool_input(
-                tool_name,
-                &input.to_string(),
-                format!("Invalid tool schema: {}", e),
-            )
-        })?;
+    let compiled_schema = jsonschema::validator_for(schema).map_err(|e| {
+        AISDKError::invalid_tool_input(
+            tool_name,
+            &input.to_string(),
+            format!("Invalid tool schema: {}", e),
+        )
+    })?;
 
     // Validate the input against the schema
     // The is_valid() method is faster for just checking validation
@@ -74,10 +69,7 @@ fn validate_tool_input(
         return Err(AISDKError::invalid_tool_input(
             tool_name,
             &input.to_string(),
-            format!(
-                "Input does not match schema: {}",
-                error_messages.join("; ")
-            ),
+            format!("Input does not match schema: {}", error_messages.join("; ")),
         ));
     }
 
@@ -116,12 +108,9 @@ pub fn parse_provider_executed_dynamic_tool_call(
         })?
     };
 
-    let mut dynamic_call = DynamicToolCall::new(
-        &tool_call.tool_call_id,
-        &tool_call.tool_name,
-        input,
-    )
-    .with_provider_executed(true);
+    let mut dynamic_call =
+        DynamicToolCall::new(&tool_call.tool_call_id, &tool_call.tool_name, input)
+            .with_provider_executed(true);
 
     if let Some(metadata) = tool_call.provider_metadata.clone() {
         dynamic_call = dynamic_call.with_provider_metadata(metadata);
@@ -211,11 +200,7 @@ pub fn parse_tool_call(
 
     if is_dynamic {
         // Dynamic tool
-        let mut dynamic_call = DynamicToolCall::new(
-            &tool_call.tool_call_id,
-            tool_name,
-            input,
-        );
+        let mut dynamic_call = DynamicToolCall::new(&tool_call.tool_call_id, tool_name, input);
 
         if let Some(executed) = tool_call.provider_executed {
             dynamic_call = dynamic_call.with_provider_executed(executed);
@@ -228,11 +213,7 @@ pub fn parse_tool_call(
         Ok(TypedToolCall::Dynamic(dynamic_call))
     } else {
         // Static tool
-        let mut static_call = StaticToolCall::new(
-            &tool_call.tool_call_id,
-            tool_name,
-            input,
-        );
+        let mut static_call = StaticToolCall::new(&tool_call.tool_call_id, tool_name, input);
 
         if let Some(executed) = tool_call.provider_executed {
             static_call = static_call.with_provider_executed(executed);
@@ -434,7 +415,9 @@ mod tests {
                 assert_eq!(parsed.provider_executed, Some(true));
                 assert_eq!(parsed.dynamic, true); // Treated as dynamic
             }
-            TypedToolCall::Static(_) => panic!("Expected Dynamic variant for provider-executed tool"),
+            TypedToolCall::Static(_) => {
+                panic!("Expected Dynamic variant for provider-executed tool")
+            }
         }
     }
 
@@ -499,9 +482,7 @@ mod tests {
 
         match result {
             Err(AISDKError::InvalidToolInput {
-                tool_name,
-                message,
-                ..
+                tool_name, message, ..
             }) => {
                 assert_eq!(tool_name, "get_weather");
                 assert!(message.contains("does not match schema"));
@@ -531,9 +512,7 @@ mod tests {
 
         match result {
             Err(AISDKError::InvalidToolInput {
-                tool_name,
-                message,
-                ..
+                tool_name, message, ..
             }) => {
                 assert_eq!(tool_name, "count_tool");
                 assert!(message.contains("does not match schema"));
@@ -563,9 +542,7 @@ mod tests {
 
         match result {
             Err(AISDKError::InvalidToolInput {
-                tool_name,
-                message,
-                ..
+                tool_name, message, ..
             }) => {
                 assert_eq!(tool_name, "update_status");
                 assert!(message.contains("does not match schema"));
@@ -588,17 +565,18 @@ mod tests {
         });
         tools.insert("strict_tool".to_string(), Tool::function(schema));
 
-        let tool_call =
-            ToolCall::new("call_123", "strict_tool", r#"{"name": "test", "extra": "field"}"#);
+        let tool_call = ToolCall::new(
+            "call_123",
+            "strict_tool",
+            r#"{"name": "test", "extra": "field"}"#,
+        );
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
 
         match result {
             Err(AISDKError::InvalidToolInput {
-                tool_name,
-                message,
-                ..
+                tool_name, message, ..
             }) => {
                 assert_eq!(tool_name, "strict_tool");
                 assert!(message.contains("does not match schema"));
@@ -741,15 +719,21 @@ mod tests {
         tools.insert("data_tool".to_string(), Tool::function(schema));
 
         // Valid input
-        let tool_call =
-            ToolCall::new("call_123", "data_tool", r#"{"age": 25, "temperature": 20.5}"#);
+        let tool_call = ToolCall::new(
+            "call_123",
+            "data_tool",
+            r#"{"age": 25, "temperature": 20.5}"#,
+        );
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
         matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid age (negative)
-        let tool_call =
-            ToolCall::new("call_124", "data_tool", r#"{"age": -5, "temperature": 20.5}"#);
+        let tool_call = ToolCall::new(
+            "call_124",
+            "data_tool",
+            r#"{"age": -5, "temperature": 20.5}"#,
+        );
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
 

@@ -58,11 +58,7 @@ pub struct ToolCall<I> {
 
 impl<I> ToolCall<I> {
     /// Creates a new tool call.
-    pub fn new(
-        tool_call_id: impl Into<String>,
-        tool_name: impl Into<String>,
-        input: I,
-    ) -> Self {
+    pub fn new(tool_call_id: impl Into<String>, tool_name: impl Into<String>, input: I) -> Self {
         Self {
             tool_call_id: tool_call_id.into(),
             tool_name: tool_name.into(),
@@ -129,8 +125,8 @@ mod tests {
             units: "fahrenheit".to_string(),
         };
 
-        let tool_call = ToolCall::new("call_456", "get_weather", input)
-            .with_provider_executed(true);
+        let tool_call =
+            ToolCall::new("call_456", "get_weather", input).with_provider_executed(true);
 
         assert_eq!(tool_call.provider_executed, Some(true));
         assert!(tool_call.is_provider_executed());
@@ -143,8 +139,7 @@ mod tests {
             units: "celsius".to_string(),
         };
 
-        let tool_call = ToolCall::new("call_789", "get_weather", input)
-            .with_dynamic(true);
+        let tool_call = ToolCall::new("call_789", "get_weather", input).with_dynamic(true);
 
         assert_eq!(tool_call.dynamic, Some(true));
         assert!(tool_call.is_dynamic());

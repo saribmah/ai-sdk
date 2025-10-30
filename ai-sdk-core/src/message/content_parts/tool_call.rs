@@ -79,8 +79,7 @@ mod tests {
     #[test]
     fn test_tool_call_part_with_provider_executed() {
         let input = json!({});
-        let part = ToolCallPart::new("call_456", "tool", input)
-            .with_provider_executed(true);
+        let part = ToolCallPart::new("call_456", "tool", input).with_provider_executed(true);
 
         assert_eq!(part.provider_executed, Some(true));
     }

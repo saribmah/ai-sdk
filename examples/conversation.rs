@@ -10,10 +10,9 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example conversation
 /// ```
-
 use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use std::env;
 
 #[tokio::main]
@@ -21,9 +20,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🤖 AI SDK Rust - Conversation Example\n");
 
     // Get API key from environment
-    let api_key = env::var("OPENAI_API_KEY").map_err(|_| {
-        "OPENAI_API_KEY environment variable not set. Please set it with your API key."
-    })?;
+    let api_key = env::var("OPENAI_API_KEY").map_err(
+        |_| "OPENAI_API_KEY environment variable not set. Please set it with your API key.",
+    )?;
 
     // Create OpenAI provider
     let provider = create_openai_compatible(
@@ -52,13 +51,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_output_tokens(150);
 
     println!("⏳ Generating response...\n");
-    let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
+    let result = generate_text(
+        &*model, prompt, settings, None, None, None, None, None, None, None,
+    )
+    .await?;
 
     println!("📝 Response:");
     for content in &result.content {
         println!("{:?}\n", content);
     }
-    println!("📊 Tokens used: {} in, {} out\n", result.usage.input_tokens, result.usage.output_tokens);
+    println!(
+        "📊 Tokens used: {} in, {} out\n",
+        result.usage.input_tokens, result.usage.output_tokens
+    );
 
     // Example 2: Different temperature settings
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

@@ -1,6 +1,6 @@
-use futures_util::Stream;
 use super::definition::{ToolExecuteFunction, ToolExecutionOutput};
 use super::options::ToolCallOptions;
+use futures_util::Stream;
 
 /// Event emitted during tool execution.
 #[derive(Debug, Clone)]
@@ -32,11 +32,7 @@ where
     }
 }
 
-impl<OUTPUT> Eq for ToolExecutionEvent<OUTPUT>
-where
-    OUTPUT: Eq + Send + Clone + 'static,
-{
-}
+impl<OUTPUT> Eq for ToolExecutionEvent<OUTPUT> where OUTPUT: Eq + Send + Clone + 'static {}
 
 /// Executes a tool with the given input and options.
 ///
@@ -114,16 +110,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{json, Value};
-    use std::pin::Pin;
     use futures_util::StreamExt;
+    use serde_json::{Value, json};
+    use std::pin::Pin;
 
     #[tokio::test]
     async fn test_execute_tool_single_output() {
         let execute: ToolExecuteFunction<Value, Value> = Box::new(|input, _options| {
-            ToolExecutionOutput::Single(Box::pin(async move {
-                Ok(json!({"result": input}))
-            }))
+            ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
         });
 
         let options = ToolCallOptions::new("call_123", vec![]);
@@ -215,9 +209,9 @@ mod tests {
     #[tokio::test]
     async fn test_execute_tool_single_error() {
         let execute: ToolExecuteFunction<Value, Value> = Box::new(|_input, _options| {
-            ToolExecutionOutput::Single(Box::pin(async move {
-                Err(json!("Tool execution failed"))
-            }))
+            ToolExecutionOutput::Single(Box::pin(
+                async move { Err(json!("Tool execution failed")) },
+            ))
         });
 
         let options = ToolCallOptions::new("call_123", vec![]);

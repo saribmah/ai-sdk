@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::tool_call::TypedToolCall;
-use super::tool_result::TypedToolResult;
-use super::tool_error::TypedToolError;
-use super::text_output::TextOutput;
 use super::reasoning_output::ReasoningOutput;
 use super::source_output::SourceOutput;
+use super::text_output::TextOutput;
+use super::tool_call::TypedToolCall;
+use super::tool_error::TypedToolError;
+use super::tool_result::TypedToolResult;
 
 /// A content part that can appear in an assistant message.
 ///
@@ -77,8 +77,8 @@ impl<INPUT, OUTPUT> ContentPart<INPUT, OUTPUT> {
 mod tests {
     use super::*;
     use crate::generate_text::tool_call::StaticToolCall;
-    use crate::generate_text::tool_result::StaticToolResult;
     use crate::generate_text::tool_error::StaticToolError;
+    use crate::generate_text::tool_result::StaticToolResult;
     use serde_json::json;
 
     #[test]
@@ -114,7 +114,8 @@ mod tests {
     #[test]
     fn test_content_part_tool_result() {
         let result = StaticToolResult::new("call_1", "tool", json!({}), json!({}));
-        let part: ContentPart<Value, Value> = ContentPart::ToolResult(TypedToolResult::Static(result));
+        let part: ContentPart<Value, Value> =
+            ContentPart::ToolResult(TypedToolResult::Static(result));
 
         assert!(part.is_tool_result());
         assert!(!part.is_tool_error());

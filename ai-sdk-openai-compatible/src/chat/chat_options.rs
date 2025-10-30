@@ -68,8 +68,7 @@ mod tests {
 
     #[test]
     fn test_with_user() {
-        let options = OpenAICompatibleProviderOptions::new()
-            .with_user("user-123".to_string());
+        let options = OpenAICompatibleProviderOptions::new().with_user("user-123".to_string());
 
         assert_eq!(options.user, Some("user-123".to_string()));
         assert_eq!(options.reasoning_effort, None);
@@ -78,8 +77,8 @@ mod tests {
 
     #[test]
     fn test_with_reasoning_effort() {
-        let options = OpenAICompatibleProviderOptions::new()
-            .with_reasoning_effort("high".to_string());
+        let options =
+            OpenAICompatibleProviderOptions::new().with_reasoning_effort("high".to_string());
 
         assert_eq!(options.user, None);
         assert_eq!(options.reasoning_effort, Some("high".to_string()));
@@ -88,8 +87,7 @@ mod tests {
 
     #[test]
     fn test_with_text_verbosity() {
-        let options = OpenAICompatibleProviderOptions::new()
-            .with_text_verbosity("low".to_string());
+        let options = OpenAICompatibleProviderOptions::new().with_text_verbosity("low".to_string());
 
         assert_eq!(options.user, None);
         assert_eq!(options.reasoning_effort, None);
@@ -150,8 +148,7 @@ mod tests {
 
     #[test]
     fn test_clone() {
-        let options1 = OpenAICompatibleProviderOptions::new()
-            .with_user("user-clone".to_string());
+        let options1 = OpenAICompatibleProviderOptions::new().with_user("user-clone".to_string());
 
         let options2 = options1.clone();
 

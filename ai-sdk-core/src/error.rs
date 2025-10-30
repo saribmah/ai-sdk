@@ -1,5 +1,5 @@
-use thiserror::Error;
 use std::time::Duration;
+use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum AISDKError {
@@ -38,7 +38,11 @@ pub enum AISDKError {
 }
 
 impl AISDKError {
-    pub fn invalid_argument(parameter: impl Into<String>, value: impl std::fmt::Display, message: impl Into<String>) -> Self {
+    pub fn invalid_argument(
+        parameter: impl Into<String>,
+        value: impl std::fmt::Display,
+        message: impl Into<String>,
+    ) -> Self {
         Self::InvalidArgument {
             parameter: parameter.into(),
             value: value.to_string(),

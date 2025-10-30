@@ -217,8 +217,8 @@ mod tests {
 
     #[test]
     fn test_with_name() {
-        let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain")
-            .with_name("hello.txt");
+        let file =
+            GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain").with_name("hello.txt");
         assert_eq!(file.name, Some("hello.txt".to_string()));
     }
 
@@ -293,8 +293,8 @@ mod tests {
 
     #[test]
     fn test_clone() {
-        let file1 = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain")
-            .with_name("test.txt");
+        let file1 =
+            GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain").with_name("test.txt");
         let file2 = file1.clone();
         assert_eq!(file1, file2);
         assert_eq!(file1.name, file2.name);

@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use crate::language_model::call_warning::CallWarning;
 use crate::language_model::file::File;
 use crate::language_model::finish_reason::FinishReason;
@@ -9,6 +7,8 @@ use crate::language_model::tool_call::ToolCall;
 use crate::language_model::tool_result::ToolResult;
 use crate::language_model::usage::Usage;
 use crate::shared::provider_metadata::ProviderMetadata;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 /// Stream parts that can be emitted during model generation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

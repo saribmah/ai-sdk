@@ -1,5 +1,5 @@
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use crate::message::DataContent;
+use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -99,8 +99,7 @@ mod tests {
     #[test]
     fn test_file_part_with_filename() {
         let data = DataContent::base64("data");
-        let part = FilePart::from_data(data, "application/pdf")
-            .with_filename("document.pdf");
+        let part = FilePart::from_data(data, "application/pdf").with_filename("document.pdf");
 
         assert_eq!(part.filename, Some("document.pdf".to_string()));
     }

@@ -87,8 +87,7 @@ mod tests {
         inner.insert("key".to_string(), serde_json::json!("value"));
         metadata.insert("provider".to_string(), inner);
 
-        let source_output = SourceOutput::new(source)
-            .with_provider_metadata(metadata.clone());
+        let source_output = SourceOutput::new(source).with_provider_metadata(metadata.clone());
 
         assert_eq!(source_output.provider_metadata, Some(metadata));
     }

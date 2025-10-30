@@ -301,7 +301,7 @@ impl<INPUT, OUTPUT> From<DynamicToolResult> for TypedToolResult<INPUT, OUTPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
 
     #[test]
     fn test_static_tool_result_new() {
@@ -324,26 +324,16 @@ mod tests {
 
     #[test]
     fn test_static_tool_result_with_provider_executed() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "tool",
-            json!({}),
-            json!({}),
-        )
-        .with_provider_executed(true);
+        let result = StaticToolResult::new("call_123", "tool", json!({}), json!({}))
+            .with_provider_executed(true);
 
         assert_eq!(result.provider_executed, Some(true));
     }
 
     #[test]
     fn test_static_tool_result_with_preliminary() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "tool",
-            json!({}),
-            json!({}),
-        )
-        .with_preliminary(true);
+        let result =
+            StaticToolResult::new("call_123", "tool", json!({}), json!({})).with_preliminary(true);
 
         assert_eq!(result.preliminary, Some(true));
     }
@@ -369,14 +359,9 @@ mod tests {
 
     #[test]
     fn test_dynamic_tool_result_with_options() {
-        let result = DynamicToolResult::new(
-            "call_456",
-            "tool",
-            json!({}),
-            json!({}),
-        )
-        .with_provider_executed(false)
-        .with_preliminary(true);
+        let result = DynamicToolResult::new("call_456", "tool", json!({}), json!({}))
+            .with_provider_executed(false)
+            .with_preliminary(true);
 
         assert_eq!(result.provider_executed, Some(false));
         assert_eq!(result.preliminary, Some(true));
@@ -384,12 +369,8 @@ mod tests {
 
     #[test]
     fn test_typed_tool_result_static() {
-        let static_result = StaticToolResult::new(
-            "call_1",
-            "add",
-            json!({"a": 1}),
-            json!({"sum": 1}),
-        );
+        let static_result =
+            StaticToolResult::new("call_1", "add", json!({"a": 1}), json!({"sum": 1}));
 
         let typed: TypedToolResult<Value, Value> = TypedToolResult::Static(static_result.clone());
 
@@ -401,12 +382,7 @@ mod tests {
 
     #[test]
     fn test_typed_tool_result_dynamic() {
-        let dynamic_result = DynamicToolResult::new(
-            "call_2",
-            "unknown",
-            json!({}),
-            json!({}),
-        );
+        let dynamic_result = DynamicToolResult::new("call_2", "unknown", json!({}), json!({}));
 
         let typed: TypedToolResult<Value, Value> = TypedToolResult::Dynamic(dynamic_result.clone());
 
@@ -452,14 +428,12 @@ mod tests {
 
     #[test]
     fn test_typed_tool_result_serialization() {
-        let typed: TypedToolResult<Value, Value> = TypedToolResult::Static(
-            StaticToolResult::new(
-                "call_1",
-                "add",
-                json!({"a": 1, "b": 2}),
-                json!({"sum": 3}),
-            ),
-        );
+        let typed: TypedToolResult<Value, Value> = TypedToolResult::Static(StaticToolResult::new(
+            "call_1",
+            "add",
+            json!({"a": 1, "b": 2}),
+            json!({"sum": 3}),
+        ));
 
         let serialized = serde_json::to_string(&typed).unwrap();
         let deserialized: TypedToolResult<Value, Value> =
@@ -470,12 +444,7 @@ mod tests {
 
     #[test]
     fn test_json_field_names() {
-        let result = StaticToolResult::new(
-            "call_123",
-            "tool",
-            json!({}),
-            json!({}),
-        );
+        let result = StaticToolResult::new("call_123", "tool", json!({}), json!({}));
 
         let json = serde_json::to_value(&result).unwrap();
 

@@ -63,11 +63,8 @@ mod tests {
 
     #[test]
     fn test_get_response_metadata_partial_fields() {
-        let metadata = get_response_metadata(
-            Some("chatcmpl-456".to_string()),
-            None,
-            Some(1677649420),
-        );
+        let metadata =
+            get_response_metadata(Some("chatcmpl-456".to_string()), None, Some(1677649420));
 
         assert_eq!(metadata.id, Some("chatcmpl-456".to_string()));
         assert_eq!(metadata.model_id, None);

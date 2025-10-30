@@ -151,7 +151,11 @@ where
     /// # Panics
     ///
     /// Panics if `steps` is empty.
-    pub fn from_steps(steps: Vec<StepResult<INPUT, OUTPUT>>, total_usage: Usage, output: OUTPUT) -> Self
+    pub fn from_steps(
+        steps: Vec<StepResult<INPUT, OUTPUT>>,
+        total_usage: Usage,
+        output: OUTPUT,
+    ) -> Self
     where
         Self: Sized,
     {
@@ -161,21 +165,18 @@ where
         let content: Vec<ContentPart<INPUT, OUTPUT>> = final_step.content.clone();
 
         let text = final_step.text();
-        let reasoning: Vec<ReasoningOutput> = final_step.reasoning().iter().cloned().cloned().collect();
+        let reasoning: Vec<ReasoningOutput> =
+            final_step.reasoning().iter().cloned().cloned().collect();
         let reasoning_text = final_step.reasoning_text();
 
         // Files are extracted directly from ContentPart (though currently empty)
         let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
-        let sources: Vec<Source> = final_step
-            .sources()
-            .iter()
-            .cloned()
-            .cloned()
-            .collect();
+        let sources: Vec<Source> = final_step.sources().iter().cloned().cloned().collect();
 
         // Tool calls are already TypedToolCall in StepResult
-        let all_tool_calls: Vec<TypedToolCall<INPUT>> = final_step.tool_calls().iter().cloned().cloned().collect();
+        let all_tool_calls: Vec<TypedToolCall<INPUT>> =
+            final_step.tool_calls().iter().cloned().cloned().collect();
 
         // Split into static and dynamic
         let static_tool_calls: Vec<StaticToolCall<INPUT>> = all_tool_calls
@@ -195,7 +196,8 @@ where
             .collect();
 
         // Tool results are already TypedToolResult in StepResult
-        let all_tool_results: Vec<TypedToolResult<INPUT, OUTPUT>> = final_step.tool_results().iter().cloned().cloned().collect();
+        let all_tool_results: Vec<TypedToolResult<INPUT, OUTPUT>> =
+            final_step.tool_results().iter().cloned().cloned().collect();
 
         // Split into static and dynamic
         let static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>> = all_tool_results
@@ -351,8 +353,8 @@ mod tests {
 
     #[test]
     fn test_generated_file_new() {
-        let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQ=", "text/plain")
-            .with_name("test.txt");
+        let file =
+            GeneratedFile::from_base64("SGVsbG8gV29ybGQ=", "text/plain").with_name("test.txt");
 
         assert_eq!(file.name, Some("test.txt".to_string()));
         assert_eq!(file.base64(), "SGVsbG8gV29ybGQ=");
@@ -412,27 +414,27 @@ mod tests {
     #[test]
     fn test_generate_text_result_new() {
         let result: GenerateTextResult<Value, String> = GenerateTextResult::new(
-            vec![],                      // content
-            "Hello".to_string(),         // text
-            vec![],                      // reasoning
-            None,                        // reasoning_text
-            vec![],                      // files
-            vec![],                      // sources
-            vec![],                      // tool_calls
-            vec![],                      // static_tool_calls
-            vec![],                      // dynamic_tool_calls
-            vec![],                      // tool_results
-            vec![],                      // static_tool_results
-            vec![],                      // dynamic_tool_results
-            FinishReason::Stop,          // finish_reason
-            Usage::default(),            // usage
-            Usage::default(),            // total_usage
-            None,                        // warnings
-            RequestMetadata::default(),  // request
+            vec![],                        // content
+            "Hello".to_string(),           // text
+            vec![],                        // reasoning
+            None,                          // reasoning_text
+            vec![],                        // files
+            vec![],                        // sources
+            vec![],                        // tool_calls
+            vec![],                        // static_tool_calls
+            vec![],                        // dynamic_tool_calls
+            vec![],                        // tool_results
+            vec![],                        // static_tool_results
+            vec![],                        // dynamic_tool_results
+            FinishReason::Stop,            // finish_reason
+            Usage::default(),              // usage
+            Usage::default(),              // total_usage
+            None,                          // warnings
+            RequestMetadata::default(),    // request
             ResponseMetadata::new(vec![]), // response
-            None,                        // provider_metadata
-            vec![],                      // steps
-            "output".to_string(),        // output
+            None,                          // provider_metadata
+            vec![],                        // steps
+            "output".to_string(),          // output
         );
 
         assert_eq!(result.text, "Hello");
@@ -474,25 +476,26 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use super::super::{TextOutput, TypedToolCall, DynamicToolCall, TypedToolResult, DynamicToolResult};
+        use super::super::{
+            DynamicToolCall, DynamicToolResult, TextOutput, TypedToolCall, TypedToolResult,
+        };
 
         // Create a step with tool calls and tool results using ContentPart
         let content = vec![
             ContentPart::Text(TextOutput::new("Hello".to_string())),
-            ContentPart::ToolCall(TypedToolCall::Dynamic(
-                DynamicToolCall::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({"city": "SF"}),
-                )
-            )),
+            ContentPart::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+                "call_1".to_string(),
+                "get_weather".to_string(),
+                json!({"city": "SF"}),
+            ))),
             ContentPart::ToolResult(TypedToolResult::Dynamic(
                 DynamicToolResult::new(
                     "call_1".to_string(),
                     "get_weather".to_string(),
                     json!({"city": "SF"}),
                     json!({"temp": 72}),
-                ).with_provider_executed(true)
+                )
+                .with_provider_executed(true),
             )),
         ];
 

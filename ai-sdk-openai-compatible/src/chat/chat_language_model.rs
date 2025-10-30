@@ -1,23 +1,23 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
-    call_options::CallOptions, call_warning::CallWarning, content::Content,
-    reasoning::Reasoning, text::Text, tool_call::ToolCall, usage::Usage, LanguageModel,
-    LanguageModelGenerateResponse, LanguageModelStreamResponse,
+    LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
+    call_options::CallOptions, call_warning::CallWarning, content::Content, reasoning::Reasoning,
+    text::Text, tool_call::ToolCall, usage::Usage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 
+use crate::chat::MetadataExtractor;
 use crate::chat::{
-    convert_to_openai_compatible_chat_messages, get_response_metadata,
-    map_openai_compatible_finish_reason, prepare_tools, OpenAICompatibleChatModelId,
+    OpenAICompatibleChatModelId, convert_to_openai_compatible_chat_messages, get_response_metadata,
+    map_openai_compatible_finish_reason, prepare_tools,
 };
 use crate::error::{DefaultOpenAICompatibleErrorStructure, ProviderErrorStructure};
-use crate::chat::MetadataExtractor;
 
 /// Configuration for an OpenAI-compatible chat language model
 pub struct OpenAICompatibleChatConfig {
@@ -181,7 +181,10 @@ impl OpenAICompatibleChatLanguageModel {
         }
 
         // Handle reasoning content
-        let reasoning = delta.reasoning_content.as_ref().or(delta.reasoning.as_ref());
+        let reasoning = delta
+            .reasoning_content
+            .as_ref()
+            .or(delta.reasoning.as_ref());
         if let Some(reasoning_text) = reasoning {
             if !reasoning_text.is_empty() {
                 if state.reasoning_id.is_none() {
@@ -226,8 +229,14 @@ impl OpenAICompatibleChatLanguageModel {
                         }
 
                         // Emit start event if we have both ID and name
-                        if !tool_state.started && !tool_state.id.is_empty() && !tool_state.name.is_empty() {
-                            parts.push(StreamPart::tool_input_start(&tool_state.id, &tool_state.name));
+                        if !tool_state.started
+                            && !tool_state.id.is_empty()
+                            && !tool_state.name.is_empty()
+                        {
+                            parts.push(StreamPart::tool_input_start(
+                                &tool_state.id,
+                                &tool_state.name,
+                            ));
                             tool_state.started = true;
                         }
 
@@ -296,7 +305,10 @@ impl OpenAICompatibleChatLanguageModel {
     }
 
     /// Prepare arguments for API request
-    fn prepare_request_body(&self, options: &CallOptions) -> Result<(Value, Vec<CallWarning>), Box<dyn std::error::Error>> {
+    fn prepare_request_body(
+        &self,
+        options: &CallOptions,
+    ) -> Result<(Value, Vec<CallWarning>), Box<dyn std::error::Error>> {
         let mut warnings = Vec::new();
 
         // Prepare tools
@@ -460,7 +472,6 @@ struct ToolCallState {
     started: bool,
 }
 
-
 #[async_trait]
 impl LanguageModel for OpenAICompatibleChatLanguageModel {
     fn specification_version(&self) -> &str {
@@ -532,7 +543,11 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                 String::new()
             };
 
-            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
+            return Err(format!(
+                "API request failed with status {}: {}{}",
+                status, error_body, retry_info
+            )
+            .into());
         }
 
         let response_body = response.text().await?;
@@ -568,7 +583,10 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         // Add tool calls
         if let Some(tool_calls) = &choice.message.tool_calls {
             for tool_call in tool_calls {
-                let tool_call_id = tool_call.id.clone().unwrap_or_else(|| "unknown".to_string());
+                let tool_call_id = tool_call
+                    .id
+                    .clone()
+                    .unwrap_or_else(|| "unknown".to_string());
                 let tool_name = tool_call.function.name.clone();
                 let input = tool_call.function.arguments.clone();
                 content.push(Content::ToolCall(ToolCall::new(
@@ -609,10 +627,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         // Common useful headers: x-ratelimit-*, x-request-id, retry-after, etc.
         for (key, value) in response_headers.iter() {
             if let Ok(value_str) = value.to_str() {
-                provider_data.insert(
-                    format!("header.{}", key.as_str()),
-                    json!(value_str),
-                );
+                provider_data.insert(format!("header.{}", key.as_str()), json!(value_str));
             }
         }
 
@@ -626,18 +641,14 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         );
 
         // Map finish reason
-        let finish_reason = map_openai_compatible_finish_reason(
-            choice.finish_reason.as_deref()
-        );
+        let finish_reason = map_openai_compatible_finish_reason(choice.finish_reason.as_deref());
 
         Ok(LanguageModelGenerateResponse {
             content,
             finish_reason,
             usage,
             provider_metadata: Some(provider_metadata),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata {
-                body: Some(body),
-            }),
+            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
             response: Some(response_metadata),
             warnings,
         })
@@ -701,7 +712,11 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                 String::new()
             };
 
-            return Err(format!("API request failed with status {}: {}{}", status, error_body, retry_info).into());
+            return Err(format!(
+                "API request failed with status {}: {}{}",
+                status, error_body, retry_info
+            )
+            .into());
         }
 
         // Build headers map from HTTP response headers
@@ -720,9 +735,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata {
-                body: Some(body),
-            }),
+            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),

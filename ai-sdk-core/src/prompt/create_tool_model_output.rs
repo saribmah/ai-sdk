@@ -135,7 +135,10 @@ mod tests {
         let result = create_tool_model_output(output, None, ErrorMode::Text);
 
         match result {
-            ToolResultOutput::ErrorText { value, provider_options } => {
+            ToolResultOutput::ErrorText {
+                value,
+                provider_options,
+            } => {
                 assert_eq!(value, "Something went wrong");
                 assert!(provider_options.is_none());
             }
@@ -149,7 +152,10 @@ mod tests {
         let result = create_tool_model_output(output, None, ErrorMode::Json);
 
         match result {
-            ToolResultOutput::ErrorJson { value, provider_options } => {
+            ToolResultOutput::ErrorJson {
+                value,
+                provider_options,
+            } => {
                 assert_eq!(value["error"], "failed");
                 assert!(provider_options.is_none());
             }
@@ -163,7 +169,10 @@ mod tests {
         let result = create_tool_model_output(output, None, ErrorMode::None);
 
         match result {
-            ToolResultOutput::Text { value, provider_options } => {
+            ToolResultOutput::Text {
+                value,
+                provider_options,
+            } => {
                 assert_eq!(value, "Hello, world!");
                 assert!(provider_options.is_none());
             }
@@ -177,7 +186,10 @@ mod tests {
         let result = create_tool_model_output(output, None, ErrorMode::None);
 
         match result {
-            ToolResultOutput::Json { value, provider_options } => {
+            ToolResultOutput::Json {
+                value,
+                provider_options,
+            } => {
                 assert_eq!(value["result"], "success");
                 assert_eq!(value["count"], 42);
                 assert!(provider_options.is_none());

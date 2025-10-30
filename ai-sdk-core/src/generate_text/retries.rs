@@ -39,10 +39,7 @@ impl RetryConfig {
     ///     execute_tool(tool_call).await
     /// }).await?;
     /// ```
-    pub async fn execute<F, Fut, T>(
-        &self,
-        operation: F,
-    ) -> Result<T, AISDKError>
+    pub async fn execute<F, Fut, T>(&self, operation: F) -> Result<T, AISDKError>
     where
         F: Fn() -> Fut,
         Fut: Future<Output = Result<T, AISDKError>>,
@@ -104,10 +101,7 @@ impl RetryConfig {
     /// # See Also
     ///
     /// * [`execute`](Self::execute) - Recommended for new code using `Result<T, AISDKError>`
-    pub async fn execute_with_boxed_error<F, Fut, T>(
-        &self,
-        operation: F,
-    ) -> Result<T, AISDKError>
+    pub async fn execute_with_boxed_error<F, Fut, T>(&self, operation: F) -> Result<T, AISDKError>
     where
         F: Fn() -> Fut,
         Fut: Future<Output = Result<T, Box<dyn std::error::Error>>>,
@@ -135,11 +129,12 @@ impl RetryConfig {
 
                     // Try to extract retry delay from error message
                     // If error contains "retry after X seconds", parse it
-                    let delay = if let Some(retry_delay) = extract_retry_delay_from_error(&e.to_string()) {
-                        retry_delay
-                    } else {
-                        default_delay
-                    };
+                    let delay =
+                        if let Some(retry_delay) = extract_retry_delay_from_error(&e.to_string()) {
+                            retry_delay
+                        } else {
+                            default_delay
+                        };
 
                     // Wait with the appropriate delay
                     tokio::time::sleep(delay).await;
@@ -273,8 +268,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_success_on_first_try() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         let config = RetryConfig {
             max_retries: 3,
@@ -300,8 +295,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_with_retryable_error_hint() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
         use std::time::Duration;
 
         let config = RetryConfig {
@@ -343,8 +338,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_with_exponential_backoff() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         let config = RetryConfig {
             max_retries: 3,
@@ -380,8 +375,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_max_retries_exhausted() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         let config = RetryConfig {
             max_retries: 2,
@@ -413,8 +408,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_with_cancellation() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         let token = CancellationToken::new();
         let config = RetryConfig {
@@ -450,8 +445,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_retryable_without_hint() {
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         let config = RetryConfig {
             max_retries: 2,

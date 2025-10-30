@@ -122,16 +122,15 @@ mod tests {
 
     #[test]
     fn test_response_message_from_tool() {
-        use crate::message::content_parts::{ToolResultPart, ToolResultOutput};
+        use crate::message::content_parts::{ToolResultOutput, ToolResultPart};
         use crate::message::model::tool::ToolContentPart;
 
-        let tool_msg = ToolModelMessage::new(vec![
-            ToolContentPart::ToolResult(ToolResultPart::new(
+        let tool_msg =
+            ToolModelMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
                 "call_123",
                 "tool_name",
                 ToolResultOutput::text("Tool result"),
-            )),
-        ]);
+            ))]);
         let response = ResponseMessage::from_tool(tool_msg.clone());
 
         assert!(response.is_tool());
