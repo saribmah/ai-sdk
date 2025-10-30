@@ -18,7 +18,9 @@ use crate::error::AISDKError;
 use crate::generate_text::ToolSet;
 use crate::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_provider::language_model::LanguageModel;
+use ai_sdk_provider::language_model::finish_reason::FinishReason;
 use ai_sdk_provider::language_model::tool_choice::ToolChoice;
+use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde_json::Value;
 
@@ -190,7 +192,10 @@ pub async fn stream_text(
         .map_err(|e| AISDKError::model_error(e.to_string()))?;
 
     // Extract metadata before moving stream
-    let request_body = stream_response.request.as_ref().and_then(|r| r.body.clone());
+    let request_body = stream_response
+        .request
+        .as_ref()
+        .and_then(|r| r.body.clone());
 
     // Step 7: Create a channel to emit TextStreamPart events
     let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart<Value, Value>>();
@@ -201,40 +206,102 @@ pub async fn stream_text(
     // Wrap callbacks in Arc for sharing in the spawned task
     let on_chunk_arc = on_chunk.map(Arc::new);
     let on_error_arc = on_error.map(Arc::new);
+    let on_step_finish_arc = on_step_finish.map(Arc::new);
+    let on_finish_arc = on_finish.map(Arc::new);
     let include_raw = include_raw_chunks;
 
     tokio::spawn(async move {
+        use crate::generate_text::{ContentPart, StepResponseMetadata, StepResult, TextOutput};
+
         // Emit Start event
         let _ = tx_clone.send(TextStreamPart::Start);
+
+        // Accumulate step data
+        let mut step_content: Vec<ContentPart<Value, Value>> = Vec::new();
+        let mut current_text = String::new();
+        let mut current_reasoning = String::new();
+        let step_request = crate::generate_text::RequestMetadata {
+            body: request_body.clone(),
+        };
+        let step_response = StepResponseMetadata::default();
+        let mut step_usage = Usage::default();
+        let mut step_finish_reason = FinishReason::Unknown;
+        let mut step_warnings = None;
+        let mut step_provider_metadata = None;
+        let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
+        let mut total_usage = Usage::default();
 
         while let Some(part) = provider_stream.next().await {
             // Convert StreamPart to TextStreamPart
             let text_stream_part = match part {
-                StreamPart::TextStart { id, provider_metadata } => {
-                    TextStreamPart::TextStart { id, provider_metadata }
-                }
-                StreamPart::TextDelta { id, delta, provider_metadata } => {
+                StreamPart::TextStart {
+                    id,
+                    provider_metadata,
+                } => TextStreamPart::TextStart {
+                    id,
+                    provider_metadata,
+                },
+                StreamPart::TextDelta {
+                    id,
+                    delta,
+                    provider_metadata,
+                } => {
+                    current_text.push_str(&delta);
                     TextStreamPart::TextDelta {
                         id,
                         provider_metadata,
                         text: delta,
                     }
                 }
-                StreamPart::TextEnd { id, provider_metadata } => {
-                    TextStreamPart::TextEnd { id, provider_metadata }
+                StreamPart::TextEnd {
+                    id,
+                    provider_metadata,
+                } => {
+                    // Add accumulated text to content
+                    if !current_text.is_empty() {
+                        step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                        current_text.clear();
+                    }
+                    TextStreamPart::TextEnd {
+                        id,
+                        provider_metadata,
+                    }
                 }
-                StreamPart::ReasoningStart { id, provider_metadata } => {
-                    TextStreamPart::ReasoningStart { id, provider_metadata }
-                }
-                StreamPart::ReasoningDelta { id, delta, provider_metadata } => {
+                StreamPart::ReasoningStart {
+                    id,
+                    provider_metadata,
+                } => TextStreamPart::ReasoningStart {
+                    id,
+                    provider_metadata,
+                },
+                StreamPart::ReasoningDelta {
+                    id,
+                    delta,
+                    provider_metadata,
+                } => {
+                    current_reasoning.push_str(&delta);
                     TextStreamPart::ReasoningDelta {
                         id,
                         provider_metadata,
                         text: delta,
                     }
                 }
-                StreamPart::ReasoningEnd { id, provider_metadata } => {
-                    TextStreamPart::ReasoningEnd { id, provider_metadata }
+                StreamPart::ReasoningEnd {
+                    id,
+                    provider_metadata,
+                } => {
+                    // Add accumulated reasoning to content
+                    if !current_reasoning.is_empty() {
+                        use crate::generate_text::ReasoningOutput;
+                        step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                            current_reasoning.clone(),
+                        )));
+                        current_reasoning.clear();
+                    }
+                    TextStreamPart::ReasoningEnd {
+                        id,
+                        provider_metadata,
+                    }
                 }
                 StreamPart::ToolInputStart {
                     id,
@@ -249,25 +316,33 @@ pub async fn stream_text(
                     dynamic: None,
                     title: None,
                 },
-                StreamPart::ToolInputDelta { id, delta, provider_metadata } => {
-                    TextStreamPart::ToolInputDelta {
-                        id,
-                        delta,
-                        provider_metadata,
-                    }
-                }
-                StreamPart::ToolInputEnd { id, provider_metadata } => {
-                    TextStreamPart::ToolInputEnd { id, provider_metadata }
-                }
+                StreamPart::ToolInputDelta {
+                    id,
+                    delta,
+                    provider_metadata,
+                } => TextStreamPart::ToolInputDelta {
+                    id,
+                    delta,
+                    provider_metadata,
+                },
+                StreamPart::ToolInputEnd {
+                    id,
+                    provider_metadata,
+                } => TextStreamPart::ToolInputEnd {
+                    id,
+                    provider_metadata,
+                },
                 StreamPart::Source(source) => {
                     use crate::generate_text::SourceOutput;
+                    let source_output = SourceOutput::new(source.clone());
+                    step_content.push(ContentPart::Source(source_output.clone()));
                     TextStreamPart::Source {
-                        source: SourceOutput::new(source),
+                        source: source_output,
                     }
                 }
                 StreamPart::File(file) => {
-                    use ai_sdk_provider::language_model::file::FileData;
                     use crate::stream_text::StreamGeneratedFile;
+                    use ai_sdk_provider::language_model::file::FileData;
 
                     // Convert FileData to base64
                     let base64 = match file.data {
@@ -288,6 +363,11 @@ pub async fn stream_text(
                 }
                 StreamPart::StreamStart { warnings } => {
                     use crate::generate_text::RequestMetadata;
+                    step_warnings = if warnings.is_empty() {
+                        None
+                    } else {
+                        Some(warnings.clone())
+                    };
                     TextStreamPart::StartStep {
                         request: RequestMetadata {
                             body: request_body.clone(),
@@ -300,6 +380,38 @@ pub async fn stream_text(
                     finish_reason,
                     provider_metadata,
                 } => {
+                    // Flush any remaining text/reasoning
+                    if !current_text.is_empty() {
+                        step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                        current_text.clear();
+                    }
+                    if !current_reasoning.is_empty() {
+                        use crate::generate_text::ReasoningOutput;
+                        step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                            current_reasoning.clone(),
+                        )));
+                        current_reasoning.clear();
+                    }
+
+                    step_usage = usage.clone();
+                    step_finish_reason = finish_reason.clone();
+                    step_provider_metadata = provider_metadata.clone();
+                    total_usage = usage.clone(); // For now, single step
+
+                    // Create step result
+                    let step_result = StepResult::new(
+                        step_content.clone(),
+                        finish_reason.clone(),
+                        usage.clone(),
+                        step_warnings.clone(),
+                        step_request.clone(),
+                        step_response.clone(),
+                        provider_metadata.clone(),
+                    );
+
+                    // Add to all steps
+                    all_steps.push(step_result.clone());
+
                     // Emit FinishStep first
                     let finish_step = TextStreamPart::FinishStep {
                         response: ai_sdk_provider::language_model::response_metadata::ResponseMetadata::default(),
@@ -308,6 +420,11 @@ pub async fn stream_text(
                         provider_metadata: provider_metadata.clone(),
                     };
                     let _ = tx_clone.send(finish_step);
+
+                    // Call on_step_finish callback if provided
+                    if let Some(ref callback) = on_step_finish_arc {
+                        callback(step_result).await;
+                    }
 
                     // Then emit the overall Finish event
                     TextStreamPart::Finish {
@@ -325,7 +442,9 @@ pub async fn stream_text(
                 StreamPart::Error { error } => {
                     // Call on_error callback if provided
                     if let Some(ref callback) = on_error_arc {
-                        let event = callbacks::StreamTextErrorEvent { error: error.clone() };
+                        let event = callbacks::StreamTextErrorEvent {
+                            error: error.clone(),
+                        };
                         callback(event).await;
                     }
                     TextStreamPart::Error { error }
@@ -336,7 +455,8 @@ pub async fn stream_text(
 
             // Call on_chunk callback if this is a chunk type
             if let Some(ref callback) = on_chunk_arc {
-                if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
+                if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part)
+                {
                     let event = callbacks::StreamTextChunkEvent { chunk };
                     callback(event).await;
                 }
@@ -345,6 +465,18 @@ pub async fn stream_text(
             // Send the part to the channel
             if tx_clone.send(text_stream_part).is_err() {
                 break;
+            }
+        }
+
+        // Call on_finish callback if provided
+        if let Some(ref callback) = on_finish_arc {
+            if let Some(last_step) = all_steps.last() {
+                let event = callbacks::StreamTextFinishEvent {
+                    step_result: last_step.clone(),
+                    steps: all_steps,
+                    total_usage,
+                };
+                callback(event).await;
             }
         }
 

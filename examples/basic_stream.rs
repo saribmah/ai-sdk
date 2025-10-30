@@ -1,3 +1,4 @@
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Basic streaming example demonstrating real-time text generation.
 ///
 /// This example shows how to:
@@ -12,7 +13,6 @@
 /// cargo run --example basic_stream
 /// ```
 use ai_sdk_core::stream_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use futures_util::StreamExt;
 use std::env;
@@ -44,7 +44,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a prompt
     let prompt = Prompt::text("Write a short poem about Rust programming. Make it 4 lines.");
-    println!("📤 Sending prompt: \"Write a short poem about Rust programming. Make it 4 lines.\"\n");
+    println!(
+        "📤 Sending prompt: \"Write a short poem about Rust programming. Make it 4 lines.\"\n"
+    );
 
     // Configure settings
     let settings = CallSettings::default()
@@ -57,10 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!("📝 ");
 
     let result = stream_text(
-        settings,
-        prompt,
-        &*model,
-        None,  // tools
+        settings, prompt, &*model, None,  // tools
         None,  // tool_choice
         None,  // stop_when
         None,  // provider_options

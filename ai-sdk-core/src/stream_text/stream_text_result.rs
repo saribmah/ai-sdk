@@ -1,8 +1,8 @@
 use crate::error::AISDKError;
 use crate::generate_text::{
     ContentPart, DynamicToolCall, DynamicToolResult, GeneratedFile, ReasoningOutput,
-    RequestMetadata, ResponseMessage, ResponseMetadata, SourceOutput, StaticToolCall,
-    StaticToolResult, StepResult, TypedToolCall, TypedToolResult,
+    RequestMetadata, ResponseMetadata, StaticToolCall, StaticToolResult, StepResult, TypedToolCall,
+    TypedToolResult,
 };
 use crate::stream_text::TextStreamPart;
 use ai_sdk_provider::language_model::call_warning::CallWarning;
@@ -13,7 +13,6 @@ use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
 use serde_json::Value;
-use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
@@ -263,6 +262,11 @@ where
                 TextStreamPart::TextEnd { .. } => {
                     if !current_text.is_empty() {
                         state.text.push_str(&current_text);
+                        // Also add to content
+                        use crate::generate_text::TextOutput;
+                        state
+                            .content
+                            .push(ContentPart::Text(TextOutput::new(current_text.clone())));
                         current_text.clear();
                     }
                 }
@@ -274,11 +278,19 @@ where
                         state
                             .reasoning
                             .push(ReasoningOutput::new(current_reasoning.clone()));
+                        // Also add to content
+                        state
+                            .content
+                            .push(ContentPart::Reasoning(ReasoningOutput::new(
+                                current_reasoning.clone(),
+                            )));
                         current_reasoning.clear();
                     }
                 }
                 TextStreamPart::Source { source } => {
-                    state.sources.push(source.source);
+                    state.sources.push(source.source.clone());
+                    // Also add to content
+                    state.content.push(ContentPart::Source(source));
                 }
                 TextStreamPart::File { file } => {
                     state
@@ -295,6 +307,8 @@ where
                             state.dynamic_tool_calls.push(call.clone());
                         }
                     }
+                    // Also add to content
+                    state.content.push(ContentPart::ToolCall(tool_call.clone()));
                     state.tool_calls.push(tool_call);
                 }
                 TextStreamPart::ToolResult { tool_result } => {
@@ -307,6 +321,10 @@ where
                             state.dynamic_tool_results.push(result.clone());
                         }
                     }
+                    // Also add to content
+                    state
+                        .content
+                        .push(ContentPart::ToolResult(tool_result.clone()));
                     state.tool_results.push(tool_result);
                 }
                 TextStreamPart::StartStep { request, warnings } => {
@@ -350,13 +368,22 @@ where
         // Flush any remaining text
         if !current_text.is_empty() {
             state.text.push_str(&current_text);
+            use crate::generate_text::TextOutput;
+            state
+                .content
+                .push(ContentPart::Text(TextOutput::new(current_text)));
         }
 
         // Flush any remaining reasoning
         if !current_reasoning.is_empty() {
             state
                 .reasoning
-                .push(ReasoningOutput::new(current_reasoning));
+                .push(ReasoningOutput::new(current_reasoning.clone()));
+            state
+                .content
+                .push(ContentPart::Reasoning(ReasoningOutput::new(
+                    current_reasoning,
+                )));
         }
 
         // Finalize reasoning text
