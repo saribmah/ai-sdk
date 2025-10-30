@@ -76,6 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,  // provider_options
         None,  // prepare_step
         false, // include_raw_chunks
+        None,  // transforms
         None,  // on_chunk
         None,  // on_error
         None,  // on_step_finish

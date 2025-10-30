@@ -1,6 +1,7 @@
 pub mod callbacks;
 pub mod stream_text_result;
 pub mod text_stream_part;
+pub mod transform;
 
 pub use callbacks::{
     ChunkStreamPart, StreamTextAbortEvent as AbortEvent, StreamTextChunkEvent as ChunkEvent,
@@ -13,6 +14,11 @@ pub use stream_text_result::{
     AsyncIterableStream, ConsumeStreamOptions, ErrorHandler, StreamTextResult,
 };
 pub use text_stream_part::{StreamGeneratedFile, TextStreamPart};
+pub use transform::{
+    StreamTransform, TransformOptions, StopStreamHandle,
+    FilterTransform, MapTransform, ThrottleTransform, BatchTextTransform,
+    filter_transform, map_transform, throttle_transform, batch_text_transform,
+};
 
 use crate::error::AISDKError;
 use crate::generate_text::{
@@ -27,6 +33,7 @@ use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde_json::Value;
 use std::sync::Arc;
+use std::pin::Pin;
 use tokio::sync::mpsc;
 
 /// Result of streaming a single step.
@@ -415,6 +422,7 @@ async fn stream_single_step(
 /// * `provider_options` - Optional provider-specific options.
 /// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
 /// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
+/// * `transforms` - Optional list of stream transformations to apply to the output stream.
 /// * `on_chunk` - Optional callback that is called for each chunk of the stream.
 /// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
 /// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
@@ -447,6 +455,7 @@ async fn stream_single_step(
 ///     None,
 ///     None,
 ///     None,
+///     None,
 /// ).await?;
 ///
 /// // Stream text deltas in real-time
@@ -465,6 +474,7 @@ pub async fn stream_text(
     provider_options: Option<ProviderOptions>,
     prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
     include_raw_chunks: bool,
+    transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
     on_chunk: Option<OnChunkCallback>,
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
@@ -796,13 +806,22 @@ pub async fn stream_text(
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver
-    let stream = Box::pin(async_stream::stream! {
-        let mut rx = rx;
-        while let Some(part) = rx.recv().await {
-            yield part;
-        }
-    });
+    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart<Value, Value>> + Send>> = 
+        Box::pin(async_stream::stream! {
+            let mut rx = rx;
+            while let Some(part) = rx.recv().await {
+                yield part;
+            }
+        });
 
-    // Step 8: Create and return StreamTextResult
+    // Step 8: Apply transforms if provided
+    if let Some(transform_list) = transforms {
+        let transform_options = TransformOptions::new();
+        for transform in transform_list {
+            stream = transform.transform(stream, transform_options.clone());
+        }
+    }
+
+    // Step 9: Create and return StreamTextResult
     Ok(StreamTextResult::new(stream))
 }
