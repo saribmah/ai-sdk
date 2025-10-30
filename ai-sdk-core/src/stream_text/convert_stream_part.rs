@@ -1,9 +1,11 @@
 /// Utilities for converting provider StreamPart to TextStreamPart.
 ///
 /// This module provides functions to convert from the provider-level `StreamPart` type
-/// to the AI SDK core `TextStreamPart` type.
+/// to the AI SDK core `TextStreamPart` type, as well as converting from
+/// `SingleRequestTextStreamPart` (after tool execution) to `TextStreamPart`.
 
 use crate::stream_text::TextStreamPart;
+use crate::stream_text::SingleRequestTextStreamPart;
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use serde_json::Value;
 
@@ -236,6 +238,161 @@ where
 
         // Raw (for debugging or custom handling)
         StreamPart::Raw { raw_value } => TextStreamPart::Raw { raw_value },
+    }
+}
+
+/// Converts a `SingleRequestTextStreamPart` to a core `TextStreamPart`.
+///
+/// This function handles the conversion from the post-tool-execution stream part format
+/// (which includes tool results) to the standard `TextStreamPart` format.
+///
+/// # Type Parameters
+///
+/// * `INPUT` - The input type for tools (defaults to `Value`)
+/// * `OUTPUT` - The output type from tools (defaults to `Value`)
+///
+/// # Arguments
+///
+/// * `single_request_part` - The single request stream part to convert
+///
+/// # Returns
+///
+/// A `TextStreamPart` corresponding to the single request stream part.
+///
+/// # Example
+///
+/// ```ignore
+/// use ai_sdk_core::stream_text::SingleRequestTextStreamPart;
+/// use ai_sdk_core::stream_text::convert_stream_part::convert_single_request_part_to_text_stream_part;
+///
+/// let single_part = SingleRequestTextStreamPart::text_delta("text1", "Hello");
+/// let text_part = convert_single_request_part_to_text_stream_part(single_part);
+/// ```
+pub fn convert_single_request_part_to_text_stream_part<INPUT, OUTPUT>(
+    single_request_part: SingleRequestTextStreamPart<INPUT, OUTPUT>,
+) -> TextStreamPart<INPUT, OUTPUT>
+where
+    INPUT: Clone + serde::Serialize,
+    OUTPUT: Clone + serde::Serialize,
+{
+    match single_request_part {
+        // Text blocks - direct conversion (field names already match)
+        SingleRequestTextStreamPart::TextStart { id, provider_metadata } => {
+            TextStreamPart::TextStart { id, provider_metadata }
+        }
+
+        SingleRequestTextStreamPart::TextDelta { id, delta, provider_metadata } => {
+            TextStreamPart::TextDelta {
+                id,
+                text: delta, // Note: field name changes from 'delta' to 'text'
+                provider_metadata,
+            }
+        }
+
+        SingleRequestTextStreamPart::TextEnd { id, provider_metadata } => {
+            TextStreamPart::TextEnd { id, provider_metadata }
+        }
+
+        // Reasoning blocks - direct conversion
+        SingleRequestTextStreamPart::ReasoningStart { id, provider_metadata } => {
+            TextStreamPart::ReasoningStart { id, provider_metadata }
+        }
+
+        SingleRequestTextStreamPart::ReasoningDelta { id, delta, provider_metadata } => {
+            TextStreamPart::ReasoningDelta {
+                id,
+                text: delta, // Note: field name changes from 'delta' to 'text'
+                provider_metadata,
+            }
+        }
+
+        SingleRequestTextStreamPart::ReasoningEnd { id, provider_metadata } => {
+            TextStreamPart::ReasoningEnd { id, provider_metadata }
+        }
+
+        // Tool input streaming - direct conversion
+        SingleRequestTextStreamPart::ToolInputStart {
+            id,
+            tool_name,
+            provider_metadata,
+            dynamic,
+            title,
+        } => TextStreamPart::ToolInputStart {
+            id,
+            tool_name,
+            provider_metadata,
+            provider_executed: None, // SingleRequestTextStreamPart doesn't have this field
+            dynamic,
+            title,
+        },
+
+        SingleRequestTextStreamPart::ToolInputDelta { id, delta, provider_metadata } => {
+            TextStreamPart::ToolInputDelta { id, delta, provider_metadata }
+        }
+
+        SingleRequestTextStreamPart::ToolInputEnd { id, provider_metadata } => {
+            TextStreamPart::ToolInputEnd { id, provider_metadata }
+        }
+
+        // Tool approval request - direct conversion
+        SingleRequestTextStreamPart::ToolApprovalRequest { approval_request } => {
+            TextStreamPart::ToolApprovalRequest { approval_request }
+        }
+
+        // Source - direct conversion
+        SingleRequestTextStreamPart::Source { source } => {
+            TextStreamPart::Source { source }
+        }
+
+        // File - direct conversion
+        SingleRequestTextStreamPart::File { file } => {
+            TextStreamPart::File { file }
+        }
+
+        // Tool call - direct conversion
+        SingleRequestTextStreamPart::ToolCall { tool_call } => {
+            TextStreamPart::ToolCall { tool_call }
+        }
+
+        // Tool result - direct conversion
+        SingleRequestTextStreamPart::ToolResult { tool_result } => {
+            TextStreamPart::ToolResult { tool_result }
+        }
+
+        // Tool error - direct conversion
+        SingleRequestTextStreamPart::ToolError { tool_error } => {
+            TextStreamPart::ToolError { tool_error }
+        }
+
+        // Stream metadata
+        SingleRequestTextStreamPart::StreamStart { warnings: _ } => {
+            // TextStreamPart::Start has no fields, warnings are discarded
+            TextStreamPart::Start
+        }
+
+        SingleRequestTextStreamPart::ResponseMetadata { .. } => {
+            // For now, convert response metadata to raw chunk
+            // This will be handled more properly in later phases
+            TextStreamPart::Raw {
+                raw_value: serde_json::to_value(&single_request_part).unwrap_or(Value::Null),
+            }
+        }
+
+        // Finish
+        SingleRequestTextStreamPart::Finish {
+            finish_reason,
+            usage,
+            provider_metadata: _,
+        } => TextStreamPart::Finish {
+            finish_reason,
+            total_usage: usage,
+        },
+
+        // Error
+        SingleRequestTextStreamPart::Error { error } => TextStreamPart::Error { error },
+
+        // Raw
+        SingleRequestTextStreamPart::Raw { raw_value } => TextStreamPart::Raw { raw_value },
     }
 }
 

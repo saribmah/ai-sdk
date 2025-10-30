@@ -138,8 +138,15 @@ pub async fn stream_text(
     use crate::prompt::convert_to_language_model_prompt::convert_to_language_model_prompt;
     use crate::prompt::standardize::validate_and_standardize;
     use crate::generate_text::prepare_tools_and_tool_choice;
-    use crate::stream_text::convert_stream_part::convert_stream_part_to_text_stream_part;
+    use crate::stream_text::convert_stream_part::{
+        convert_stream_part_to_text_stream_part,
+        convert_single_request_part_to_text_stream_part,
+    };
     use crate::stream_text::EnrichedStreamPart;
+    use crate::stream_text::run_tools_transformation::{
+        run_tools_transformation,
+        RunToolsTransformationOptions,
+    };
     use ai_sdk_provider::language_model::call_options::CallOptions;
     use futures_util::StreamExt;
     use std::sync::Arc;
@@ -148,6 +155,10 @@ pub async fn stream_text(
 
     // Step 1: Validate and standardize prompt
     let standardized_prompt = validate_and_standardize(prompt)?;
+
+    // Step 1.5: Save fields we need before moving standardized_prompt
+    let messages_for_tools = standardized_prompt.messages.clone();
+    let system_for_tools = standardized_prompt.system.clone();
 
     // Step 2: Convert prompt to language model format
     let language_model_prompt = convert_to_language_model_prompt(standardized_prompt)?;
@@ -205,7 +216,7 @@ pub async fn stream_text(
     let provider_stream = stream_response.stream;
 
     // Step 6: Convert the stream pipeline
-    // StreamPart -> TextStreamPart -> EnrichedStreamPart
+    // Phase 4: StreamPart -> run_tools_transformation -> SingleRequestTextStreamPart -> TextStreamPart -> EnrichedStreamPart
 
     // Wrap callbacks in Arc for sharing across async tasks
     let on_chunk = Arc::new(on_chunk);
@@ -227,14 +238,105 @@ pub async fn stream_text(
     let recorded_total_usage = Arc::new(Mutex::new(None));
     let recorded_steps: Arc<Mutex<Vec<crate::generate_text::StepResult<Value, Value>>>> = Arc::new(Mutex::new(Vec::new()));
 
-    // Convert provider StreamPart to TextStreamPart
-    let text_stream = provider_stream.map(|stream_part| {
+    // Phase 4: Apply run_tools_transformation if tools are provided
+    let has_tools = tools.is_some();
+    // We need to keep a reference to tools for to_response_messages
+    // Since Tool doesn't implement Clone, we'll just save a reference
+    let tools_ref = if tools.is_some() {
+        // We'll wrap tools in Arc and keep a clone of that Arc
+        let arc = Arc::new(tools.unwrap());
+        let arc_clone = arc.clone();
+        let tools_arc = Some(arc);
+        (tools_arc, Some(arc_clone))
+    } else {
+        (None, None)
+    };
+    let tools_arc = tools_ref.0;
+    let tools_for_response_arc = tools_ref.1;
+
+    // Create a simple ID generator
+    let id_counter = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let generate_id = Arc::new(move || {
+        let id = id_counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        format!("id_{}", id)
+    });
+
+    let tools_stream = if has_tools {
+        // Apply run_tools_transformation to handle tool execution
+        let options = RunToolsTransformationOptions {
+            tools: tools_arc,
+            system: system_for_tools,
+            messages: messages_for_tools,
+            abort_signal: None, // TODO: Support abort signal in future phases
+            experimental_context: None,
+            generate_id,
+        };
+        run_tools_transformation(Box::pin(provider_stream), options)
+    } else {
+        // No tools - convert provider stream directly to SingleRequestTextStreamPart
+        // We need to create a stream that converts StreamPart to SingleRequestTextStreamPart
+        use crate::stream_text::single_request_text_stream_part::SingleRequestTextStreamPart;
+        Box::pin(provider_stream.map(|stream_part| {
+            // Convert StreamPart to SingleRequestTextStreamPart
+            // This is a simple pass-through conversion
+            match stream_part {
+                ai_sdk_provider::language_model::stream_part::StreamPart::TextStart { id, provider_metadata } => {
+                    SingleRequestTextStreamPart::TextStart { id, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::TextDelta { id, delta, provider_metadata } => {
+                    SingleRequestTextStreamPart::TextDelta { id, delta, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::TextEnd { id, provider_metadata } => {
+                    SingleRequestTextStreamPart::TextEnd { id, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ReasoningStart { id, provider_metadata } => {
+                    SingleRequestTextStreamPart::ReasoningStart { id, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ReasoningDelta { id, delta, provider_metadata } => {
+                    SingleRequestTextStreamPart::ReasoningDelta { id, delta, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ReasoningEnd { id, provider_metadata } => {
+                    SingleRequestTextStreamPart::ReasoningEnd { id, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ToolInputStart { id, tool_name, provider_metadata, provider_executed } => {
+                    SingleRequestTextStreamPart::ToolInputStart { id, tool_name, provider_metadata, dynamic: None, title: None }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ToolInputDelta { id, delta, provider_metadata } => {
+                    SingleRequestTextStreamPart::ToolInputDelta { id, delta, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::ToolInputEnd { id, provider_metadata } => {
+                    SingleRequestTextStreamPart::ToolInputEnd { id, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::StreamStart { warnings } => {
+                    SingleRequestTextStreamPart::StreamStart { warnings }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::Finish { finish_reason, usage, provider_metadata } => {
+                    SingleRequestTextStreamPart::Finish { finish_reason, usage, provider_metadata }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::Error { error } => {
+                    SingleRequestTextStreamPart::Error { error }
+                }
+                ai_sdk_provider::language_model::stream_part::StreamPart::Raw { raw_value } => {
+                    SingleRequestTextStreamPart::Raw { raw_value }
+                }
+                // For parts that don't have direct SingleRequestTextStreamPart equivalents, convert to Raw
+                _ => {
+                    SingleRequestTextStreamPart::Raw {
+                        raw_value: serde_json::to_value(&stream_part).unwrap_or(Value::Null),
+                    }
+                }
+            }
+        }))
+    };
+
+    // Convert SingleRequestTextStreamPart to TextStreamPart
+    let text_stream = tools_stream.map(|single_request_part| {
         let text_part: TextStreamPart<Value, Value> =
-            convert_stream_part_to_text_stream_part(stream_part);
+            convert_single_request_part_to_text_stream_part(single_request_part);
         text_part
     });
 
-    // Wrap in EnrichedStreamPart (no partial output parsing in Phase 2)
+    // Wrap in EnrichedStreamPart (no partial output parsing yet)
     let enriched_stream = text_stream.map(|text_part| {
         EnrichedStreamPart::new(text_part)
     });
@@ -454,7 +556,7 @@ pub async fn stream_text(
                     let content_vec = content.clone();
                     drop(content);
 
-                    let step_messages = to_response_messages(content_vec, tools.as_ref());
+                    let step_messages = to_response_messages(content_vec, tools_for_response_arc.as_ref().map(|arc| arc.as_ref()));
 
                     // Accumulate response messages
                     let mut response_msgs = recorded_response_messages.lock().await;
