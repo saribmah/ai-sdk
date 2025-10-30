@@ -16,6 +16,7 @@ use ai_sdk_core::stream_text;
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use futures_util::StreamExt;
 use std::env;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -68,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = stream_text(
         settings,
         prompt,
-        &*model,
+        Arc::from(model),
         None,  // tools
         None,  // tool_choice
         None,  // stop_when

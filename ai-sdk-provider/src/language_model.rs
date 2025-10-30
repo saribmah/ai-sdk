@@ -33,7 +33,7 @@ pub mod tool_result;
 pub mod usage;
 
 #[async_trait]
-pub trait LanguageModel {
+pub trait LanguageModel: Send + Sync {
     fn specification_version(&self) -> &str {
         "v2"
     }
