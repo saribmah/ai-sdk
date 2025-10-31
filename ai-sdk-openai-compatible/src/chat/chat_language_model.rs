@@ -266,10 +266,18 @@ impl OpenAICompatibleChatLanguageModel {
                 parts.push(StreamPart::reasoning_end(&id));
             }
 
-            // End all open tool calls
+            // End all open tool calls and emit ToolCall parts
             for tool_state in state.tool_calls.values() {
                 if tool_state.started {
                     parts.push(StreamPart::tool_input_end(&tool_state.id));
+                    
+                    // Emit the actual ToolCall with the complete arguments
+                    let tool_call = ToolCall::new(
+                        &tool_state.id,
+                        &tool_state.name,
+                        &tool_state.arguments,
+                    );
+                    parts.push(StreamPart::ToolCall(tool_call));
                 }
             }
 

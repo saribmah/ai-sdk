@@ -183,7 +183,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     let prompt = Prompt::text("What's the weather like in San Francisco?");
-    println!("📤 Prompt: \"What's the weather like in San Francisco?\"\n");
+    println!("📤 Prompt: \"What's the weather like in San Francisco?\"");
+    println!("ℹ️  Note: Using step_count_is(3) to allow tool execution + response\n");
 
     let settings = CallSettings::default()
         .with_temperature(0.7)
@@ -199,12 +200,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(tools_example1),
         None,  // tool_choice - let model decide
         None,  // provider_options
-        None,  // stop_when - default to single step
+        Some(vec![Box::new(step_count_is(3))]), // Allow up to 3 steps for tool execution
         None,  // prepare_step
         false, // include_raw_chunks
         None,  // transforms
         None,  // on_chunk
-        None,  // on_error
+        None, // on_error
         None,  // on_step_finish
         None,  // on_finish
         None,  // on_abort
@@ -221,6 +222,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             TextStreamPart::TextDelta { text, .. } => {
                 print!("{}", text);
                 std::io::Write::flush(&mut std::io::stdout())?;
+            }
+            TextStreamPart::ToolInputStart { tool_name, .. } => {
+                println!("\n\n🔧 Tool Call Starting: {}", tool_name);
+                print!("   Args: ");
+                std::io::Write::flush(&mut std::io::stdout())?;
+            }
+            TextStreamPart::ToolInputDelta { delta, .. } => {
+                print!("{}", delta);
+                std::io::Write::flush(&mut std::io::stdout())?;
+            }
+            TextStreamPart::ToolInputEnd { .. } => {
+                println!();
             }
             TextStreamPart::ToolCall { tool_call } => {
                 use ai_sdk_core::TypedToolCall;
