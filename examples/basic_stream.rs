@@ -17,6 +17,7 @@ use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_c
 use futures_util::StreamExt;
 use std::env;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,9 +61,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!("📝 ");
 
     // Use Arc to share metadata between callback and main thread
-    use std::sync::Arc;
-    use tokio::sync::Mutex;
-
     let metadata = Arc::new(Mutex::new(None));
     let metadata_clone = metadata.clone();
 

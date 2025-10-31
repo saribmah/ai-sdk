@@ -28,6 +28,7 @@ ai-sdk-core = { path = "ai-sdk-core" }
 ai-sdk-provider = { path = "ai-sdk-provider" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 tokio = { version = "1.41", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 futures-util = "0.3"
 
@@ -50,3 +51,11 @@ path = "examples/multi_step_tools.rs"
 [[example]]
 name = "basic_stream"
 path = "examples/basic_stream.rs"
+
+[[example]]
+name = "stream_transforms"
+path = "examples/stream_transforms.rs"
+
+[[example]]
+name = "partial_output"
+path = "examples/partial_output.rs"

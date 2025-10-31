@@ -614,18 +614,54 @@ where
         })
     }
 
-    /// Gets a stream of partial outputs. It uses the `output` specification.
+    /// Gets a stream of partial outputs parsed as JSON values.
     ///
-    /// Note: This is the Rust equivalent of `partialOutputStream` and
-    /// `experimental_partialOutputStream` from the TypeScript SDK.
+    /// This streams partial JSON objects as they are being constructed from the text output.
+    /// It attempts to parse incomplete JSON by repairing it (closing brackets/braces).
     ///
-    /// # Important
+    /// Note: This is the Rust equivalent of `partialOutputStream` from the TypeScript SDK.
     ///
-    /// This is currently a placeholder implementation. Full implementation requires
-    /// parsing and incrementally building the output type based on the output specification.
-    pub fn partial_output_stream(&self) -> AsyncIterableStream<OUTPUT> {
-        // Return an empty stream for now until we implement proper partial output parsing
-        Box::pin(futures_util::stream::empty())
+    /// # Example
+    ///
+    /// ```ignore
+    /// let mut partial_stream = result.partial_output_stream();
+    /// while let Some(partial_value) = partial_stream.next().await {
+    ///     println!("Partial JSON: {:?}", partial_value);
+    /// }
+    /// ```
+    pub fn partial_output_stream(&self) -> AsyncIterableStream<OUTPUT>
+    where
+        OUTPUT: for<'de> serde::Deserialize<'de> + Send + 'static,
+    {
+        use crate::stream_text::output::repair_partial_json;
+        
+        let full_stream = self.full_stream.clone();
+
+        Box::pin(async_stream::stream! {
+            let mut stream = full_stream.lock().await;
+            if let Some(mut s) = stream.take() {
+                let mut accumulated_text = String::new();
+                let mut last_parsed: Option<String> = None;
+                
+                while let Some(part) = s.next().await {
+                    // Accumulate text deltas
+                    if let TextStreamPart::TextDelta { text, .. } = part {
+                        accumulated_text.push_str(&text);
+                        
+                        // Try to parse the accumulated text
+                        let repaired = repair_partial_json(&accumulated_text);
+                        
+                        // Only emit if we haven't already emitted this exact JSON
+                        if Some(&repaired) != last_parsed.as_ref() {
+                            if let Ok(value) = serde_json::from_str::<OUTPUT>(&repaired) {
+                                last_parsed = Some(repaired);
+                                yield value;
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
 
     /// Consumes the stream without processing the parts.

@@ -1,4 +1,5 @@
 pub mod callbacks;
+pub mod output;
 pub mod stream_text_result;
 pub mod text_stream_part;
 pub mod transform;
@@ -18,6 +19,10 @@ pub use transform::{
     StreamTransform, TransformOptions, StopStreamHandle,
     FilterTransform, MapTransform, ThrottleTransform, BatchTextTransform,
     filter_transform, map_transform, throttle_transform, batch_text_transform,
+};
+pub use output::{
+    Output, OutputParseError, OutputParseErrorKind,
+    TextOutput, JsonOutput, ObjectOutput, ArrayOutput, ChoiceOutput,
 };
 
 use crate::error::AISDKError;
