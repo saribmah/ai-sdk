@@ -73,7 +73,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,  // on_error
         None,  // on_step_finish
         None,  // on_finish
-        None,  // on_abort
     )
     .await?;
 
@@ -121,7 +120,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         None,
         None,
-        None,
     )
     .await?;
 
@@ -154,7 +152,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         false,
         Some(vec![Box::new(batcher)]),
-        None,
         None,
         None,
         None,
@@ -193,7 +190,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         false,
         Some(vec![Box::new(throttler)]),
-        None,
         None,
         None,
         None,
