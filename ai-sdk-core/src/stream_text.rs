@@ -491,7 +491,6 @@ pub async fn stream_text(
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
-    _on_abort: Option<OnAbortCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
     // Initialize stop conditions with default if not provided
     let stop_conditions = Arc::new(stop_when.unwrap_or_else(|| {

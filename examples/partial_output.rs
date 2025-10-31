@@ -172,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         prompt,
         settings,
         None, None, None, None, None, false, None,
-        None, None, None, None, None,
+        None, None, None, None,
     )
     .await?;
 

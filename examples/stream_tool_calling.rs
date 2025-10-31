@@ -208,7 +208,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None, // on_error
         None,  // on_step_finish
         None,  // on_finish
-        None,  // on_abort
     )
     .await?;
 
@@ -317,7 +316,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,  // on_error
         None,  // on_step_finish
         None,  // on_finish
-        None,  // on_abort
     )
     .await?;
 
