@@ -65,9 +65,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let metadata_clone = metadata.clone();
 
     let result = stream_text(
-        settings,
-        prompt,
         Arc::from(model),
+        prompt,
+        settings,
         None,  // tools
         None,  // tool_choice
         None,  // stop_when

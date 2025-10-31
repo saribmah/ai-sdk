@@ -28,13 +28,20 @@ pub use output::{
 use crate::error::AISDKError;
 use crate::generate_text::{
     ContentPart, StepResult, ToolSet, TypedToolCall, execute_tool_call,
-    to_response_messages, is_stop_condition_met,
+    to_response_messages, is_stop_condition_met, StopCondition, PrepareStep,
+    prepare_tools_and_tool_choice, PrepareStepOptions
 };
-use crate::prompt::{Prompt, call_settings::CallSettings, standardize::StandardizedPrompt};
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::tool_choice::ToolChoice;
-use ai_sdk_provider::language_model::usage::Usage;
+use crate::prompt::{
+    Prompt, call_settings::CallSettings, standardize::StandardizedPrompt,
+    call_settings::prepare_call_settings,
+    convert_to_language_model_prompt::convert_to_language_model_prompt,
+    standardize::validate_and_standardize,
+};
+use ai_sdk_provider::language_model::{
+    LanguageModel, finish_reason::FinishReason,
+    tool_choice::ToolChoice, usage::Usage
+};
+use ai_sdk_provider::language_model::call_options::CallOptions;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde_json::Value;
 use std::sync::Arc;
@@ -47,25 +54,25 @@ use tokio::sync::mpsc;
 struct SingleStepStreamResult {
     /// The content parts accumulated during the step
     content: Vec<ContentPart<Value, Value>>,
-    
+
     /// Tool calls made during the step
     tool_calls: Vec<TypedToolCall<Value>>,
-    
+
     /// Finish reason for the step
     finish_reason: FinishReason,
-    
+
     /// Usage for this step
     usage: Usage,
-    
+
     /// Request metadata
     request: crate::generate_text::RequestMetadata,
-    
+
     /// Response metadata
     response: crate::generate_text::StepResponseMetadata,
-    
+
     /// Provider metadata
     provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
-    
+
     /// Warnings from the provider
     warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::CallWarning>>,
 }
@@ -87,7 +94,7 @@ async fn stream_single_step(
     use ai_sdk_provider::language_model::stream_part::StreamPart;
     use futures_util::StreamExt;
     use crate::generate_text::{TextOutput, ReasoningOutput, SourceOutput};
-    
+
     // Call model.do_stream
     let stream_response = model
         .do_stream(call_options)
@@ -99,9 +106,9 @@ async fn stream_single_step(
         .request
         .as_ref()
         .and_then(|r| r.body.clone());
-        
+
     let mut provider_stream = stream_response.stream;
-    
+
     // Accumulate step data
     let mut step_content: Vec<ContentPart<Value, Value>> = Vec::new();
     let mut step_tool_calls: Vec<TypedToolCall<Value>> = Vec::new();
@@ -117,7 +124,7 @@ async fn stream_single_step(
     let mut step_provider_metadata = None;
 
     while let Some(part) = provider_stream.next().await {
-        // Convert StreamPart to TextStreamPart  
+        // Convert StreamPart to TextStreamPart
         let text_stream_part = match part {
             StreamPart::TextStart {
                 id,
@@ -304,7 +311,7 @@ async fn stream_single_step(
             StreamPart::ToolCall(provider_tool_call) => {
                 // Parse the tool call using parse_tool_call
                 use crate::generate_text::parse_tool_call;
-                
+
                 let typed_tool_call = if let Some(tool_set) = tools {
                     parse_tool_call(&provider_tool_call, tool_set)
                 } else {
@@ -318,7 +325,7 @@ async fn stream_single_step(
                         // Add to step content and tool_calls list
                         step_content.push(ContentPart::ToolCall(tool_call.clone()));
                         step_tool_calls.push(tool_call.clone());
-                        
+
                         TextStreamPart::ToolCall { tool_call }
                     }
                     Err(e) => {
@@ -336,7 +343,7 @@ async fn stream_single_step(
             StreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
                 use crate::generate_text::{StaticToolResult, DynamicToolResult, TypedToolResult};
-                
+
                 // Check if this is a dynamic tool based on whether we have it in our tool set
                 let is_dynamic = if let Some(tool_set) = tools {
                     !tool_set.contains_key(&provider_tool_result.tool_name)
@@ -396,7 +403,7 @@ async fn stream_single_step(
             break;
         }
     }
-    
+
     Ok(SingleStepStreamResult {
         content: step_content,
         tool_calls: step_tool_calls,
@@ -470,14 +477,14 @@ async fn stream_single_step(
 /// }
 /// ```
 pub async fn stream_text(
-    settings: CallSettings,
-    prompt: Prompt,
     model: Arc<dyn LanguageModel>,
+    prompt: Prompt,
+    settings: CallSettings,
     tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
-    stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
     provider_options: Option<ProviderOptions>,
-    prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
     include_raw_chunks: bool,
     transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
     on_chunk: Option<OnChunkCallback>,
@@ -486,38 +493,30 @@ pub async fn stream_text(
     on_finish: Option<OnFinishCallback>,
     _on_abort: Option<OnAbortCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
-    use crate::generate_text::prepare_tools_and_tool_choice;
-    use crate::prompt::{
-        call_settings::prepare_call_settings,
-        convert_to_language_model_prompt::convert_to_language_model_prompt,
-        standardize::validate_and_standardize,
-    };
-    use ai_sdk_provider::language_model::call_options::CallOptions;
-
-    // Step 1: Prepare and validate call settings
-    let prepared_settings = prepare_call_settings(&settings)?;
-
-    // Step 2: Validate and standardize the prompt
-    let standardized_prompt = validate_and_standardize(prompt)?;
-
-    // Step 3: Prepare tools and tool choice
-    let (provider_tools, prepared_tool_choice) =
-        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
-
-    // Step 4: Initialize stop conditions with default if not provided
+    // Initialize stop conditions with default if not provided
     let stop_conditions = Arc::new(stop_when.unwrap_or_else(|| {
         vec![Box::new(crate::generate_text::step_count_is(1))]
     }));
 
-    // Step 5: Create a channel to emit TextStreamPart events
+    // Prepare and validate call settings
+    let prepared_settings = prepare_call_settings(&settings)?;
+
+    // Validate and standardize the prompt
+    let standardized_prompt = validate_and_standardize(prompt)?;
+
+    // Prepare tools and tool choice
+    let (provider_tools, prepared_tool_choice) =
+        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
+
+    // Create a channel to emit TextStreamPart events
     let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart<Value, Value>>();
 
-    // Step 6: Wrap callbacks in Arc for sharing in the spawned task
+    // Wrap callbacks in Arc for sharing in the spawned task
     let on_chunk_arc = on_chunk.map(Arc::new);
     let on_error_arc = on_error.map(Arc::new);
     let on_step_finish_arc = on_step_finish.map(Arc::new);
     let on_finish_arc = on_finish.map(Arc::new);
-    
+
     // Wrap data in Arc for sharing in the spawned task
     let tools_for_task = tools.map(Arc::new);
     let settings_arc = Arc::new(settings);
@@ -526,36 +525,36 @@ pub async fn stream_text(
     let prepare_step_arc = prepare_step.map(Arc::new);
     let model_arc = model; // model is already Arc<dyn LanguageModel>
     let stop_conditions_arc = stop_conditions;
-    
+
     // Spawn a task to handle the multi-step streaming
     let tx_clone = tx.clone();
     tokio::spawn(async move {
         // Emit Start event
         let _ = tx_clone.send(TextStreamPart::Start);
-        
+
         // Accumulate all steps
         let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
         let mut total_usage = Usage::default();
-        
+
         // Start with the initial prompt messages
         let mut step_input_messages = standardized_prompt_arc.messages.clone();
-        
+
         // Multi-step loop
         loop {
             // Apply prepare_step if provided
             let prepare_step_result = if let Some(ref prepare_fn) = prepare_step_arc {
                 let step_number = all_steps.len();
                 prepare_fn
-                    .prepare(&crate::generate_text::PrepareStepOptions {
-                        step_number,
+                    .prepare(&PrepareStepOptions {
                         steps: &all_steps,
+                        step_number,
                         messages: &step_input_messages,
                     })
                     .await
             } else {
                 None
             };
-            
+
             // Apply prepare_step overrides
             let step_system = prepare_step_result
                 .as_ref()
@@ -575,7 +574,7 @@ pub async fn stream_text(
             let step_active_tools = prepare_step_result
                 .as_ref()
                 .and_then(|r| r.active_tools.clone());
-            
+
             // Convert current messages to language model format
             let messages = match convert_to_language_model_prompt(StandardizedPrompt {
                 messages: step_messages.clone(),
@@ -642,7 +641,7 @@ pub async fn stream_text(
             } else {
                 provider_tools.clone()
             };
-            
+
             if let Some(ref tools_vec) = step_provider_tools {
                 call_options = call_options.with_tools(tools_vec.clone());
             }
@@ -688,7 +687,7 @@ pub async fn stream_text(
                     break;
                 }
             };
-            
+
             // Update total usage
             total_usage = Usage {
                 input_tokens: total_usage.input_tokens + step_result.usage.input_tokens,
@@ -697,7 +696,7 @@ pub async fn stream_text(
                 reasoning_tokens: total_usage.reasoning_tokens + step_result.usage.reasoning_tokens,
                 cached_input_tokens: total_usage.cached_input_tokens + step_result.usage.cached_input_tokens,
             };
-            
+
             // Filter client tool calls (those not executed by the provider)
             let client_tool_calls: Vec<&TypedToolCall<Value>> = step_result.tool_calls
                 .iter()
@@ -739,9 +738,9 @@ pub async fn stream_text(
                     }
                 }
             }
-            
+
             let client_tool_outputs_count = client_tool_outputs.len();
-            
+
             // Create step content by combining provider content with client tool outputs
             let mut step_content = step_result.content.clone();
             for output in client_tool_outputs {
@@ -754,7 +753,7 @@ pub async fn stream_text(
                     }
                 }
             }
-            
+
             // Create StepResult
             let current_step_result = StepResult::new(
                 step_content.clone(),
@@ -765,20 +764,20 @@ pub async fn stream_text(
                 step_result.response.clone(),
                 step_result.provider_metadata.clone(),
             );
-            
+
             all_steps.push(current_step_result.clone());
-            
+
             // Call on_step_finish callback
             if let Some(ref callback) = on_step_finish_arc {
                 callback(current_step_result).await;
             }
-            
+
             // Append to messages for potential next step
             let step_response_messages = to_response_messages(step_content, tools_for_task.as_ref().map(|arc| arc.as_ref()));
             for msg in step_response_messages {
                 step_input_messages.push(msg);
             }
-            
+
             // Check loop termination conditions
             let should_continue = !client_tool_calls.is_empty()
                 && client_tool_outputs_count == client_tool_calls.len()
@@ -788,7 +787,7 @@ pub async fn stream_text(
                 break;
             }
         }
-        
+
         // Emit final Finish event
         if let Some(last_step) = all_steps.last() {
             let _ = tx_clone.send(TextStreamPart::Finish {
@@ -796,7 +795,7 @@ pub async fn stream_text(
                 total_usage: total_usage.clone(),
             });
         }
-        
+
         // Call on_finish callback if provided
         if let Some(ref callback) = on_finish_arc {
             if let Some(last_step) = all_steps.last() {
@@ -811,7 +810,7 @@ pub async fn stream_text(
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver
-    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart<Value, Value>> + Send>> = 
+    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart<Value, Value>> + Send>> =
         Box::pin(async_stream::stream! {
             let mut rx = rx;
             while let Some(part) = rx.recv().await {

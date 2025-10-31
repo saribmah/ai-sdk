@@ -59,9 +59,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,  // tools
         None,  // tool_choice
         None,  // stop_when
@@ -107,9 +107,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -144,9 +144,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let batcher = batch_text_transform(50, Duration::from_millis(100));
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -183,9 +183,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let throttler = throttle_transform(Duration::from_millis(50));
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -237,9 +237,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let batcher = batch_text_transform(30, Duration::from_millis(50));
 
     let result = stream_text::stream_text(
-        settings,
-        prompt,
         Arc::from(model),
+        prompt,
+        settings,
         None,
         None,
         None,

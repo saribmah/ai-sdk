@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Base URL: {}\n", provider.base_url());
 
     // Get a language model
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> = 
+    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
         Arc::from(provider.chat_model("gpt-4o-mini"));
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
@@ -72,10 +72,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_temperature(0.7)
         .with_max_output_tokens(200);
 
-    let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
+    let result = stream_text(
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,  // tools
         None,  // tool_choice
         None,  // stop_when
@@ -92,11 +92,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     println!("📝 Streaming partial JSON (will parse to Person):\n");
-    
+
     // Stream partial outputs as JSON values
     let mut partial_stream = result.partial_output_stream();
     let mut last_value: Option<serde_json::Value> = None;
-    
+
     while let Some(value) = partial_stream.next().await {
         // Only print if different from last
         if last_value.as_ref() != Some(&value) {
@@ -109,7 +109,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             last_value = Some(value);
         }
     }
-    
+
     println!("\n");
 
     // Example 2: Streaming a recipe with arrays
@@ -126,19 +126,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None, None, None, None, None, false, None,
         None, None, None, None, None,
     )
     .await?;
 
     println!("📝 Streaming partial JSON (will parse to Recipe):\n");
-    
+
     let mut partial_stream = result.partial_output_stream();
     let mut last_value: Option<serde_json::Value> = None;
-    
+
     while let Some(value) = partial_stream.next().await {
         if last_value.as_ref() != Some(&value) {
             // Try to parse as Recipe
@@ -168,19 +168,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let result = stream_text::stream_text(
-        settings,
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings,
         None, None, None, None, None, false, None,
         None, None, None, None, None,
     )
     .await?;
 
     println!("📝 Streaming partial JSON values:\n");
-    
+
     let mut partial_stream = result.partial_output_stream();
     let mut update_count = 0;
-    
+
     while let Some(value) = partial_stream.next().await {
         update_count += 1;
         println!("  Update #{}: {}", update_count, serde_json::to_string_pretty(&value)?);

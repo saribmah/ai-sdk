@@ -59,3 +59,7 @@ path = "examples/stream_transforms.rs"
 [[example]]
 name = "partial_output"
 path = "examples/partial_output.rs"
+
+[[example]]
+name = "stream_tool_calling"
+path = "examples/stream_tool_calling.rs"
