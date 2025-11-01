@@ -3,10 +3,10 @@ pub mod data_content;
 pub mod tool;
 pub mod user;
 
-pub use assistant::{AssistantMessagePart};
+pub use assistant::AssistantMessagePart;
 pub use data_content::DataContent;
 pub use tool::{ToolResultContentItem, ToolResultOutput, ToolResultPart};
-pub use user::{UserMessagePart};
+pub use user::UserMessagePart;
 
 use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
