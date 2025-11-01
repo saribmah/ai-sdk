@@ -4,18 +4,6 @@ use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Assistant message with various content types
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AssistantMessage {
-    /// Array of content parts (text, files, reasoning, tool calls, tool results)
-    pub content: Vec<AssistantMessagePart>,
-
-    /// Additional provider-specific options
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
 /// Content parts that can appear in an assistant message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
@@ -97,17 +85,4 @@ pub enum AssistantMessagePart {
         #[serde(skip_serializing_if = "Option::is_none")]
         provider_options: Option<ProviderOptions>,
     },
-}
-
-impl AssistantMessage {
-    /// Create an assistant message with text
-    pub fn text(text: impl Into<String>) -> Self {
-        Self {
-            content: vec![AssistantMessagePart::Text {
-                text: text.into(),
-                provider_options: None,
-            }],
-            provider_options: None,
-        }
-    }
 }

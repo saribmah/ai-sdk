@@ -2,18 +2,6 @@ use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Tool message with tool results
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ToolMessage {
-    /// Array of tool result parts
-    pub content: Vec<ToolResultPart>,
-
-    /// Additional provider-specific options
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
 /// Tool result part (used in tool messages and assistant messages)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

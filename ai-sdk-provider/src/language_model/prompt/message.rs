@@ -1,14 +1,12 @@
 pub mod assistant;
 pub mod data_content;
-pub mod system;
 pub mod tool;
 pub mod user;
 
-pub use assistant::{AssistantMessage, AssistantMessagePart};
+pub use assistant::{AssistantMessagePart};
 pub use data_content::DataContent;
-pub use system::SystemMessage;
-pub use tool::{ToolMessage, ToolResultContentItem, ToolResultOutput, ToolResultPart};
-pub use user::{UserMessage, UserMessagePart};
+pub use tool::{ToolResultContentItem, ToolResultOutput, ToolResultPart};
+pub use user::{UserMessagePart};
 
 use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};

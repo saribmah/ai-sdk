@@ -1,8 +1,8 @@
 pub mod message;
 
 pub use message::{
-    AssistantMessage, AssistantMessagePart, DataContent, Message, SystemMessage, ToolMessage,
-    ToolResultContentItem, ToolResultOutput, ToolResultPart, UserMessage, UserMessagePart,
+    AssistantMessagePart, DataContent, Message,
+    ToolResultContentItem, ToolResultOutput, ToolResultPart, UserMessagePart,
 };
 
 /// A prompt is a list of messages.
