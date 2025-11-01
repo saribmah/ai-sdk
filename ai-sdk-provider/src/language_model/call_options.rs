@@ -1,11 +1,11 @@
 use crate::language_model::prompt::Prompt;
+use crate::language_model::tool::Tool;
 use crate::language_model::tool_choice::ToolChoice;
 use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use tokio_util::sync;
-use crate::language_model::tool::Tool;
 
 /// Language model call options.
 #[derive(Debug, Clone, Serialize, Deserialize)]

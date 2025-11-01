@@ -148,7 +148,10 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
         if let ModelMessage::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
-                    if let crate::prompt::message::model::AssistantContentPart::ToolCall(tool_call) = part {
+                    if let crate::prompt::message::model::AssistantContentPart::ToolCall(
+                        tool_call,
+                    ) = part
+                    {
                         // Convert ToolCallPart to TypedToolCall<Value>
                         let typed_tool_call = TypedToolCall::Static(
                             StaticToolCall::new(
@@ -241,7 +244,9 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
 mod tests {
     use super::*;
     use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
-    use crate::prompt::message::model::{AssistantContentPart, AssistantModelMessage, ToolModelMessage};
+    use crate::prompt::message::model::{
+        AssistantContentPart, AssistantModelMessage, ToolModelMessage,
+    };
     use serde_json::json;
 
     #[test]

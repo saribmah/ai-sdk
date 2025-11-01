@@ -41,7 +41,7 @@ pub trait StreamTransform<TOOLS, OUTPUT>: Send + Sync {
 pub struct TransformOptions<TOOLS> {
     /// A function that can be called to stop the stream early
     pub stop_stream: Option<StopStreamHandle>,
-    
+
     /// The tools that are available (if any)
     pub tools: Option<TOOLS>,
 }
@@ -54,13 +54,13 @@ impl<TOOLS> TransformOptions<TOOLS> {
             tools: None,
         }
     }
-    
+
     /// Set the stop stream handle
     pub fn with_stop_stream(mut self, handle: StopStreamHandle) -> Self {
         self.stop_stream = Some(handle);
         self
     }
-    
+
     /// Set the tools
     pub fn with_tools(mut self, tools: TOOLS) -> Self {
         self.tools = Some(tools);
@@ -90,7 +90,7 @@ impl StopStreamHandle {
             stop_fn: std::sync::Arc::new(stop_fn),
         }
     }
-    
+
     /// Stop the stream
     pub fn stop(&self) {
         (self.stop_fn)()
@@ -139,7 +139,7 @@ where
         _options: TransformOptions<TOOLS>,
     ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
         use futures_util::StreamExt;
-        
+
         let predicate = self.predicate.clone();
         Box::pin(stream.filter(move |part| {
             let result = predicate(part);
@@ -191,7 +191,11 @@ impl<TOOLS, OUTPUT, F> StreamTransform<TOOLS, OUTPUT> for MapTransform<TOOLS, OU
 where
     TOOLS: Send + Sync + 'static,
     OUTPUT: Send + Sync + 'static,
-    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT> + Send + Sync + Clone + 'static,
+    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT>
+        + Send
+        + Sync
+        + Clone
+        + 'static,
 {
     fn transform(
         &self,
@@ -199,7 +203,7 @@ where
         _options: TransformOptions<TOOLS>,
     ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
         use futures_util::StreamExt;
-        
+
         let mapper = self.mapper.clone();
         Box::pin(stream.map(move |part| mapper(part)))
     }
@@ -239,7 +243,7 @@ where
         _options: TransformOptions<TOOLS>,
     ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
         use futures_util::StreamExt;
-        
+
         let delay = self.delay;
         Box::pin(stream.then(move |part| async move {
             tokio::time::sleep(delay).await;
@@ -285,17 +289,17 @@ where
         _options: TransformOptions<TOOLS>,
     ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
         use futures_util::StreamExt;
-        
+
         let max_batch_size = self.max_batch_size;
         let max_delay = self.max_delay;
-        
+
         Box::pin(async_stream::stream! {
             let mut stream = stream;
             let mut batch = String::new();
             let mut batch_id = None;
             let mut batch_metadata = None;
             let mut last_emit = tokio::time::Instant::now();
-            
+
             while let Some(part) = stream.next().await {
                 match part {
                     TextStreamPart::TextDelta { id, text, provider_metadata } => {
@@ -304,13 +308,13 @@ where
                             batch_id = Some(id.clone());
                             batch_metadata = provider_metadata.clone();
                         }
-                        
+
                         batch.push_str(&text);
-                        
+
                         // Flush if we hit the size limit or time limit
                         let should_flush = batch.len() >= max_batch_size
                             || last_emit.elapsed() >= max_delay;
-                        
+
                         if should_flush && !batch.is_empty() {
                             yield TextStreamPart::TextDelta {
                                 id: batch_id.clone().unwrap_or_else(|| id.clone()),
@@ -339,7 +343,7 @@ where
                     }
                 }
             }
-            
+
             // Flush any remaining batch
             if !batch.is_empty() {
                 yield TextStreamPart::TextDelta {
@@ -361,9 +365,7 @@ where
 ///     matches!(part, TextStreamPart::TextDelta { .. })
 /// });
 /// ```
-pub fn filter_transform<TOOLS, OUTPUT, F>(
-    predicate: F,
-) -> FilterTransform<TOOLS, OUTPUT, F>
+pub fn filter_transform<TOOLS, OUTPUT, F>(predicate: F) -> FilterTransform<TOOLS, OUTPUT, F>
 where
     F: Fn(&TextStreamPart<TOOLS, OUTPUT>) -> bool + Send + Sync + Clone,
 {
@@ -380,9 +382,7 @@ where
 ///     part
 /// });
 /// ```
-pub fn map_transform<TOOLS, OUTPUT, F>(
-    mapper: F,
-) -> MapTransform<TOOLS, OUTPUT, F>
+pub fn map_transform<TOOLS, OUTPUT, F>(mapper: F) -> MapTransform<TOOLS, OUTPUT, F>
 where
     F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT> + Send + Sync + Clone,
 {
@@ -446,9 +446,7 @@ mod tests {
         ];
 
         let stream = Box::pin(futures_util::stream::iter(items));
-        let filter = filter_transform(|part| {
-            matches!(part, TextStreamPart::TextDelta { .. })
-        });
+        let filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
 
         let options = TransformOptions::new();
         let mut transformed = filter.transform(stream, options);
@@ -463,13 +461,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_map_transform() {
-        let items = vec![
-            TextStreamPart::<Value, Value>::TextDelta {
-                id: "1".to_string(),
-                text: "hello".to_string(),
-                provider_metadata: None,
-            },
-        ];
+        let items = vec![TextStreamPart::<Value, Value>::TextDelta {
+            id: "1".to_string(),
+            text: "hello".to_string(),
+            provider_metadata: None,
+        }];
 
         let stream = Box::pin(futures_util::stream::iter(items));
         let mapper = map_transform(|part| match part {

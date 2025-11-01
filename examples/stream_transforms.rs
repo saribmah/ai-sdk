@@ -13,7 +13,9 @@
 /// cargo run --example stream_transforms
 /// ```
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_core::stream_text::{self, TextStreamPart, filter_transform, map_transform, batch_text_transform, throttle_transform};
+use ai_sdk_core::stream_text::{
+    self, TextStreamPart, batch_text_transform, filter_transform, map_transform, throttle_transform,
+};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use futures_util::StreamExt;
 use std::env;
@@ -41,7 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Base URL: {}\n", provider.base_url());
 
     // Get a language model and wrap in Arc
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> = Arc::from(provider.chat_model("gpt-4o-mini"));
+    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
+        Arc::from(provider.chat_model("gpt-4o-mini"));
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 
@@ -54,25 +57,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = CallSettings::default().with_temperature(0.7);
 
     // Create a filter transform that only passes text deltas
-    let text_filter = filter_transform(|part| {
-        matches!(part, TextStreamPart::TextDelta { .. })
-    });
+    let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
 
     let result = stream_text::stream_text(
         Arc::clone(&model),
         prompt,
         settings.clone(),
-        None,  // tools
-        None,  // tool_choice
-        None,  // stop_when
-        None,  // provider_options
-        None,  // prepare_step
-        false, // include_raw_chunks
+        None,                              // tools
+        None,                              // tool_choice
+        None,                              // stop_when
+        None,                              // provider_options
+        None,                              // prepare_step
+        false,                             // include_raw_chunks
         Some(vec![Box::new(text_filter)]), // transforms
-        None,  // on_chunk
-        None,  // on_error
-        None,  // on_step_finish
-        None,  // on_finish
+        None,                              // on_chunk
+        None,                              // on_error
+        None,                              // on_step_finish
+        None,                              // on_finish
     )
     .await?;
 
@@ -167,7 +168,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         chunk_count += 1;
         std::io::Write::flush(&mut std::io::stdout())?;
     }
-    println!("\n  ℹ️  Received {} chunks (would be more without batching)\n", chunk_count);
+    println!(
+        "\n  ℹ️  Received {} chunks (would be more without batching)\n",
+        chunk_count
+    );
 
     // Example 4: Throttle transform - slow down output
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -205,7 +209,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::io::Write::flush(&mut std::io::stdout())?;
     }
     let elapsed = start.elapsed();
-    println!("\n  ℹ️  Streaming took {:?} (delayed by throttling)\n", elapsed);
+    println!(
+        "\n  ℹ️  Streaming took {:?} (delayed by throttling)\n",
+        elapsed
+    );
 
     // Example 5: Chained transforms
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -215,9 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text("Write a haiku about programming");
 
     // Chain multiple transforms together
-    let text_filter = filter_transform(|part| {
-        matches!(part, TextStreamPart::TextDelta { .. })
-    });
+    let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
     let replacer = map_transform(|part| match part {
         TextStreamPart::TextDelta {
             id,

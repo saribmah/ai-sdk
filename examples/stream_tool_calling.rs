@@ -14,7 +14,7 @@
 /// ```
 use ai_sdk_core::prompt::message::tool::definition::Tool;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_core::{ToolSet, stream_text, step_count_is};
+use ai_sdk_core::{ToolSet, step_count_is, stream_text};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use futures_util::StreamExt;
 use serde_json::{Value, json};
@@ -119,7 +119,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         println!("\n🔧 Executing: get_weather(city=\"{}\")", city);
         let weather_data = get_weather(&city);
-        println!("   Result: {}°F, {}", weather_data["temperature"], weather_data["conditions"]);
+        println!(
+            "   Result: {}°F, {}",
+            weather_data["temperature"], weather_data["conditions"]
+        );
 
         ToolExecutionOutput::Single(Box::pin(async move { Ok(weather_data) }))
     }));
@@ -162,9 +165,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or("celsius")
             .to_string();
 
-        println!("\n🔧 Executing: convert_temperature({} {} -> {})", temperature, from_unit, to_unit);
+        println!(
+            "\n🔧 Executing: convert_temperature({} {} -> {})",
+            temperature, from_unit, to_unit
+        );
         let result = convert_temperature(temperature, &from_unit, &to_unit);
-        println!("   Result: {}°{}", result["converted_value"], result["converted_unit"]);
+        println!(
+            "   Result: {}°{}",
+            result["converted_value"], result["converted_unit"]
+        );
 
         ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
     }));
@@ -198,16 +207,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         prompt,
         settings.clone(),
         Some(tools_example1),
-        None,  // tool_choice - let model decide
-        None,  // provider_options
+        None,                                   // tool_choice - let model decide
+        None,                                   // provider_options
         Some(vec![Box::new(step_count_is(3))]), // Allow up to 3 steps for tool execution
-        None,  // prepare_step
-        false, // include_raw_chunks
-        None,  // transforms
-        None,  // on_chunk
-        None, // on_error
-        None,  // on_step_finish
-        None,  // on_finish
+        None,                                   // prepare_step
+        false,                                  // include_raw_chunks
+        None,                                   // transforms
+        None,                                   // on_chunk
+        None,                                   // on_error
+        None,                                   // on_step_finish
+        None,                                   // on_finish
     )
     .await?;
 
@@ -285,7 +294,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         println!("\n🔧 Executing: get_weather(city=\"{}\")", city);
         let weather_data = get_weather(&city);
-        println!("   Result: {}°F, {}", weather_data["temperature"], weather_data["conditions"]);
+        println!(
+            "   Result: {}°F, {}",
+            weather_data["temperature"], weather_data["conditions"]
+        );
 
         ToolExecutionOutput::Single(Box::pin(async move { Ok(weather_data) }))
     }));
@@ -294,10 +306,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tools_example2.insert("get_weather".to_string(), weather_tool2);
     tools_example2.insert("convert_temperature".to_string(), convert_tool);
 
-    let prompt = Prompt::text(
-        "What's the weather in Tokyo? Then convert the temperature to Celsius."
+    let prompt =
+        Prompt::text("What's the weather in Tokyo? Then convert the temperature to Celsius.");
+    println!(
+        "📤 Prompt: \"What's the weather in Tokyo? Then convert the temperature to Celsius.\"\n"
     );
-    println!("📤 Prompt: \"What's the weather in Tokyo? Then convert the temperature to Celsius.\"\n");
     println!("⏳ Streaming multi-step response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
@@ -306,16 +319,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         prompt,
         settings.clone(),
         Some(tools_example2),
-        None,  // tool_choice
-        None,  // provider_options
+        None,                                   // tool_choice
+        None,                                   // provider_options
         Some(vec![Box::new(step_count_is(5))]), // Allow up to 5 steps
-        None,  // prepare_step
-        false, // include_raw_chunks
-        None,  // transforms
-        None,  // on_chunk
-        None,  // on_error
-        None,  // on_step_finish
-        None,  // on_finish
+        None,                                   // prepare_step
+        false,                                  // include_raw_chunks
+        None,                                   // transforms
+        None,                                   // on_chunk
+        None,                                   // on_error
+        None,                                   // on_step_finish
+        None,                                   // on_finish
     )
     .await?;
 
@@ -358,7 +371,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             TextStreamPart::FinishStep { usage, .. } => {
                 println!("\n\n📊 Step {} completed", step_count);
-                println!("   Tokens: {} input, {} output", usage.input_tokens, usage.output_tokens);
+                println!(
+                    "   Tokens: {} input, {} output",
+                    usage.input_tokens, usage.output_tokens
+                );
             }
             _ => {}
         }

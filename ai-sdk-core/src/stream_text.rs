@@ -11,41 +11,39 @@ pub use callbacks::{
     StreamTextOnErrorCallback as OnErrorCallback, StreamTextOnFinishCallback as OnFinishCallback,
     StreamTextOnStepFinishCallback as OnStepFinishCallback,
 };
+pub use output::{
+    ArrayOutput, ChoiceOutput, JsonOutput, ObjectOutput, Output, OutputParseError,
+    OutputParseErrorKind, TextOutput,
+};
 pub use stream_text_result::{
     AsyncIterableStream, ConsumeStreamOptions, ErrorHandler, StreamTextResult,
 };
 pub use text_stream_part::{StreamGeneratedFile, TextStreamPart};
 pub use transform::{
-    StreamTransform, TransformOptions, StopStreamHandle,
-    FilterTransform, MapTransform, ThrottleTransform, BatchTextTransform,
-    filter_transform, map_transform, throttle_transform, batch_text_transform,
-};
-pub use output::{
-    Output, OutputParseError, OutputParseErrorKind,
-    TextOutput, JsonOutput, ObjectOutput, ArrayOutput, ChoiceOutput,
+    BatchTextTransform, FilterTransform, MapTransform, StopStreamHandle, StreamTransform,
+    ThrottleTransform, TransformOptions, batch_text_transform, filter_transform, map_transform,
+    throttle_transform,
 };
 
 use crate::error::AISDKError;
 use crate::generate_text::{
-    ContentPart, StepResult, ToolSet, TypedToolCall, execute_tool_call,
-    to_response_messages, is_stop_condition_met, StopCondition, PrepareStep,
-    prepare_tools_and_tool_choice, PrepareStepOptions
+    ContentPart, PrepareStep, PrepareStepOptions, StepResult, StopCondition, ToolSet,
+    TypedToolCall, execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
+    to_response_messages,
 };
 use crate::prompt::{
-    Prompt, call_settings::CallSettings, standardize::StandardizedPrompt,
-    call_settings::prepare_call_settings,
+    Prompt, call_settings::CallSettings, call_settings::prepare_call_settings,
     convert_to_language_model_prompt::convert_to_language_model_prompt,
-    standardize::validate_and_standardize,
-};
-use ai_sdk_provider::language_model::{
-    LanguageModel, finish_reason::FinishReason,
-    tool_choice::ToolChoice, usage::Usage
+    standardize::StandardizedPrompt, standardize::validate_and_standardize,
 };
 use ai_sdk_provider::language_model::call_options::CallOptions;
+use ai_sdk_provider::language_model::{
+    LanguageModel, finish_reason::FinishReason, tool_choice::ToolChoice, usage::Usage,
+};
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde_json::Value;
-use std::sync::Arc;
 use std::pin::Pin;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 /// Result of streaming a single step.
@@ -91,9 +89,9 @@ async fn stream_single_step(
     on_chunk: Option<&Arc<OnChunkCallback>>,
     on_error: Option<&Arc<OnErrorCallback>>,
 ) -> Result<SingleStepStreamResult, AISDKError> {
+    use crate::generate_text::{ReasoningOutput, SourceOutput, TextOutput};
     use ai_sdk_provider::language_model::stream_part::StreamPart;
     use futures_util::StreamExt;
-    use crate::generate_text::{TextOutput, ReasoningOutput, SourceOutput};
 
     // Call model.do_stream
     let stream_response = model
@@ -342,7 +340,7 @@ async fn stream_single_step(
             }
             StreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use crate::generate_text::{StaticToolResult, DynamicToolResult, TypedToolResult};
+                use crate::generate_text::{DynamicToolResult, StaticToolResult, TypedToolResult};
 
                 // Check if this is a dynamic tool based on whether we have it in our tool set
                 let is_dynamic = if let Some(tool_set) = tools {
@@ -391,8 +389,7 @@ async fn stream_single_step(
 
         // Call on_chunk callback if this is a chunk type
         if let Some(callback) = on_chunk {
-            if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part)
-            {
+            if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
                 let event = callbacks::StreamTextChunkEvent { chunk };
                 callback(event).await;
             }
@@ -493,9 +490,9 @@ pub async fn stream_text(
     on_finish: Option<OnFinishCallback>,
 ) -> Result<StreamTextResult<Value, Value>, AISDKError> {
     // Initialize stop conditions with default if not provided
-    let stop_conditions = Arc::new(stop_when.unwrap_or_else(|| {
-        vec![Box::new(crate::generate_text::step_count_is(1))]
-    }));
+    let stop_conditions = Arc::new(
+        stop_when.unwrap_or_else(|| vec![Box::new(crate::generate_text::step_count_is(1))]),
+    );
 
     // Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
@@ -623,14 +620,12 @@ pub async fn stream_text(
                     tools_vec
                         .iter()
                         .filter(|tool| {
-                            active_tool_names.iter().any(|name| {
-                                match tool {
-                                    ai_sdk_provider::language_model::tool::Tool::Function(f) => {
-                                        f.name == *name
-                                    }
-                                    ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
-                                        p.name == *name
-                                    }
+                            active_tool_names.iter().any(|name| match tool {
+                                ai_sdk_provider::language_model::tool::Tool::Function(f) => {
+                                    f.name == *name
+                                }
+                                ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
+                                    p.name == *name
                                 }
                             })
                         })
@@ -671,7 +666,9 @@ pub async fn stream_text(
                 &tx_clone,
                 on_chunk_arc.as_ref(),
                 on_error_arc.as_ref(),
-            ).await {
+            )
+            .await
+            {
                 Ok(r) => r,
                 Err(e) => {
                     if let Some(callback) = on_error_arc.as_ref() {
@@ -693,11 +690,13 @@ pub async fn stream_text(
                 output_tokens: total_usage.output_tokens + step_result.usage.output_tokens,
                 total_tokens: total_usage.total_tokens + step_result.usage.total_tokens,
                 reasoning_tokens: total_usage.reasoning_tokens + step_result.usage.reasoning_tokens,
-                cached_input_tokens: total_usage.cached_input_tokens + step_result.usage.cached_input_tokens,
+                cached_input_tokens: total_usage.cached_input_tokens
+                    + step_result.usage.cached_input_tokens,
             };
 
             // Filter client tool calls (those not executed by the provider)
-            let client_tool_calls: Vec<&TypedToolCall<Value>> = step_result.tool_calls
+            let client_tool_calls: Vec<&TypedToolCall<Value>> = step_result
+                .tool_calls
                 .iter()
                 .filter(|tool_call| {
                     let provider_executed = match tool_call {
@@ -719,7 +718,9 @@ pub async fn stream_text(
                         abort_signal_for_tools.clone(),
                         None, // experimental_context
                         None, // on_preliminary_tool_result
-                    ).await {
+                    )
+                    .await
+                    {
                         // Emit tool result to the stream
                         match &output {
                             crate::generate_text::ToolOutput::Result(result) => {
@@ -772,7 +773,10 @@ pub async fn stream_text(
             }
 
             // Append to messages for potential next step
-            let step_response_messages = to_response_messages(step_content, tools_for_task.as_ref().map(|arc| arc.as_ref()));
+            let step_response_messages = to_response_messages(
+                step_content,
+                tools_for_task.as_ref().map(|arc| arc.as_ref()),
+            );
             for msg in step_response_messages {
                 step_input_messages.push(msg);
             }

@@ -6,8 +6,8 @@ use crate::generate_text::{
 };
 use crate::stream_text::TextStreamPart;
 use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
 use ai_sdk_provider::language_model::content::source::Source;
+use ai_sdk_provider::language_model::finish_reason::FinishReason;
 use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use futures_util::StreamExt;
@@ -634,7 +634,7 @@ where
         OUTPUT: for<'de> serde::Deserialize<'de> + Send + 'static,
     {
         use crate::stream_text::output::repair_partial_json;
-        
+
         let full_stream = self.full_stream.clone();
 
         Box::pin(async_stream::stream! {
@@ -642,15 +642,15 @@ where
             if let Some(mut s) = stream.take() {
                 let mut accumulated_text = String::new();
                 let mut last_parsed: Option<String> = None;
-                
+
                 while let Some(part) = s.next().await {
                     // Accumulate text deltas
                     if let TextStreamPart::TextDelta { text, .. } = part {
                         accumulated_text.push_str(&text);
-                        
+
                         // Try to parse the accumulated text
                         let repaired = repair_partial_json(&accumulated_text);
-                        
+
                         // Only emit if we haven't already emitted this exact JSON
                         if Some(&repaired) != last_parsed.as_ref() {
                             if let Ok(value) = serde_json::from_str::<OUTPUT>(&repaired) {

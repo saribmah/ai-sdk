@@ -1,6 +1,6 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning, finish_reason::FinishReason, response_metadata::ResponseMetadata,
-    content::source::Source, usage::Usage,
+    call_warning::CallWarning, content::source::Source, finish_reason::FinishReason,
+    response_metadata::ResponseMetadata, usage::Usage,
 };
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};

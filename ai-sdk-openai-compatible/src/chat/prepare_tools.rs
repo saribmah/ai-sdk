@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::{
-    tool::Tool, call_warning::CallWarning, tool_choice::ToolChoice,
+    call_warning::CallWarning, tool::Tool, tool_choice::ToolChoice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

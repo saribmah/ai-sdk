@@ -18,10 +18,10 @@ use serde::Serialize;
 pub trait Output: Send + Sync {
     /// The type of partial results that can be emitted during streaming
     type Partial: Send + Sync;
-    
+
     /// The type of the complete result when streaming finishes
     type Complete: Send + Sync;
-    
+
     /// Parse partial output from accumulated text so far.
     ///
     /// This is called as text accumulates during streaming to extract
@@ -37,7 +37,7 @@ pub trait Output: Send + Sync {
     /// `Ok(None)` if not enough data is available yet, or
     /// `Err(error)` if parsing failed.
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError>;
-    
+
     /// Parse the complete output from the final text.
     ///
     /// This is called when streaming completes to extract the final
@@ -66,16 +66,16 @@ pub struct OutputParseError {
 pub enum OutputParseErrorKind {
     /// JSON syntax error
     InvalidJson,
-    
+
     /// JSON is valid but doesn't match the expected schema
     SchemaMismatch,
-    
+
     /// Required field is missing
     MissingField,
-    
+
     /// Type mismatch (expected one type, got another)
     TypeMismatch,
-    
+
     /// Other error
     Other,
 }
@@ -87,22 +87,22 @@ impl OutputParseError {
             kind,
         }
     }
-    
+
     pub fn invalid_json(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::InvalidJson)
     }
-    
+
     pub fn schema_mismatch(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::SchemaMismatch)
     }
-    
+
     pub fn missing_field(field: impl Into<String>) -> Self {
         Self::new(
             format!("Missing required field: {}", field.into()),
             OutputParseErrorKind::MissingField,
         )
     }
-    
+
     pub fn type_mismatch(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::TypeMismatch)
     }
@@ -137,7 +137,7 @@ impl Default for TextOutput {
 impl Output for TextOutput {
     type Partial = String;
     type Complete = String;
-    
+
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError> {
         if text.is_empty() {
             Ok(None)
@@ -145,7 +145,7 @@ impl Output for TextOutput {
             Ok(Some(text.to_string()))
         }
     }
-    
+
     fn parse_complete(&self, text: &str) -> Result<Self::Complete, OutputParseError> {
         Ok(text.to_string())
     }
@@ -172,12 +172,12 @@ impl Default for JsonOutput {
 impl Output for JsonOutput {
     type Partial = Value;
     type Complete = Value;
-    
+
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError> {
         if text.trim().is_empty() {
             return Ok(None);
         }
-        
+
         // Try to parse as complete JSON first
         match serde_json::from_str::<Value>(text) {
             Ok(value) => Ok(Some(value)),
@@ -192,7 +192,7 @@ impl Output for JsonOutput {
             }
         }
     }
-    
+
     fn parse_complete(&self, text: &str) -> Result<Self::Complete, OutputParseError> {
         serde_json::from_str(text)
             .map_err(|e| OutputParseError::invalid_json(format!("Failed to parse JSON: {}", e)))
@@ -236,12 +236,12 @@ where
 {
     type Partial = T;
     type Complete = T;
-    
+
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError> {
         if text.trim().is_empty() {
             return Ok(None);
         }
-        
+
         // Try direct parsing first
         match serde_json::from_str::<T>(text) {
             Ok(value) => Ok(Some(value)),
@@ -255,11 +255,10 @@ where
             }
         }
     }
-    
+
     fn parse_complete(&self, text: &str) -> Result<Self::Complete, OutputParseError> {
-        serde_json::from_str(text).map_err(|e| {
-            OutputParseError::invalid_json(format!("Failed to parse object: {}", e))
-        })
+        serde_json::from_str(text)
+            .map_err(|e| OutputParseError::invalid_json(format!("Failed to parse object: {}", e)))
     }
 }
 
@@ -299,12 +298,12 @@ where
 {
     type Partial = Vec<T>;
     type Complete = Vec<T>;
-    
+
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError> {
         if text.trim().is_empty() {
             return Ok(None);
         }
-        
+
         // Try direct parsing first
         match serde_json::from_str::<Vec<T>>(text) {
             Ok(value) => Ok(Some(value)),
@@ -318,11 +317,10 @@ where
             }
         }
     }
-    
+
     fn parse_complete(&self, text: &str) -> Result<Self::Complete, OutputParseError> {
-        serde_json::from_str(text).map_err(|e| {
-            OutputParseError::invalid_json(format!("Failed to parse array: {}", e))
-        })
+        serde_json::from_str(text)
+            .map_err(|e| OutputParseError::invalid_json(format!("Failed to parse array: {}", e)))
     }
 }
 
@@ -340,40 +338,40 @@ impl ChoiceOutput {
 impl Output for ChoiceOutput {
     type Partial = Option<String>;
     type Complete = String;
-    
+
     fn parse_partial(&self, text: &str) -> Result<Option<Self::Partial>, OutputParseError> {
         let text = text.trim();
         if text.is_empty() {
             return Ok(None);
         }
-        
+
         // Check if any option is a prefix or the text starts with it
         for option in &self.options {
             if text.contains(option) {
                 return Ok(Some(Some(option.clone())));
             }
         }
-        
+
         Ok(Some(None)) // Text present but no match yet
     }
-    
+
     fn parse_complete(&self, text: &str) -> Result<Self::Complete, OutputParseError> {
         let text = text.trim();
-        
+
         // Try exact match first
         for option in &self.options {
             if text == option {
                 return Ok(option.clone());
             }
         }
-        
+
         // Try contains match
         for option in &self.options {
             if text.contains(option) {
                 return Ok(option.clone());
             }
         }
-        
+
         Err(OutputParseError::schema_mismatch(format!(
             "Text '{}' does not match any of the allowed choices: {:?}",
             text, self.options
@@ -387,19 +385,19 @@ impl Output for ChoiceOutput {
 /// parseable by adding closing brackets/braces.
 pub fn repair_partial_json(json: &str) -> String {
     let mut repaired = json.to_string();
-    
+
     // Count open/close brackets and braces
     let mut brace_count = 0;
     let mut bracket_count = 0;
     let mut in_string = false;
     let mut escape_next = false;
-    
+
     for ch in json.chars() {
         if escape_next {
             escape_next = false;
             continue;
         }
-        
+
         match ch {
             '\\' => escape_next = true,
             '"' => in_string = !in_string,
@@ -410,12 +408,12 @@ pub fn repair_partial_json(json: &str) -> String {
             _ => {}
         }
     }
-    
+
     // Close any open strings
     if in_string {
         repaired.push('"');
     }
-    
+
     // Close any open brackets/braces
     for _ in 0..bracket_count {
         repaired.push(']');
@@ -423,24 +421,24 @@ pub fn repair_partial_json(json: &str) -> String {
     for _ in 0..brace_count {
         repaired.push('}');
     }
-    
+
     repaired
 }
 
 /// Helper functions for creating output specifications
 pub mod output {
     use super::*;
-    
+
     /// Create a text output specification (default).
     pub fn text() -> TextOutput {
         TextOutput::new()
     }
-    
+
     /// Create a JSON output specification.
     pub fn json() -> JsonOutput {
         JsonOutput::new()
     }
-    
+
     /// Create an object output specification.
     pub fn object<T>() -> ObjectOutput<T>
     where
@@ -448,7 +446,7 @@ pub mod output {
     {
         ObjectOutput::new()
     }
-    
+
     /// Create an array output specification.
     pub fn array<T>() -> ArrayOutput<T>
     where
@@ -456,7 +454,7 @@ pub mod output {
     {
         ArrayOutput::new()
     }
-    
+
     /// Create a choice output specification.
     pub fn choice(options: Vec<String>) -> ChoiceOutput {
         ChoiceOutput::new(options)
@@ -466,32 +464,38 @@ pub mod output {
 #[cfg(test)]
 mod tests {
     use super::*;
-use serde::Deserialize;
+    use serde::Deserialize;
 
     #[test]
     fn test_text_output() {
         let output = TextOutput::new();
-        
+
         // Partial parsing
         assert_eq!(output.parse_partial("").unwrap(), None);
-        assert_eq!(output.parse_partial("Hello").unwrap(), Some("Hello".to_string()));
-        
+        assert_eq!(
+            output.parse_partial("Hello").unwrap(),
+            Some("Hello".to_string())
+        );
+
         // Complete parsing
-        assert_eq!(output.parse_complete("Hello, World!").unwrap(), "Hello, World!");
+        assert_eq!(
+            output.parse_complete("Hello, World!").unwrap(),
+            "Hello, World!"
+        );
     }
 
     #[test]
     fn test_json_output() {
         let output = JsonOutput::new();
-        
+
         // Complete JSON
         let result = output.parse_partial(r#"{"key": "value"}"#).unwrap();
         assert!(result.is_some());
-        
+
         // Incomplete JSON - should try to repair
         let result = output.parse_partial(r#"{"key": "val"#).unwrap();
         // May or may not parse depending on repair logic
-        
+
         // Complete parsing
         let complete = output.parse_complete(r#"{"key": "value"}"#).unwrap();
         assert_eq!(complete["key"], "value");
@@ -506,14 +510,18 @@ use serde::Deserialize;
     #[test]
     fn test_object_output() {
         let output = ObjectOutput::<TestObject>::new();
-        
+
         // Complete object
-        let result = output.parse_partial(r#"{"name": "Alice", "age": 30}"#).unwrap();
+        let result = output
+            .parse_partial(r#"{"name": "Alice", "age": 30}"#)
+            .unwrap();
         assert!(result.is_some());
         assert_eq!(result.unwrap().name, "Alice");
-        
+
         // Complete parsing
-        let complete = output.parse_complete(r#"{"name": "Bob", "age": 25}"#).unwrap();
+        let complete = output
+            .parse_complete(r#"{"name": "Bob", "age": 25}"#)
+            .unwrap();
         assert_eq!(complete.name, "Bob");
         assert_eq!(complete.age, 25);
     }
@@ -521,11 +529,11 @@ use serde::Deserialize;
     #[test]
     fn test_array_output() {
         let output = ArrayOutput::<i32>::new();
-        
+
         // Complete array
         let result = output.parse_partial("[1, 2, 3]").unwrap();
         assert_eq!(result, Some(vec![1, 2, 3]));
-        
+
         // Complete parsing
         let complete = output.parse_complete("[4, 5, 6]").unwrap();
         assert_eq!(complete, vec![4, 5, 6]);
@@ -533,20 +541,24 @@ use serde::Deserialize;
 
     #[test]
     fn test_choice_output() {
-        let output = ChoiceOutput::new(vec!["yes".to_string(), "no".to_string(), "maybe".to_string()]);
-        
+        let output = ChoiceOutput::new(vec![
+            "yes".to_string(),
+            "no".to_string(),
+            "maybe".to_string(),
+        ]);
+
         // Partial - should find match
         let result = output.parse_partial("I think yes is the answer").unwrap();
         assert_eq!(result, Some(Some("yes".to_string())));
-        
+
         // Complete - exact match
         let complete = output.parse_complete("no").unwrap();
         assert_eq!(complete, "no");
-        
+
         // Complete - contains match
         let complete = output.parse_complete("maybe tomorrow").unwrap();
         assert_eq!(complete, "maybe");
-        
+
         // Error - no match
         assert!(output.parse_complete("definitely").is_err());
     }

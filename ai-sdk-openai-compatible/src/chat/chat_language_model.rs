@@ -1,8 +1,8 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::CallOptions, call_warning::CallWarning, content::Content, content::reasoning::Reasoning,
-    content::text::Text, content::tool_call::ToolCall, usage::Usage,
+    call_options::CallOptions, call_warning::CallWarning, content::Content,
+    content::reasoning::Reasoning, content::text::Text, content::tool_call::ToolCall, usage::Usage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
@@ -272,11 +272,8 @@ impl OpenAICompatibleChatLanguageModel {
                     parts.push(StreamPart::tool_input_end(&tool_state.id));
 
                     // Emit the actual ToolCall with the complete arguments
-                    let tool_call = ToolCall::new(
-                        &tool_state.id,
-                        &tool_state.name,
-                        &tool_state.arguments,
-                    );
+                    let tool_call =
+                        ToolCall::new(&tool_state.id, &tool_state.name, &tool_state.arguments);
                     parts.push(StreamPart::ToolCall(tool_call));
                 }
             }

@@ -1,9 +1,9 @@
 pub mod function_tool;
 pub mod provider_defined_tool;
 
-use serde::{Deserialize, Serialize};
 use function_tool::FunctionTool;
 use provider_defined_tool::ProviderDefinedTool;
+use serde::{Deserialize, Serialize};
 
 /// Tool types available for the model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

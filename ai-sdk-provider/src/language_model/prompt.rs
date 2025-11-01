@@ -1,7 +1,9 @@
-mod message;
+pub mod message;
 
-use serde::{Deserialize, Serialize};
-use message::Message;
+pub use message::{
+    AssistantMessage, AssistantMessagePart, DataContent, Message, SystemMessage, ToolMessage,
+    ToolResultContentItem, ToolResultOutput, ToolResultPart, UserMessage, UserMessagePart,
+};
 
 /// A prompt is a list of messages.
 ///

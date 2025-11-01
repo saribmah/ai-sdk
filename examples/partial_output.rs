@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text(
         "Generate a JSON object describing a person with name, age, and occupation. \
          Return ONLY valid JSON, no explanations. \
-         Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}"
+         Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}",
     );
     let settings = CallSettings::default()
         .with_temperature(0.7)
@@ -121,15 +121,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Return ONLY valid JSON. Example: \
          {\"name\": \"Chocolate Chip Cookies\", \
          \"ingredients\": [\"flour\", \"sugar\", \"chocolate chips\"], \
-         \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}"
+         \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}",
     );
 
     let result = stream_text::stream_text(
         Arc::clone(&model),
         prompt,
         settings.clone(),
-        None, None, None, None, None, false, None,
-        None, None, None, None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        false,
+        None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
@@ -143,7 +152,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Try to parse as Recipe
             if let Ok(recipe) = serde_json::from_value::<Recipe>(value.clone()) {
                 println!("  → Name: {}", recipe.name);
-                println!("    Ingredients ({} so far): {}", recipe.ingredients.len(), recipe.ingredients.join(", "));
+                println!(
+                    "    Ingredients ({} so far): {}",
+                    recipe.ingredients.len(),
+                    recipe.ingredients.join(", ")
+                );
                 println!("    Steps ({} so far):", recipe.steps.len());
                 for (i, step) in recipe.steps.iter().enumerate() {
                     println!("      {}. {}", i + 1, step);
@@ -163,15 +176,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let prompt = Prompt::text(
         "Generate a JSON object describing a car with make, model, year, and features array. \
-         Return ONLY valid JSON."
+         Return ONLY valid JSON.",
     );
 
     let result = stream_text::stream_text(
         Arc::clone(&model),
         prompt,
         settings,
-        None, None, None, None, None, false, None,
-        None, None, None, None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        false,
+        None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
@@ -182,7 +204,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     while let Some(value) = partial_stream.next().await {
         update_count += 1;
-        println!("  Update #{}: {}", update_count, serde_json::to_string_pretty(&value)?);
+        println!(
+            "  Update #{}: {}",
+            update_count,
+            serde_json::to_string_pretty(&value)?
+        );
         println!();
     }
 

@@ -195,8 +195,8 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, content::text::Text, content::tool_call::ToolCall,
-        usage::Usage,
+        content::Content, content::text::Text, content::tool_call::ToolCall,
+        finish_reason::FinishReason, usage::Usage,
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
