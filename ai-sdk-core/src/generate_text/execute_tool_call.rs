@@ -3,10 +3,10 @@ use crate::generate_text::tool_call::TypedToolCall;
 use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 use crate::generate_text::tool_output::ToolOutput;
 use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-use crate::message::ModelMessage;
-use crate::message::tool::definition::Tool;
-use crate::message::tool::execute::{ToolExecutionEvent, execute_tool};
-use crate::message::tool::options::ToolCallOptions;
+use crate::prompt::message::ModelMessage;
+use crate::prompt::message::tool::definition::Tool;
+use crate::prompt::message::tool::execute::{ToolExecutionEvent, execute_tool};
+use crate::prompt::message::tool::options::ToolCallOptions;
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::Arc;
@@ -183,7 +183,7 @@ pub async fn execute_tool_call(
 mod tests {
     use super::*;
     use crate::generate_text::tool_call::StaticToolCall;
-    use crate::message::tool::definition::ToolExecutionOutput;
+    use crate::prompt::message::tool::definition::ToolExecutionOutput;
     use serde_json::json;
     use std::pin::Pin;
     use std::sync::Mutex;

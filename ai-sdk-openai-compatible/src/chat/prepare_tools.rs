@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::{
-    call_options::Tool, call_warning::CallWarning, tool_choice::ToolChoice,
+    tool::Tool, call_warning::CallWarning, tool_choice::ToolChoice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -154,8 +154,8 @@ pub fn prepare_tools(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::function_tool::FunctionTool;
-    use ai_sdk_provider::language_model::provider_defined_tool::ProviderDefinedTool;
+    use ai_sdk_provider::language_model::tool::function_tool::FunctionTool;
+    use ai_sdk_provider::language_model::tool::provider_defined_tool::ProviderDefinedTool;
     use serde_json::json;
     use std::collections::HashMap;
 

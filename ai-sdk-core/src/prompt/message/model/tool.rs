@@ -61,7 +61,7 @@ impl ToolModelMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::content_parts::ToolResultOutput;
+    use crate::prompt::message::content_parts::ToolResultOutput;
     use serde_json::json;
 
     #[test]

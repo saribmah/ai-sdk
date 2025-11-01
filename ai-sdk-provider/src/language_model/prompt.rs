@@ -1,3 +1,6 @@
+mod text;
+mod file;
+
 use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

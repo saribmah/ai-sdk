@@ -195,7 +195,7 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, text::Text, tool_call::ToolCall,
+        content::Content, finish_reason::FinishReason, content::text::Text, content::tool_call::ToolCall,
         usage::Usage,
     };
 

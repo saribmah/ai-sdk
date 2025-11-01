@@ -7,7 +7,7 @@ use crate::generate_text::{
 use crate::stream_text::TextStreamPart;
 use ai_sdk_provider::language_model::call_warning::CallWarning;
 use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::source::Source;
+use ai_sdk_provider::language_model::content::source::Source;
 use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use futures_util::StreamExt;

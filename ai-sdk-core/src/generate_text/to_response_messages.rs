@@ -1,8 +1,8 @@
-use crate::message::ModelMessage;
-use crate::message::content_parts::tool_result::ToolResultPart;
-use crate::message::model::assistant::AssistantContentPart;
-use crate::message::model::tool::ToolContentPart;
-use crate::message::model::{AssistantModelMessage, ToolModelMessage};
+use crate::prompt::message::ModelMessage;
+use crate::prompt::message::content_parts::tool_result::ToolResultPart;
+use crate::prompt::message::model::assistant::AssistantContentPart;
+use crate::prompt::message::model::tool::ToolContentPart;
+use crate::prompt::message::model::{AssistantModelMessage, ToolModelMessage};
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
 use serde_json::Value;
 
@@ -83,10 +83,10 @@ pub fn to_response_messages(
         .filter_map(|part| {
             match part {
                 ContentPart::Text(text_output) => Some(AssistantContentPart::Text(
-                    crate::message::content_parts::TextPart::new(text_output.text.clone()),
+                    crate::prompt::message::content_parts::TextPart::new(text_output.text.clone()),
                 )),
                 ContentPart::Reasoning(reasoning_output) => Some(AssistantContentPart::Reasoning(
-                    crate::message::content_parts::ReasoningPart::new(
+                    crate::prompt::message::content_parts::ReasoningPart::new(
                         reasoning_output.text.clone(),
                     ),
                 )),
@@ -107,7 +107,7 @@ pub fn to_response_messages(
                     };
 
                     Some(AssistantContentPart::ToolCall(
-                        crate::message::content_parts::ToolCallPart::new(
+                        crate::prompt::message::content_parts::ToolCallPart::new(
                             tool_call_id,
                             tool_name,
                             input,

@@ -1,10 +1,10 @@
 use crate::language_model::call_warning::CallWarning;
-use crate::language_model::file::File;
+use crate::language_model::content::file::File;
 use crate::language_model::finish_reason::FinishReason;
 use crate::language_model::response_metadata::ResponseMetadata;
-use crate::language_model::source::Source;
-use crate::language_model::tool_call::ToolCall;
-use crate::language_model::tool_result::ToolResult;
+use crate::language_model::content::source::Source;
+use crate::language_model::content::tool_call::ToolCall;
+use crate::language_model::content::tool_result::ToolResult;
 use crate::language_model::usage::Usage;
 use crate::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};

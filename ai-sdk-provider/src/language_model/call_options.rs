@@ -1,12 +1,11 @@
-use crate::language_model::function_tool::FunctionTool;
 use crate::language_model::prompt::Prompt;
-use crate::language_model::provider_defined_tool::ProviderDefinedTool;
 use crate::language_model::tool_choice::ToolChoice;
 use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use tokio_util::sync;
+use crate::language_model::tool::Tool;
 
 /// Language model call options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -116,14 +115,6 @@ pub enum ResponseFormat {
         #[serde(skip_serializing_if = "Option::is_none")]
         description: Option<String>,
     },
-}
-
-/// Tool types available for the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum Tool {
-    Function(FunctionTool),
-    ProviderDefined(ProviderDefinedTool),
 }
 
 impl CallOptions {

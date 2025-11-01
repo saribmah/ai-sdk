@@ -17,19 +17,12 @@ pub mod call_options;
 pub mod call_warning;
 pub mod content;
 mod data_content;
-pub mod file;
 pub mod finish_reason;
-pub mod function_tool;
 pub mod prompt;
-pub mod provider_defined_tool;
-pub mod reasoning;
 pub mod response_metadata;
-pub mod source;
 pub mod stream_part;
-pub mod text;
-pub mod tool_call;
+pub mod tool;
 pub mod tool_choice;
-pub mod tool_result;
 pub mod usage;
 
 #[async_trait]

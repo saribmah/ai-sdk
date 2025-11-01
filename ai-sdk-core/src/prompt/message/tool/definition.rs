@@ -1,5 +1,5 @@
 use super::options::ToolCallOptions;
-use crate::message::content_parts::ToolResultOutput;
+use crate::prompt::message::content_parts::ToolResultOutput;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};

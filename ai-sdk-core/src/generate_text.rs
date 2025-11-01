@@ -55,7 +55,7 @@ pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_set::ToolSet;
 
 use crate::error::AISDKError;
-use crate::message::ModelMessage;
+use crate::prompt::message::ModelMessage;
 use crate::prompt::{
     Prompt,
     call_settings::{CallSettings, prepare_call_settings},
@@ -464,10 +464,10 @@ pub async fn generate_text(
                         active_tool_names.iter().any(|name| {
                             // Match against the tool name from the provider tool
                             match tool {
-                                ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
+                                ai_sdk_provider::language_model::tool::Tool::Function(f) => {
                                     f.name == *name
                                 }
-                                ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
+                                ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
                                     p.name == *name
                                 }
                             }

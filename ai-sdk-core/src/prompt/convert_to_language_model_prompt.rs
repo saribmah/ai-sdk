@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::message::{
+use crate::prompt::message::{
     AssistantContent, AssistantContentPart, ModelMessage, ToolContentPart, UserContent,
     UserContentPart,
     content_parts::{
@@ -283,9 +283,9 @@ fn convert_tool_result_to_provider(
 
 /// Convert core `ToolResultOutput` to provider `ToolResultOutput`.
 fn convert_tool_result_output(
-    output: crate::message::content_parts::ToolResultOutput,
+    output: crate::prompt::message::content_parts::ToolResultOutput,
 ) -> Result<ProviderToolResultOutput, AISDKError> {
-    use crate::message::content_parts::ToolResultOutput as CoreOutput;
+    use crate::prompt::message::content_parts::ToolResultOutput as CoreOutput;
     use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
 
     match output {
@@ -332,9 +332,9 @@ fn convert_tool_result_output(
 ///
 /// Returns None for items that cannot be converted (like FileId which providers don't support).
 fn convert_tool_result_content_part(
-    part: crate::message::content_parts::ToolResultContentPart,
+    part: crate::prompt::message::content_parts::ToolResultContentPart,
 ) -> Option<ai_sdk_provider::language_model::prompt::ToolResultContentItem> {
-    use crate::message::content_parts::ToolResultContentPart as CorePart;
+    use crate::prompt::message::content_parts::ToolResultContentPart as CorePart;
     use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
 
     match part {
@@ -444,7 +444,7 @@ fn combine_consecutive_tool_messages(messages: Vec<Message>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::{SystemModelMessage, UserModelMessage};
+    use crate::prompt::message::{SystemModelMessage, UserModelMessage};
 
     #[test]
     fn test_convert_text_prompt() {

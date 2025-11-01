@@ -1,4 +1,4 @@
-use crate::message::{AssistantModelMessage, ModelMessage, ToolModelMessage};
+use crate::prompt::message::{AssistantModelMessage, ModelMessage, ToolModelMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -122,8 +122,8 @@ mod tests {
 
     #[test]
     fn test_response_message_from_tool() {
-        use crate::message::content_parts::{ToolResultOutput, ToolResultPart};
-        use crate::message::model::tool::ToolContentPart;
+        use crate::prompt::message::content_parts::{ToolResultOutput, ToolResultPart};
+        use crate::prompt::message::model::tool::ToolContentPart;
 
         let tool_msg =
             ToolModelMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(

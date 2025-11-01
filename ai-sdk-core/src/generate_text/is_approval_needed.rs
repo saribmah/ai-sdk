@@ -1,6 +1,6 @@
-use crate::message::ModelMessage;
-use crate::message::tool::definition::{NeedsApproval, Tool};
-use crate::message::tool::options::ToolCallOptions;
+use crate::prompt::message::ModelMessage;
+use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
+use crate::prompt::message::tool::options::ToolCallOptions;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -75,7 +75,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::tool::definition::{NeedsApproval, Tool};
+    use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
     use serde_json::json;
 
     #[tokio::test]
@@ -192,7 +192,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_messages() {
-        use crate::message::model::user::UserModelMessage;
+        use crate::prompt::message::model::user::UserModelMessage;
 
         let mut tool: Tool<Value, Value> = Tool::function(json!({
             "type": "object",

@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::message::{ModelMessage, UserContent, UserModelMessage};
+use crate::prompt::message::{ModelMessage, UserContent, UserModelMessage};
 use crate::prompt::{Prompt, PromptContent};
 use serde::{Deserialize, Serialize};
 
@@ -109,7 +109,7 @@ pub fn validate_and_standardize(prompt: Prompt) -> Result<StandardizedPrompt, AI
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::UserContent;
+    use crate::prompt::message::UserContent;
 
     #[test]
     fn test_standardized_prompt_new() {

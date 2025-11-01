@@ -231,7 +231,7 @@ async fn stream_single_step(
                 }
             }
             StreamPart::File(file) => {
-                use ai_sdk_provider::language_model::file::FileData;
+                use ai_sdk_provider::language_model::content::file::FileData;
 
                 // Convert FileData to base64
                 let base64 = match file.data {
@@ -625,10 +625,10 @@ pub async fn stream_text(
                         .filter(|tool| {
                             active_tool_names.iter().any(|name| {
                                 match tool {
-                                    ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
+                                    ai_sdk_provider::language_model::tool::Tool::Function(f) => {
                                         f.name == *name
                                     }
-                                    ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
+                                    ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
                                         p.name == *name
                                     }
                                 }

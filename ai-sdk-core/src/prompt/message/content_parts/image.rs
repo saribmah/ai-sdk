@@ -1,4 +1,4 @@
-use crate::message::DataContent;
+use crate::prompt::message::DataContent;
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 use url::Url;

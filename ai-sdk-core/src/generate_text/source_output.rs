@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::source::Source;
+use ai_sdk_provider::language_model::content::source::Source;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 

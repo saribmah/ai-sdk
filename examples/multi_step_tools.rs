@@ -1,4 +1,4 @@
-use ai_sdk_core::message::tool::definition::Tool;
+use ai_sdk_core::prompt::message::tool::definition::Tool;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Multi-step tool execution example demonstrating iterative tool calling.
 ///
@@ -114,7 +114,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::prompt::message::tool::definition::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({

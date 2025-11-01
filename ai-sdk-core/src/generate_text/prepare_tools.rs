@@ -1,10 +1,10 @@
 use crate::generate_text::tool_set::ToolSet;
-use crate::message::tool::definition::Tool;
+use crate::prompt::message::tool::definition::Tool;
 use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
     language_model::{
-        call_options::Tool as ProviderTool, function_tool::FunctionTool,
-        provider_defined_tool::ProviderDefinedTool,
+        tool::Tool as ProviderTool, tool::function_tool::FunctionTool,
+        tool::provider_defined_tool::ProviderDefinedTool,
     },
 };
 use serde_json::Value;
@@ -65,7 +65,7 @@ pub fn prepare_tools_and_tool_choice(
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
 fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> ProviderTool {
-    use crate::message::tool::definition::ToolType;
+    use crate::prompt::message::tool::definition::ToolType;
 
     match &core_tool.tool_type {
         ToolType::Function => {

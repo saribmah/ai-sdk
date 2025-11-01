@@ -1,7 +1,7 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::CallOptions, call_warning::CallWarning, content::Content, text::Text,
+    call_options::CallOptions, call_warning::CallWarning, content::Content, content::text::Text,
     usage::Usage,
 };
 use async_trait::async_trait;

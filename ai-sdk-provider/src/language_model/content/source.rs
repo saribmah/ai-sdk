@@ -34,6 +34,10 @@ pub enum Source {
 }
 
 impl Source {
+    pub fn content_type(&self) -> &str {
+        "source"
+    }
+
     pub fn id(&self) -> &str {
         match self {
             Source::Url { id, .. } => id.as_ref(),

@@ -12,7 +12,7 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
-use ai_sdk_core::message::tool::definition::Tool;
+use ai_sdk_core::prompt::message::tool::definition::Tool;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::{ToolSet, stream_text, step_count_is};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
@@ -53,14 +53,14 @@ fn convert_temperature(temperature: f64, from_unit: &str, to_unit: &str) -> Valu
         "kelvin" | "k" => temperature - 273.15,
         _ => temperature,
     };
-    
+
     let result = match to_unit.to_lowercase().as_str() {
         "fahrenheit" | "f" => celsius * 9.0 / 5.0 + 32.0,
         "celsius" | "c" => celsius,
         "kelvin" | "k" => celsius + 273.15,
         _ => celsius,
     };
-    
+
     json!({
         "original_value": temperature,
         "original_unit": from_unit,
@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_api_key(api_key),
     );
 
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> = 
+    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
         Arc::from(provider.chat_model("gpt-4o-mini"));
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::prompt::message::tool::definition::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({
@@ -172,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Tools defined:");
     println!("  1. get_weather - Get current weather for a city");
     println!("  2. convert_temperature - Convert temperature units\n");
-    
+
     // Create ToolSet for first example (weather only)
     let mut tools_example1 = ToolSet::new();
     tools_example1.insert("get_weather".to_string(), weather_tool);
@@ -214,7 +214,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Stream the full output showing tool calls and results
     let mut full_stream = result.full_stream();
     print!("📝 ");
-    
+
     while let Some(part) = full_stream.next().await {
         use ai_sdk_core::stream_text::TextStreamPart;
         match part {
@@ -322,7 +322,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut full_stream = result.full_stream();
     print!("📝 ");
     let mut step_count = 0;
-    
+
     while let Some(part) = full_stream.next().await {
         use ai_sdk_core::stream_text::TextStreamPart;
         match part {

@@ -1,6 +1,5 @@
 pub mod error;
 pub mod generate_text;
-pub mod message;
 pub mod prompt;
 pub mod stream_text;
 

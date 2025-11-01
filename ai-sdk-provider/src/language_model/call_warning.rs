@@ -1,4 +1,4 @@
-use crate::language_model::call_options::Tool;
+use crate::language_model::tool::Tool;
 use serde::{Deserialize, Serialize};
 
 /// Warning from the model provider for this call. The call will proceed, but e.g.

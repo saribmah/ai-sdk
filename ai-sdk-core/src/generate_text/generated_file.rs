@@ -1,4 +1,4 @@
-use crate::message::data_content::DataContent;
+use crate::prompt::message::data_content::DataContent;
 use std::cell::OnceCell;
 
 /// A generated file.

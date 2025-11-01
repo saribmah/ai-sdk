@@ -2,8 +2,9 @@ pub mod call_settings;
 pub mod convert_to_language_model_prompt;
 pub mod create_tool_model_output;
 pub mod standardize;
+pub mod message;
 
-use crate::message::ModelMessage;
+use message::ModelMessage;
 use serde::{Deserialize, Serialize};
 
 /// Prompt part of the AI function options.
@@ -153,7 +154,7 @@ impl PromptContent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::{UserContent, UserModelMessage};
+    use message::{UserContent, UserModelMessage};
 
     #[test]
     fn test_text_prompt() {
