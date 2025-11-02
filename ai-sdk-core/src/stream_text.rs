@@ -124,62 +124,42 @@ async fn stream_single_step(
     while let Some(part) = provider_stream.next().await {
         // Convert StreamPart to TextStreamPart
         let text_stream_part = match part {
-            StreamPart::TextStart {
-                id,
-                provider_metadata,
-            } => TextStreamPart::TextStart {
-                id,
-                provider_metadata,
+            StreamPart::TextStart(ts) => TextStreamPart::TextStart {
+                id: ts.id,
+                provider_metadata: ts.provider_metadata,
             },
-            StreamPart::TextDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => {
-                current_text.push_str(&delta);
+            StreamPart::TextDelta(td) => {
+                current_text.push_str(&td.delta);
                 TextStreamPart::TextDelta {
-                    id,
-                    provider_metadata,
-                    text: delta,
+                    id: td.id,
+                    provider_metadata: td.provider_metadata,
+                    text: td.delta,
                 }
             }
-            StreamPart::TextEnd {
-                id,
-                provider_metadata,
-            } => {
+            StreamPart::TextEnd(te) => {
                 // Add accumulated text to content
                 if !current_text.is_empty() {
                     step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
                     current_text.clear();
                 }
                 TextStreamPart::TextEnd {
-                    id,
-                    provider_metadata,
+                    id: te.id,
+                    provider_metadata: te.provider_metadata,
                 }
             }
-            StreamPart::ReasoningStart {
-                id,
-                provider_metadata,
-            } => TextStreamPart::ReasoningStart {
-                id,
-                provider_metadata,
+            StreamPart::ReasoningStart(rs) => TextStreamPart::ReasoningStart {
+                id: rs.id,
+                provider_metadata: rs.provider_metadata,
             },
-            StreamPart::ReasoningDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => {
-                current_reasoning.push_str(&delta);
+            StreamPart::ReasoningDelta(rd) => {
+                current_reasoning.push_str(&rd.delta);
                 TextStreamPart::ReasoningDelta {
-                    id,
-                    provider_metadata,
-                    text: delta,
+                    id: rd.id,
+                    provider_metadata: rd.provider_metadata,
+                    text: rd.delta,
                 }
             }
-            StreamPart::ReasoningEnd {
-                id,
-                provider_metadata,
-            } => {
+            StreamPart::ReasoningEnd(re) => {
                 // Add accumulated reasoning to content
                 if !current_reasoning.is_empty() {
                     step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
@@ -188,38 +168,26 @@ async fn stream_single_step(
                     current_reasoning.clear();
                 }
                 TextStreamPart::ReasoningEnd {
-                    id,
-                    provider_metadata,
+                    id: re.id,
+                    provider_metadata: re.provider_metadata,
                 }
             }
-            StreamPart::ToolInputStart {
-                id,
-                tool_name,
-                provider_metadata,
-                provider_executed,
-            } => TextStreamPart::ToolInputStart {
-                id,
-                tool_name,
-                provider_metadata,
-                provider_executed,
+            StreamPart::ToolInputStart(tis) => TextStreamPart::ToolInputStart {
+                id: tis.id,
+                tool_name: tis.tool_name,
+                provider_metadata: tis.provider_metadata,
+                provider_executed: tis.provider_executed,
                 dynamic: None,
                 title: None,
             },
-            StreamPart::ToolInputDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => TextStreamPart::ToolInputDelta {
-                id,
-                delta,
-                provider_metadata,
+            StreamPart::ToolInputDelta(tid) => TextStreamPart::ToolInputDelta {
+                id: tid.id,
+                delta: tid.delta,
+                provider_metadata: tid.provider_metadata,
             },
-            StreamPart::ToolInputEnd {
-                id,
-                provider_metadata,
-            } => TextStreamPart::ToolInputEnd {
-                id,
-                provider_metadata,
+            StreamPart::ToolInputEnd(tie) => TextStreamPart::ToolInputEnd {
+                id: tie.id,
+                provider_metadata: tie.provider_metadata,
             },
             StreamPart::Source(source) => {
                 let source_output = SourceOutput::new(source.clone());
@@ -248,24 +216,20 @@ async fn stream_single_step(
                     },
                 }
             }
-            StreamPart::StreamStart { warnings } => {
-                step_warnings = if warnings.is_empty() {
+            StreamPart::StreamStart(ss) => {
+                step_warnings = if ss.warnings.is_empty() {
                     None
                 } else {
-                    Some(warnings.clone())
+                    Some(ss.warnings.clone())
                 };
                 TextStreamPart::StartStep {
                     request: crate::generate_text::RequestMetadata {
                         body: request_body.clone(),
                     },
-                    warnings,
+                    warnings: ss.warnings,
                 }
             }
-            StreamPart::Finish {
-                usage,
-                finish_reason,
-                provider_metadata,
-            } => {
+            StreamPart::Finish(f) => {
                 // Flush any remaining text/reasoning
                 if !current_text.is_empty() {
                     step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
@@ -278,33 +242,38 @@ async fn stream_single_step(
                     current_reasoning.clear();
                 }
 
-                step_usage = usage.clone();
-                step_finish_reason = finish_reason.clone();
-                step_provider_metadata = provider_metadata.clone();
+                step_usage = f.usage.clone();
+                step_finish_reason = f.finish_reason.clone();
+                step_provider_metadata = f.provider_metadata.clone();
 
                 TextStreamPart::FinishStep {
                     response: ai_sdk_provider::language_model::response_metadata::ResponseMetadata::default(),
-                    usage: usage.clone(),
-                    finish_reason: finish_reason.clone(),
-                    provider_metadata: provider_metadata.clone(),
+                    usage: f.usage.clone(),
+                    finish_reason: f.finish_reason.clone(),
+                    provider_metadata: f.provider_metadata.clone(),
                 }
             }
-            StreamPart::Raw { raw_value } => {
+            StreamPart::Raw(r) => {
                 if include_raw_chunks {
-                    TextStreamPart::Raw { raw_value }
+                    TextStreamPart::Raw {
+                        raw_value: r.raw_value,
+                    }
                 } else {
                     continue;
                 }
             }
-            StreamPart::Error { error } => {
+            StreamPart::Error(e) => {
                 // Call on_error callback if provided
                 if let Some(callback) = on_error {
                     let event = callbacks::StreamTextErrorEvent {
-                        error: error.clone(),
+                        error: e.error.clone(),
                     };
                     callback(event).await;
                 }
-                return Err(AISDKError::model_error(format!("Stream error: {}", error)));
+                return Err(AISDKError::model_error(format!(
+                    "Stream error: {}",
+                    e.error
+                )));
             }
             StreamPart::ToolCall(provider_tool_call) => {
                 // Parse the tool call using parse_tool_call
