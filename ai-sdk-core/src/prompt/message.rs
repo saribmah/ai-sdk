@@ -25,7 +25,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 /// It can be a user message, an assistant message, a system message, or a tool message.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum ModelMessage {
+pub enum Message {
     /// System message containing instructions or context.
     System(SystemModelMessage),
 
@@ -39,7 +39,7 @@ pub enum ModelMessage {
     Tool(ToolModelMessage),
 }
 
-impl<'de> Deserialize<'de> for ModelMessage {
+impl<'de> Deserialize<'de> for Message {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -57,16 +57,16 @@ impl<'de> Deserialize<'de> for ModelMessage {
 
         match role {
             "system" => serde_json::from_value(value)
-                .map(ModelMessage::System)
+                .map(Message::System)
                 .map_err(D::Error::custom),
             "user" => serde_json::from_value(value)
-                .map(ModelMessage::User)
+                .map(Message::User)
                 .map_err(D::Error::custom),
             "assistant" => serde_json::from_value(value)
-                .map(ModelMessage::Assistant)
+                .map(Message::Assistant)
                 .map_err(D::Error::custom),
             "tool" => serde_json::from_value(value)
-                .map(ModelMessage::Tool)
+                .map(Message::Tool)
                 .map_err(D::Error::custom),
             _ => Err(D::Error::unknown_variant(
                 role,
@@ -76,59 +76,59 @@ impl<'de> Deserialize<'de> for ModelMessage {
     }
 }
 
-impl ModelMessage {
+impl Message {
     /// Returns the role of this message.
     pub fn role(&self) -> &str {
         match self {
-            ModelMessage::System(_) => "system",
-            ModelMessage::User(_) => "user",
-            ModelMessage::Assistant(_) => "assistant",
-            ModelMessage::Tool(_) => "tool",
+            Message::System(_) => "system",
+            Message::User(_) => "user",
+            Message::Assistant(_) => "assistant",
+            Message::Tool(_) => "tool",
         }
     }
 
     /// Returns true if this is a system message.
     pub fn is_system(&self) -> bool {
-        matches!(self, ModelMessage::System(_))
+        matches!(self, Message::System(_))
     }
 
     /// Returns true if this is a user message.
     pub fn is_user(&self) -> bool {
-        matches!(self, ModelMessage::User(_))
+        matches!(self, Message::User(_))
     }
 
     /// Returns true if this is an assistant message.
     pub fn is_assistant(&self) -> bool {
-        matches!(self, ModelMessage::Assistant(_))
+        matches!(self, Message::Assistant(_))
     }
 
     /// Returns true if this is a tool message.
     pub fn is_tool(&self) -> bool {
-        matches!(self, ModelMessage::Tool(_))
+        matches!(self, Message::Tool(_))
     }
 }
 
-impl From<SystemModelMessage> for ModelMessage {
+impl From<SystemModelMessage> for Message {
     fn from(message: SystemModelMessage) -> Self {
-        ModelMessage::System(message)
+        Message::System(message)
     }
 }
 
-impl From<UserModelMessage> for ModelMessage {
+impl From<UserModelMessage> for Message {
     fn from(message: UserModelMessage) -> Self {
-        ModelMessage::User(message)
+        Message::User(message)
     }
 }
 
-impl From<AssistantModelMessage> for ModelMessage {
+impl From<AssistantModelMessage> for Message {
     fn from(message: AssistantModelMessage) -> Self {
-        ModelMessage::Assistant(message)
+        Message::Assistant(message)
     }
 }
 
-impl From<ToolModelMessage> for ModelMessage {
+impl From<ToolModelMessage> for Message {
     fn from(message: ToolModelMessage) -> Self {
-        ModelMessage::Tool(message)
+        Message::Tool(message)
     }
 }
 
@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn test_model_message_system() {
         let system_msg = SystemModelMessage::new("You are a helpful assistant.");
-        let message = ModelMessage::from(system_msg);
+        let message = Message::from(system_msg);
 
         assert_eq!(message.role(), "system");
         assert!(message.is_system());
@@ -151,7 +151,7 @@ mod tests {
     #[test]
     fn test_model_message_user() {
         let user_msg = UserModelMessage::new("Hello!");
-        let message = ModelMessage::from(user_msg);
+        let message = Message::from(user_msg);
 
         assert_eq!(message.role(), "user");
         assert!(!message.is_system());
@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn test_model_message_assistant() {
         let assistant_msg = AssistantModelMessage::new("Hello, how can I help you?");
-        let message = ModelMessage::from(assistant_msg);
+        let message = Message::from(assistant_msg);
 
         assert_eq!(message.role(), "assistant");
         assert!(!message.is_system());
@@ -177,7 +177,7 @@ mod tests {
         let tool_msg = ToolModelMessage::new(vec![ToolContentPart::ToolResult(
             ToolResultPart::new("call_123", "tool_name", ToolResultOutput::text("Success")),
         )]);
-        let message = ModelMessage::from(tool_msg);
+        let message = Message::from(tool_msg);
 
         assert_eq!(message.role(), "tool");
         assert!(!message.is_system());
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn test_model_message_serialization_system() {
         let system_msg = SystemModelMessage::new("You are helpful.");
-        let message = ModelMessage::from(system_msg);
+        let message = Message::from(system_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -200,7 +200,7 @@ mod tests {
     #[test]
     fn test_model_message_serialization_user() {
         let user_msg = UserModelMessage::new("Hello!");
-        let message = ModelMessage::from(user_msg);
+        let message = Message::from(user_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -211,7 +211,7 @@ mod tests {
     #[test]
     fn test_model_message_serialization_assistant() {
         let assistant_msg = AssistantModelMessage::new("Hi there!");
-        let message = ModelMessage::from(assistant_msg);
+        let message = Message::from(assistant_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -226,7 +226,7 @@ mod tests {
             "content": "You are helpful."
         });
 
-        let message: ModelMessage = serde_json::from_value(json).unwrap();
+        let message: Message = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role(), "system");
         assert!(message.is_system());
@@ -239,7 +239,7 @@ mod tests {
             "content": "Hello!"
         });
 
-        let message: ModelMessage = serde_json::from_value(json).unwrap();
+        let message: Message = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role(), "user");
         assert!(message.is_user());
@@ -252,7 +252,7 @@ mod tests {
             "content": "Hi there!"
         });
 
-        let message: ModelMessage = serde_json::from_value(json).unwrap();
+        let message: Message = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role(), "assistant");
         assert!(message.is_assistant());
@@ -275,7 +275,7 @@ mod tests {
             ]
         });
 
-        let message: ModelMessage = serde_json::from_value(json).unwrap();
+        let message: Message = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role(), "tool");
         assert!(message.is_tool());
@@ -284,7 +284,7 @@ mod tests {
     #[test]
     fn test_model_message_clone() {
         let system_msg = SystemModelMessage::new("You are helpful.");
-        let message = ModelMessage::from(system_msg);
+        let message = Message::from(system_msg);
         let cloned = message.clone();
 
         assert_eq!(message, cloned);
@@ -293,9 +293,9 @@ mod tests {
     #[test]
     fn test_model_message_conversation() {
         let messages = vec![
-            ModelMessage::from(SystemModelMessage::new("You are helpful.")),
-            ModelMessage::from(UserModelMessage::new("Hello!")),
-            ModelMessage::from(AssistantModelMessage::new("Hi! How can I help?")),
+            Message::from(SystemModelMessage::new("You are helpful.")),
+            Message::from(UserModelMessage::new("Hello!")),
+            Message::from(AssistantModelMessage::new("Hi! How can I help?")),
         ];
 
         assert_eq!(messages.len(), 3);

@@ -1,6 +1,6 @@
 use crate::error::AISDKError;
 use crate::prompt::message::{
-    AssistantContent, AssistantContentPart, ModelMessage, ToolContentPart, UserContent,
+    AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent,
     UserContentPart,
     content_parts::{
         FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart,
@@ -58,14 +58,14 @@ pub fn convert_to_language_model_prompt(
 }
 
 /// Convert a single `ModelMessage` to a provider `Message`.
-fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageModelMessage, AISDKError> {
+fn convert_to_language_model_message(message: Message) -> Result<LanguageModelMessage, AISDKError> {
     match message {
-        ModelMessage::System(sys_msg) => Ok(LanguageModelMessage::System(LanguageModelSystemMessage::with_options(
+        Message::System(sys_msg) => Ok(LanguageModelMessage::System(LanguageModelSystemMessage::with_options(
             sys_msg.content,
             sys_msg.provider_options,
         ))),
 
-        ModelMessage::User(user_msg) => {
+        Message::User(user_msg) => {
             let provider_options = user_msg.provider_options;
             let content = match user_msg.content {
                 UserContent::Text(text) => {
@@ -87,7 +87,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
             Ok(LanguageModelMessage::User(LanguageModelUserMessage::with_options(content, provider_options)))
         }
 
-        ModelMessage::Assistant(asst_msg) => {
+        Message::Assistant(asst_msg) => {
             let provider_options = asst_msg.provider_options;
             let content = match asst_msg.content {
                 AssistantContent::Text(text) => {
@@ -122,7 +122,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
             )))
         }
 
-        ModelMessage::Tool(tool_msg) => {
+        Message::Tool(tool_msg) => {
             let provider_options = tool_msg.provider_options;
             let content = tool_msg
                 .content
@@ -435,7 +435,7 @@ mod tests {
     fn test_convert_text_prompt() {
         let prompt = StandardizedPrompt {
             system: Some("You are helpful".to_string()),
-            messages: vec![ModelMessage::User(UserModelMessage {
+            messages: vec![Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,

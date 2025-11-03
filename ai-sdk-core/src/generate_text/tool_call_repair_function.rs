@@ -1,6 +1,6 @@
 use crate::error::AISDKError;
 use crate::generate_text::tool_set::ToolSet;
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +13,7 @@ pub struct ToolCallRepairOptions {
     pub system: Option<String>,
 
     /// The messages in the current generation step.
-    pub messages: Vec<ModelMessage>,
+    pub messages: Vec<Message>,
 
     /// The tool call that failed to parse.
     pub tool_call: LanguageModelToolCall,
@@ -29,7 +29,7 @@ impl ToolCallRepairOptions {
     /// Creates new tool call repair options.
     pub fn new(
         system: Option<String>,
-        messages: Vec<ModelMessage>,
+        messages: Vec<Message>,
         tool_call: LanguageModelToolCall,
         tools: ToolSet,
         error: AISDKError,
@@ -132,7 +132,7 @@ mod tests {
 
         let options = ToolCallRepairOptions::new(
             Some("You are a helpful assistant".to_string()),
-            vec![ModelMessage::User(UserModelMessage::new("Hello"))],
+            vec![Message::User(UserModelMessage::new("Hello"))],
             LanguageModelToolCall::new("call_123", "test_tool", "{}"),
             create_test_toolset(),
             AISDKError::invalid_tool_input("test_tool", "{}", "Invalid input"),
@@ -185,7 +185,7 @@ mod tests {
     #[tokio::test]
     async fn test_repair_options_creation() {
         let system = Some("System prompt".to_string());
-        let messages = vec![ModelMessage::User(UserModelMessage::new("Test"))];
+        let messages = vec![Message::User(UserModelMessage::new("Test"))];
         let tool_call = LanguageModelToolCall::new("call_789", "my_tool", "{}");
 
         let mut tools = ToolSet::new();

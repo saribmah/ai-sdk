@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::prompt::message::{ModelMessage, UserContent, UserModelMessage};
+use crate::prompt::message::{Message, UserContent, UserModelMessage};
 use crate::prompt::{Prompt, PromptContent};
 use serde::{Deserialize, Serialize};
 
@@ -12,12 +12,12 @@ pub struct StandardizedPrompt {
     pub system: Option<String>,
 
     /// Messages (always present in standardized form)
-    pub messages: Vec<ModelMessage>,
+    pub messages: Vec<Message>,
 }
 
 impl StandardizedPrompt {
     /// Create a new standardized prompt
-    pub fn new(messages: Vec<ModelMessage>) -> Self {
+    pub fn new(messages: Vec<Message>) -> Self {
         Self {
             system: None,
             messages,
@@ -25,7 +25,7 @@ impl StandardizedPrompt {
     }
 
     /// Create a standardized prompt with a system message
-    pub fn with_system(system: impl Into<String>, messages: Vec<ModelMessage>) -> Self {
+    pub fn with_system(system: impl Into<String>, messages: Vec<Message>) -> Self {
         Self {
             system: Some(system.into()),
             messages,
@@ -40,7 +40,7 @@ impl From<Prompt> for StandardizedPrompt {
         let messages = match prompt.content {
             PromptContent::Text { text } => {
                 // Convert text to a user message
-                vec![ModelMessage::User(UserModelMessage {
+                vec![Message::User(UserModelMessage {
                     role: "user".to_string(),
                     content: UserContent::Text(text),
                     provider_options: None,
@@ -86,7 +86,7 @@ pub fn validate_and_standardize(prompt: Prompt) -> Result<StandardizedPrompt, AI
     let messages = match &prompt.content {
         PromptContent::Text { text } => {
             // Convert text to a user message
-            vec![ModelMessage::User(UserModelMessage {
+            vec![Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text(text.clone()),
                 provider_options: None,
@@ -113,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_standardized_prompt_new() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_standardized_prompt_with_system() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -144,7 +144,7 @@ mod tests {
         assert!(standardized.system.is_none());
 
         match &standardized.messages[0] {
-            ModelMessage::User(msg) => match &msg.content {
+            Message::User(msg) => match &msg.content {
                 UserContent::Text(text) => {
                     assert_eq!(text, "What is the weather?");
                 }
@@ -163,7 +163,7 @@ mod tests {
         assert_eq!(standardized.system, Some("You are helpful".to_string()));
 
         match &standardized.messages[0] {
-            ModelMessage::User(msg) => match &msg.content {
+            Message::User(msg) => match &msg.content {
                 UserContent::Text(text) => {
                     assert_eq!(text, "What is the weather?");
                 }
@@ -176,12 +176,12 @@ mod tests {
     #[test]
     fn test_from_prompt_messages() {
         let messages = vec![
-            ModelMessage::User(UserModelMessage {
+            Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,
             }),
-            ModelMessage::User(UserModelMessage {
+            Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("How are you?".to_string()),
                 provider_options: None,
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_from_prompt_messages_with_system() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -216,7 +216,7 @@ mod tests {
 
         assert_eq!(standardized.messages.len(), 1);
         match &standardized.messages[0] {
-            ModelMessage::User(msg) => match &msg.content {
+            Message::User(msg) => match &msg.content {
                 UserContent::Text(text) => {
                     assert_eq!(text, "Test");
                 }
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_serialize_standardized_prompt() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_serialize_standardized_prompt_with_system() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -279,7 +279,7 @@ mod tests {
         let standardized = result.unwrap();
         assert_eq!(standardized.messages.len(), 1);
         match &standardized.messages[0] {
-            ModelMessage::User(msg) => match &msg.content {
+            Message::User(msg) => match &msg.content {
                 UserContent::Text(text) => {
                     assert_eq!(text, "Hello, world!");
                 }
@@ -292,12 +292,12 @@ mod tests {
     #[test]
     fn test_validate_and_standardize_messages_prompt() {
         let messages = vec![
-            ModelMessage::User(UserModelMessage {
+            Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,
             }),
-            ModelMessage::User(UserModelMessage {
+            Message::User(UserModelMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("How are you?".to_string()),
                 provider_options: None,

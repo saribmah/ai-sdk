@@ -1,5 +1,5 @@
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::tool::ToolContentPart;
@@ -35,8 +35,8 @@ use super::tool_set::ToolSet;
 pub fn to_response_messages(
     content: Vec<ContentPart<Value, Value>>,
     tools: Option<&ToolSet>,
-) -> Vec<ModelMessage> {
-    let mut response_messages: Vec<ModelMessage> = Vec::new();
+) -> Vec<Message> {
+    let mut response_messages: Vec<Message> = Vec::new();
 
     // Filter and map content for assistant message
     let assistant_content: Vec<AssistantContentPart> = content
@@ -170,7 +170,7 @@ pub fn to_response_messages(
 
     // Add assistant message if there's content
     if !assistant_content.is_empty() {
-        response_messages.push(ModelMessage::Assistant(AssistantModelMessage::with_parts(
+        response_messages.push(Message::Assistant(AssistantModelMessage::with_parts(
             assistant_content,
         )));
     }
@@ -258,7 +258,7 @@ pub fn to_response_messages(
             .map(|part| ToolContentPart::ToolResult(part))
             .collect();
 
-        response_messages.push(ModelMessage::Tool(ToolModelMessage::new(
+        response_messages.push(Message::Tool(ToolModelMessage::new(
             tool_content_parts,
         )));
     }
@@ -289,7 +289,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Assistant(msg) => {
+            Message::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -317,7 +317,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Assistant(msg) => {
+            Message::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -332,7 +332,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Assistant(msg) => {
+            Message::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -356,7 +356,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Assistant(_) => {
+            Message::Assistant(_) => {
                 // Provider-executed results go in assistant message
             }
             _ => panic!("Expected assistant message"),
@@ -380,7 +380,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Tool(_) => {
+            Message::Tool(_) => {
                 // Client-executed results go in tool message
             }
             _ => panic!("Expected tool message"),
@@ -401,7 +401,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            ModelMessage::Tool(_) => {
+            Message::Tool(_) => {
                 // Client-executed errors go in tool message
             }
             _ => panic!("Expected tool message"),
@@ -427,13 +427,13 @@ mod tests {
 
         assert_eq!(messages.len(), 2);
         match &messages[0] {
-            ModelMessage::Assistant(_) => {
+            Message::Assistant(_) => {
                 // Text and tool call in assistant message
             }
             _ => panic!("Expected assistant message first"),
         }
         match &messages[1] {
-            ModelMessage::Tool(_) => {
+            Message::Tool(_) => {
                 // Client-executed result in tool message
             }
             _ => panic!("Expected tool message second"),

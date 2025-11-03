@@ -55,7 +55,7 @@ pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 pub use tool_set::ToolSet;
 
 use crate::error::AISDKError;
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::{
     Prompt,
     call_settings::{CallSettings, prepare_call_settings},
@@ -99,7 +99,7 @@ use tokio_util::sync::CancellationToken;
 async fn execute_tools(
     tool_calls: &[&TypedToolCall<Value>],
     tools: &ToolSet,
-    messages: &[ModelMessage],
+    messages: &[Message],
     abort_signal: Option<CancellationToken>,
 ) -> Vec<ToolOutput<Value, Value>> {
     let mut outputs = Vec::new();
@@ -380,8 +380,8 @@ pub async fn generate_text(
         // Convert response messages to model messages and append to step_input_messages
         for response_msg in &response_messages {
             let model_msg = match response_msg {
-                ResponseMessage::Assistant(msg) => ModelMessage::Assistant(msg.clone()),
-                ResponseMessage::Tool(msg) => ModelMessage::Tool(msg.clone()),
+                ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
+                ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
             };
             step_input_messages.push(model_msg);
         }

@@ -1,4 +1,4 @@
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
 use crate::prompt::message::tool::options::ToolCallOptions;
 use serde::Serialize;
@@ -43,7 +43,7 @@ pub async fn is_approval_needed<INPUT, OUTPUT>(
     tool: &Tool<INPUT, OUTPUT>,
     tool_call_id: impl Into<String>,
     input: INPUT,
-    messages: Vec<ModelMessage>,
+    messages: Vec<Message>,
     experimental_context: Option<Value>,
 ) -> bool
 where
@@ -204,7 +204,7 @@ mod tests {
             Box::pin(async move { !options.messages.is_empty() })
         }));
 
-        let messages = vec![ModelMessage::User(UserModelMessage::new("Hello"))];
+        let messages = vec![Message::User(UserModelMessage::new("Hello"))];
 
         let result = is_approval_needed(&tool, "call_123", json!({}), messages, None).await;
 

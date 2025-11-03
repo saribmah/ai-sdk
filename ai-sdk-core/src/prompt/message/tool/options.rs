@@ -1,4 +1,4 @@
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use tokio_util::sync::CancellationToken;
 
 /// Additional options that are sent into each tool call.
@@ -9,7 +9,7 @@ pub struct ToolCallOptions {
 
     /// Messages that were sent to the language model to initiate the response that contained the tool call.
     /// The messages **do not** include the system prompt nor the assistant response that contained the tool call.
-    pub messages: Vec<ModelMessage>,
+    pub messages: Vec<Message>,
 
     /// An optional abort signal that indicates that the overall operation should be aborted.
     pub abort_signal: Option<CancellationToken>,
@@ -22,7 +22,7 @@ pub struct ToolCallOptions {
 
 impl ToolCallOptions {
     /// Creates new tool call options.
-    pub fn new(tool_call_id: impl Into<String>, messages: Vec<ModelMessage>) -> Self {
+    pub fn new(tool_call_id: impl Into<String>, messages: Vec<Message>) -> Self {
         Self {
             tool_call_id: tool_call_id.into(),
             messages,
@@ -52,8 +52,8 @@ mod tests {
     #[test]
     fn test_tool_call_options_new() {
         let messages = vec![
-            ModelMessage::from(SystemModelMessage::new("You are helpful.")),
-            ModelMessage::from(UserModelMessage::new("Hello!")),
+            Message::from(SystemModelMessage::new("You are helpful.")),
+            Message::from(UserModelMessage::new("Hello!")),
         ];
 
         let options = ToolCallOptions::new("call_123", messages.clone());
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_tool_call_options_with_abort_signal() {
-        let messages = vec![ModelMessage::from(UserModelMessage::new("Hello!"))];
+        let messages = vec![Message::from(UserModelMessage::new("Hello!"))];
 
         let token = CancellationToken::new();
         let options = ToolCallOptions::new("call_123", messages).with_abort_signal(token.clone());
@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_tool_call_options_with_experimental_context() {
-        let messages = vec![ModelMessage::from(UserModelMessage::new("Hello!"))];
+        let messages = vec![Message::from(UserModelMessage::new("Hello!"))];
 
         let context = serde_json::json!({"key": "value"});
         let options =

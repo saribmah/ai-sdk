@@ -1,5 +1,5 @@
 use super::step_result::StepResult;
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 use async_trait::async_trait;
 use std::future::Future;
@@ -34,7 +34,7 @@ pub struct PrepareStepOptions<'a> {
     pub step_number: usize,
 
     /// The messages being sent to the model for this step.
-    pub messages: &'a [ModelMessage],
+    pub messages: &'a [Message],
 }
 
 /// Result returned by a prepare step function.
@@ -87,7 +87,7 @@ pub struct PrepareStepResult {
     /// Optional messages override for this step.
     ///
     /// If provided, this will replace the messages for this specific step.
-    pub messages: Option<Vec<ModelMessage>>,
+    pub messages: Option<Vec<Message>>,
 }
 
 /// A trait for implementing step preparation logic.
@@ -176,7 +176,7 @@ mod tests {
     #[tokio::test]
     async fn test_prepare_step_options() {
         let steps = vec![create_test_step()];
-        let messages: Vec<ModelMessage> = vec![];
+        let messages: Vec<Message> = vec![];
 
         let options = PrepareStepOptions {
             steps: &steps,

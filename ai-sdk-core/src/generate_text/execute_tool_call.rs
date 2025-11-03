@@ -3,7 +3,7 @@ use crate::generate_text::tool_call::TypedToolCall;
 use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 use crate::generate_text::tool_output::ToolOutput;
 use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::message::tool::definition::Tool;
 use crate::prompt::message::tool::execute::{ToolExecutionEvent, execute_tool};
 use crate::prompt::message::tool::options::ToolCallOptions;
@@ -53,7 +53,7 @@ pub type OnPreliminaryToolResult = Arc<dyn Fn(TypedToolResult<Value, Value>) + S
 pub async fn execute_tool_call(
     tool_call: TypedToolCall<Value>,
     tools: &ToolSet,
-    messages: Vec<ModelMessage>,
+    messages: Vec<Message>,
     abort_signal: Option<CancellationToken>,
     experimental_context: Option<Value>,
     on_preliminary_tool_result: Option<OnPreliminaryToolResult>,

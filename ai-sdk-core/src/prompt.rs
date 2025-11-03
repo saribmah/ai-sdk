@@ -4,7 +4,7 @@ pub mod create_tool_model_output;
 pub mod message;
 pub mod standardize;
 
-use message::ModelMessage;
+use message::Message;
 use serde::{Deserialize, Serialize};
 
 /// Prompt part of the AI function options.
@@ -32,7 +32,7 @@ pub enum PromptContent {
     /// A list of messages
     Messages {
         #[serde(rename = "messages")]
-        messages: Vec<ModelMessage>,
+        messages: Vec<Message>,
     },
 }
 
@@ -66,7 +66,7 @@ impl Prompt {
     /// ];
     /// let prompt = Prompt::messages(messages);
     /// ```
-    pub fn messages(messages: Vec<ModelMessage>) -> Self {
+    pub fn messages(messages: Vec<Message>) -> Self {
         Self {
             system: None,
             content: PromptContent::Messages { messages },
@@ -90,7 +90,7 @@ impl Prompt {
 
     /// Gets a reference to the messages in this prompt.
     /// Returns None if the prompt is text-based.
-    pub fn get_messages(&self) -> Option<&Vec<ModelMessage>> {
+    pub fn get_messages(&self) -> Option<&Vec<Message>> {
         match &self.content {
             PromptContent::Messages { messages } => Some(messages),
             PromptContent::Text { .. } => None,
@@ -99,7 +99,7 @@ impl Prompt {
 
     /// Gets a mutable reference to the messages in this prompt.
     /// Returns None if the prompt is text-based.
-    pub fn get_messages_mut(&mut self) -> Option<&mut Vec<ModelMessage>> {
+    pub fn get_messages_mut(&mut self) -> Option<&mut Vec<Message>> {
         match &mut self.content {
             PromptContent::Messages { messages } => Some(messages),
             PromptContent::Text { .. } => None,
@@ -133,8 +133,8 @@ impl From<&str> for Prompt {
     }
 }
 
-impl From<Vec<ModelMessage>> for Prompt {
-    fn from(messages: Vec<ModelMessage>) -> Self {
+impl From<Vec<Message>> for Prompt {
+    fn from(messages: Vec<Message>) -> Self {
         Self::messages(messages)
     }
 }
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt_with_system() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_from_messages() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_serialize_messages_prompt() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserModelMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,

@@ -1,5 +1,5 @@
 use crate::generate_text::tool_call::{StaticToolCall, TypedToolCall};
-use crate::prompt::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::message::{AssistantContent, ToolContentPart};
 use crate::prompt::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
 use serde_json::Value;
@@ -134,10 +134,10 @@ impl CollectedToolApprovals {
 /// let approval = &result.approved_tool_approvals[0];
 /// assert_eq!(approval.approval_response.approved, true);
 /// ```
-pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprovals {
+pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
     // Check if the last message is a tool message
     let last_message = match messages.last() {
-        Some(ModelMessage::Tool(tool_msg)) => tool_msg,
+        Some(Message::Tool(tool_msg)) => tool_msg,
         _ => return CollectedToolApprovals::empty(),
     };
 
@@ -145,7 +145,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
     // Convert ToolCallPart to TypedToolCall<Value> (as StaticToolCall since we have the input as Value)
     let mut tool_calls_by_id: HashMap<String, TypedToolCall<Value>> = HashMap::new();
     for message in messages {
-        if let ModelMessage::Assistant(assistant_msg) = message {
+        if let Message::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
                     if let crate::prompt::message::assistant::AssistantContentPart::ToolCall(
@@ -171,7 +171,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
     // Gather approval requests from assistant messages and create lookup by approval_id
     let mut approval_requests_by_id: HashMap<String, ToolApprovalRequest> = HashMap::new();
     for message in messages {
-        if let ModelMessage::Assistant(assistant_msg) = message {
+        if let Message::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
                     if let crate::prompt::message::assistant::AssistantContentPart::ToolApprovalRequest(
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_collect_tool_approvals_empty_messages() {
-        let messages: Vec<ModelMessage> = vec![];
+        let messages: Vec<Message> = vec![];
         let result = collect_tool_approvals(&messages);
 
         assert!(result.is_empty());
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_collect_tool_approvals_non_tool_last_message() {
-        let messages = vec![ModelMessage::Assistant(AssistantModelMessage::new("Hello"))];
+        let messages = vec![Message::Assistant(AssistantModelMessage::new("Hello"))];
 
         let result = collect_tool_approvals(&messages);
 
@@ -271,7 +271,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_approved() {
         let messages = vec![
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "delete_file",
@@ -282,7 +282,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_456")),
             ])),
         ];
@@ -309,7 +309,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_denied() {
         let messages = vec![
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "delete_database",
@@ -320,7 +320,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(
                     ToolApprovalResponse::denied("approval_456").with_reason("Too dangerous"),
                 ),
@@ -349,7 +349,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_mixed() {
         let messages = vec![
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_1",
                     "read_file",
@@ -369,7 +369,7 @@ mod tests {
                     "call_2",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::denied("approval_2")),
             ])),
@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_skips_with_existing_result() {
         let messages = vec![
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "some_tool",
@@ -396,7 +396,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ToolResult(ToolResultPart::new(
                     "call_123",
                     "some_tool",
@@ -415,24 +415,24 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_multiple_messages() {
         let messages = vec![
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new("call_1", "tool_a", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_1",
                     "call_1",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
             ])),
-            ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantModelMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new("call_2", "tool_b", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_2",
                     "call_2",
                 )),
             ])),
-            ModelMessage::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::denied("approval_2")),
             ])),
         ];
