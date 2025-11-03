@@ -429,7 +429,7 @@ fn combine_consecutive_tool_messages(messages: Vec<LanguageModelMessage>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemModelMessage, UserModelMessage};
+    use crate::prompt::message::{SystemMessage, UserModelMessage};
 
     #[test]
     fn test_convert_text_prompt() {

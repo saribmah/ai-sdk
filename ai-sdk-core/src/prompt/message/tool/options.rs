@@ -47,12 +47,12 @@ impl ToolCallOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemModelMessage, UserModelMessage};
+    use crate::prompt::message::{SystemMessage, UserModelMessage};
 
     #[test]
     fn test_tool_call_options_new() {
         let messages = vec![
-            Message::from(SystemModelMessage::new("You are helpful.")),
+            Message::from(SystemMessage::new("You are helpful.")),
             Message::from(UserModelMessage::new("Hello!")),
         ];
 

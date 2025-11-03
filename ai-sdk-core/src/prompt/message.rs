@@ -11,7 +11,7 @@ pub use content_parts::{
     ToolResultContentPart, ToolResultOutput, ToolResultPart,
 };
 pub use data_content::DataContent;
-pub use system::SystemModelMessage;
+pub use system::SystemMessage;
 pub use tool::{
     execute_tool, Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions,
     ToolContent, ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput,
@@ -27,7 +27,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 #[serde(untagged)]
 pub enum Message {
     /// System message containing instructions or context.
-    System(SystemModelMessage),
+    System(SystemMessage),
 
     /// User message containing the user's input.
     User(UserModelMessage),
@@ -108,8 +108,8 @@ impl Message {
     }
 }
 
-impl From<SystemModelMessage> for Message {
-    fn from(message: SystemModelMessage) -> Self {
+impl From<SystemMessage> for Message {
+    fn from(message: SystemMessage) -> Self {
         Message::System(message)
     }
 }
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_model_message_system() {
-        let system_msg = SystemModelMessage::new("You are a helpful assistant.");
+        let system_msg = SystemMessage::new("You are a helpful assistant.");
         let message = Message::from(system_msg);
 
         assert_eq!(message.role(), "system");
@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_model_message_serialization_system() {
-        let system_msg = SystemModelMessage::new("You are helpful.");
+        let system_msg = SystemMessage::new("You are helpful.");
         let message = Message::from(system_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
@@ -283,7 +283,7 @@ mod tests {
 
     #[test]
     fn test_model_message_clone() {
-        let system_msg = SystemModelMessage::new("You are helpful.");
+        let system_msg = SystemMessage::new("You are helpful.");
         let message = Message::from(system_msg);
         let cloned = message.clone();
 
@@ -293,7 +293,7 @@ mod tests {
     #[test]
     fn test_model_message_conversation() {
         let messages = vec![
-            Message::from(SystemModelMessage::new("You are helpful.")),
+            Message::from(SystemMessage::new("You are helpful.")),
             Message::from(UserModelMessage::new("Hello!")),
             Message::from(AssistantModelMessage::new("Hi! How can I help?")),
         ];

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// to increase the resilience against prompt injection attacks,
 /// and because not all providers support several system messages.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SystemModelMessage {
+pub struct SystemMessage {
     /// Role is always 'system' for system messages.
     pub role: String,
 
@@ -21,7 +21,7 @@ pub struct SystemModelMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
-impl SystemModelMessage {
+impl SystemMessage {
     /// Creates a new system model message with the given content.
     pub fn new(content: impl Into<String>) -> Self {
         Self {
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_system_model_message_new() {
-        let message = SystemModelMessage::new("You are a helpful assistant.");
+        let message = SystemMessage::new("You are a helpful assistant.");
 
         assert_eq!(message.role, "system");
         assert_eq!(message.content, "You are a helpful assistant.");
@@ -55,7 +55,7 @@ mod tests {
     fn test_system_model_message_with_provider_options() {
         let provider_options = SharedProviderOptions::new();
 
-        let message = SystemModelMessage::new("You are a helpful assistant.")
+        let message = SystemMessage::new("You are a helpful assistant.")
             .with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
@@ -64,21 +64,21 @@ mod tests {
     #[test]
     fn test_system_model_message_from_string() {
         let content = "System instructions".to_string();
-        let message = SystemModelMessage::new(content.clone());
+        let message = SystemMessage::new(content.clone());
 
         assert_eq!(message.content, content);
     }
 
     #[test]
     fn test_system_model_message_from_str() {
-        let message = SystemModelMessage::new("Instructions");
+        let message = SystemMessage::new("Instructions");
 
         assert_eq!(message.content, "Instructions");
     }
 
     #[test]
     fn test_system_model_message_serialization() {
-        let message = SystemModelMessage::new("You are helpful.");
+        let message = SystemMessage::new("You are helpful.");
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -92,7 +92,7 @@ mod tests {
         let provider_options = SharedProviderOptions::new();
 
         let message =
-            SystemModelMessage::new("You are helpful.").with_provider_options(provider_options);
+            SystemMessage::new("You are helpful.").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -107,7 +107,7 @@ mod tests {
             "content": "You are a helpful assistant."
         });
 
-        let message: SystemModelMessage = serde_json::from_value(json).unwrap();
+        let message: SystemMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "system");
         assert_eq!(message.content, "You are a helpful assistant.");
@@ -122,7 +122,7 @@ mod tests {
             "providerOptions": {}
         });
 
-        let message: SystemModelMessage = serde_json::from_value(json).unwrap();
+        let message: SystemMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "system");
         assert_eq!(message.content, "You are a helpful assistant.");
@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_system_model_message_clone() {
-        let message = SystemModelMessage::new("You are helpful.");
+        let message = SystemMessage::new("You are helpful.");
         let cloned = message.clone();
 
         assert_eq!(message, cloned);
