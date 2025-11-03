@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelSystemMessage {
-    #[serde(rename = "role")]
-    pub message_role: SystemRole,
+    pub role: SystemRole,
 
     /// The system message content
     pub content: String,
@@ -17,12 +16,12 @@ pub struct LanguageModelSystemMessage {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "system")]
-pub(crate) struct SystemRole;
+pub struct SystemRole;
 
 impl LanguageModelSystemMessage {
     pub fn new(content: impl Into<String>) -> Self {
         Self {
-            message_role: SystemRole,
+            role: SystemRole,
             content: content.into(),
             provider_options: None,
         }
@@ -33,7 +32,7 @@ impl LanguageModelSystemMessage {
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
-            message_role: SystemRole,
+            role: SystemRole,
             content: content.into(),
             provider_options,
         }

@@ -26,8 +26,7 @@ pub enum LanguageModelAssistantMessagePart {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelAssistantMessage {
-    #[serde(rename = "role")]
-    pub message_role: AssistantRole,
+    pub role: AssistantRole,
 
     /// Array of content parts (text, files, reasoning, tool calls, tool results)
     pub content: Vec<LanguageModelAssistantMessagePart>,
@@ -39,12 +38,12 @@ pub struct LanguageModelAssistantMessage {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "assistant")]
-pub(crate) struct AssistantRole;
+pub struct AssistantRole;
 
 impl LanguageModelAssistantMessage {
     pub fn new(content: Vec<LanguageModelAssistantMessagePart>) -> Self {
         Self {
-            message_role: AssistantRole,
+            role: AssistantRole,
             content,
             provider_options: None,
         }
@@ -55,7 +54,7 @@ impl LanguageModelAssistantMessage {
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
-            message_role: AssistantRole,
+            role: AssistantRole,
             content,
             provider_options,
         }

@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelToolMessage {
-    #[serde(rename = "role")]
-    pub message_role: ToolRole,
+    pub role: ToolRole,
 
     /// Array of tool result parts
     pub content: Vec<LanguageModelToolResultPart>,
@@ -19,12 +18,12 @@ pub struct LanguageModelToolMessage {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool")]
-pub(crate) struct ToolRole;
+pub struct ToolRole;
 
 impl LanguageModelToolMessage {
     pub fn new(content: Vec<LanguageModelToolResultPart>) -> Self {
         Self {
-            message_role: ToolRole,
+            role: ToolRole,
             content,
             provider_options: None,
         }
@@ -35,7 +34,7 @@ impl LanguageModelToolMessage {
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
-            message_role: ToolRole,
+            role: ToolRole,
             content,
             provider_options,
         }
