@@ -29,33 +29,33 @@ use serde_json::Value;
 pub enum LanguageModelStreamPart {
     // Text blocks
     /// Start of a text block
-    TextStart(text_start::TextStart),
+    TextStart(text_start::LanguageModelStreamTextStart),
 
     /// Text delta (incremental text content)
-    TextDelta(text_delta::TextDelta),
+    TextDelta(text_delta::LanguageModelStreamTextDelta),
 
     /// End of a text block
-    TextEnd(text_end::TextEnd),
+    TextEnd(text_end::LanguageModelStreamTextEnd),
 
     // Reasoning blocks
     /// Start of a reasoning block
-    ReasoningStart(reasoning_start::ReasoningStart),
+    ReasoningStart(reasoning_start::LanguageModelStreamReasoningStart),
 
     /// Reasoning delta (incremental reasoning content)
-    ReasoningDelta(reasoning_delta::ReasoningDelta),
+    ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta),
 
     /// End of a reasoning block
-    ReasoningEnd(reasoning_end::ReasoningEnd),
+    ReasoningEnd(reasoning_end::LanguageModelStreamReasoningEnd),
 
     // Tool input blocks
     /// Start of tool input
-    ToolInputStart(tool_input_start::ToolInputStart),
+    ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart),
 
     /// Tool input delta (incremental tool arguments)
-    ToolInputDelta(tool_input_delta::ToolInputDelta),
+    ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta),
 
     /// End of tool input
-    ToolInputEnd(tool_input_end::ToolInputEnd),
+    ToolInputEnd(tool_input_end::LanguageModelStreamToolInputEnd),
 
     // Complete tool call and result
     /// Complete tool call
@@ -73,20 +73,20 @@ pub enum LanguageModelStreamPart {
 
     // Stream metadata events
     /// Stream start event with warnings
-    StreamStart(stream_start::StreamStart),
+    StreamStart(stream_start::LanguageModelStreamStart),
 
     /// Response metadata
     ResponseMetadata(LanguageModelResponseMetadata),
 
     /// Stream finish event
-    Finish(finish::Finish),
+    Finish(finish::LanguageModelStreamFinish),
 
     // Raw chunks and errors
     /// Raw chunk from provider (if enabled)
-    Raw(raw::Raw),
+    Raw(raw::LanguageModelStreamRaw),
 
     /// Error event
-    Error(error::Error),
+    Error(error::LanguageModelStreamError),
 }
 
 // Helper implementations
@@ -168,66 +168,66 @@ impl LanguageModelStreamPart {
 impl LanguageModelStreamPart {
     /// Create a text start event
     pub fn text_start(id: impl Into<String>) -> Self {
-        Self::TextStart(text_start::TextStart::new(id))
+        Self::TextStart(text_start::LanguageModelStreamTextStart::new(id))
     }
 
     /// Create a text delta event
     pub fn text_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::TextDelta(text_delta::TextDelta::new(id, delta))
+        Self::TextDelta(text_delta::LanguageModelStreamTextDelta::new(id, delta))
     }
 
     /// Create a text end event
     pub fn text_end(id: impl Into<String>) -> Self {
-        Self::TextEnd(text_end::TextEnd::new(id))
+        Self::TextEnd(text_end::LanguageModelStreamTextEnd::new(id))
     }
 
     /// Create a reasoning start event
     pub fn reasoning_start(id: impl Into<String>) -> Self {
-        Self::ReasoningStart(reasoning_start::ReasoningStart::new(id))
+        Self::ReasoningStart(reasoning_start::LanguageModelStreamReasoningStart::new(id))
     }
 
     /// Create a reasoning delta event
     pub fn reasoning_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ReasoningDelta(reasoning_delta::ReasoningDelta::new(id, delta))
+        Self::ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta::new(id, delta))
     }
 
     /// Create a reasoning end event
     pub fn reasoning_end(id: impl Into<String>) -> Self {
-        Self::ReasoningEnd(reasoning_end::ReasoningEnd::new(id))
+        Self::ReasoningEnd(reasoning_end::LanguageModelStreamReasoningEnd::new(id))
     }
 
     /// Create a tool input start event
     pub fn tool_input_start(id: impl Into<String>, tool_name: impl Into<String>) -> Self {
-        Self::ToolInputStart(tool_input_start::ToolInputStart::new(id, tool_name))
+        Self::ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart::new(id, tool_name))
     }
 
     /// Create a tool input delta event
     pub fn tool_input_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ToolInputDelta(tool_input_delta::ToolInputDelta::new(id, delta))
+        Self::ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta::new(id, delta))
     }
 
     /// Create a tool input end event
     pub fn tool_input_end(id: impl Into<String>) -> Self {
-        Self::ToolInputEnd(tool_input_end::ToolInputEnd::new(id))
+        Self::ToolInputEnd(tool_input_end::LanguageModelStreamToolInputEnd::new(id))
     }
 
     /// Create a stream start event
     pub fn stream_start(warnings: Vec<LanguageModelCallWarning>) -> Self {
-        Self::StreamStart(stream_start::StreamStart::new(warnings))
+        Self::StreamStart(stream_start::LanguageModelStreamStart::new(warnings))
     }
 
     /// Create a finish event
     pub fn finish(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
-        Self::Finish(finish::Finish::new(usage, finish_reason))
+        Self::Finish(finish::LanguageModelStreamFinish::new(usage, finish_reason))
     }
 
     /// Create a raw chunk event
     pub fn raw(raw_value: Value) -> Self {
-        Self::Raw(raw::Raw::new(raw_value))
+        Self::Raw(raw::LanguageModelStreamRaw::new(raw_value))
     }
 
     /// Create an error event
     pub fn error(error: Value) -> Self {
-        Self::Error(error::Error::new(error))
+        Self::Error(error::LanguageModelStreamError::new(error))
     }
 }

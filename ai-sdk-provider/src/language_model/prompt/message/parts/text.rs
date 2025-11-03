@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TextPart {
+pub struct LanguageModelTextPart {
     #[serde(rename = "type")]
     pub content_type: TextPartType,
 
@@ -19,7 +19,7 @@ pub struct TextPart {
 #[serde(rename = "text")]
 pub(crate) struct TextPartType;
 
-impl TextPart {
+impl LanguageModelTextPart {
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             content_type: TextPartType,

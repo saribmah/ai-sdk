@@ -1,8 +1,8 @@
-use ai_sdk_provider::language_model::prompt::message::parts::{FilePart, TextPart, ToolCallPart};
-use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
+use ai_sdk_provider::language_model::prompt::message::parts::{LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart};
+use ai_sdk_provider::language_model::prompt::message::{LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage};
 use ai_sdk_provider::language_model::prompt::{
-    AssistantMessagePart, DataContent, LanguageModelMessage, LanguageModelPrompt, ToolResultOutput, ToolResultPart,
-    UserMessagePart,
+    LanguageModelAssistantMessagePart, DataContent, LanguageModelMessage, LanguageModelPrompt, ToolResultOutput, LanguageModelToolResultPart,
+    LanguageModelUserMessagePart,
 };
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use base64::{Engine as _, engine::general_purpose};
@@ -73,7 +73,7 @@ pub fn convert_to_openai_compatible_chat_messages(
                 let provider_options = user_msg.provider_options;
                 // Check if it's a simple text message
                 if content.len() == 1 {
-                    if let UserMessagePart::Text(text_part) = &content[0] {
+                    if let LanguageModelUserMessagePart::Text(text_part) = &content[0] {
                         let mut user_msg =
                             OpenAICompatibleUserMessage::new_text(text_part.text.clone());
                         if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
@@ -89,7 +89,7 @@ pub fn convert_to_openai_compatible_chat_messages(
 
                 for part in content {
                     match part {
-                        UserMessagePart::Text(text_part) => {
+                        LanguageModelUserMessagePart::Text(text_part) => {
                             let mut text_part_out =
                                 OpenAICompatibleContentPartText::new(text_part.text);
                             if let Some(metadata) = get_openai_metadata(&text_part.provider_options)
@@ -98,7 +98,7 @@ pub fn convert_to_openai_compatible_chat_messages(
                             }
                             parts.push(OpenAICompatibleContentPart::Text(text_part_out));
                         }
-                        UserMessagePart::File(file_part) => {
+                        LanguageModelUserMessagePart::File(file_part) => {
                             if file_part.media_type.starts_with("image/") {
                                 // Handle wildcard image type
                                 let actual_media_type = if file_part.media_type == "image/*" {
@@ -140,10 +140,10 @@ pub fn convert_to_openai_compatible_chat_messages(
 
                 for part in content {
                     match part {
-                        AssistantMessagePart::Text(text_part) => {
+                        LanguageModelAssistantMessagePart::Text(text_part) => {
                             text.push_str(&text_part.text);
                         }
-                        AssistantMessagePart::ToolCall(tool_call_part) => {
+                        LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
                             let arguments = serde_json::to_string(&tool_call_part.input)
                                 .unwrap_or_else(|_| "{}".to_string());
                             let mut tool_call = OpenAICompatibleMessageToolCall::new(
@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_convert_system_message() {
-        let prompt = vec![LanguageModelMessage::System(System::new(
+        let prompt = vec![LanguageModelMessage::System(LanguageModelSystemMessage::new(
             "You are a helpful assistant.".to_string(),
         ))];
 
@@ -235,8 +235,8 @@ mod tests {
 
     #[test]
     fn test_convert_user_text_message() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(
-            TextPart::new("Hello!"),
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(
+            LanguageModelTextPart::new("Hello!"),
         )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -253,9 +253,9 @@ mod tests {
 
     #[test]
     fn test_convert_user_multipart_message() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![
-            UserMessagePart::Text(TextPart::new("What's in this image?")),
-            UserMessagePart::File(FilePart::with_options(
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![
+            LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("What's in this image?")),
+            LanguageModelUserMessagePart::File(LanguageModelFilePart::with_options(
                 None,
                 DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
                 "image/jpeg",
@@ -279,8 +279,8 @@ mod tests {
 
     #[test]
     fn test_convert_assistant_text_message() {
-        let prompt = vec![LanguageModelMessage::Assistant(Assistant::new(vec![
-            AssistantMessagePart::Text(TextPart::new("I can help you!")),
+        let prompt = vec![LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![
+            LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::new("I can help you!")),
         ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -297,8 +297,8 @@ mod tests {
 
     #[test]
     fn test_convert_assistant_with_tool_calls() {
-        let prompt = vec![LanguageModelMessage::Assistant(Assistant::new(vec![
-            AssistantMessagePart::ToolCall(ToolCallPart::new(
+        let prompt = vec![LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![
+            LanguageModelAssistantMessagePart::ToolCall(LanguageModelToolCallPart::new(
                 "call_123",
                 "get_weather",
                 json!({"city": "San Francisco"}),
@@ -323,7 +323,7 @@ mod tests {
 
     #[test]
     fn test_convert_tool_message() {
-        let prompt = vec![LanguageModelMessage::Tool(Tool::new(vec![ToolResultPart::new(
+        let prompt = vec![LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![LanguageModelToolResultPart::new(
             "call_123",
             "get_weather",
             ToolResultOutput::Text {
@@ -345,8 +345,8 @@ mod tests {
 
     #[test]
     fn test_convert_unsupported_file_type() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![UserMessagePart::File(
-            FilePart::new(
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::File(
+            LanguageModelFilePart::new(
                 DataContent::Base64("base64data".to_string()),
                 "application/pdf",
             ),
@@ -360,8 +360,8 @@ mod tests {
 
     #[test]
     fn test_convert_image_with_wildcard_type() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![UserMessagePart::File(
-            FilePart::new(DataContent::Base64("imagedata".to_string()), "image/*"),
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::File(
+            LanguageModelFilePart::new(DataContent::Base64("imagedata".to_string()), "image/*"),
         )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -387,12 +387,12 @@ mod tests {
     #[test]
     fn test_convert_multiple_messages() {
         let prompt = vec![
-            LanguageModelMessage::System(System::new("System prompt".to_string())),
-            LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+            LanguageModelMessage::System(LanguageModelSystemMessage::new("System prompt".to_string())),
+            LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(
                 "User message",
             ))])),
-            LanguageModelMessage::Assistant(Assistant::new(vec![AssistantMessagePart::Text(
-                TextPart::new("Assistant message"),
+            LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![LanguageModelAssistantMessagePart::Text(
+                LanguageModelTextPart::new("Assistant message"),
             )])),
         ];
 

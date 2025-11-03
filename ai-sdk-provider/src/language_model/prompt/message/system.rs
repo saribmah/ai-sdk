@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct System {
+pub struct LanguageModelSystemMessage {
     #[serde(rename = "role")]
     pub message_role: SystemRole,
 
@@ -19,7 +19,7 @@ pub struct System {
 #[serde(rename = "system")]
 pub(crate) struct SystemRole;
 
-impl System {
+impl LanguageModelSystemMessage {
     pub fn new(content: impl Into<String>) -> Self {
         Self {
             message_role: SystemRole,

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct StreamStart {
+pub struct LanguageModelStreamStart {
     #[serde(rename = "type")]
     pub content_type: StreamStartType,
 
@@ -15,7 +15,7 @@ pub struct StreamStart {
 #[serde(rename = "stream-start")]
 pub(crate) struct StreamStartType;
 
-impl StreamStart {
+impl LanguageModelStreamStart {
     pub fn new(warnings: Vec<LanguageModelCallWarning>) -> Self {
         Self {
             content_type: StreamStartType,

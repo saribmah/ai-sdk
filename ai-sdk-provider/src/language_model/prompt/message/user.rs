@@ -1,27 +1,27 @@
-use super::parts::{FilePart, TextPart};
+use super::parts::{LanguageModelFilePart, LanguageModelTextPart};
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content parts that can appear in a user message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum UserMessagePart {
+pub enum LanguageModelUserMessagePart {
     /// Text content
-    Text(TextPart),
+    Text(LanguageModelTextPart),
 
     /// File content
-    File(FilePart),
+    File(LanguageModelFilePart),
 }
 
 /// User message struct
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct User {
+pub struct LanguageModelUserMessage {
     #[serde(rename = "role")]
     pub message_role: UserRole,
 
     /// Array of text or file content parts
-    pub content: Vec<UserMessagePart>,
+    pub content: Vec<LanguageModelUserMessagePart>,
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,8 +32,8 @@ pub struct User {
 #[serde(rename = "user")]
 pub(crate) struct UserRole;
 
-impl User {
-    pub fn new(content: Vec<UserMessagePart>) -> Self {
+impl LanguageModelUserMessage {
+    pub fn new(content: Vec<LanguageModelUserMessagePart>) -> Self {
         Self {
             message_role: UserRole,
             content,
@@ -42,7 +42,7 @@ impl User {
     }
 
     pub fn with_options(
-        content: Vec<UserMessagePart>,
+        content: Vec<LanguageModelUserMessagePart>,
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
@@ -54,6 +54,6 @@ impl User {
 
     /// Create a user message with text
     pub fn text(text: impl Into<String>) -> Self {
-        Self::new(vec![UserMessagePart::Text(TextPart::new(text))])
+        Self::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(text))])
     }
 }

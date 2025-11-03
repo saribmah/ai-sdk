@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ToolInputStart {
+pub struct LanguageModelStreamToolInputStart {
     #[serde(rename = "type")]
     pub content_type: ToolInputStartType,
 
@@ -26,7 +26,7 @@ pub struct ToolInputStart {
 #[serde(rename = "tool-input-start")]
 pub(crate) struct ToolInputStartType;
 
-impl ToolInputStart {
+impl LanguageModelStreamToolInputStart {
     pub fn new(id: impl Into<String>, tool_name: impl Into<String>) -> Self {
         Self {
             content_type: ToolInputStartType,

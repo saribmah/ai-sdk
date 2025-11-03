@@ -3,7 +3,7 @@ use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Raw {
+pub struct LanguageModelStreamRaw {
     #[serde(rename = "type")]
     pub content_type: RawType,
 
@@ -16,7 +16,7 @@ pub struct Raw {
 #[serde(rename = "raw")]
 pub(crate) struct RawType;
 
-impl Raw {
+impl LanguageModelStreamRaw {
     pub fn new(raw_value: Value) -> Self {
         Self {
             content_type: RawType,

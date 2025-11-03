@@ -38,7 +38,7 @@ use crate::prompt::{
 };
 use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
 use ai_sdk_provider::language_model::{
-    LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::ToolChoice, usage::LanguageModelUsage,
+    LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::LanguageModelToolChoice, usage::LanguageModelUsage,
 };
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
@@ -447,7 +447,7 @@ pub async fn stream_text(
     prompt: Prompt,
     settings: CallSettings,
     tools: Option<ToolSet>,
-    tool_choice: Option<ToolChoice>,
+    tool_choice: Option<LanguageModelToolChoice>,
     provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
@@ -590,10 +590,10 @@ pub async fn stream_text(
                         .iter()
                         .filter(|tool| {
                             active_tool_names.iter().any(|name| match tool {
-                                ai_sdk_provider::language_model::tool::Tool::Function(f) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
                                     f.name == *name
                                 }
-                                ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
                                     p.name == *name
                                 }
                             })

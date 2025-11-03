@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 /// The configuration of a tool that is defined by the provider.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ProviderDefinedTool {
+pub struct LanguageModelProviderDefinedTool {
     #[serde(rename = "type")]
     pub tool_type: ProviderDefinedToolType,
 
@@ -28,7 +28,7 @@ impl Default for ProviderDefinedToolType {
     }
 }
 
-impl ProviderDefinedTool {
+impl LanguageModelProviderDefinedTool {
     pub fn new(
         id: impl Into<String>,
         name: impl Into<String>,

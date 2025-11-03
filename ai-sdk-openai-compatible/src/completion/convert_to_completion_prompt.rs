@@ -1,7 +1,7 @@
-use ai_sdk_provider::language_model::prompt::message::parts::{TextPart, ToolCallPart};
-use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
+use ai_sdk_provider::language_model::prompt::message::parts::{LanguageModelTextPart, LanguageModelToolCallPart};
+use ai_sdk_provider::language_model::prompt::message::{LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage};
 use ai_sdk_provider::language_model::prompt::{
-    AssistantMessagePart, LanguageModelMessage, LanguageModelPrompt, UserMessagePart,
+    LanguageModelAssistantMessagePart, LanguageModelMessage, LanguageModelPrompt, LanguageModelUserMessagePart,
 };
 
 /// Result of converting a prompt to OpenAI-compatible completion format
@@ -87,8 +87,8 @@ pub fn convert_to_openai_compatible_completion_prompt(
                     .content
                     .into_iter()
                     .filter_map(|part| match part {
-                        UserMessagePart::Text(text_part) => Some(text_part.text),
-                        UserMessagePart::File(_) => None,
+                        LanguageModelUserMessagePart::Text(text_part) => Some(text_part.text),
+                        LanguageModelUserMessagePart::File(_) => None,
                     })
                     .collect::<Vec<_>>()
                     .join("");
@@ -101,10 +101,10 @@ pub fn convert_to_openai_compatible_completion_prompt(
 
                 for part in asst.content {
                     match part {
-                        AssistantMessagePart::Text(text_part) => {
+                        LanguageModelAssistantMessagePart::Text(text_part) => {
                             assistant_message.push_str(&text_part.text);
                         }
-                        AssistantMessagePart::ToolCall(_) => {
+                        LanguageModelAssistantMessagePart::ToolCall(_) => {
                             return Err("Unsupported functionality: tool-call messages".to_string());
                         }
                         // Ignore other assistant message types
@@ -136,8 +136,8 @@ mod tests {
 
     #[test]
     fn test_simple_user_message() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(
-            TextPart::new("Hello!"),
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(
+            LanguageModelTextPart::new("Hello!"),
         )]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
@@ -149,8 +149,8 @@ mod tests {
     #[test]
     fn test_system_message_first() {
         let prompt = vec![
-            LanguageModelMessage::System(System::new("You are a helpful assistant.".to_string())),
-            LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+            LanguageModelMessage::System(LanguageModelSystemMessage::new("You are a helpful assistant.".to_string())),
+            LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(
                 "Hello!",
             ))])),
         ];
@@ -167,10 +167,10 @@ mod tests {
     #[test]
     fn test_system_message_not_first_errors() {
         let prompt = vec![
-            LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+            LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(
                 "Hello!",
             ))])),
-            LanguageModelMessage::System(System::new("You are a helpful assistant.".to_string())),
+            LanguageModelMessage::System(LanguageModelSystemMessage::new("You are a helpful assistant.".to_string())),
         ];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
@@ -182,13 +182,13 @@ mod tests {
     #[test]
     fn test_conversation() {
         let prompt = vec![
-            LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+            LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(
                 "What is 2+2?",
             ))])),
-            LanguageModelMessage::Assistant(Assistant::new(vec![AssistantMessagePart::Text(
-                TextPart::new("The answer is 4."),
+            LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![LanguageModelAssistantMessagePart::Text(
+                LanguageModelTextPart::new("The answer is 4."),
             )])),
-            LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+            LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(
                 "What about 3+3?",
             ))])),
         ];
@@ -203,8 +203,8 @@ mod tests {
 
     #[test]
     fn test_custom_prefixes() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![UserMessagePart::Text(
-            TextPart::new("Hello!"),
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::Text(
+            LanguageModelTextPart::new("Hello!"),
         )]))];
 
         let result =
@@ -217,9 +217,9 @@ mod tests {
 
     #[test]
     fn test_multiple_text_parts() {
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![
-            UserMessagePart::Text(TextPart::new("Hello ")),
-            UserMessagePart::Text(TextPart::new("world!")),
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![
+            LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("Hello ")),
+            LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("world!")),
         ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
@@ -231,8 +231,8 @@ mod tests {
     fn test_tool_call_errors() {
         use serde_json::json;
 
-        let prompt = vec![LanguageModelMessage::Assistant(Assistant::new(vec![
-            AssistantMessagePart::ToolCall(ToolCallPart::new("call_123", "get_weather", json!({}))),
+        let prompt = vec![LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![
+            LanguageModelAssistantMessagePart::ToolCall(LanguageModelToolCallPart::new("call_123", "get_weather", json!({}))),
         ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
@@ -243,9 +243,9 @@ mod tests {
 
     #[test]
     fn test_tool_message_errors() {
-        use ai_sdk_provider::language_model::prompt::{ToolResultOutput, ToolResultPart};
+        use ai_sdk_provider::language_model::prompt::{ToolResultOutput, LanguageModelToolResultPart};
 
-        let prompt = vec![LanguageModelMessage::Tool(Tool::new(vec![ToolResultPart::new(
+        let prompt = vec![LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![LanguageModelToolResultPart::new(
             "call_123",
             "get_weather",
             ToolResultOutput::Text {
@@ -272,15 +272,15 @@ mod tests {
     #[test]
     fn test_file_parts_filtered() {
         use ai_sdk_provider::language_model::prompt::DataContent;
-        use ai_sdk_provider::language_model::prompt::message::parts::FilePart;
+        use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelFilePart;
 
-        let prompt = vec![LanguageModelMessage::User(User::new(vec![
-            UserMessagePart::Text(TextPart::new("Look at this: ")),
-            UserMessagePart::File(FilePart::new(
+        let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![
+            LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("Look at this: ")),
+            LanguageModelUserMessagePart::File(LanguageModelFilePart::new(
                 DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
                 "image/jpeg",
             )),
-            UserMessagePart::Text(TextPart::new("Cool!")),
+            LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("Cool!")),
         ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
@@ -293,9 +293,9 @@ mod tests {
     fn test_assistant_with_text_and_tool_call() {
         use serde_json::json;
 
-        let prompt = vec![LanguageModelMessage::Assistant(Assistant::new(vec![
-            AssistantMessagePart::Text(TextPart::new("Let me check that.")),
-            AssistantMessagePart::ToolCall(ToolCallPart::new("call_123", "search", json!({}))),
+        let prompt = vec![LanguageModelMessage::Assistant(LanguageModelAssistantMessage::new(vec![
+            LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::new("Let me check that.")),
+            LanguageModelAssistantMessagePart::ToolCall(LanguageModelToolCallPart::new("call_123", "search", json!({}))),
         ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);

@@ -9,14 +9,14 @@ use crate::prompt::message::{
 };
 use crate::prompt::standardize::StandardizedPrompt;
 use ai_sdk_provider::language_model::prompt::message::parts::{
-    FilePart as ProviderFilePart, ReasoningPart as ProviderReasoningPart,
-    TextPart as ProviderTextPart, ToolCallPart as ProviderToolCallPart,
+    LanguageModelFilePart as ProviderFilePart, LanguageModelReasoningPart as ProviderReasoningPart,
+    LanguageModelTextPart as ProviderTextPart, LanguageModelToolCallPart as ProviderToolCallPart,
 };
-use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
+use ai_sdk_provider::language_model::prompt::message::{LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage};
 use ai_sdk_provider::language_model::prompt::{
-    AssistantMessagePart, DataContent as ProviderDataContent, LanguageModelMessage,
-    ToolResultOutput as ProviderToolResultOutput, ToolResultPart as ProviderToolResultPart,
-    UserMessagePart,
+    LanguageModelAssistantMessagePart, DataContent as ProviderDataContent, LanguageModelMessage,
+    ToolResultOutput as ProviderToolResultOutput, LanguageModelToolResultPart as ProviderToolResultPart,
+    LanguageModelUserMessagePart,
 };
 
 /// Convert a `StandardizedPrompt` to a provider `Prompt` (Vec<Message>).
@@ -42,7 +42,7 @@ pub fn convert_to_language_model_prompt(
     let mut messages: Vec<LanguageModelMessage> = Vec::new();
 
     if let Some(system_content) = prompt.system {
-        messages.push(LanguageModelMessage::System(System::new(system_content)));
+        messages.push(LanguageModelMessage::System(LanguageModelSystemMessage::new(system_content)));
     }
 
     // Convert all messages
@@ -60,7 +60,7 @@ pub fn convert_to_language_model_prompt(
 /// Convert a single `ModelMessage` to a provider `Message`.
 fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageModelMessage, AISDKError> {
     match message {
-        ModelMessage::System(sys_msg) => Ok(LanguageModelMessage::System(System::with_options(
+        ModelMessage::System(sys_msg) => Ok(LanguageModelMessage::System(LanguageModelSystemMessage::with_options(
             sys_msg.content,
             sys_msg.provider_options,
         ))),
@@ -69,7 +69,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
             let provider_options = user_msg.provider_options;
             let content = match user_msg.content {
                 UserContent::Text(text) => {
-                    vec![UserMessagePart::Text(ProviderTextPart::new(text))]
+                    vec![LanguageModelUserMessagePart::Text(ProviderTextPart::new(text))]
                 }
                 UserContent::Parts(parts) => parts
                     .into_iter()
@@ -78,20 +78,20 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
                     // Filter out empty text parts
                     .into_iter()
                     .filter(|part| match part {
-                        UserMessagePart::Text(tp) => !tp.text.is_empty(),
+                        LanguageModelUserMessagePart::Text(tp) => !tp.text.is_empty(),
                         _ => true,
                     })
                     .collect(),
             };
 
-            Ok(LanguageModelMessage::User(User::with_options(content, provider_options)))
+            Ok(LanguageModelMessage::User(LanguageModelUserMessage::with_options(content, provider_options)))
         }
 
         ModelMessage::Assistant(asst_msg) => {
             let provider_options = asst_msg.provider_options;
             let content = match asst_msg.content {
                 AssistantContent::Text(text) => {
-                    vec![AssistantMessagePart::Text(ProviderTextPart::new(text))]
+                    vec![LanguageModelAssistantMessagePart::Text(ProviderTextPart::new(text))]
                 }
                 AssistantContent::Parts(parts) => parts
                     .into_iter()
@@ -116,7 +116,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
                     .collect::<Result<Vec<_>, _>>()?,
             };
 
-            Ok(LanguageModelMessage::Assistant(Assistant::with_options(
+            Ok(LanguageModelMessage::Assistant(LanguageModelAssistantMessage::with_options(
                 content,
                 provider_options,
             )))
@@ -135,18 +135,18 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
                 .map(|tool_result| convert_tool_result_to_provider(tool_result))
                 .collect::<Result<Vec<_>, _>>()?;
 
-            Ok(LanguageModelMessage::Tool(Tool::with_options(content, provider_options)))
+            Ok(LanguageModelMessage::Tool(LanguageModelToolMessage::with_options(content, provider_options)))
         }
     }
 }
 
 /// Convert a user content part to a provider `UserMessagePart`.
-fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, AISDKError> {
+fn convert_user_content_part(part: UserContentPart) -> Result<LanguageModelUserMessagePart, AISDKError> {
     match part {
         UserContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(UserMessagePart::Text(ProviderTextPart::with_options(
+        }) => Ok(LanguageModelUserMessagePart::Text(ProviderTextPart::with_options(
             text,
             provider_options,
         ))),
@@ -161,7 +161,7 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
                 .or(media_type)
                 .unwrap_or_else(|| "image/*".to_string());
 
-            Ok(UserMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelUserMessagePart::File(ProviderFilePart::with_options(
                 None,
                 data,
                 final_media_type,
@@ -177,7 +177,7 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(UserMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelUserMessagePart::File(ProviderFilePart::with_options(
                 filename,
                 data,
                 media_type,
@@ -190,12 +190,12 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
 /// Convert an assistant content part to a provider `AssistantMessagePart`.
 fn convert_assistant_content_part(
     part: AssistantContentPart,
-) -> Result<AssistantMessagePart, AISDKError> {
+) -> Result<LanguageModelAssistantMessagePart, AISDKError> {
     match part {
         AssistantContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(AssistantMessagePart::Text(ProviderTextPart::with_options(
+        }) => Ok(LanguageModelAssistantMessagePart::Text(ProviderTextPart::with_options(
             text,
             provider_options,
         ))),
@@ -208,7 +208,7 @@ fn convert_assistant_content_part(
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(AssistantMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelAssistantMessagePart::File(ProviderFilePart::with_options(
                 filename,
                 data,
                 media_type,
@@ -219,7 +219,7 @@ fn convert_assistant_content_part(
         AssistantContentPart::Reasoning(ReasoningPart {
             text,
             provider_options,
-        }) => Ok(AssistantMessagePart::Reasoning(
+        }) => Ok(LanguageModelAssistantMessagePart::Reasoning(
             ProviderReasoningPart::with_options(text, provider_options),
         )),
 
@@ -229,7 +229,7 @@ fn convert_assistant_content_part(
             input,
             provider_executed,
             provider_options,
-        }) => Ok(AssistantMessagePart::ToolCall(
+        }) => Ok(LanguageModelAssistantMessagePart::ToolCall(
             ProviderToolCallPart::with_options(
                 tool_call_id,
                 tool_name,
@@ -240,8 +240,8 @@ fn convert_assistant_content_part(
         )),
 
         AssistantContentPart::ToolResult(tool_result) => {
-            use ai_sdk_provider::language_model::prompt::message::parts::ToolResultPart as MessageToolResultPart;
-            Ok(AssistantMessagePart::ToolResult(
+            use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelToolResultPart as MessageToolResultPart;
+            Ok(LanguageModelAssistantMessagePart::ToolResult(
                 MessageToolResultPart::with_options(
                     tool_result.tool_call_id,
                     tool_result.tool_name,
@@ -450,8 +450,8 @@ mod tests {
     fn test_combine_consecutive_tool_messages() {
         // Create two consecutive tool messages
         let messages = vec![
-            LanguageModelMessage::Tool(Tool::new(vec![])),
-            LanguageModelMessage::Tool(Tool::new(vec![])),
+            LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![])),
+            LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![])),
         ];
 
         let combined = combine_consecutive_tool_messages(messages);

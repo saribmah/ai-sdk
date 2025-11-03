@@ -1,10 +1,10 @@
 use crate::generate_text::tool_set::ToolSet;
 use crate::prompt::message::tool::definition::Tool;
 use ai_sdk_provider::{
-    language_model::tool_choice::ToolChoice,
+    language_model::tool_choice::LanguageModelToolChoice,
     language_model::{
-        tool::Tool as ProviderTool, tool::function_tool::FunctionTool,
-        tool::provider_defined_tool::ProviderDefinedTool,
+        tool::LanguageModelTool as ProviderTool, tool::function_tool::LanguageModelFunctionTool,
+        tool::provider_defined_tool::LanguageModelProviderDefinedTool,
     },
 };
 use serde_json::Value;
@@ -36,8 +36,8 @@ use serde_json::Value;
 /// ```
 pub fn prepare_tools_and_tool_choice(
     tools: Option<&ToolSet>,
-    tool_choice: Option<ToolChoice>,
-) -> (Option<Vec<ProviderTool>>, Option<ToolChoice>) {
+    tool_choice: Option<LanguageModelToolChoice>,
+) -> (Option<Vec<ProviderTool>>, Option<LanguageModelToolChoice>) {
     // If no tools provided, return None for both
     if tools.is_none() || tools.map(|t| t.is_empty()).unwrap_or(true) {
         return (None, None);
@@ -53,7 +53,7 @@ pub fn prepare_tools_and_tool_choice(
     }
 
     // Prepare tool choice - if not specified, default to auto
-    let prepared_tool_choice = tool_choice.or(Some(ToolChoice::Auto));
+    let prepared_tool_choice = tool_choice.or(Some(LanguageModelToolChoice::Auto));
 
     (Some(language_model_tools), prepared_tool_choice)
 }
@@ -69,7 +69,7 @@ fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> Pro
 
     match &core_tool.tool_type {
         ToolType::Function => {
-            let mut function_tool = FunctionTool::new(name, core_tool.input_schema.clone());
+            let mut function_tool = LanguageModelFunctionTool::new(name, core_tool.input_schema.clone());
 
             if let Some(desc) = &core_tool.description {
                 function_tool = function_tool.with_description(desc.clone());
@@ -82,7 +82,7 @@ fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> Pro
         }
         ToolType::Dynamic => {
             // Dynamic tools are treated as function tools in the provider
-            let mut function_tool = FunctionTool::new(name, core_tool.input_schema.clone());
+            let mut function_tool = LanguageModelFunctionTool::new(name, core_tool.input_schema.clone());
 
             if let Some(desc) = &core_tool.description {
                 function_tool = function_tool.with_description(desc.clone());
@@ -95,7 +95,7 @@ fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> Pro
         }
         ToolType::ProviderDefined { id, name: _, args } => {
             // For provider-defined tools, use the HashMap key as the name
-            let provider_tool = ProviderDefinedTool::new(id.clone(), name, args.clone());
+            let provider_tool = LanguageModelProviderDefinedTool::new(id.clone(), name, args.clone());
             ProviderTool::ProviderDefined(provider_tool)
         }
     }

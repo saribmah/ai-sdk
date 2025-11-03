@@ -3,7 +3,7 @@ use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Error {
+pub struct LanguageModelStreamError {
     #[serde(rename = "type")]
     pub content_type: ErrorType,
 
@@ -15,7 +15,7 @@ pub struct Error {
 #[serde(rename = "error")]
 pub(crate) struct ErrorType;
 
-impl Error {
+impl LanguageModelStreamError {
     pub fn new(error: Value) -> Self {
         Self {
             content_type: ErrorType,

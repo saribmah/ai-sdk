@@ -8,7 +8,7 @@ use serde_json::Value;
 /// map the user-facing tool definitions to this format.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FunctionTool {
+pub struct LanguageModelFunctionTool {
     /// The type of the tool (always 'function').
     #[serde(rename = "type")]
     tool_type: FunctionToolType,
@@ -34,7 +34,7 @@ pub struct FunctionTool {
 #[serde(rename = "function")]
 struct FunctionToolType;
 
-impl FunctionTool {
+impl LanguageModelFunctionTool {
     /// Create a new function tool
     pub fn new(name: impl Into<String>, input_schema: Value) -> Self {
         Self {

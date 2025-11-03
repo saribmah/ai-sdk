@@ -1,6 +1,6 @@
 use crate::language_model::prompt::LanguageModelPrompt;
-use crate::language_model::tool::Tool;
-use crate::language_model::tool_choice::ToolChoice;
+use crate::language_model::tool::LanguageModelTool;
+use crate::language_model::tool_choice::LanguageModelToolChoice;
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -56,7 +56,7 @@ pub struct LanguageModelCallOptions {
 
     /// Response format. The output can either be text or JSON. Default is text.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_format: Option<ResponseFormat>,
+    pub response_format: Option<LanguageModelResponseFormat>,
 
     /// The seed (integer) to use for random sampling. If set and supported
     /// by the model, calls will generate deterministic results.
@@ -65,11 +65,11 @@ pub struct LanguageModelCallOptions {
 
     /// The tools that are available for the model.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
+    pub tools: Option<Vec<LanguageModelTool>>,
 
     /// Specifies how the tool should be selected. Defaults to 'auto'.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_choice: Option<ToolChoice>,
+    pub tool_choice: Option<LanguageModelToolChoice>,
 
     /// Include raw chunks in the stream. Only applicable for streaming calls.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -94,7 +94,7 @@ pub struct LanguageModelCallOptions {
 /// Response format specification.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-pub enum ResponseFormat {
+pub enum LanguageModelResponseFormat {
     /// Text output format
     Text,
 
@@ -176,7 +176,7 @@ impl LanguageModelCallOptions {
         self
     }
 
-    pub fn with_response_format(mut self, format: ResponseFormat) -> Self {
+    pub fn with_response_format(mut self, format: LanguageModelResponseFormat) -> Self {
         self.response_format = Some(format);
         self
     }
@@ -186,12 +186,12 @@ impl LanguageModelCallOptions {
         self
     }
 
-    pub fn with_tools(mut self, tools: Vec<Tool>) -> Self {
+    pub fn with_tools(mut self, tools: Vec<LanguageModelTool>) -> Self {
         self.tools = Some(tools);
         self
     }
 
-    pub fn with_tool_choice(mut self, choice: ToolChoice) -> Self {
+    pub fn with_tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
         self.tool_choice = Some(choice);
         self
     }
@@ -217,7 +217,7 @@ impl LanguageModelCallOptions {
     }
 }
 
-impl ResponseFormat {
+impl LanguageModelResponseFormat {
     /// Create a text response format
     pub fn text() -> Self {
         Self::Text

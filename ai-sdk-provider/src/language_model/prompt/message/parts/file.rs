@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FilePart {
+pub struct LanguageModelFilePart {
     #[serde(rename = "type")]
     pub content_type: FilePartType,
 
@@ -27,7 +27,7 @@ pub struct FilePart {
 #[serde(rename = "file")]
 pub(crate) struct FilePartType;
 
-impl FilePart {
+impl LanguageModelFilePart {
     pub fn new(data: DataContent, media_type: impl Into<String>) -> Self {
         Self {
             content_type: FilePartType,

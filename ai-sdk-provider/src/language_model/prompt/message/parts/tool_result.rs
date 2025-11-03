@@ -5,7 +5,7 @@ use serde_json::Value;
 /// Tool result part (used in tool messages and assistant messages)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ToolResultPart {
+pub struct LanguageModelToolResultPart {
     /// Type discriminator (always "tool-result")
     #[serde(rename = "type")]
     part_type: ToolResultPartType,
@@ -86,7 +86,7 @@ pub enum ToolResultContentItem {
     },
 }
 
-impl ToolResultPart {
+impl LanguageModelToolResultPart {
     /// Create a new tool result part
     pub fn new(
         tool_call_id: impl Into<String>,

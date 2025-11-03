@@ -1,4 +1,4 @@
-use crate::language_model::tool::Tool;
+use crate::language_model::tool::LanguageModelTool;
 use serde::{Deserialize, Serialize};
 
 /// Warning from the model provider for this call. The call will proceed, but e.g.
@@ -21,7 +21,7 @@ pub enum LanguageModelCallWarning {
     #[serde(rename_all = "camelCase")]
     UnsupportedTool {
         /// The unsupported tool
-        tool: Tool,
+        tool: LanguageModelTool,
 
         /// Additional details about why the tool is unsupported
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,7 +56,7 @@ impl LanguageModelCallWarning {
     }
 
     /// Create an unsupported tool warning
-    pub fn unsupported_tool(tool: Tool) -> Self {
+    pub fn unsupported_tool(tool: LanguageModelTool) -> Self {
         Self::UnsupportedTool {
             tool,
             details: None,
@@ -64,7 +64,7 @@ impl LanguageModelCallWarning {
     }
 
     /// Create an unsupported tool warning with details
-    pub fn unsupported_tool_with_details(tool: Tool, details: impl Into<String>) -> Self {
+    pub fn unsupported_tool_with_details(tool: LanguageModelTool, details: impl Into<String>) -> Self {
         Self::UnsupportedTool {
             tool,
             details: Some(details.into()),

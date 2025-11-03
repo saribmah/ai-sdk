@@ -63,7 +63,7 @@ use crate::prompt::{
     standardize::{StandardizedPrompt, validate_and_standardize},
 };
 use ai_sdk_provider::{
-    language_model::tool_choice::ToolChoice,
+    language_model::tool_choice::LanguageModelToolChoice,
     language_model::{LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage},
     shared::provider_options::SharedProviderOptions,
 };
@@ -341,7 +341,7 @@ pub async fn generate_text(
     prompt: Prompt,
     settings: CallSettings,
     tools: Option<ToolSet>,
-    tool_choice: Option<ToolChoice>,
+    tool_choice: Option<LanguageModelToolChoice>,
     provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
@@ -464,10 +464,10 @@ pub async fn generate_text(
                         active_tool_names.iter().any(|name| {
                             // Match against the tool name from the provider tool
                             match tool {
-                                ai_sdk_provider::language_model::tool::Tool::Function(f) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
                                     f.name == *name
                                 }
-                                ai_sdk_provider::language_model::tool::Tool::ProviderDefined(p) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
                                     p.name == *name
                                 }
                             }
@@ -881,7 +881,7 @@ mod tests {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Use a tool to check the weather");
         let settings = CallSettings::default();
-        let tool_choice = Some(ToolChoice::Auto);
+        let tool_choice = Some(LanguageModelToolChoice::Auto);
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected

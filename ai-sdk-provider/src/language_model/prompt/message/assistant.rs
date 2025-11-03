@@ -1,36 +1,36 @@
-use super::parts::{FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart};
+use super::parts::{LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart, LanguageModelToolCallPart, LanguageModelToolResultPart};
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content parts that can appear in an assistant message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AssistantMessagePart {
+pub enum LanguageModelAssistantMessagePart {
     /// Text content
-    Text(TextPart),
+    Text(LanguageModelTextPart),
 
     /// File content
-    File(FilePart),
+    File(LanguageModelFilePart),
 
     /// Reasoning content
-    Reasoning(ReasoningPart),
+    Reasoning(LanguageModelReasoningPart),
 
     /// Tool call
-    ToolCall(ToolCallPart),
+    ToolCall(LanguageModelToolCallPart),
 
     /// Tool result
-    ToolResult(ToolResultPart),
+    ToolResult(LanguageModelToolResultPart),
 }
 
 /// Assistant message struct
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Assistant {
+pub struct LanguageModelAssistantMessage {
     #[serde(rename = "role")]
     pub message_role: AssistantRole,
 
     /// Array of content parts (text, files, reasoning, tool calls, tool results)
-    pub content: Vec<AssistantMessagePart>,
+    pub content: Vec<LanguageModelAssistantMessagePart>,
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,8 +41,8 @@ pub struct Assistant {
 #[serde(rename = "assistant")]
 pub(crate) struct AssistantRole;
 
-impl Assistant {
-    pub fn new(content: Vec<AssistantMessagePart>) -> Self {
+impl LanguageModelAssistantMessage {
+    pub fn new(content: Vec<LanguageModelAssistantMessagePart>) -> Self {
         Self {
             message_role: AssistantRole,
             content,
@@ -51,7 +51,7 @@ impl Assistant {
     }
 
     pub fn with_options(
-        content: Vec<AssistantMessagePart>,
+        content: Vec<LanguageModelAssistantMessagePart>,
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
@@ -63,6 +63,6 @@ impl Assistant {
 
     /// Create an assistant message with text
     pub fn text(text: impl Into<String>) -> Self {
-        Self::new(vec![AssistantMessagePart::Text(TextPart::new(text))])
+        Self::new(vec![LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::new(text))])
     }
 }

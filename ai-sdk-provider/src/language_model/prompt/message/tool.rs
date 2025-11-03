@@ -1,16 +1,16 @@
-use super::parts::ToolResultPart;
+use super::parts::LanguageModelToolResultPart;
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Tool message struct
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Tool {
+pub struct LanguageModelToolMessage {
     #[serde(rename = "role")]
     pub message_role: ToolRole,
 
     /// Array of tool result parts
-    pub content: Vec<ToolResultPart>,
+    pub content: Vec<LanguageModelToolResultPart>,
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,8 +21,8 @@ pub struct Tool {
 #[serde(rename = "tool")]
 pub(crate) struct ToolRole;
 
-impl Tool {
-    pub fn new(content: Vec<ToolResultPart>) -> Self {
+impl LanguageModelToolMessage {
+    pub fn new(content: Vec<LanguageModelToolResultPart>) -> Self {
         Self {
             message_role: ToolRole,
             content,
@@ -31,7 +31,7 @@ impl Tool {
     }
 
     pub fn with_options(
-        content: Vec<ToolResultPart>,
+        content: Vec<LanguageModelToolResultPart>,
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {

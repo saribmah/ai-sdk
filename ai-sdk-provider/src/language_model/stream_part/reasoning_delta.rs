@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReasoningDelta {
+pub struct LanguageModelStreamReasoningDelta {
     #[serde(rename = "type")]
     pub content_type: ReasoningDeltaType,
 
@@ -22,7 +22,7 @@ pub struct ReasoningDelta {
 #[serde(rename = "reasoning-delta")]
 pub(crate) struct ReasoningDeltaType;
 
-impl ReasoningDelta {
+impl LanguageModelStreamReasoningDelta {
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {
         Self {
             content_type: ReasoningDeltaType,

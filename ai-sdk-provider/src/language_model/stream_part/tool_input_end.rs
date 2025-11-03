@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ToolInputEnd {
+pub struct LanguageModelStreamToolInputEnd {
     #[serde(rename = "type")]
     pub content_type: ToolInputEndType,
 
@@ -19,7 +19,7 @@ pub struct ToolInputEnd {
 #[serde(rename = "tool-input-end")]
 pub(crate) struct ToolInputEndType;
 
-impl ToolInputEnd {
+impl LanguageModelStreamToolInputEnd {
     pub fn new(id: impl Into<String>) -> Self {
         Self {
             content_type: ToolInputEndType,

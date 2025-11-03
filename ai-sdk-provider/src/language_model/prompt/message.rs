@@ -5,15 +5,15 @@ pub mod system;
 pub mod tool;
 pub mod user;
 
-pub use assistant::{Assistant, AssistantMessagePart};
+pub use assistant::{LanguageModelAssistantMessage, LanguageModelAssistantMessagePart};
 pub use data_content::DataContent;
 pub use parts::{
-    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultContentItem, ToolResultOutput,
-    ToolResultPart,
+    LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart, LanguageModelToolCallPart, ToolResultContentItem, ToolResultOutput,
+    LanguageModelToolResultPart,
 };
-pub use system::System;
-pub use tool::Tool;
-pub use user::{User, UserMessagePart};
+pub use system::LanguageModelSystemMessage;
+pub use tool::LanguageModelToolMessage;
+pub use user::{LanguageModelUserMessage, LanguageModelUserMessagePart};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,33 +22,33 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 pub enum LanguageModelMessage {
     /// System message with text content
-    System(System),
+    System(LanguageModelSystemMessage),
 
     /// User message with text and/or file parts
-    User(User),
+    User(LanguageModelUserMessage),
 
     /// Assistant message with various content types
-    Assistant(Assistant),
+    Assistant(LanguageModelAssistantMessage),
 
     /// Tool message with tool results
-    Tool(Tool),
+    Tool(LanguageModelToolMessage),
 }
 
 // Helper implementations for Message
 impl LanguageModelMessage {
     /// Create a system message
     pub fn system(content: impl Into<String>) -> Self {
-        Self::System(System::new(content))
+        Self::System(LanguageModelSystemMessage::new(content))
     }
 
     /// Create a user message with text
     pub fn user_text(text: impl Into<String>) -> Self {
-        Self::User(User::text(text))
+        Self::User(LanguageModelUserMessage::text(text))
     }
 
     /// Create an assistant message with text
     pub fn assistant_text(text: impl Into<String>) -> Self {
-        Self::Assistant(Assistant::text(text))
+        Self::Assistant(LanguageModelAssistantMessage::text(text))
     }
 
     /// Get the role of this message

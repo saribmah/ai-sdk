@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Finish {
+pub struct LanguageModelStreamFinish {
     #[serde(rename = "type")]
     pub content_type: FinishType,
 
@@ -24,7 +24,7 @@ pub struct Finish {
 #[serde(rename = "finish")]
 pub(crate) struct FinishType;
 
-impl Finish {
+impl LanguageModelStreamFinish {
     pub fn new(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
         Self {
             content_type: FinishType,

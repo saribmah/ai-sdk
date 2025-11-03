@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReasoningStart {
+pub struct LanguageModelStreamReasoningStart {
     #[serde(rename = "type")]
     pub content_type: ReasoningStartType,
 
@@ -19,7 +19,7 @@ pub struct ReasoningStart {
 #[serde(rename = "reasoning-start")]
 pub(crate) struct ReasoningStartType;
 
-impl ReasoningStart {
+impl LanguageModelStreamReasoningStart {
     pub fn new(id: impl Into<String>) -> Self {
         Self {
             content_type: ReasoningStartType,
