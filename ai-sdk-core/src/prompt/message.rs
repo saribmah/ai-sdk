@@ -15,7 +15,7 @@ pub use system::SystemMessage;
 pub use tool::{
     execute_tool, Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions,
     ToolContent, ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput,
-    ToolModelMessage, ToolNeedsApprovalFunction, ToolResult, ToolType,
+    ToolMessage, ToolNeedsApprovalFunction, ToolResult, ToolType,
 };
 pub use user::{UserContent, UserContentPart, UserMessage};
 
@@ -36,7 +36,7 @@ pub enum Message {
     Assistant(AssistantMessage),
 
     /// Tool message containing tool execution results.
-    Tool(ToolModelMessage),
+    Tool(ToolMessage),
 }
 
 impl<'de> Deserialize<'de> for Message {
@@ -126,8 +126,8 @@ impl From<AssistantMessage> for Message {
     }
 }
 
-impl From<ToolModelMessage> for Message {
-    fn from(message: ToolModelMessage) -> Self {
+impl From<ToolMessage> for Message {
+    fn from(message: ToolMessage) -> Self {
         Message::Tool(message)
     }
 }
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_model_message_tool() {
-        let tool_msg = ToolModelMessage::new(vec![ToolContentPart::ToolResult(
+        let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(
             ToolResultPart::new("call_123", "tool_name", ToolResultOutput::text("Success")),
         )]);
         let message = Message::from(tool_msg);

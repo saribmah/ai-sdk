@@ -1,4 +1,4 @@
-use crate::prompt::message::{AssistantMessage, Message, ToolModelMessage};
+use crate::prompt::message::{AssistantMessage, Message, ToolMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -20,7 +20,7 @@ pub enum ResponseMessage {
     Assistant(AssistantMessage),
 
     /// A tool model message.
-    Tool(ToolModelMessage),
+    Tool(ToolMessage),
 }
 
 impl ResponseMessage {
@@ -62,7 +62,7 @@ impl ResponseMessage {
     /// };
     /// let response = ResponseMessage::from_tool(tool_msg);
     /// ```
-    pub fn from_tool(message: ToolModelMessage) -> Self {
+    pub fn from_tool(message: ToolMessage) -> Self {
         ResponseMessage::Tool(message)
     }
 
@@ -85,7 +85,7 @@ impl ResponseMessage {
     }
 
     /// Returns a reference to the tool message if this is a tool message.
-    pub fn as_tool(&self) -> Option<&ToolModelMessage> {
+    pub fn as_tool(&self) -> Option<&ToolMessage> {
         match self {
             ResponseMessage::Tool(msg) => Some(msg),
             _ => None,
@@ -126,7 +126,7 @@ mod tests {
         use crate::prompt::message::tool::ToolContentPart;
 
         let tool_msg =
-            ToolModelMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
                 "call_123",
                 "tool_name",
                 ToolResultOutput::text("Tool result"),
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_response_message_tool_variant() {
-        let tool_msg = ToolModelMessage::new(vec![]);
+        let tool_msg = ToolMessage::new(vec![]);
         let response = ResponseMessage::Tool(tool_msg.clone());
 
         match response {
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_from_model_message_tool() {
-        let tool_msg = ToolModelMessage::new(vec![]);
+        let tool_msg = ToolMessage::new(vec![]);
         let model_msg = Message::Tool(tool_msg.clone());
         let response = ResponseMessage::from(model_msg);
 

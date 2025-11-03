@@ -245,7 +245,7 @@ mod tests {
     use super::*;
     use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
     use crate::prompt::message::{
-        AssistantContentPart, AssistantMessage, ToolModelMessage,
+        AssistantContentPart, AssistantMessage, ToolMessage,
     };
     use serde_json::json;
 
@@ -282,7 +282,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_456")),
             ])),
         ];
@@ -320,7 +320,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ApprovalResponse(
                     ToolApprovalResponse::denied("approval_456").with_reason("Too dangerous"),
                 ),
@@ -369,7 +369,7 @@ mod tests {
                     "call_2",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::denied("approval_2")),
             ])),
@@ -396,7 +396,7 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ToolResult(ToolResultPart::new(
                     "call_123",
                     "some_tool",
@@ -422,7 +422,7 @@ mod tests {
                     "call_1",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
             ])),
             Message::Assistant(AssistantMessage::with_parts(vec![
@@ -432,7 +432,7 @@ mod tests {
                     "call_2",
                 )),
             ])),
-            Message::Tool(ToolModelMessage::new(vec![
+            Message::Tool(ToolMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::denied("approval_2")),
             ])),
         ];

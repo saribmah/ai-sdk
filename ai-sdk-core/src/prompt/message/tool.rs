@@ -33,7 +33,7 @@ pub enum ToolContentPart {
 
 /// A tool message. It contains the result of one or more tool calls.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolModelMessage {
+pub struct ToolMessage {
     /// Role is always 'tool' for tool messages.
     pub role: String,
 
@@ -45,7 +45,7 @@ pub struct ToolModelMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
-impl ToolModelMessage {
+impl ToolMessage {
     /// Creates a new tool model message with the given content.
     pub fn new(content: ToolContent) -> Self {
         Self {
@@ -89,7 +89,7 @@ mod tests {
             ToolResultOutput::text("Success"),
         ))];
 
-        let message = ToolModelMessage::new(content.clone());
+        let message = ToolMessage::new(content.clone());
 
         assert_eq!(message.role, "tool");
         assert_eq!(message.content.len(), 1);
@@ -107,14 +107,14 @@ mod tests {
         let provider_options = SharedProviderOptions::new();
 
         let message =
-            ToolModelMessage::new(content).with_provider_options(provider_options.clone());
+            ToolMessage::new(content).with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
 
     #[test]
     fn test_tool_model_message_add_result_part() {
-        let message = ToolModelMessage::new(vec![]).add_result_part(ToolResultPart::new(
+        let message = ToolMessage::new(vec![]).add_result_part(ToolResultPart::new(
             "call_123",
             "tool_name",
             ToolResultOutput::text("Success"),
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn test_tool_model_message_add_approval_response() {
         let response = ToolApprovalResponse::granted("approval_123");
-        let message = ToolModelMessage::new(vec![]).add_approval_response(response.clone());
+        let message = ToolMessage::new(vec![]).add_approval_response(response.clone());
 
         assert_eq!(message.content.len(), 1);
         match &message.content[0] {
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_tool_model_message_mixed_content() {
-        let message = ToolModelMessage::new(vec![])
+        let message = ToolMessage::new(vec![])
             .add_result_part(ToolResultPart::new(
                 "call_123",
                 "tool_name",
@@ -170,7 +170,7 @@ mod tests {
             ToolResultOutput::text("Success"),
         ))];
 
-        let message = ToolModelMessage::new(content);
+        let message = ToolMessage::new(content);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -189,7 +189,7 @@ mod tests {
 
         let provider_options = SharedProviderOptions::new();
 
-        let message = ToolModelMessage::new(content).with_provider_options(provider_options);
+        let message = ToolMessage::new(content).with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -214,7 +214,7 @@ mod tests {
             ]
         });
 
-        let message: ToolModelMessage = serde_json::from_value(json).unwrap();
+        let message: ToolMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "tool");
         assert_eq!(message.content.len(), 1);
@@ -229,7 +229,7 @@ mod tests {
             ToolResultOutput::text("Success"),
         ))];
 
-        let message = ToolModelMessage::new(content);
+        let message = ToolMessage::new(content);
         let cloned = message.clone();
 
         assert_eq!(message, cloned);
