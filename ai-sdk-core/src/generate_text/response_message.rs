@@ -8,10 +8,10 @@ use crate::prompt::message::{AssistantMessage, Message, ToolMessage};
 ///
 /// ```
 /// use ai_sdk_core::ResponseMessage;
-/// use ai_sdk_core::message::AssistantModelMessage;
+/// use ai_sdk_core::message::AssistantMessage;
 ///
 /// // Create an assistant response message
-/// let assistant_msg = AssistantModelMessage::new("Hello, how can I help you?");
+/// let assistant_msg = AssistantMessage::new("Hello, how can I help you?");
 /// let response_msg = ResponseMessage::Assistant(assistant_msg);
 /// ```
 #[derive(Debug, Clone, PartialEq)]
@@ -24,7 +24,7 @@ pub enum ResponseMessage {
 }
 
 impl ResponseMessage {
-    /// Creates a new `ResponseMessage` from an `AssistantModelMessage`.
+    /// Creates a new `ResponseMessage` from an `AssistantMessage`.
     ///
     /// # Arguments
     ///
@@ -33,9 +33,9 @@ impl ResponseMessage {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, AssistantModelMessage};
+    /// use ai_sdk_core::{ResponseMessage, AssistantMessage};
     ///
-    /// let assistant_msg = AssistantModelMessage {
+    /// let assistant_msg = AssistantMessage {
     ///     role: "assistant".to_string(),
     ///     content: vec![],
     /// };
@@ -45,7 +45,7 @@ impl ResponseMessage {
         ResponseMessage::Assistant(message)
     }
 
-    /// Creates a new `ResponseMessage` from a `ToolModelMessage`.
+    /// Creates a new `ResponseMessage` from a `ToolMessage`.
     ///
     /// # Arguments
     ///
@@ -54,9 +54,9 @@ impl ResponseMessage {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, ToolModelMessage};
+    /// use ai_sdk_core::{ResponseMessage, ToolMessage};
     ///
-    /// let tool_msg = ToolModelMessage {
+    /// let tool_msg = ToolMessage {
     ///     role: "tool".to_string(),
     ///     content: vec![],
     /// };

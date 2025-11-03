@@ -99,14 +99,14 @@ impl CollectedToolApprovals {
 /// ```rust
 /// use ai_sdk_core::generate_text::collect_tool_approvals;
 /// use ai_sdk_core::message::ModelMessage;
-/// use ai_sdk_core::message::model::{AssistantModelMessage, ToolModelMessage, AssistantContent, AssistantContentPart, ToolContentPart};
+/// use ai_sdk_core::message::model::{AssistantMessage, ToolMessage, AssistantContent, AssistantContentPart, ToolContentPart};
 /// use ai_sdk_core::message::content_parts::ToolCallPart;
 /// use ai_sdk_core::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
 /// use serde_json::json;
 ///
 /// // Create a message history with an approval request
 /// let messages = vec![
-///     ModelMessage::Assistant(AssistantModelMessage::with_parts(vec![
+///     ModelMessage::Assistant(AssistantMessage::with_parts(vec![
 ///         AssistantContentPart::ToolCall(ToolCallPart::new(
 ///             "call_123",
 ///             "delete_file",
@@ -116,7 +116,7 @@ impl CollectedToolApprovals {
 ///             ToolApprovalRequest::new("approval_456", "call_123")
 ///         ),
 ///     ])),
-///     ModelMessage::Tool(ToolModelMessage::new(vec![
+///     ModelMessage::Tool(ToolMessage::new(vec![
 ///         ToolContentPart::ApprovalResponse(
 ///             ToolApprovalResponse::granted("approval_456")
 ///         ),
