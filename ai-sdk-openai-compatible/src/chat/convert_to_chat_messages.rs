@@ -1,3 +1,4 @@
+use ai_sdk_provider::language_model::prompt::message::parts::{FilePart, TextPart, ToolCallPart};
 use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
 use ai_sdk_provider::language_model::prompt::{
     AssistantMessagePart, DataContent, Message, Prompt, ToolResultOutput, ToolResultPart,
@@ -72,13 +73,10 @@ pub fn convert_to_openai_compatible_chat_messages(
                 let provider_options = user_msg.provider_options;
                 // Check if it's a simple text message
                 if content.len() == 1 {
-                    if let UserMessagePart::Text {
-                        text,
-                        provider_options: part_options,
-                    } = &content[0]
-                    {
-                        let mut user_msg = OpenAICompatibleUserMessage::new_text(text.clone());
-                        if let Some(metadata) = get_openai_metadata(&part_options) {
+                    if let UserMessagePart::Text(text_part) = &content[0] {
+                        let mut user_msg =
+                            OpenAICompatibleUserMessage::new_text(text_part.text.clone());
+                        if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
                             user_msg.additional_properties = Some(metadata);
                         }
                         messages.push(OpenAICompatibleMessage::User(user_msg));
@@ -91,38 +89,37 @@ pub fn convert_to_openai_compatible_chat_messages(
 
                 for part in content {
                     match part {
-                        UserMessagePart::Text {
-                            text,
-                            provider_options: part_options,
-                        } => {
-                            let mut text_part = OpenAICompatibleContentPartText::new(text);
-                            if let Some(metadata) = get_openai_metadata(&part_options) {
-                                text_part.additional_properties = Some(metadata);
+                        UserMessagePart::Text(text_part) => {
+                            let mut text_part_out =
+                                OpenAICompatibleContentPartText::new(text_part.text);
+                            if let Some(metadata) = get_openai_metadata(&text_part.provider_options)
+                            {
+                                text_part_out.additional_properties = Some(metadata);
                             }
-                            parts.push(OpenAICompatibleContentPart::Text(text_part));
+                            parts.push(OpenAICompatibleContentPart::Text(text_part_out));
                         }
-                        UserMessagePart::File {
-                            media_type,
-                            data,
-                            provider_options: part_options,
-                            ..
-                        } => {
-                            if media_type.starts_with("image/") {
+                        UserMessagePart::File(file_part) => {
+                            if file_part.media_type.starts_with("image/") {
                                 // Handle wildcard image type
-                                let actual_media_type = if media_type == "image/*" {
+                                let actual_media_type = if file_part.media_type == "image/*" {
                                     "image/jpeg"
                                 } else {
-                                    &media_type
+                                    &file_part.media_type
                                 };
 
-                                let url = convert_data_to_url(&data, actual_media_type);
+                                let url = convert_data_to_url(&file_part.data, actual_media_type);
                                 let mut image_part = OpenAICompatibleContentPartImage::new(url);
-                                if let Some(metadata) = get_openai_metadata(&part_options) {
+                                if let Some(metadata) =
+                                    get_openai_metadata(&file_part.provider_options)
+                                {
                                     image_part.additional_properties = Some(metadata);
                                 }
                                 parts.push(OpenAICompatibleContentPart::ImageUrl(image_part));
                             } else {
-                                return Err(format!("Unsupported file media type: {}", media_type));
+                                return Err(format!(
+                                    "Unsupported file media type: {}",
+                                    file_part.media_type
+                                ));
                             }
                         }
                     }
@@ -143,26 +140,20 @@ pub fn convert_to_openai_compatible_chat_messages(
 
                 for part in content {
                     match part {
-                        AssistantMessagePart::Text {
-                            text: part_text, ..
-                        } => {
-                            text.push_str(&part_text);
+                        AssistantMessagePart::Text(text_part) => {
+                            text.push_str(&text_part.text);
                         }
-                        AssistantMessagePart::ToolCall {
-                            tool_call_id,
-                            tool_name,
-                            input,
-                            provider_options: part_options,
-                            ..
-                        } => {
-                            let arguments =
-                                serde_json::to_string(&input).unwrap_or_else(|_| "{}".to_string());
+                        AssistantMessagePart::ToolCall(tool_call_part) => {
+                            let arguments = serde_json::to_string(&tool_call_part.input)
+                                .unwrap_or_else(|_| "{}".to_string());
                             let mut tool_call = OpenAICompatibleMessageToolCall::new(
-                                tool_call_id,
-                                tool_name,
+                                tool_call_part.tool_call_id,
+                                tool_call_part.tool_name,
                                 arguments,
                             );
-                            if let Some(metadata) = get_openai_metadata(&part_options) {
+                            if let Some(metadata) =
+                                get_openai_metadata(&tool_call_part.provider_options)
+                            {
                                 tool_call.additional_properties = Some(metadata);
                             }
                             tool_calls.push(tool_call);
@@ -244,10 +235,9 @@ mod tests {
 
     #[test]
     fn test_convert_user_text_message() {
-        let prompt = vec![Message::User(User::new(vec![UserMessagePart::Text {
-            text: "Hello!".to_string(),
-            provider_options: None,
-        }]))];
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::Text(
+            TextPart::new("Hello!"),
+        )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -264,16 +254,13 @@ mod tests {
     #[test]
     fn test_convert_user_multipart_message() {
         let prompt = vec![Message::User(User::new(vec![
-            UserMessagePart::Text {
-                text: "What's in this image?".to_string(),
-                provider_options: None,
-            },
-            UserMessagePart::File {
-                filename: None,
-                data: DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
-                media_type: "image/jpeg".to_string(),
-                provider_options: None,
-            },
+            UserMessagePart::Text(TextPart::new("What's in this image?")),
+            UserMessagePart::File(FilePart::with_options(
+                None,
+                DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
+                "image/jpeg",
+                None,
+            )),
         ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -293,10 +280,7 @@ mod tests {
     #[test]
     fn test_convert_assistant_text_message() {
         let prompt = vec![Message::Assistant(Assistant::new(vec![
-            AssistantMessagePart::Text {
-                text: "I can help you!".to_string(),
-                provider_options: None,
-            },
+            AssistantMessagePart::Text(TextPart::new("I can help you!")),
         ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -314,13 +298,11 @@ mod tests {
     #[test]
     fn test_convert_assistant_with_tool_calls() {
         let prompt = vec![Message::Assistant(Assistant::new(vec![
-            AssistantMessagePart::ToolCall {
-                tool_call_id: "call_123".to_string(),
-                tool_name: "get_weather".to_string(),
-                input: json!({"city": "San Francisco"}),
-                provider_executed: None,
-                provider_options: None,
-            },
+            AssistantMessagePart::ToolCall(ToolCallPart::new(
+                "call_123",
+                "get_weather",
+                json!({"city": "San Francisco"}),
+            )),
         ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
@@ -363,12 +345,12 @@ mod tests {
 
     #[test]
     fn test_convert_unsupported_file_type() {
-        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File {
-            filename: None,
-            data: DataContent::Base64("base64data".to_string()),
-            media_type: "application/pdf".to_string(),
-            provider_options: None,
-        }]))];
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File(
+            FilePart::new(
+                DataContent::Base64("base64data".to_string()),
+                "application/pdf",
+            ),
+        )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt);
 
@@ -378,12 +360,9 @@ mod tests {
 
     #[test]
     fn test_convert_image_with_wildcard_type() {
-        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File {
-            filename: None,
-            data: DataContent::Base64("imagedata".to_string()),
-            media_type: "image/*".to_string(),
-            provider_options: None,
-        }]))];
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File(
+            FilePart::new(DataContent::Base64("imagedata".to_string()), "image/*"),
+        )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -409,14 +388,12 @@ mod tests {
     fn test_convert_multiple_messages() {
         let prompt = vec![
             Message::System(System::new("System prompt".to_string())),
-            Message::User(User::new(vec![UserMessagePart::Text {
-                text: "User message".to_string(),
-                provider_options: None,
-            }])),
-            Message::Assistant(Assistant::new(vec![AssistantMessagePart::Text {
-                text: "Assistant message".to_string(),
-                provider_options: None,
-            }])),
+            Message::User(User::new(vec![UserMessagePart::Text(TextPart::new(
+                "User message",
+            ))])),
+            Message::Assistant(Assistant::new(vec![AssistantMessagePart::Text(
+                TextPart::new("Assistant message"),
+            )])),
         ];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();

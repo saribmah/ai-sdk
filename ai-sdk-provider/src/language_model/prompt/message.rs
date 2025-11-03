@@ -1,11 +1,15 @@
 pub mod assistant;
 pub mod data_content;
+pub mod parts;
 pub mod system;
 pub mod tool;
 pub mod user;
 
 pub use assistant::{Assistant, AssistantMessagePart};
 pub use data_content::DataContent;
+pub use parts::{
+    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart as MessageToolResultPart,
+};
 pub use system::System;
 pub use tool::{Tool, ToolResultContentItem, ToolResultOutput, ToolResultPart};
 pub use user::{User, UserMessagePart};

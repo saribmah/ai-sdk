@@ -8,6 +8,10 @@ use crate::prompt::message::{
     },
 };
 use crate::prompt::standardize::StandardizedPrompt;
+use ai_sdk_provider::language_model::prompt::message::parts::{
+    FilePart as ProviderFilePart, ReasoningPart as ProviderReasoningPart,
+    TextPart as ProviderTextPart, ToolCallPart as ProviderToolCallPart,
+};
 use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
 use ai_sdk_provider::language_model::prompt::{
     AssistantMessagePart, DataContent as ProviderDataContent, Message,
@@ -65,10 +69,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
             let provider_options = user_msg.provider_options;
             let content = match user_msg.content {
                 UserContent::Text(text) => {
-                    vec![UserMessagePart::Text {
-                        text,
-                        provider_options: None,
-                    }]
+                    vec![UserMessagePart::Text(ProviderTextPart::new(text))]
                 }
                 UserContent::Parts(parts) => parts
                     .into_iter()
@@ -77,7 +78,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
                     // Filter out empty text parts
                     .into_iter()
                     .filter(|part| match part {
-                        UserMessagePart::Text { text, .. } => !text.is_empty(),
+                        UserMessagePart::Text(tp) => !tp.text.is_empty(),
                         _ => true,
                     })
                     .collect(),
@@ -90,10 +91,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
             let provider_options = asst_msg.provider_options;
             let content = match asst_msg.content {
                 AssistantContent::Text(text) => {
-                    vec![AssistantMessagePart::Text {
-                        text,
-                        provider_options: None,
-                    }]
+                    vec![AssistantMessagePart::Text(ProviderTextPart::new(text))]
                 }
                 AssistantContent::Parts(parts) => parts
                     .into_iter()
@@ -148,10 +146,10 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
         UserContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(UserMessagePart::Text {
+        }) => Ok(UserMessagePart::Text(ProviderTextPart::with_options(
             text,
             provider_options,
-        }),
+        ))),
 
         UserContentPart::Image(ImagePart {
             image,
@@ -163,12 +161,12 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
                 .or(media_type)
                 .unwrap_or_else(|| "image/*".to_string());
 
-            Ok(UserMessagePart::File {
-                filename: None,
+            Ok(UserMessagePart::File(ProviderFilePart::with_options(
+                None,
                 data,
-                media_type: final_media_type,
+                final_media_type,
                 provider_options,
-            })
+            )))
         }
 
         UserContentPart::File(FilePart {
@@ -179,12 +177,12 @@ fn convert_user_content_part(part: UserContentPart) -> Result<UserMessagePart, A
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(UserMessagePart::File {
+            Ok(UserMessagePart::File(ProviderFilePart::with_options(
                 filename,
                 data,
                 media_type,
                 provider_options,
-            })
+            )))
         }
     }
 }
@@ -197,10 +195,10 @@ fn convert_assistant_content_part(
         AssistantContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(AssistantMessagePart::Text {
+        }) => Ok(AssistantMessagePart::Text(ProviderTextPart::with_options(
             text,
             provider_options,
-        }),
+        ))),
 
         AssistantContentPart::File(FilePart {
             data,
@@ -210,21 +208,20 @@ fn convert_assistant_content_part(
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(AssistantMessagePart::File {
+            Ok(AssistantMessagePart::File(ProviderFilePart::with_options(
                 filename,
                 data,
                 media_type,
                 provider_options,
-            })
+            )))
         }
 
         AssistantContentPart::Reasoning(ReasoningPart {
             text,
             provider_options,
-        }) => Ok(AssistantMessagePart::Reasoning {
-            text,
-            provider_options,
-        }),
+        }) => Ok(AssistantMessagePart::Reasoning(
+            ProviderReasoningPart::with_options(text, provider_options),
+        )),
 
         AssistantContentPart::ToolCall(ToolCallPart {
             tool_call_id,
@@ -232,20 +229,27 @@ fn convert_assistant_content_part(
             input,
             provider_executed,
             provider_options,
-        }) => Ok(AssistantMessagePart::ToolCall {
-            tool_call_id,
-            tool_name,
-            input,
-            provider_executed,
-            provider_options,
-        }),
+        }) => Ok(AssistantMessagePart::ToolCall(
+            ProviderToolCallPart::with_options(
+                tool_call_id,
+                tool_name,
+                input,
+                provider_executed,
+                provider_options,
+            ),
+        )),
 
-        AssistantContentPart::ToolResult(tool_result) => Ok(AssistantMessagePart::ToolResult {
-            tool_call_id: tool_result.tool_call_id,
-            tool_name: tool_result.tool_name,
-            output: convert_tool_result_output(tool_result.output)?,
-            provider_options: tool_result.provider_options,
-        }),
+        AssistantContentPart::ToolResult(tool_result) => {
+            use ai_sdk_provider::language_model::prompt::message::parts::ToolResultPart as MessageToolResultPart;
+            Ok(AssistantMessagePart::ToolResult(
+                MessageToolResultPart::with_options(
+                    tool_result.tool_call_id,
+                    tool_result.tool_name,
+                    convert_tool_result_output(tool_result.output)?,
+                    tool_result.provider_options,
+                ),
+            ))
+        }
 
         AssistantContentPart::ToolApprovalRequest(_) => {
             // This should have been filtered out earlier
