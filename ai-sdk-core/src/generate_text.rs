@@ -152,11 +152,11 @@ async fn execute_tools(
 /// );
 /// ```
 pub fn as_content(
-    content: Vec<ai_sdk_provider::language_model::content::Content>,
+    content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
     tool_calls: Vec<TypedToolCall<Value>>,
     tool_outputs: Vec<ToolOutput<Value, Value>>,
 ) -> Vec<ContentPart<Value, Value>> {
-    use ai_sdk_provider::language_model::content::Content;
+    use ai_sdk_provider::language_model::content::LanguageModelContent;
 
     let mut result = Vec::new();
 
@@ -164,24 +164,24 @@ pub fn as_content(
     for part in content {
         match part {
             // Convert provider Text to TextOutput
-            Content::Text(text) => {
+            LanguageModelContent::Text(text) => {
                 result.push(ContentPart::Text(TextOutput::new(text.text)));
             }
             // Convert provider Reasoning to ReasoningOutput
-            Content::Reasoning(reasoning) => {
+            LanguageModelContent::Reasoning(reasoning) => {
                 result.push(ContentPart::Reasoning(ReasoningOutput::new(reasoning.text)));
             }
             // Convert provider Source to SourceOutput
-            Content::Source(source) => {
+            LanguageModelContent::Source(source) => {
                 result.push(ContentPart::Source(SourceOutput::new(source)));
             }
             // Skip File parts as they're not in the TypeScript ContentPart
-            Content::File(_) => {
+            LanguageModelContent::File(_) => {
                 // File parts are not included in ContentPart
             }
 
             // Convert provider ToolCall to TypedToolCall
-            Content::ToolCall(provider_tool_call) => {
+            LanguageModelContent::ToolCall(provider_tool_call) => {
                 // Find the matching TypedToolCall
                 if let Some(typed_call) = tool_calls
                     .iter()
@@ -199,7 +199,7 @@ pub fn as_content(
             }
 
             // Convert provider ToolResult to TypedToolResult or TypedToolError
-            Content::ToolResult(provider_result) => {
+            LanguageModelContent::ToolResult(provider_result) => {
                 // Find the matching tool call to get the input
                 let matching_call = tool_calls.iter().find(|tc| {
                     let tc_id = match tc {
@@ -523,14 +523,14 @@ pub async fn generate_text(
             .await?;
 
         // Step 9: Parse tool calls from the response
-        use ai_sdk_provider::language_model::content::Content;
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
 
         let step_tool_calls: Vec<TypedToolCall<Value>> = if let Some(tool_set) = tools.as_ref() {
             response
                 .content
                 .iter()
                 .filter_map(|part| {
-                    if let Content::ToolCall(tool_call) = part {
+                    if let LanguageModelContent::ToolCall(tool_call) = part {
                         Some(tool_call)
                     } else {
                         None

@@ -15,7 +15,7 @@ use tool_result::LanguageModelToolResult;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Content {
+pub enum LanguageModelContent {
     Text(LanguageModelText),
     Reasoning(LanguageModelReasoning),
     File(LanguageModelFile),

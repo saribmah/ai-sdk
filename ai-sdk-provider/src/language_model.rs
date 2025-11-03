@@ -1,6 +1,6 @@
 use crate::language_model::call_options::CallOptions;
 use crate::language_model::call_warning::CallWarning;
-use crate::language_model::content::Content;
+use crate::language_model::content::LanguageModelContent;
 use crate::language_model::finish_reason::FinishReason;
 use crate::language_model::response_metadata::ResponseMetadata;
 use crate::language_model::stream_part::StreamPart;
@@ -52,7 +52,7 @@ pub trait LanguageModel: Send + Sync {
 
 #[derive(Debug)]
 pub struct LanguageModelGenerateResponse {
-    pub content: Vec<Content>,
+    pub content: Vec<LanguageModelContent>,
     pub finish_reason: FinishReason,
     pub usage: Usage,
     pub provider_metadata: Option<ProviderMetadata>,

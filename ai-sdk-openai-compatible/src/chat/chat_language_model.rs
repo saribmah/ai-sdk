@@ -1,7 +1,7 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::CallOptions, call_warning::CallWarning, content::Content,
+    call_options::CallOptions, call_warning::CallWarning, content::LanguageModelContent,
     content::reasoning::LanguageModelReasoning, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall, usage::Usage,
 };
 use async_trait::async_trait;
@@ -569,7 +569,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         // Add text content
         if let Some(text) = &choice.message.content {
             if !text.is_empty() {
-                content.push(Content::Text(LanguageModelText::new(text.clone())));
+                content.push(LanguageModelContent::Text(LanguageModelText::new(text.clone())));
             }
         }
 
@@ -581,7 +581,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             .or(choice.message.reasoning.as_ref());
         if let Some(reasoning_text) = reasoning {
             if !reasoning_text.is_empty() {
-                content.push(Content::Reasoning(LanguageModelReasoning::init(reasoning_text.clone())));
+                content.push(LanguageModelContent::Reasoning(LanguageModelReasoning::init(reasoning_text.clone())));
             }
         }
 
@@ -594,7 +594,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                     .unwrap_or_else(|| "unknown".to_string());
                 let tool_name = tool_call.function.name.clone();
                 let input = tool_call.function.arguments.clone();
-                content.push(Content::ToolCall(LanguageModelToolCall::new(
+                content.push(LanguageModelContent::ToolCall(LanguageModelToolCall::new(
                     tool_call_id,
                     tool_name,
                     input,
