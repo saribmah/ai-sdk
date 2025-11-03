@@ -26,7 +26,7 @@
 use crate::error::AISDKError;
 use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
 use crate::prompt::message::tool::definition::Tool;
-use ai_sdk_provider::language_model::content::tool_call::ToolCall;
+use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -93,7 +93,7 @@ fn validate_tool_input(tool_name: &str, input: &Value, schema: &Value) -> Result
 ///
 /// Returns an error if the input cannot be parsed as JSON.
 pub fn parse_provider_executed_dynamic_tool_call(
-    tool_call: &ToolCall,
+    tool_call: &LanguageModelToolCall,
 ) -> Result<TypedToolCall<Value>, AISDKError> {
     // Empty input is treated as an empty object
     let input = if tool_call.input.trim().is_empty() {
@@ -155,7 +155,7 @@ pub fn parse_provider_executed_dynamic_tool_call(
 /// let parsed = parse_tool_call(&tool_call, &tools)?;
 /// ```
 pub fn parse_tool_call(
-    tool_call: &ToolCall,
+    tool_call: &LanguageModelToolCall,
     tools: &HashMap<String, Tool<Value, Value>>,
 ) -> Result<TypedToolCall<Value>, AISDKError> {
     let tool_name = &tool_call.tool_name;
@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_parse_provider_executed_dynamic_tool_call_with_input() {
-        let tool_call = ToolCall::new("call_123", "dynamic_tool", r#"{"city": "SF"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "dynamic_tool", r#"{"city": "SF"}"#);
 
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_ok());
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_parse_provider_executed_dynamic_tool_call_empty_input() {
-        let tool_call = ToolCall::new("call_123", "dynamic_tool", "");
+        let tool_call = LanguageModelToolCall::new("call_123", "dynamic_tool", "");
 
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_ok());
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_parse_provider_executed_dynamic_tool_call_invalid_json() {
-        let tool_call = ToolCall::new("call_123", "dynamic_tool", "invalid json");
+        let tool_call = LanguageModelToolCall::new("call_123", "dynamic_tool", "invalid json");
 
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_err());
@@ -295,7 +295,7 @@ mod tests {
         });
         tools.insert("get_weather".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "get_weather", r#"{"city": "SF"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "get_weather", r#"{"city": "SF"}"#);
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
@@ -318,7 +318,7 @@ mod tests {
         let schema = json!({"type": "object"});
         tools.insert("dynamic_tool".to_string(), Tool::dynamic(schema));
 
-        let tool_call = ToolCall::new("call_123", "dynamic_tool", r#"{"data": "test"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "dynamic_tool", r#"{"data": "test"}"#);
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
@@ -340,7 +340,7 @@ mod tests {
         let schema = json!({"type": "object"});
         tools.insert("no_args_tool".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "no_args_tool", "");
+        let tool_call = LanguageModelToolCall::new("call_123", "no_args_tool", "");
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn test_parse_tool_call_tool_not_found() {
         let tools = HashMap::new();
-        let tool_call = ToolCall::new("call_123", "unknown_tool", "{}");
+        let tool_call = LanguageModelToolCall::new("call_123", "unknown_tool", "{}");
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
@@ -376,7 +376,7 @@ mod tests {
         let schema = json!({"type": "object"});
         tools.insert("test_tool".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "test_tool", "not valid json");
+        let tool_call = LanguageModelToolCall::new("call_123", "test_tool", "not valid json");
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
@@ -397,7 +397,7 @@ mod tests {
     #[test]
     fn test_parse_tool_call_provider_executed_not_in_toolset() {
         let tools = HashMap::new();
-        let tool_call = ToolCall::with_options(
+        let tool_call = LanguageModelToolCall::with_options(
             "call_123",
             "provider_tool",
             r#"{"key": "value"}"#,
@@ -442,7 +442,7 @@ mod tests {
         });
         tools.insert("get_weather".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "get_weather",
             r#"{"city": "San Francisco", "units": "celsius"}"#,
@@ -475,7 +475,7 @@ mod tests {
         });
         tools.insert("get_weather".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "get_weather", r#"{"units": "celsius"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "get_weather", r#"{"units": "celsius"}"#);
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
@@ -505,7 +505,7 @@ mod tests {
         });
         tools.insert("count_tool".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "count_tool", r#"{"count": "not a number"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "count_tool", r#"{"count": "not a number"}"#);
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
@@ -535,7 +535,7 @@ mod tests {
         });
         tools.insert("update_status".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new("call_123", "update_status", r#"{"status": "deleted"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "update_status", r#"{"status": "deleted"}"#);
 
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
@@ -565,7 +565,7 @@ mod tests {
         });
         tools.insert("strict_tool".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "strict_tool",
             r#"{"name": "test", "extra": "field"}"#,
@@ -605,7 +605,7 @@ mod tests {
         tools.insert("get_info".to_string(), Tool::function(schema));
 
         // Valid nested object
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "get_info",
             r#"{"location": {"city": "Paris", "country": "France"}}"#,
@@ -616,7 +616,7 @@ mod tests {
         matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid nested object (missing required field)
-        let tool_call = ToolCall::new("call_124", "get_info", r#"{"location": {"city": "Paris"}}"#);
+        let tool_call = LanguageModelToolCall::new("call_124", "get_info", r#"{"location": {"city": "Paris"}}"#);
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
     }
@@ -640,18 +640,18 @@ mod tests {
         tools.insert("tag_tool".to_string(), Tool::function(schema));
 
         // Valid array
-        let tool_call = ToolCall::new("call_123", "tag_tool", r#"{"tags": ["tag1", "tag2"]}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "tag_tool", r#"{"tags": ["tag1", "tag2"]}"#);
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_ok());
         matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid array (wrong item type)
-        let tool_call = ToolCall::new("call_124", "tag_tool", r#"{"tags": ["tag1", 123]}"#);
+        let tool_call = LanguageModelToolCall::new("call_124", "tag_tool", r#"{"tags": ["tag1", 123]}"#);
         let result = parse_tool_call(&tool_call, &tools);
         assert!(result.is_err());
 
         // Invalid array (too many items)
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_125",
             "tag_tool",
             r#"{"tags": ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6"]}"#,
@@ -680,7 +680,7 @@ mod tests {
         tools.insert("user_tool".to_string(), Tool::function(schema));
 
         // Valid input
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "user_tool",
             r#"{"email": "user@example.com", "username": "john_doe"}"#,
@@ -690,7 +690,7 @@ mod tests {
         matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid username (too short)
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_124",
             "user_tool",
             r#"{"email": "user@example.com", "username": "ab"}"#,
@@ -719,7 +719,7 @@ mod tests {
         tools.insert("data_tool".to_string(), Tool::function(schema));
 
         // Valid input
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "data_tool",
             r#"{"age": 25, "temperature": 20.5}"#,
@@ -729,7 +729,7 @@ mod tests {
         matches!(result.unwrap(), TypedToolCall::Static(_));
 
         // Invalid age (negative)
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_124",
             "data_tool",
             r#"{"age": -5, "temperature": 20.5}"#,
@@ -738,7 +738,7 @@ mod tests {
         assert!(result.is_err());
 
         // Invalid temperature (below absolute zero)
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_125",
             "data_tool",
             r#"{"age": 25, "temperature": -300}"#,
@@ -754,7 +754,7 @@ mod tests {
         let schema = json!({});
         tools.insert("flexible_tool".to_string(), Tool::function(schema));
 
-        let tool_call = ToolCall::new(
+        let tool_call = LanguageModelToolCall::new(
             "call_123",
             "flexible_tool",
             r#"{"any": "value", "is": "allowed", "count": 42}"#,

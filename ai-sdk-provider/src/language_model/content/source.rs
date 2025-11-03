@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "sourceType", rename_all = "camelCase")]
-pub enum Source {
+pub enum LanguageModelSource {
     #[serde(rename_all = "camelCase")]
     Url {
         id: String,
@@ -33,24 +33,24 @@ pub enum Source {
     },
 }
 
-impl Source {
+impl LanguageModelSource {
     pub fn content_type(&self) -> &str {
         "source"
     }
 
     pub fn id(&self) -> &str {
         match self {
-            Source::Url { id, .. } => id.as_ref(),
-            Source::Document { id, .. } => id.as_ref(),
+            LanguageModelSource::Url { id, .. } => id.as_ref(),
+            LanguageModelSource::Document { id, .. } => id.as_ref(),
         }
     }
 
     pub fn provider_metadata(&self) -> Option<&ProviderMetadata> {
         match self {
-            Source::Url {
+            LanguageModelSource::Url {
                 provider_metadata, ..
             } => provider_metadata.as_ref(),
-            Source::Document {
+            LanguageModelSource::Document {
                 provider_metadata, ..
             } => provider_metadata.as_ref(),
         }

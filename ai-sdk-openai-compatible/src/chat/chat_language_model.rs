@@ -2,7 +2,7 @@ use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::CallOptions, call_warning::CallWarning, content::Content,
-    content::reasoning::Reasoning, content::text::Text, content::tool_call::ToolCall, usage::Usage,
+    content::reasoning::LanguageModelReasoning, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall, usage::Usage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
@@ -273,7 +273,7 @@ impl OpenAICompatibleChatLanguageModel {
 
                     // Emit the actual ToolCall with the complete arguments
                     let tool_call =
-                        ToolCall::new(&tool_state.id, &tool_state.name, &tool_state.arguments);
+                        LanguageModelToolCall::new(&tool_state.id, &tool_state.name, &tool_state.arguments);
                     parts.push(StreamPart::ToolCall(tool_call));
                 }
             }
@@ -569,7 +569,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         // Add text content
         if let Some(text) = &choice.message.content {
             if !text.is_empty() {
-                content.push(Content::Text(Text::new(text.clone())));
+                content.push(Content::Text(LanguageModelText::new(text.clone())));
             }
         }
 
@@ -581,7 +581,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             .or(choice.message.reasoning.as_ref());
         if let Some(reasoning_text) = reasoning {
             if !reasoning_text.is_empty() {
-                content.push(Content::Reasoning(Reasoning::init(reasoning_text.clone())));
+                content.push(Content::Reasoning(LanguageModelReasoning::init(reasoning_text.clone())));
             }
         }
 
@@ -594,7 +594,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                     .unwrap_or_else(|| "unknown".to_string());
                 let tool_name = tool_call.function.name.clone();
                 let input = tool_call.function.arguments.clone();
-                content.push(Content::ToolCall(ToolCall::new(
+                content.push(Content::ToolCall(LanguageModelToolCall::new(
                     tool_call_id,
                     tool_name,
                     input,

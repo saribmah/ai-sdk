@@ -1,7 +1,7 @@
 use crate::error::AISDKError;
 use crate::generate_text::tool_set::ToolSet;
 use crate::prompt::message::ModelMessage;
-use ai_sdk_provider::language_model::content::tool_call::ToolCall;
+use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -16,7 +16,7 @@ pub struct ToolCallRepairOptions {
     pub messages: Vec<ModelMessage>,
 
     /// The tool call that failed to parse.
-    pub tool_call: ToolCall,
+    pub tool_call: LanguageModelToolCall,
 
     /// The tools that are available.
     pub tools: ToolSet,
@@ -30,7 +30,7 @@ impl ToolCallRepairOptions {
     pub fn new(
         system: Option<String>,
         messages: Vec<ModelMessage>,
-        tool_call: ToolCall,
+        tool_call: LanguageModelToolCall,
         tools: ToolSet,
         error: AISDKError,
     ) -> Self {
@@ -84,7 +84,7 @@ impl ToolCallRepairOptions {
 /// let repair_fn: ToolCallRepairFunction = Box::new(no_repair_function);
 /// ```
 pub type ToolCallRepairFunction = Box<
-    dyn Fn(ToolCallRepairOptions) -> Pin<Box<dyn Future<Output = Option<ToolCall>> + Send>>
+    dyn Fn(ToolCallRepairOptions) -> Pin<Box<dyn Future<Output = Option<LanguageModelToolCall>> + Send>>
         + Send
         + Sync,
 >;
@@ -133,7 +133,7 @@ mod tests {
         let options = ToolCallRepairOptions::new(
             Some("You are a helpful assistant".to_string()),
             vec![ModelMessage::User(UserModelMessage::new("Hello"))],
-            ToolCall::new("call_123", "test_tool", "{}"),
+            LanguageModelToolCall::new("call_123", "test_tool", "{}"),
             create_test_toolset(),
             AISDKError::invalid_tool_input("test_tool", "{}", "Invalid input"),
         );
@@ -148,7 +148,7 @@ mod tests {
         let repair_fn: ToolCallRepairFunction = Box::new(|options: ToolCallRepairOptions| {
             Box::pin(async move {
                 // Return a repaired version of the tool call
-                Some(ToolCall::new(
+                Some(LanguageModelToolCall::new(
                     options.tool_call.tool_call_id,
                     options.tool_call.tool_name,
                     r#"{"repaired": true}"#,
@@ -168,7 +168,7 @@ mod tests {
         let options = ToolCallRepairOptions::new(
             None,
             vec![],
-            ToolCall::new("call_456", "broken_tool", "invalid json"),
+            LanguageModelToolCall::new("call_456", "broken_tool", "invalid json"),
             tools,
             AISDKError::invalid_tool_input("broken_tool", "invalid json", "Parse error"),
         );
@@ -186,7 +186,7 @@ mod tests {
     async fn test_repair_options_creation() {
         let system = Some("System prompt".to_string());
         let messages = vec![ModelMessage::User(UserModelMessage::new("Test"))];
-        let tool_call = ToolCall::new("call_789", "my_tool", "{}");
+        let tool_call = LanguageModelToolCall::new("call_789", "my_tool", "{}");
 
         let mut tools = ToolSet::new();
         tools.insert(
@@ -227,7 +227,7 @@ mod tests {
                         // Try to find a similar tool name and repair
                         if tool_name == "get_wheather" && options.tools.contains_key("get_weather")
                         {
-                            return Some(ToolCall::new(
+                            return Some(LanguageModelToolCall::new(
                                 options.tool_call.tool_call_id,
                                 "get_weather", // Corrected tool name
                                 options.tool_call.input,
@@ -254,7 +254,7 @@ mod tests {
         let options = ToolCallRepairOptions::new(
             None,
             vec![],
-            ToolCall::new("call_123", "get_wheather", r#"{"city": "SF"}"#),
+            LanguageModelToolCall::new("call_123", "get_wheather", r#"{"city": "SF"}"#),
             tools,
             AISDKError::no_such_tool("get_wheather", vec!["get_weather".to_string()]),
         );
@@ -282,7 +282,7 @@ mod tests {
                         if tool_input.contains("city") && !tool_input.starts_with("{") {
                             // Add missing braces
                             let repaired_input = format!("{{{}}}", tool_input);
-                            return Some(ToolCall::new(
+                            return Some(LanguageModelToolCall::new(
                                 options.tool_call.tool_call_id,
                                 tool_name.clone(),
                                 repaired_input,
@@ -309,7 +309,7 @@ mod tests {
         let options = ToolCallRepairOptions::new(
             None,
             vec![],
-            ToolCall::new("call_999", "get_weather", r#""city": "SF""#),
+            LanguageModelToolCall::new("call_999", "get_weather", r#""city": "SF""#),
             tools,
             AISDKError::invalid_tool_input("get_weather", r#""city": "SF""#, "Missing braces"),
         );

@@ -2,7 +2,7 @@ use crate::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Reasoning {
+pub struct LanguageModelReasoning {
     #[serde(rename = "type")]
     pub content_type: ReasoningType,
 
@@ -16,7 +16,7 @@ pub struct Reasoning {
 #[serde(rename = "reasoning")]
 struct ReasoningType;
 
-impl Reasoning {
+impl LanguageModelReasoning {
     pub fn init(text: impl Into<String>) -> Self {
         Self {
             content_type: ReasoningType,

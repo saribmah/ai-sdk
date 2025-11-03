@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct File {
+pub struct LanguageModelFile {
     #[serde(rename = "type")]
     pub file_type: FileType,
 
@@ -30,7 +30,7 @@ pub enum FileData {
     Binary(Vec<u8>),
 }
 
-impl File {
+impl LanguageModelFile {
     pub fn from_base64(media_type: impl Into<String>, data: impl Into<String>) -> Self {
         Self {
             file_type: FileType::File,

@@ -5,21 +5,21 @@ pub mod text;
 pub mod tool_call;
 pub mod tool_result;
 
-use file::File;
-use reasoning::Reasoning;
+use file::LanguageModelFile;
+use reasoning::LanguageModelReasoning;
 use serde::{Deserialize, Serialize};
-use source::Source;
-use text::Text;
-use tool_call::ToolCall;
-use tool_result::ToolResult;
+use source::LanguageModelSource;
+use text::LanguageModelText;
+use tool_call::LanguageModelToolCall;
+use tool_result::LanguageModelToolResult;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Content {
-    Text(Text),
-    Reasoning(Reasoning),
-    File(File),
-    Source(Source),
-    ToolCall(ToolCall),
-    ToolResult(ToolResult),
+    Text(LanguageModelText),
+    Reasoning(LanguageModelReasoning),
+    File(LanguageModelFile),
+    Source(LanguageModelSource),
+    ToolCall(LanguageModelToolCall),
+    ToolResult(LanguageModelToolResult),
 }

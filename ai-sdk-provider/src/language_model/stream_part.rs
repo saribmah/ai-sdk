@@ -13,10 +13,10 @@ pub mod tool_input_end;
 pub mod tool_input_start;
 
 use crate::language_model::call_warning::CallWarning;
-use crate::language_model::content::file::File;
-use crate::language_model::content::source::Source;
-use crate::language_model::content::tool_call::ToolCall;
-use crate::language_model::content::tool_result::ToolResult;
+use crate::language_model::content::file::LanguageModelFile;
+use crate::language_model::content::source::LanguageModelSource;
+use crate::language_model::content::tool_call::LanguageModelToolCall;
+use crate::language_model::content::tool_result::LanguageModelToolResult;
 use crate::language_model::finish_reason::FinishReason;
 use crate::language_model::response_metadata::ResponseMetadata;
 use crate::language_model::usage::Usage;
@@ -59,17 +59,17 @@ pub enum StreamPart {
 
     // Complete tool call and result
     /// Complete tool call
-    ToolCall(ToolCall),
+    ToolCall(LanguageModelToolCall),
 
     /// Tool result
-    ToolResult(ToolResult),
+    ToolResult(LanguageModelToolResult),
 
     // Files and sources
     /// File content
-    File(File),
+    File(LanguageModelFile),
 
     /// Source content
-    Source(Source),
+    Source(LanguageModelSource),
 
     // Stream metadata events
     /// Stream start event with warnings

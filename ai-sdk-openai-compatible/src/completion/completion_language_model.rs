@@ -1,7 +1,7 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::CallOptions, call_warning::CallWarning, content::Content, content::text::Text,
+    call_options::CallOptions, call_warning::CallWarning, content::Content, content::text::LanguageModelText,
     usage::Usage,
 };
 use async_trait::async_trait;
@@ -285,7 +285,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         // Add text content
         if !choice.text.is_empty() {
-            content.push(Content::Text(Text::new(choice.text.clone())));
+            content.push(Content::Text(LanguageModelText::new(choice.text.clone())));
         }
 
         // Build usage information

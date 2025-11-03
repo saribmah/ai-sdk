@@ -2,7 +2,7 @@ use crate::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Text {
+pub struct LanguageModelText {
     #[serde(rename = "type")]
     pub content_type: TextType,
 
@@ -16,7 +16,7 @@ pub struct Text {
 #[serde(rename = "text")]
 struct TextType;
 
-impl Text {
+impl LanguageModelText {
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             content_type: TextType,

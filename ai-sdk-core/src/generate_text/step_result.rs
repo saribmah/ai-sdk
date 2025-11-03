@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning, content::source::Source, finish_reason::FinishReason,
+    call_warning::CallWarning, content::source::LanguageModelSource, finish_reason::FinishReason,
     response_metadata::ResponseMetadata, usage::Usage,
 };
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
@@ -214,7 +214,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to sources.
-    pub fn sources(&self) -> Vec<&Source> {
+    pub fn sources(&self) -> Vec<&LanguageModelSource> {
         self.content
             .iter()
             .filter_map(|part| {

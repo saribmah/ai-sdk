@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")] // ← Add this!
-pub struct ToolCall {
+pub struct LanguageModelToolCall {
     #[serde(rename = "type")]
     pub content_type: ToolCallType,
 
@@ -24,7 +24,7 @@ pub struct ToolCall {
 #[serde(rename = "tool-call")]
 struct ToolCallType;
 
-impl ToolCall {
+impl LanguageModelToolCall {
     pub fn new(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,

@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::content::source::Source;
+use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct SourceOutput {
 
     /// The source data from the provider.
     #[serde(flatten)]
-    pub source: Source,
+    pub source: LanguageModelSource,
 
     /// Additional provider-specific metadata.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ impl SourceOutput {
     /// # Arguments
     ///
     /// * `source` - The source data from the provider
-    pub fn new(source: Source) -> Self {
+    pub fn new(source: LanguageModelSource) -> Self {
         Self {
             source_type: "source".to_string(),
             source,
@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_source_output_new() {
-        let source = Source::Url {
+        let source = LanguageModelSource::Url {
             id: "source_1".to_string(),
             url: "https://example.com/doc".to_string(),
             title: Some("Example Document".to_string()),
@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_source_output_with_provider_metadata() {
-        let source = Source::Url {
+        let source = LanguageModelSource::Url {
             id: "source_1".to_string(),
             url: "https://example.com/doc".to_string(),
             title: None,
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_source_output_serialization() {
-        let source = Source::Url {
+        let source = LanguageModelSource::Url {
             id: "source_1".to_string(),
             url: "https://example.com/doc".to_string(),
             title: None,
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_source_output_clone() {
-        let source = Source::Document {
+        let source = LanguageModelSource::Document {
             id: "doc_1".to_string(),
             media_type: "text/plain".to_string(),
             title: "Test Document".to_string(),

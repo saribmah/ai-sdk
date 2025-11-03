@@ -6,7 +6,7 @@ use crate::generate_text::{
 };
 use crate::stream_text::TextStreamPart;
 use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::content::source::Source;
+use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::FinishReason;
 use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
@@ -90,7 +90,7 @@ struct StreamState<INPUT, OUTPUT> {
     reasoning: Vec<ReasoningOutput>,
     reasoning_text: Option<String>,
     files: Vec<GeneratedFile>,
-    sources: Vec<Source>,
+    sources: Vec<LanguageModelSource>,
     tool_calls: Vec<TypedToolCall<INPUT>>,
     static_tool_calls: Vec<StaticToolCall<INPUT>>,
     dynamic_tool_calls: Vec<DynamicToolCall>,
@@ -453,7 +453,7 @@ where
     /// Gets the sources that have been used as references in the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn sources(&self) -> Result<Vec<Source>, AISDKError> {
+    pub async fn sources(&self) -> Result<Vec<LanguageModelSource>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().sources.clone())
     }

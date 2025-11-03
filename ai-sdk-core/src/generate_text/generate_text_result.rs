@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::content::source::Source;
+use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::FinishReason;
 use ai_sdk_provider::language_model::usage::Usage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
@@ -76,7 +76,7 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     pub files: Vec<GeneratedFile>,
 
     /// Sources that have been used as references in the last step.
-    pub sources: Vec<Source>,
+    pub sources: Vec<LanguageModelSource>,
 
     /// The tool calls that were made in the last step.
     pub tool_calls: Vec<TypedToolCall<INPUT>>,
@@ -172,7 +172,7 @@ where
         // Files are extracted directly from ContentPart (though currently empty)
         let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
-        let sources: Vec<Source> = final_step.sources().iter().cloned().cloned().collect();
+        let sources: Vec<LanguageModelSource> = final_step.sources().iter().cloned().cloned().collect();
 
         // Tool calls are already TypedToolCall in StepResult
         let all_tool_calls: Vec<TypedToolCall<INPUT>> =
@@ -249,7 +249,7 @@ where
         reasoning: Vec<ReasoningOutput>,
         reasoning_text: Option<String>,
         files: Vec<GeneratedFile>,
-        sources: Vec<Source>,
+        sources: Vec<LanguageModelSource>,
         tool_calls: Vec<TypedToolCall<INPUT>>,
         static_tool_calls: Vec<StaticToolCall<INPUT>>,
         dynamic_tool_calls: Vec<DynamicToolCall>,

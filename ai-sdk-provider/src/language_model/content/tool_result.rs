@@ -4,7 +4,7 @@ use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")] // ← Add this!
-pub struct ToolResult {
+pub struct LanguageModelToolResult {
     #[serde(rename = "type")]
     pub content_type: ToolResultType,
 
@@ -28,7 +28,7 @@ pub struct ToolResult {
 #[serde(rename = "tool-result")]
 struct ToolResultType;
 
-impl ToolResult {
+impl LanguageModelToolResult {
     pub fn new(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,
