@@ -1,104 +1,58 @@
 pub mod assistant;
 pub mod data_content;
+pub mod system;
 pub mod tool;
 pub mod user;
 
-pub use assistant::AssistantMessagePart;
+pub use assistant::{Assistant, AssistantMessagePart};
 pub use data_content::DataContent;
-pub use tool::{ToolResultContentItem, ToolResultOutput, ToolResultPart};
-pub use user::UserMessagePart;
+pub use system::System;
+pub use tool::{Tool, ToolResultContentItem, ToolResultOutput, ToolResultPart};
+pub use user::{User, UserMessagePart};
 
-use crate::shared::provider_options::ProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// A message in a prompt with role-specific content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "role", rename_all = "lowercase")]
+#[serde(untagged)]
 pub enum Message {
     /// System message with text content
-    #[serde(rename_all = "camelCase")]
-    System {
-        /// The system message content
-        content: String,
-
-        /// Additional provider-specific options
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_options: Option<ProviderOptions>,
-    },
+    System(System),
 
     /// User message with text and/or file parts
-    #[serde(rename_all = "camelCase")]
-    User {
-        /// Array of text or file content parts
-        content: Vec<UserMessagePart>,
-
-        /// Additional provider-specific options
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_options: Option<ProviderOptions>,
-    },
+    User(User),
 
     /// Assistant message with various content types
-    #[serde(rename_all = "camelCase")]
-    Assistant {
-        /// Array of content parts (text, files, reasoning, tool calls, tool results)
-        content: Vec<AssistantMessagePart>,
-
-        /// Additional provider-specific options
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_options: Option<ProviderOptions>,
-    },
+    Assistant(Assistant),
 
     /// Tool message with tool results
-    #[serde(rename_all = "camelCase")]
-    Tool {
-        /// Array of tool result parts
-        content: Vec<ToolResultPart>,
-
-        /// Additional provider-specific options
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_options: Option<ProviderOptions>,
-    },
+    Tool(Tool),
 }
 
 // Helper implementations for Message
 impl Message {
     /// Create a system message
     pub fn system(content: impl Into<String>) -> Self {
-        Self::System {
-            content: content.into(),
-            provider_options: None,
-        }
+        Self::System(System::new(content))
     }
 
     /// Create a user message with text
     pub fn user_text(text: impl Into<String>) -> Self {
-        Self::User {
-            content: vec![UserMessagePart::Text {
-                text: text.into(),
-                provider_options: None,
-            }],
-            provider_options: None,
-        }
+        Self::User(User::text(text))
     }
 
     /// Create an assistant message with text
     pub fn assistant_text(text: impl Into<String>) -> Self {
-        Self::Assistant {
-            content: vec![AssistantMessagePart::Text {
-                text: text.into(),
-                provider_options: None,
-            }],
-            provider_options: None,
-        }
+        Self::Assistant(Assistant::text(text))
     }
 
     /// Get the role of this message
     pub fn role(&self) -> &str {
         match self {
-            Self::System { .. } => "system",
-            Self::User { .. } => "user",
-            Self::Assistant { .. } => "assistant",
-            Self::Tool { .. } => "tool",
+            Self::System(_) => "system",
+            Self::User(_) => "user",
+            Self::Assistant(_) => "assistant",
+            Self::Tool(_) => "tool",
         }
     }
 }

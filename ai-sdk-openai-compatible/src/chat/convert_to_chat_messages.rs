@@ -1,3 +1,4 @@
+use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
 use ai_sdk_provider::language_model::prompt::{
     AssistantMessagePart, DataContent, Message, Prompt, ToolResultOutput, ToolResultPart,
     UserMessagePart,
@@ -58,21 +59,17 @@ pub fn convert_to_openai_compatible_chat_messages(
 
     for message in prompt {
         match message {
-            Message::System {
-                content,
-                provider_options,
-            } => {
-                let mut system_msg = OpenAICompatibleSystemMessage::new(content);
-                if let Some(metadata) = get_openai_metadata(&provider_options) {
+            Message::System(sys_msg) => {
+                let mut system_msg = OpenAICompatibleSystemMessage::new(sys_msg.content);
+                if let Some(metadata) = get_openai_metadata(&sys_msg.provider_options) {
                     system_msg.additional_properties = Some(metadata);
                 }
                 messages.push(OpenAICompatibleMessage::System(system_msg));
             }
 
-            Message::User {
-                content,
-                provider_options,
-            } => {
+            Message::User(user_msg) => {
+                let content = user_msg.content;
+                let provider_options = user_msg.provider_options;
                 // Check if it's a simple text message
                 if content.len() == 1 {
                     if let UserMessagePart::Text {
@@ -81,7 +78,7 @@ pub fn convert_to_openai_compatible_chat_messages(
                     } = &content[0]
                     {
                         let mut user_msg = OpenAICompatibleUserMessage::new_text(text.clone());
-                        if let Some(metadata) = get_openai_metadata(part_options) {
+                        if let Some(metadata) = get_openai_metadata(&part_options) {
                             user_msg.additional_properties = Some(metadata);
                         }
                         messages.push(OpenAICompatibleMessage::User(user_msg));
@@ -138,10 +135,9 @@ pub fn convert_to_openai_compatible_chat_messages(
                 messages.push(OpenAICompatibleMessage::User(user_msg));
             }
 
-            Message::Assistant {
-                content,
-                provider_options,
-            } => {
+            Message::Assistant(asst_msg) => {
+                let content = asst_msg.content;
+                let provider_options = asst_msg.provider_options;
                 let mut text = String::new();
                 let mut tool_calls: Vec<OpenAICompatibleMessageToolCall> = Vec::new();
 
@@ -192,33 +188,30 @@ pub fn convert_to_openai_compatible_chat_messages(
                 messages.push(OpenAICompatibleMessage::Assistant(assistant_msg));
             }
 
-            Message::Tool {
-                content,
-                provider_options: _,
-            } => {
-                for tool_response in content {
+            Message::Tool(tool_msg) => {
+                for tool_response in tool_msg.content {
                     let content_value = match &tool_response.output {
                         ToolResultOutput::Text { value } => value.clone(),
                         ToolResultOutput::ErrorText { value } => value.clone(),
                         ToolResultOutput::Json { value } => {
-                            serde_json::to_string(value).unwrap_or_else(|_| "{}".to_string())
+                            serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
                         }
                         ToolResultOutput::ErrorJson { value } => {
-                            serde_json::to_string(value).unwrap_or_else(|_| "{}".to_string())
+                            serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
                         }
                         ToolResultOutput::Content { value } => {
-                            serde_json::to_string(value).unwrap_or_else(|_| "[]".to_string())
+                            serde_json::to_string(&value).unwrap_or_else(|_| "[]".to_string())
                         }
                     };
 
-                    let mut tool_msg = OpenAICompatibleToolMessage::new(
+                    let mut tool_message = OpenAICompatibleToolMessage::new(
                         content_value,
                         tool_response.tool_call_id.clone(),
                     );
                     if let Some(metadata) = get_openai_metadata(&tool_response.provider_options) {
-                        tool_msg.additional_properties = Some(metadata);
+                        tool_message.additional_properties = Some(metadata);
                     }
-                    messages.push(OpenAICompatibleMessage::Tool(tool_msg));
+                    messages.push(OpenAICompatibleMessage::Tool(tool_message));
                 }
             }
         }
@@ -234,10 +227,9 @@ mod tests {
 
     #[test]
     fn test_convert_system_message() {
-        let prompt = vec![Message::System {
-            content: "You are a helpful assistant.".to_string(),
-            provider_options: None,
-        }];
+        let prompt = vec![Message::System(System::new(
+            "You are a helpful assistant.".to_string(),
+        ))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -252,13 +244,10 @@ mod tests {
 
     #[test]
     fn test_convert_user_text_message() {
-        let prompt = vec![Message::User {
-            content: vec![UserMessagePart::Text {
-                text: "Hello!".to_string(),
-                provider_options: None,
-            }],
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::Text {
+            text: "Hello!".to_string(),
             provider_options: None,
-        }];
+        }]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -274,21 +263,18 @@ mod tests {
 
     #[test]
     fn test_convert_user_multipart_message() {
-        let prompt = vec![Message::User {
-            content: vec![
-                UserMessagePart::Text {
-                    text: "What's in this image?".to_string(),
-                    provider_options: None,
-                },
-                UserMessagePart::File {
-                    filename: None,
-                    data: DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
-                    media_type: "image/jpeg".to_string(),
-                    provider_options: None,
-                },
-            ],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::User(User::new(vec![
+            UserMessagePart::Text {
+                text: "What's in this image?".to_string(),
+                provider_options: None,
+            },
+            UserMessagePart::File {
+                filename: None,
+                data: DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
+                media_type: "image/jpeg".to_string(),
+                provider_options: None,
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -306,13 +292,12 @@ mod tests {
 
     #[test]
     fn test_convert_assistant_text_message() {
-        let prompt = vec![Message::Assistant {
-            content: vec![AssistantMessagePart::Text {
+        let prompt = vec![Message::Assistant(Assistant::new(vec![
+            AssistantMessagePart::Text {
                 text: "I can help you!".to_string(),
                 provider_options: None,
-            }],
-            provider_options: None,
-        }];
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -328,16 +313,15 @@ mod tests {
 
     #[test]
     fn test_convert_assistant_with_tool_calls() {
-        let prompt = vec![Message::Assistant {
-            content: vec![AssistantMessagePart::ToolCall {
+        let prompt = vec![Message::Assistant(Assistant::new(vec![
+            AssistantMessagePart::ToolCall {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 input: json!({"city": "San Francisco"}),
                 provider_executed: None,
                 provider_options: None,
-            }],
-            provider_options: None,
-        }];
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -357,16 +341,13 @@ mod tests {
 
     #[test]
     fn test_convert_tool_message() {
-        let prompt = vec![Message::Tool {
-            content: vec![ToolResultPart::new(
-                "call_123",
-                "get_weather",
-                ToolResultOutput::Text {
-                    value: "Sunny, 72°F".to_string(),
-                },
-            )],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::Tool(Tool::new(vec![ToolResultPart::new(
+            "call_123",
+            "get_weather",
+            ToolResultOutput::Text {
+                value: "Sunny, 72°F".to_string(),
+            },
+        )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -382,15 +363,12 @@ mod tests {
 
     #[test]
     fn test_convert_unsupported_file_type() {
-        let prompt = vec![Message::User {
-            content: vec![UserMessagePart::File {
-                filename: None,
-                data: DataContent::Base64("base64data".to_string()),
-                media_type: "application/pdf".to_string(),
-                provider_options: None,
-            }],
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File {
+            filename: None,
+            data: DataContent::Base64("base64data".to_string()),
+            media_type: "application/pdf".to_string(),
             provider_options: None,
-        }];
+        }]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt);
 
@@ -400,15 +378,12 @@ mod tests {
 
     #[test]
     fn test_convert_image_with_wildcard_type() {
-        let prompt = vec![Message::User {
-            content: vec![UserMessagePart::File {
-                filename: None,
-                data: DataContent::Base64("imagedata".to_string()),
-                media_type: "image/*".to_string(),
-                provider_options: None,
-            }],
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::File {
+            filename: None,
+            data: DataContent::Base64("imagedata".to_string()),
+            media_type: "image/*".to_string(),
             provider_options: None,
-        }];
+        }]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();
 
@@ -433,24 +408,15 @@ mod tests {
     #[test]
     fn test_convert_multiple_messages() {
         let prompt = vec![
-            Message::System {
-                content: "System prompt".to_string(),
+            Message::System(System::new("System prompt".to_string())),
+            Message::User(User::new(vec![UserMessagePart::Text {
+                text: "User message".to_string(),
                 provider_options: None,
-            },
-            Message::User {
-                content: vec![UserMessagePart::Text {
-                    text: "User message".to_string(),
-                    provider_options: None,
-                }],
+            }])),
+            Message::Assistant(Assistant::new(vec![AssistantMessagePart::Text {
+                text: "Assistant message".to_string(),
                 provider_options: None,
-            },
-            Message::Assistant {
-                content: vec![AssistantMessagePart::Text {
-                    text: "Assistant message".to_string(),
-                    provider_options: None,
-                }],
-                provider_options: None,
-            },
+            }])),
         ];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();

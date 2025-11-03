@@ -8,6 +8,7 @@ use crate::prompt::message::{
     },
 };
 use crate::prompt::standardize::StandardizedPrompt;
+use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
 use ai_sdk_provider::language_model::prompt::{
     AssistantMessagePart, DataContent as ProviderDataContent, Message,
     ToolResultOutput as ProviderToolResultOutput, ToolResultPart as ProviderToolResultPart,
@@ -37,10 +38,7 @@ pub fn convert_to_language_model_prompt(
     let mut messages: Vec<Message> = Vec::new();
 
     if let Some(system_content) = prompt.system {
-        messages.push(Message::System {
-            content: system_content,
-            provider_options: None,
-        });
+        messages.push(Message::System(System::new(system_content)));
     }
 
     // Convert all messages
@@ -58,10 +56,10 @@ pub fn convert_to_language_model_prompt(
 /// Convert a single `ModelMessage` to a provider `Message`.
 fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, AISDKError> {
     match message {
-        ModelMessage::System(sys_msg) => Ok(Message::System {
-            content: sys_msg.content,
-            provider_options: sys_msg.provider_options,
-        }),
+        ModelMessage::System(sys_msg) => Ok(Message::System(System::with_options(
+            sys_msg.content,
+            sys_msg.provider_options,
+        ))),
 
         ModelMessage::User(user_msg) => {
             let provider_options = user_msg.provider_options;
@@ -85,10 +83,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
                     .collect(),
             };
 
-            Ok(Message::User {
-                content,
-                provider_options,
-            })
+            Ok(Message::User(User::with_options(content, provider_options)))
         }
 
         ModelMessage::Assistant(asst_msg) => {
@@ -123,10 +118,10 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
                     .collect::<Result<Vec<_>, _>>()?,
             };
 
-            Ok(Message::Assistant {
+            Ok(Message::Assistant(Assistant::with_options(
                 content,
                 provider_options,
-            })
+            )))
         }
 
         ModelMessage::Tool(tool_msg) => {
@@ -142,10 +137,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<Message, A
                 .map(|tool_result| convert_tool_result_to_provider(tool_result))
                 .collect::<Result<Vec<_>, _>>()?;
 
-            Ok(Message::Tool {
-                content,
-                provider_options,
-            })
+            Ok(Message::Tool(Tool::with_options(content, provider_options)))
         }
     }
 }
@@ -413,25 +405,14 @@ fn combine_consecutive_tool_messages(messages: Vec<Message>) -> Vec<Message> {
     let mut combined = Vec::new();
 
     for message in messages {
-        if let Message::Tool {
-            content,
-            provider_options,
-        } = message
-        {
+        if let Message::Tool(tool_msg) = message {
             // Check if the last message was also a tool message
-            if let Some(Message::Tool {
-                content: last_content,
-                ..
-            }) = combined.last_mut()
-            {
+            if let Some(Message::Tool(last_tool)) = combined.last_mut() {
                 // Append to the existing tool message
-                last_content.extend(content);
+                last_tool.content.extend(tool_msg.content);
             } else {
                 // Add as a new tool message
-                combined.push(Message::Tool {
-                    content,
-                    provider_options,
-                });
+                combined.push(Message::Tool(tool_msg));
             }
         } else {
             combined.push(message);
@@ -465,14 +446,8 @@ mod tests {
     fn test_combine_consecutive_tool_messages() {
         // Create two consecutive tool messages
         let messages = vec![
-            Message::Tool {
-                content: vec![],
-                provider_options: None,
-            },
-            Message::Tool {
-                content: vec![],
-                provider_options: None,
-            },
+            Message::Tool(Tool::new(vec![])),
+            Message::Tool(Tool::new(vec![])),
         ];
 
         let combined = combine_consecutive_tool_messages(messages);

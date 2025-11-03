@@ -1,3 +1,4 @@
+use ai_sdk_provider::language_model::prompt::message::{Assistant, System, Tool, User};
 use ai_sdk_provider::language_model::prompt::{
     AssistantMessagePart, Message, Prompt, UserMessagePart,
 };
@@ -64,8 +65,8 @@ pub fn convert_to_openai_compatible_completion_prompt(
     let mut text = String::new();
 
     // If first message is a system message, add it to the text
-    if let Some(Message::System { content, .. }) = prompt.first() {
-        text.push_str(content);
+    if let Some(Message::System(sys)) = prompt.first() {
+        text.push_str(&sys.content);
         text.push_str("\n\n");
         prompt = prompt.into_iter().skip(1).collect();
     }
@@ -73,12 +74,16 @@ pub fn convert_to_openai_compatible_completion_prompt(
     // Process remaining messages
     for message in prompt {
         match message {
-            Message::System { content, .. } => {
-                return Err(format!("Unexpected system message in prompt: {}", content));
+            Message::System(sys) => {
+                return Err(format!(
+                    "Unexpected system message in prompt: {}",
+                    sys.content
+                ));
             }
 
-            Message::User { content, .. } => {
-                let user_message: String = content
+            Message::User(user) => {
+                let user_message: String = user
+                    .content
                     .into_iter()
                     .filter_map(|part| match part {
                         UserMessagePart::Text { text, .. } => Some(text),
@@ -90,10 +95,10 @@ pub fn convert_to_openai_compatible_completion_prompt(
                 text.push_str(&format!("{}:\n{}\n\n", user_prefix, user_message));
             }
 
-            Message::Assistant { content, .. } => {
+            Message::Assistant(asst) => {
                 let mut assistant_message = String::new();
 
-                for part in content {
+                for part in asst.content {
                     match part {
                         AssistantMessagePart::Text { text, .. } => {
                             assistant_message.push_str(&text);
@@ -109,7 +114,7 @@ pub fn convert_to_openai_compatible_completion_prompt(
                 text.push_str(&format!("{}:\n{}\n\n", assistant_prefix, assistant_message));
             }
 
-            Message::Tool { .. } => {
+            Message::Tool(_) => {
                 return Err("Unsupported functionality: tool messages".to_string());
             }
         }
@@ -130,13 +135,10 @@ mod tests {
 
     #[test]
     fn test_simple_user_message() {
-        let prompt = vec![Message::User {
-            content: vec![UserMessagePart::Text {
-                text: "Hello!".to_string(),
-                provider_options: None,
-            }],
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::Text {
+            text: "Hello!".to_string(),
             provider_options: None,
-        }];
+        }]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
@@ -147,17 +149,11 @@ mod tests {
     #[test]
     fn test_system_message_first() {
         let prompt = vec![
-            Message::System {
-                content: "You are a helpful assistant.".to_string(),
+            Message::System(System::new("You are a helpful assistant.".to_string())),
+            Message::User(User::new(vec![UserMessagePart::Text {
+                text: "Hello!".to_string(),
                 provider_options: None,
-            },
-            Message::User {
-                content: vec![UserMessagePart::Text {
-                    text: "Hello!".to_string(),
-                    provider_options: None,
-                }],
-                provider_options: None,
-            },
+            }])),
         ];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
@@ -172,17 +168,11 @@ mod tests {
     #[test]
     fn test_system_message_not_first_errors() {
         let prompt = vec![
-            Message::User {
-                content: vec![UserMessagePart::Text {
-                    text: "Hello!".to_string(),
-                    provider_options: None,
-                }],
+            Message::User(User::new(vec![UserMessagePart::Text {
+                text: "Hello!".to_string(),
                 provider_options: None,
-            },
-            Message::System {
-                content: "You are a helpful assistant.".to_string(),
-                provider_options: None,
-            },
+            }])),
+            Message::System(System::new("You are a helpful assistant.".to_string())),
         ];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
@@ -194,27 +184,18 @@ mod tests {
     #[test]
     fn test_conversation() {
         let prompt = vec![
-            Message::User {
-                content: vec![UserMessagePart::Text {
-                    text: "What is 2+2?".to_string(),
-                    provider_options: None,
-                }],
+            Message::User(User::new(vec![UserMessagePart::Text {
+                text: "What is 2+2?".to_string(),
                 provider_options: None,
-            },
-            Message::Assistant {
-                content: vec![AssistantMessagePart::Text {
-                    text: "The answer is 4.".to_string(),
-                    provider_options: None,
-                }],
+            }])),
+            Message::Assistant(Assistant::new(vec![AssistantMessagePart::Text {
+                text: "The answer is 4.".to_string(),
                 provider_options: None,
-            },
-            Message::User {
-                content: vec![UserMessagePart::Text {
-                    text: "What about 3+3?".to_string(),
-                    provider_options: None,
-                }],
+            }])),
+            Message::User(User::new(vec![UserMessagePart::Text {
+                text: "What about 3+3?".to_string(),
                 provider_options: None,
-            },
+            }])),
         ];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
@@ -227,13 +208,10 @@ mod tests {
 
     #[test]
     fn test_custom_prefixes() {
-        let prompt = vec![Message::User {
-            content: vec![UserMessagePart::Text {
-                text: "Hello!".to_string(),
-                provider_options: None,
-            }],
+        let prompt = vec![Message::User(User::new(vec![UserMessagePart::Text {
+            text: "Hello!".to_string(),
             provider_options: None,
-        }];
+        }]))];
 
         let result =
             convert_to_openai_compatible_completion_prompt(prompt, Some("Human"), Some("AI"))
@@ -245,19 +223,16 @@ mod tests {
 
     #[test]
     fn test_multiple_text_parts() {
-        let prompt = vec![Message::User {
-            content: vec![
-                UserMessagePart::Text {
-                    text: "Hello ".to_string(),
-                    provider_options: None,
-                },
-                UserMessagePart::Text {
-                    text: "world!".to_string(),
-                    provider_options: None,
-                },
-            ],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::User(User::new(vec![
+            UserMessagePart::Text {
+                text: "Hello ".to_string(),
+                provider_options: None,
+            },
+            UserMessagePart::Text {
+                text: "world!".to_string(),
+                provider_options: None,
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
@@ -268,16 +243,15 @@ mod tests {
     fn test_tool_call_errors() {
         use serde_json::json;
 
-        let prompt = vec![Message::Assistant {
-            content: vec![AssistantMessagePart::ToolCall {
+        let prompt = vec![Message::Assistant(Assistant::new(vec![
+            AssistantMessagePart::ToolCall {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 input: json!({}),
                 provider_executed: None,
                 provider_options: None,
-            }],
-            provider_options: None,
-        }];
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
 
@@ -289,16 +263,13 @@ mod tests {
     fn test_tool_message_errors() {
         use ai_sdk_provider::language_model::prompt::{ToolResultOutput, ToolResultPart};
 
-        let prompt = vec![Message::Tool {
-            content: vec![ToolResultPart::new(
-                "call_123",
-                "get_weather",
-                ToolResultOutput::Text {
-                    value: "Sunny".to_string(),
-                },
-            )],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::Tool(Tool::new(vec![ToolResultPart::new(
+            "call_123",
+            "get_weather",
+            ToolResultOutput::Text {
+                value: "Sunny".to_string(),
+            },
+        )]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
 
@@ -320,25 +291,22 @@ mod tests {
     fn test_file_parts_filtered() {
         use ai_sdk_provider::language_model::prompt::DataContent;
 
-        let prompt = vec![Message::User {
-            content: vec![
-                UserMessagePart::Text {
-                    text: "Look at this: ".to_string(),
-                    provider_options: None,
-                },
-                UserMessagePart::File {
-                    filename: None,
-                    data: DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
-                    media_type: "image/jpeg".to_string(),
-                    provider_options: None,
-                },
-                UserMessagePart::Text {
-                    text: "Cool!".to_string(),
-                    provider_options: None,
-                },
-            ],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::User(User::new(vec![
+            UserMessagePart::Text {
+                text: "Look at this: ".to_string(),
+                provider_options: None,
+            },
+            UserMessagePart::File {
+                filename: None,
+                data: DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
+                media_type: "image/jpeg".to_string(),
+                provider_options: None,
+            },
+            UserMessagePart::Text {
+                text: "Cool!".to_string(),
+                provider_options: None,
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None).unwrap();
 
@@ -350,22 +318,19 @@ mod tests {
     fn test_assistant_with_text_and_tool_call() {
         use serde_json::json;
 
-        let prompt = vec![Message::Assistant {
-            content: vec![
-                AssistantMessagePart::Text {
-                    text: "Let me check that.".to_string(),
-                    provider_options: None,
-                },
-                AssistantMessagePart::ToolCall {
-                    tool_call_id: "call_123".to_string(),
-                    tool_name: "search".to_string(),
-                    input: json!({}),
-                    provider_executed: None,
-                    provider_options: None,
-                },
-            ],
-            provider_options: None,
-        }];
+        let prompt = vec![Message::Assistant(Assistant::new(vec![
+            AssistantMessagePart::Text {
+                text: "Let me check that.".to_string(),
+                provider_options: None,
+            },
+            AssistantMessagePart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "search".to_string(),
+                input: json!({}),
+                provider_executed: None,
+                provider_options: None,
+            },
+        ]))];
 
         let result = convert_to_openai_compatible_completion_prompt(prompt, None, None);
 
