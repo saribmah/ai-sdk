@@ -64,7 +64,7 @@ use crate::prompt::{
 };
 use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
-    language_model::{LanguageModel, call_options::CallOptions, usage::Usage},
+    language_model::{LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage},
     shared::provider_options::ProviderOptions,
 };
 use serde_json::Value;
@@ -426,7 +426,7 @@ pub async fn generate_text(
         })?;
 
         // Step 7: Build CallOptions
-        let mut call_options = CallOptions::new(messages);
+        let mut call_options = LanguageModelCallOptions::new(messages);
         // Add prepared settings
         if let Some(max_tokens) = prepared_settings.max_output_tokens {
             call_options = call_options.with_max_output_tokens(max_tokens);
@@ -634,14 +634,14 @@ pub async fn generate_text(
     }
 
     // Calculate total usage by summing all steps
-    let total_usage = steps.iter().fold(Usage::default(), |acc, step| {
+    let total_usage = steps.iter().fold(LanguageModelUsage::default(), |acc, step| {
         let input_tokens = acc.input_tokens + step.usage.input_tokens;
         let output_tokens = acc.output_tokens + step.usage.output_tokens;
         let total_tokens = acc.total_tokens + step.usage.total_tokens;
         let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
         let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
 
-        Usage {
+        LanguageModelUsage {
             input_tokens,
             output_tokens,
             total_tokens,
@@ -781,7 +781,7 @@ pub async fn generate_text(
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        LanguageModelGenerateResponse, LanguageModelStreamResponse, call_options::CallOptions,
+        LanguageModelGenerateResponse, LanguageModelStreamResponse, call_options::LanguageModelCallOptions,
     };
     use async_trait::async_trait;
     use regex::Regex;
@@ -819,7 +819,7 @@ mod tests {
 
         async fn do_generate(
             &self,
-            _options: CallOptions,
+            _options: LanguageModelCallOptions,
         ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
             // Return a basic mock response
             // For now, we just return a mock error to indicate that this is a test mock
@@ -828,7 +828,7 @@ mod tests {
 
         async fn do_stream(
             &self,
-            _options: CallOptions,
+            _options: LanguageModelCallOptions,
         ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
             unimplemented!("Mock implementation")
         }

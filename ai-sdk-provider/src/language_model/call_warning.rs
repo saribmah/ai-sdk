@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// some settings might not be supported, which can lead to suboptimal results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
-pub enum CallWarning {
+pub enum LanguageModelCallWarning {
     /// A setting is not supported by the provider
     #[serde(rename_all = "camelCase")]
     UnsupportedSetting {
@@ -35,7 +35,7 @@ pub enum CallWarning {
     },
 }
 
-impl CallWarning {
+impl LanguageModelCallWarning {
     /// Create an unsupported setting warning
     pub fn unsupported_setting(setting: impl Into<String>) -> Self {
         Self::UnsupportedSetting {

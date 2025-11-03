@@ -12,14 +12,14 @@ pub mod tool_input_delta;
 pub mod tool_input_end;
 pub mod tool_input_start;
 
-use crate::language_model::call_warning::CallWarning;
+use crate::language_model::call_warning::LanguageModelCallWarning;
 use crate::language_model::content::file::LanguageModelFile;
 use crate::language_model::content::source::LanguageModelSource;
 use crate::language_model::content::tool_call::LanguageModelToolCall;
 use crate::language_model::content::tool_result::LanguageModelToolResult;
-use crate::language_model::finish_reason::FinishReason;
-use crate::language_model::response_metadata::ResponseMetadata;
-use crate::language_model::usage::Usage;
+use crate::language_model::finish_reason::LanguageModelFinishReason;
+use crate::language_model::response_metadata::LanguageModelResponseMetadata;
+use crate::language_model::usage::LanguageModelUsage;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -76,7 +76,7 @@ pub enum StreamPart {
     StreamStart(stream_start::StreamStart),
 
     /// Response metadata
-    ResponseMetadata(ResponseMetadata),
+    ResponseMetadata(LanguageModelResponseMetadata),
 
     /// Stream finish event
     Finish(finish::Finish),
@@ -212,12 +212,12 @@ impl StreamPart {
     }
 
     /// Create a stream start event
-    pub fn stream_start(warnings: Vec<CallWarning>) -> Self {
+    pub fn stream_start(warnings: Vec<LanguageModelCallWarning>) -> Self {
         Self::StreamStart(stream_start::StreamStart::new(warnings))
     }
 
     /// Create a finish event
-    pub fn finish(usage: Usage, finish_reason: FinishReason) -> Self {
+    pub fn finish(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
         Self::Finish(finish::Finish::new(usage, finish_reason))
     }
 

@@ -36,9 +36,9 @@ use crate::prompt::{
     convert_to_language_model_prompt::convert_to_language_model_prompt,
     standardize::StandardizedPrompt, standardize::validate_and_standardize,
 };
-use ai_sdk_provider::language_model::call_options::CallOptions;
+use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
 use ai_sdk_provider::language_model::{
-    LanguageModel, finish_reason::FinishReason, tool_choice::ToolChoice, usage::Usage,
+    LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::ToolChoice, usage::LanguageModelUsage,
 };
 use ai_sdk_provider::shared::provider_options::ProviderOptions;
 use serde_json::Value;
@@ -57,10 +57,10 @@ struct SingleStepStreamResult {
     tool_calls: Vec<TypedToolCall<Value>>,
 
     /// Finish reason for the step
-    finish_reason: FinishReason,
+    finish_reason: LanguageModelFinishReason,
 
     /// Usage for this step
-    usage: Usage,
+    usage: LanguageModelUsage,
 
     /// Request metadata
     request: crate::generate_text::RequestMetadata,
@@ -72,7 +72,7 @@ struct SingleStepStreamResult {
     provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
 
     /// Warnings from the provider
-    warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::CallWarning>>,
+    warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
 }
 
 /// Streams a single step and accumulates the results.
@@ -82,7 +82,7 @@ struct SingleStepStreamResult {
 /// as they arrive.
 async fn stream_single_step(
     model: Arc<dyn LanguageModel>,
-    call_options: ai_sdk_provider::language_model::call_options::CallOptions,
+    call_options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
     tools: Option<&ToolSet>,
     include_raw_chunks: bool,
     tx: &mpsc::UnboundedSender<TextStreamPart<Value, Value>>,
@@ -117,8 +117,8 @@ async fn stream_single_step(
     };
     let step_response = crate::generate_text::StepResponseMetadata::default();
     let mut step_warnings = None;
-    let mut step_finish_reason = FinishReason::Unknown;
-    let mut step_usage = Usage::default();
+    let mut step_finish_reason = LanguageModelFinishReason::Unknown;
+    let mut step_usage = LanguageModelUsage::default();
     let mut step_provider_metadata = None;
 
     while let Some(part) = provider_stream.next().await {
@@ -247,7 +247,7 @@ async fn stream_single_step(
                 step_provider_metadata = f.provider_metadata.clone();
 
                 TextStreamPart::FinishStep {
-                    response: ai_sdk_provider::language_model::response_metadata::ResponseMetadata::default(),
+                    response: ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata::default(),
                     usage: f.usage.clone(),
                     finish_reason: f.finish_reason.clone(),
                     provider_metadata: f.provider_metadata.clone(),
@@ -499,7 +499,7 @@ pub async fn stream_text(
 
         // Accumulate all steps
         let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
-        let mut total_usage = Usage::default();
+        let mut total_usage = LanguageModelUsage::default();
 
         // Start with the initial prompt messages
         let mut step_input_messages = standardized_prompt_arc.messages.clone();
@@ -555,7 +555,7 @@ pub async fn stream_text(
             };
 
             // Build CallOptions
-            let mut call_options = CallOptions::new(messages);
+            let mut call_options = LanguageModelCallOptions::new(messages);
 
             // Add prepared settings
             if let Some(max_tokens) = prepared_settings.max_output_tokens {
@@ -654,7 +654,7 @@ pub async fn stream_text(
             };
 
             // Update total usage
-            total_usage = Usage {
+            total_usage = LanguageModelUsage {
                 input_tokens: total_usage.input_tokens + step_result.usage.input_tokens,
                 output_tokens: total_usage.output_tokens + step_result.usage.output_tokens,
                 total_tokens: total_usage.total_tokens + step_result.usage.total_tokens,

@@ -1,5 +1,5 @@
 use super::step_result::StepResult;
-use ai_sdk_provider::language_model::usage::Usage;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use async_trait::async_trait;
 use std::future::Future;
 
@@ -54,18 +54,18 @@ where
 ///
 /// ```
 /// use ai_sdk_core::{FinishEvent, StepResult};
-/// use ai_sdk_provider::language_model::usage::Usage;
+/// use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 ///
 /// // Create a finish event
 /// let event = FinishEvent {
 ///     text: "Hello".to_string(),
 ///     tool_calls: vec![],
 ///     tool_results: vec![],
-///     finish_reason: ai_sdk_provider::language_model::finish_reason::FinishReason::Stop,
-///     usage: Usage::new(10, 20),
+///     finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+///     usage: LanguageModelUsage::new(10, 20),
 ///     warnings: None,
 ///     steps: vec![],
-///     total_usage: Usage::new(50, 100),
+///     total_usage: LanguageModelUsage::new(50, 100),
 /// };
 /// ```
 #[derive(Debug, Clone)]
@@ -80,13 +80,13 @@ pub struct FinishEvent {
     pub tool_results: Vec<super::TypedToolResult<serde_json::Value, serde_json::Value>>,
 
     /// The reason why the generation finished.
-    pub finish_reason: ai_sdk_provider::language_model::finish_reason::FinishReason,
+    pub finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason,
 
     /// The token usage of the final step.
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// Warnings from the final step.
-    pub warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::CallWarning>>,
+    pub warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
 
     /// Details for all steps.
     ///
@@ -96,7 +96,7 @@ pub struct FinishEvent {
     /// Total usage for all steps.
     ///
     /// This is the sum of the usage of all steps.
-    pub total_usage: Usage,
+    pub total_usage: LanguageModelUsage,
 }
 
 impl FinishEvent {
@@ -117,7 +117,7 @@ impl FinishEvent {
     /// ```
     pub fn new(final_step: &StepResult, all_steps: Vec<StepResult>) -> Self {
         // Calculate total usage across all steps
-        let total_usage = all_steps.iter().fold(Usage::new(0, 0), |acc, step| Usage {
+        let total_usage = all_steps.iter().fold(LanguageModelUsage::new(0, 0), |acc, step| LanguageModelUsage {
             input_tokens: acc.input_tokens + step.usage.input_tokens,
             output_tokens: acc.output_tokens + step.usage.output_tokens,
             total_tokens: acc.total_tokens + step.usage.total_tokens,
@@ -196,7 +196,7 @@ mod tests {
     use crate::generate_text::content_part::ContentPart;
     use crate::generate_text::text_output::TextOutput;
     use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
-    use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
+    use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
     use serde_json::json;
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {
@@ -204,8 +204,8 @@ mod tests {
             vec![ContentPart::Text(TextOutput::new(
                 "Test response".to_string(),
             ))],
-            FinishReason::Stop,
-            Usage::new(input_tokens, output_tokens),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(input_tokens, output_tokens),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {
@@ -244,7 +244,7 @@ mod tests {
         let event = FinishEvent::new(&step3, all_steps.clone());
 
         // Check final step data
-        assert_eq!(event.finish_reason, FinishReason::Stop);
+        assert_eq!(event.finish_reason, LanguageModelFinishReason::Stop);
         assert_eq!(event.usage.input_tokens, 20);
         assert_eq!(event.usage.output_tokens, 30);
 
@@ -289,8 +289,8 @@ mod tests {
 
         let step = StepResult::new(
             content,
-            FinishReason::ToolCalls,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::ToolCalls,
+            LanguageModelUsage::new(10, 20),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {
@@ -312,7 +312,7 @@ mod tests {
             }
             _ => panic!("Expected dynamic tool call"),
         }
-        assert_eq!(event.finish_reason, FinishReason::ToolCalls);
+        assert_eq!(event.finish_reason, LanguageModelFinishReason::ToolCalls);
     }
 
     #[tokio::test]
@@ -336,8 +336,8 @@ mod tests {
     async fn test_finish_event_with_reasoning_tokens() {
         let step = StepResult::new(
             vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
-            FinishReason::Stop,
-            Usage {
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage {
                 input_tokens: 10,
                 output_tokens: 20,
                 total_tokens: 30,
@@ -366,8 +366,8 @@ mod tests {
     async fn test_finish_event_aggregates_all_usage_fields() {
         let step1 = StepResult::new(
             vec![ContentPart::Text(TextOutput::new("Step 1".to_string()))],
-            FinishReason::Stop,
-            Usage {
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage {
                 input_tokens: 10,
                 output_tokens: 20,
                 total_tokens: 30,
@@ -387,8 +387,8 @@ mod tests {
 
         let step2 = StepResult::new(
             vec![ContentPart::Text(TextOutput::new("Step 2".to_string()))],
-            FinishReason::Stop,
-            Usage {
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage {
                 input_tokens: 15,
                 output_tokens: 25,
                 total_tokens: 40,

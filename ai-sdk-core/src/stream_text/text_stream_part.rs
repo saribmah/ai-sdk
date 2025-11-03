@@ -2,10 +2,10 @@ use crate::generate_text::{
     RequestMetadata, SourceOutput, ToolApprovalRequestOutput, TypedToolCall, TypedToolError,
     TypedToolResult,
 };
-use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::response_metadata::ResponseMetadata;
-use ai_sdk_provider::language_model::usage::Usage;
+use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
+use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -250,20 +250,20 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
         request: RequestMetadata,
 
         /// Warnings from the provider.
-        warnings: Vec<CallWarning>,
+        warnings: Vec<LanguageModelCallWarning>,
     },
 
     /// Indicates the completion of a generation step.
     #[serde(rename_all = "camelCase")]
     FinishStep {
         /// Response metadata for this step.
-        response: ResponseMetadata,
+        response: LanguageModelResponseMetadata,
 
         /// Token usage for this step.
-        usage: Usage,
+        usage: LanguageModelUsage,
 
         /// The reason why generation finished.
-        finish_reason: FinishReason,
+        finish_reason: LanguageModelFinishReason,
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -277,10 +277,10 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
     #[serde(rename_all = "camelCase")]
     Finish {
         /// The reason why generation finished.
-        finish_reason: FinishReason,
+        finish_reason: LanguageModelFinishReason,
 
         /// Total token usage across all steps.
-        total_usage: Usage,
+        total_usage: LanguageModelUsage,
     },
 
     /// Indicates the generation was aborted.
@@ -332,8 +332,8 @@ mod tests {
     #[test]
     fn test_finish_serialization() {
         let part = TextStreamPart::<Value, Value>::Finish {
-            finish_reason: FinishReason::Stop,
-            total_usage: Usage::new(100, 50),
+            finish_reason: LanguageModelFinishReason::Stop,
+            total_usage: LanguageModelUsage::new(100, 50),
         };
 
         let json = serde_json::to_value(&part).unwrap();

@@ -1,7 +1,7 @@
-use ai_sdk_provider::language_model::call_warning::CallWarning;
+use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::usage::Usage;
+use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde_json::Value;
 
@@ -97,18 +97,18 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     pub dynamic_tool_results: Vec<DynamicToolResult>,
 
     /// The reason why the generation finished.
-    pub finish_reason: FinishReason,
+    pub finish_reason: LanguageModelFinishReason,
 
     /// The token usage of the last step.
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// The total token usage of all steps.
     ///
     /// When there are multiple steps, the usage is the sum of all step usages.
-    pub total_usage: Usage,
+    pub total_usage: LanguageModelUsage,
 
     /// Warnings from the model provider (e.g. unsupported settings).
-    pub warnings: Option<Vec<CallWarning>>,
+    pub warnings: Option<Vec<LanguageModelCallWarning>>,
 
     /// Additional request information.
     pub request: RequestMetadata,
@@ -153,7 +153,7 @@ where
     /// Panics if `steps` is empty.
     pub fn from_steps(
         steps: Vec<StepResult<INPUT, OUTPUT>>,
-        total_usage: Usage,
+        total_usage: LanguageModelUsage,
         output: OUTPUT,
     ) -> Self
     where
@@ -256,10 +256,10 @@ where
         tool_results: Vec<TypedToolResult<INPUT, OUTPUT>>,
         static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>>,
         dynamic_tool_results: Vec<DynamicToolResult>,
-        finish_reason: FinishReason,
-        usage: Usage,
-        total_usage: Usage,
-        warnings: Option<Vec<CallWarning>>,
+        finish_reason: LanguageModelFinishReason,
+        usage: LanguageModelUsage,
+        total_usage: LanguageModelUsage,
+        warnings: Option<Vec<LanguageModelCallWarning>>,
         request: RequestMetadata,
         response: ResponseMetadata,
         provider_metadata: Option<ProviderMetadata>,
@@ -426,9 +426,9 @@ mod tests {
             vec![],                        // tool_results
             vec![],                        // static_tool_results
             vec![],                        // dynamic_tool_results
-            FinishReason::Stop,            // finish_reason
-            Usage::default(),              // usage
-            Usage::default(),              // total_usage
+            LanguageModelFinishReason::Stop,            // finish_reason
+            LanguageModelUsage::default(),              // usage
+            LanguageModelUsage::default(),              // total_usage
             None,                          // warnings
             RequestMetadata::default(),    // request
             ResponseMetadata::new(vec![]), // response
@@ -438,7 +438,7 @@ mod tests {
         );
 
         assert_eq!(result.text, "Hello");
-        assert_eq!(result.finish_reason, FinishReason::Stop);
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Stop);
         assert_eq!(result.output, "output");
     }
 
@@ -457,9 +457,9 @@ mod tests {
             vec![],
             vec![],
             vec![],
-            FinishReason::Length,
-            Usage::default(),
-            Usage::default(),
+            LanguageModelFinishReason::Length,
+            LanguageModelUsage::default(),
+            LanguageModelUsage::default(),
             None,
             RequestMetadata::default(),
             ResponseMetadata::new(vec![]),
@@ -470,7 +470,7 @@ mod tests {
 
         assert_eq!(result.text, "Generated text");
         assert_eq!(result.reasoning_text, Some("Reasoning text".to_string()));
-        assert_eq!(result.finish_reason, FinishReason::Length);
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Length);
         assert_eq!(result.output, json!({"key": "value"}));
     }
 
@@ -501,8 +501,8 @@ mod tests {
 
         let step = StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -515,7 +515,7 @@ mod tests {
         );
 
         let result: GenerateTextResult<Value, Value> =
-            GenerateTextResult::from_steps(vec![step], Usage::new(10, 20), json!(null));
+            GenerateTextResult::from_steps(vec![step], LanguageModelUsage::new(10, 20), json!(null));
 
         // Verify tool calls are populated
         assert_eq!(result.tool_calls.len(), 1);

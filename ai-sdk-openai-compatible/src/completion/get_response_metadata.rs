@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::response_metadata::ResponseMetadata;
+use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
 
 /// Creates response metadata from OpenAI-compatible API response fields.
 ///
@@ -26,8 +26,8 @@ pub fn get_response_metadata(
     id: Option<String>,
     model: Option<String>,
     created: Option<i64>,
-) -> ResponseMetadata {
-    ResponseMetadata {
+) -> LanguageModelResponseMetadata {
+    LanguageModelResponseMetadata {
         id,
         model_id: model,
         // Convert Unix timestamp from seconds to milliseconds

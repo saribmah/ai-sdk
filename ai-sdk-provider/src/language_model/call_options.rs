@@ -10,7 +10,7 @@ use tokio_util::sync;
 /// Language model call options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CallOptions {
+pub struct LanguageModelCallOptions {
     /// A language mode prompt is a standardized prompt type.
     ///
     /// Note: This is **not** the user-facing prompt. The AI SDK methods will map the
@@ -117,7 +117,7 @@ pub enum ResponseFormat {
     },
 }
 
-impl CallOptions {
+impl LanguageModelCallOptions {
     /// Create new call options with just a prompt
     pub fn new(prompt: Prompt) -> Self {
         Self {

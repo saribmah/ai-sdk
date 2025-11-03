@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning, tool::Tool, tool_choice::ToolChoice,
+    call_warning::LanguageModelCallWarning, tool::Tool, tool_choice::ToolChoice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -66,7 +66,7 @@ pub struct PrepareToolsResult {
     pub tool_choice: Option<OpenAICompatibleToolChoice>,
 
     /// Warnings generated during preparation
-    pub tool_warnings: Vec<CallWarning>,
+    pub tool_warnings: Vec<LanguageModelCallWarning>,
 }
 
 /// Prepares tools and tool choice for OpenAI-compatible API calls.
@@ -93,7 +93,7 @@ pub fn prepare_tools(
     // When the tools array is empty, change it to None to prevent errors
     let tools = tools.and_then(|t| if t.is_empty() { None } else { Some(t) });
 
-    let mut tool_warnings: Vec<CallWarning> = Vec::new();
+    let mut tool_warnings: Vec<LanguageModelCallWarning> = Vec::new();
 
     if tools.is_none() {
         return PrepareToolsResult {
@@ -109,7 +109,7 @@ pub fn prepare_tools(
     for tool in tools {
         match tool {
             Tool::ProviderDefined(_) => {
-                tool_warnings.push(CallWarning::unsupported_tool(tool));
+                tool_warnings.push(LanguageModelCallWarning::unsupported_tool(tool));
             }
             Tool::Function(function_tool) => {
                 openai_compat_tools.push(OpenAICompatibleTool {
@@ -231,7 +231,7 @@ mod tests {
         assert_eq!(result.tool_warnings.len(), 1);
         assert!(matches!(
             result.tool_warnings[0],
-            CallWarning::UnsupportedTool { .. }
+            LanguageModelCallWarning::UnsupportedTool { .. }
         ));
     }
 

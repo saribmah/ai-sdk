@@ -5,10 +5,10 @@ use crate::generate_text::{
     TypedToolResult,
 };
 use crate::stream_text::TextStreamPart;
-use ai_sdk_provider::language_model::call_warning::CallWarning;
+use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::usage::Usage;
+use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
@@ -97,10 +97,10 @@ struct StreamState<INPUT, OUTPUT> {
     static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>>,
     dynamic_tool_results: Vec<DynamicToolResult>,
     tool_results: Vec<TypedToolResult<INPUT, OUTPUT>>,
-    finish_reason: FinishReason,
-    usage: Usage,
-    total_usage: Usage,
-    warnings: Option<Vec<CallWarning>>,
+    finish_reason: LanguageModelFinishReason,
+    usage: LanguageModelUsage,
+    total_usage: LanguageModelUsage,
+    warnings: Option<Vec<LanguageModelCallWarning>>,
     steps: Vec<StepResult<INPUT, OUTPUT>>,
     request: RequestMetadata,
     response: ResponseMetadata,
@@ -122,9 +122,9 @@ impl<INPUT, OUTPUT> Default for StreamState<INPUT, OUTPUT> {
             static_tool_results: Vec::new(),
             dynamic_tool_results: Vec::new(),
             tool_results: Vec::new(),
-            finish_reason: FinishReason::Unknown,
-            usage: Usage::default(),
-            total_usage: Usage::default(),
+            finish_reason: LanguageModelFinishReason::Unknown,
+            usage: LanguageModelUsage::default(),
+            total_usage: LanguageModelUsage::default(),
             warnings: None,
             steps: Vec::new(),
             request: RequestMetadata::default(),
@@ -511,7 +511,7 @@ where
     /// Gets the reason why the generation finished. Taken from the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn finish_reason(&self) -> Result<FinishReason, AISDKError> {
+    pub async fn finish_reason(&self) -> Result<LanguageModelFinishReason, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().finish_reason.clone())
     }
@@ -519,7 +519,7 @@ where
     /// Gets the token usage of the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn usage(&self) -> Result<Usage, AISDKError> {
+    pub async fn usage(&self) -> Result<LanguageModelUsage, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().usage.clone())
     }
@@ -528,7 +528,7 @@ where
     /// When there are multiple steps, the usage is the sum of all step usages.
     ///
     /// Automatically consumes the stream.
-    pub async fn total_usage(&self) -> Result<Usage, AISDKError> {
+    pub async fn total_usage(&self) -> Result<LanguageModelUsage, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().total_usage.clone())
     }
@@ -536,7 +536,7 @@ where
     /// Gets warnings from the model provider (e.g. unsupported settings) for the first step.
     ///
     /// Automatically consumes the stream.
-    pub async fn warnings(&self) -> Result<Option<Vec<CallWarning>>, AISDKError> {
+    pub async fn warnings(&self) -> Result<Option<Vec<LanguageModelCallWarning>>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().warnings.clone())
     }
@@ -795,15 +795,15 @@ mod tests {
     #[tokio::test]
     async fn test_stream_text_result_finish_reason() {
         let parts = vec![TextStreamPart::Finish {
-            finish_reason: FinishReason::Stop,
-            total_usage: Usage::new(10, 20),
+            finish_reason: LanguageModelFinishReason::Stop,
+            total_usage: LanguageModelUsage::new(10, 20),
         }];
 
         let stream: AsyncIterableStream<TextStreamPart> = Box::pin(stream::iter(parts));
         let result = StreamTextResult::new(stream);
 
         let finish_reason = result.finish_reason().await.unwrap();
-        assert_eq!(finish_reason, FinishReason::Stop);
+        assert_eq!(finish_reason, LanguageModelFinishReason::Stop);
 
         let total_usage = result.total_usage().await.unwrap();
         assert_eq!(total_usage.input_tokens, 10);
@@ -823,8 +823,8 @@ mod tests {
                 provider_metadata: None,
             },
             TextStreamPart::Finish {
-                finish_reason: FinishReason::Stop,
-                total_usage: Usage::new(5, 10),
+                finish_reason: LanguageModelFinishReason::Stop,
+                total_usage: LanguageModelUsage::new(5, 10),
             },
         ];
 
@@ -838,7 +838,7 @@ mod tests {
 
         assert_eq!(text1, "Hello");
         assert_eq!(text2, "Hello");
-        assert_eq!(finish, FinishReason::Stop);
+        assert_eq!(finish, LanguageModelFinishReason::Stop);
     }
 
     #[tokio::test]
@@ -850,8 +850,8 @@ mod tests {
                 text: "Test".to_string(),
             },
             TextStreamPart::Finish {
-                finish_reason: FinishReason::Stop,
-                total_usage: Usage::new(1, 1),
+                finish_reason: LanguageModelFinishReason::Stop,
+                total_usage: LanguageModelUsage::new(1, 1),
             },
         ];
 

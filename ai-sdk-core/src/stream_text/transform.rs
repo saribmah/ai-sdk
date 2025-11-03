@@ -440,8 +440,8 @@ mod tests {
                 provider_metadata: None,
             },
             TextStreamPart::Finish {
-                finish_reason: ai_sdk_provider::language_model::finish_reason::FinishReason::Stop,
-                total_usage: ai_sdk_provider::language_model::usage::Usage::default(),
+                finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+                total_usage: ai_sdk_provider::language_model::usage::LanguageModelUsage::default(),
             },
         ];
 

@@ -1,6 +1,6 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning, content::source::LanguageModelSource, finish_reason::FinishReason,
-    response_metadata::ResponseMetadata, usage::Usage,
+    call_warning::LanguageModelCallWarning, content::source::LanguageModelSource, finish_reason::LanguageModelFinishReason,
+    response_metadata::LanguageModelResponseMetadata, usage::LanguageModelUsage,
 };
 use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
@@ -38,8 +38,8 @@ pub struct StepResponseMetadata {
     pub body: Option<Value>,
 }
 
-impl From<ResponseMetadata> for StepResponseMetadata {
-    fn from(metadata: ResponseMetadata) -> Self {
+impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
+    fn from(metadata: LanguageModelResponseMetadata) -> Self {
         Self {
             id: metadata.id,
             timestamp: metadata.timestamp,
@@ -84,13 +84,13 @@ pub struct StepResult<INPUT = Value, OUTPUT = Value> {
     pub content: Vec<ContentPart<INPUT, OUTPUT>>,
 
     /// The reason why the generation finished.
-    pub finish_reason: FinishReason,
+    pub finish_reason: LanguageModelFinishReason,
 
     /// The token usage of the generated text.
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// Warnings from the model provider (e.g. unsupported settings).
-    pub warnings: Option<Vec<CallWarning>>,
+    pub warnings: Option<Vec<LanguageModelCallWarning>>,
 
     /// Additional request information.
     pub request: RequestMetadata,
@@ -116,9 +116,9 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// * `provider_metadata` - Optional provider-specific metadata
     pub fn new(
         content: Vec<ContentPart<INPUT, OUTPUT>>,
-        finish_reason: FinishReason,
-        usage: Usage,
-        warnings: Option<Vec<CallWarning>>,
+        finish_reason: LanguageModelFinishReason,
+        usage: LanguageModelUsage,
+        warnings: Option<Vec<LanguageModelCallWarning>>,
         request: RequestMetadata,
         response: StepResponseMetadata,
         provider_metadata: Option<ProviderMetadata>,
@@ -294,8 +294,8 @@ mod tests {
 
         StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -313,7 +313,7 @@ mod tests {
         let result = create_test_step_result();
 
         assert_eq!(result.content.len(), 5);
-        assert_eq!(result.finish_reason, FinishReason::Stop);
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Stop);
         assert_eq!(result.usage.input_tokens, 10);
         assert_eq!(result.usage.output_tokens, 20);
         assert_eq!(result.usage.total_tokens, 30);
@@ -349,8 +349,8 @@ mod tests {
             vec![ContentPart::Text(
                 super::super::text_output::TextOutput::new("Hello".to_string()),
             )],
-            FinishReason::Stop,
-            Usage::new(5, 5),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(5, 5),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -395,15 +395,15 @@ mod tests {
 
     #[test]
     fn test_step_result_with_warnings() {
-        let warnings = vec![CallWarning::unsupported_setting_with_details(
+        let warnings = vec![LanguageModelCallWarning::unsupported_setting_with_details(
             "temperature",
             "Temperature not supported",
         )];
 
         let result: StepResult<Value, Value> = StepResult::new(
             vec![],
-            FinishReason::Stop,
-            Usage::new(0, 0),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(0, 0),
             Some(warnings.clone()),
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -418,7 +418,7 @@ mod tests {
         assert!(result.warnings.is_some());
         assert_eq!(result.warnings.as_ref().unwrap().len(), 1);
         match &result.warnings.as_ref().unwrap()[0] {
-            CallWarning::UnsupportedSetting { setting, details } => {
+            LanguageModelCallWarning::UnsupportedSetting { setting, details } => {
                 assert_eq!(setting, "temperature");
                 assert_eq!(details.as_ref().unwrap(), "Temperature not supported");
             }
@@ -428,7 +428,7 @@ mod tests {
 
     #[test]
     fn test_step_response_metadata_from_response_metadata() {
-        let response_metadata = ResponseMetadata {
+        let response_metadata = LanguageModelResponseMetadata {
             id: Some("resp_456".to_string()),
             timestamp: Some(1234567890),
             model_id: Some("gpt-3.5".to_string()),

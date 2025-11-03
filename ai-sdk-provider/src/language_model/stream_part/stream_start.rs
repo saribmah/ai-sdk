@@ -1,4 +1,4 @@
-use crate::language_model::call_warning::CallWarning;
+use crate::language_model::call_warning::LanguageModelCallWarning;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -8,7 +8,7 @@ pub struct StreamStart {
     pub content_type: StreamStartType,
 
     /// Warnings for the call (e.g., unsupported settings)
-    pub warnings: Vec<CallWarning>,
+    pub warnings: Vec<LanguageModelCallWarning>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -16,7 +16,7 @@ pub struct StreamStart {
 pub(crate) struct StreamStartType;
 
 impl StreamStart {
-    pub fn new(warnings: Vec<CallWarning>) -> Self {
+    pub fn new(warnings: Vec<LanguageModelCallWarning>) -> Self {
         Self {
             content_type: StreamStartType,
             warnings,

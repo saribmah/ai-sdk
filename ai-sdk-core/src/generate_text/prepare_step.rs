@@ -154,13 +154,13 @@ mod tests {
     use super::super::content_part::ContentPart;
     use super::super::text_output::TextOutput;
     use super::*;
-    use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
+    use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
 
     fn create_test_step() -> StepResult {
         StepResult::new(
             vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {

@@ -1,6 +1,6 @@
 use crate::generate_text::StepResult;
 use crate::stream_text::TextStreamPart;
-use ai_sdk_provider::language_model::usage::Usage;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use serde_json::Value;
 use std::future::Future;
 use std::pin::Pin;
@@ -159,7 +159,7 @@ pub struct StreamTextFinishEvent<INPUT = Value, OUTPUT = Value> {
     pub steps: Vec<StepResult<INPUT, OUTPUT>>,
 
     /// Total usage for all steps. This is the sum of the usage of all steps.
-    pub total_usage: Usage,
+    pub total_usage: LanguageModelUsage,
 }
 
 /// Event passed to the `on_abort` callback during streaming.
@@ -376,8 +376,8 @@ mod tests {
     fn test_finish_event_creation() {
         let step_result: StepResult<Value, Value> = StepResult::new(
             vec![],
-            ai_sdk_provider::language_model::finish_reason::FinishReason::Stop,
-            Usage::new(100, 50),
+            ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(100, 50),
             None,
             Default::default(),
             Default::default(),
@@ -387,7 +387,7 @@ mod tests {
         let event = StreamTextFinishEvent {
             step_result: step_result.clone(),
             steps: vec![step_result],
-            total_usage: Usage::new(100, 50),
+            total_usage: LanguageModelUsage::new(100, 50),
         };
 
         assert_eq!(event.steps.len(), 1);

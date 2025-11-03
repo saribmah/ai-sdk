@@ -196,7 +196,7 @@ mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
         content::LanguageModelContent, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall,
-        finish_reason::FinishReason, usage::Usage,
+        finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
@@ -216,8 +216,8 @@ mod tests {
 
         StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {

@@ -1,5 +1,5 @@
-use crate::language_model::finish_reason::FinishReason;
-use crate::language_model::usage::Usage;
+use crate::language_model::finish_reason::LanguageModelFinishReason;
+use crate::language_model::usage::LanguageModelUsage;
 use crate::shared::provider_metadata::ProviderMetadata;
 use serde::{Deserialize, Serialize};
 
@@ -10,10 +10,10 @@ pub struct Finish {
     pub content_type: FinishType,
 
     /// Usage information
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// Reason for finishing
-    pub finish_reason: FinishReason,
+    pub finish_reason: LanguageModelFinishReason,
 
     /// Provider-specific metadata
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,7 +25,7 @@ pub struct Finish {
 pub(crate) struct FinishType;
 
 impl Finish {
-    pub fn new(usage: Usage, finish_reason: FinishReason) -> Self {
+    pub fn new(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
         Self {
             content_type: FinishType,
             usage,
@@ -35,8 +35,8 @@ impl Finish {
     }
 
     pub fn with_metadata(
-        usage: Usage,
-        finish_reason: FinishReason,
+        usage: LanguageModelUsage,
+        finish_reason: LanguageModelFinishReason,
         provider_metadata: Option<ProviderMetadata>,
     ) -> Self {
         Self {

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ResponseMetadata {
+pub struct LanguageModelResponseMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
 
@@ -13,7 +13,7 @@ pub struct ResponseMetadata {
     pub model_id: Option<String>,
 }
 
-impl Default for ResponseMetadata {
+impl Default for LanguageModelResponseMetadata {
     fn default() -> Self {
         Self {
             id: None,

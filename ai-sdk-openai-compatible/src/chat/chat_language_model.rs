@@ -1,8 +1,8 @@
 use ai_sdk_provider::language_model::stream_part::StreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::CallOptions, call_warning::CallWarning, content::LanguageModelContent,
-    content::reasoning::LanguageModelReasoning, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall, usage::Usage,
+    call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning, content::LanguageModelContent,
+    content::reasoning::LanguageModelReasoning, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall, usage::LanguageModelUsage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
@@ -93,7 +93,7 @@ impl OpenAICompatibleChatLanguageModel {
     /// Process SSE byte stream and convert to StreamPart events
     fn process_stream(
         byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
-        warnings: Vec<CallWarning>,
+        warnings: Vec<LanguageModelCallWarning>,
     ) -> impl Stream<Item = StreamPart> + Unpin + Send {
         let mut buffer = String::new();
         let mut state = StreamState {
@@ -280,7 +280,7 @@ impl OpenAICompatibleChatLanguageModel {
 
             // Build usage information
             let usage = if let Some(api_usage) = &chunk.usage {
-                Usage {
+                LanguageModelUsage {
                     input_tokens: api_usage.prompt_tokens.unwrap_or(0),
                     output_tokens: api_usage.completion_tokens.unwrap_or(0),
                     total_tokens: api_usage.total_tokens.unwrap_or(0),
@@ -296,7 +296,7 @@ impl OpenAICompatibleChatLanguageModel {
                         .unwrap_or(0),
                 }
             } else {
-                Usage::default()
+                LanguageModelUsage::default()
             };
 
             // Map finish reason
@@ -312,8 +312,8 @@ impl OpenAICompatibleChatLanguageModel {
     /// Prepare arguments for API request
     fn prepare_request_body(
         &self,
-        options: &CallOptions,
-    ) -> Result<(Value, Vec<CallWarning>), Box<dyn std::error::Error>> {
+        options: &LanguageModelCallOptions,
+    ) -> Result<(Value, Vec<LanguageModelCallWarning>), Box<dyn std::error::Error>> {
         let mut warnings = Vec::new();
 
         // Prepare tools
@@ -501,7 +501,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
     async fn do_generate(
         &self,
-        options: CallOptions,
+        options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
         // Prepare request body
         let (body, mut warnings) = self.prepare_request_body(&options)?;
@@ -604,7 +604,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         // Build usage information
         let usage = if let Some(api_usage) = &api_response.usage {
-            Usage {
+            LanguageModelUsage {
                 input_tokens: api_usage.prompt_tokens.unwrap_or(0),
                 output_tokens: api_usage.completion_tokens.unwrap_or(0),
                 total_tokens: api_usage.total_tokens.unwrap_or(0),
@@ -620,7 +620,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
                     .unwrap_or(0),
             }
         } else {
-            Usage::default()
+            LanguageModelUsage::default()
         };
 
         // Build provider metadata with response headers
@@ -653,7 +653,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             finish_reason,
             usage,
             provider_metadata: Some(provider_metadata),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
+            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
             response: Some(response_metadata),
             warnings,
         })
@@ -661,7 +661,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
     async fn do_stream(
         &self,
-        options: CallOptions,
+        options: LanguageModelCallOptions,
     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
         // Prepare request body with streaming enabled
         let (mut body, warnings) = self.prepare_request_body(&options)?;
@@ -740,7 +740,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
-            request: Some(ai_sdk_provider::language_model::RequestMetadata { body: Some(body) }),
+            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),
