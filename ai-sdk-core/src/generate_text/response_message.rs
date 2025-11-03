@@ -1,4 +1,4 @@
-use crate::prompt::message::{AssistantModelMessage, Message, ToolModelMessage};
+use crate::prompt::message::{AssistantMessage, Message, ToolModelMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -17,7 +17,7 @@ use crate::prompt::message::{AssistantModelMessage, Message, ToolModelMessage};
 #[derive(Debug, Clone, PartialEq)]
 pub enum ResponseMessage {
     /// An assistant model message.
-    Assistant(AssistantModelMessage),
+    Assistant(AssistantMessage),
 
     /// A tool model message.
     Tool(ToolModelMessage),
@@ -41,7 +41,7 @@ impl ResponseMessage {
     /// };
     /// let response = ResponseMessage::from_assistant(assistant_msg);
     /// ```
-    pub fn from_assistant(message: AssistantModelMessage) -> Self {
+    pub fn from_assistant(message: AssistantMessage) -> Self {
         ResponseMessage::Assistant(message)
     }
 
@@ -77,7 +77,7 @@ impl ResponseMessage {
     }
 
     /// Returns a reference to the assistant message if this is an assistant message.
-    pub fn as_assistant(&self) -> Option<&AssistantModelMessage> {
+    pub fn as_assistant(&self) -> Option<&AssistantMessage> {
         match self {
             ResponseMessage::Assistant(msg) => Some(msg),
             _ => None,
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_response_message_from_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hello");
+        let assistant_msg = AssistantMessage::new("Hello");
         let response = ResponseMessage::from_assistant(assistant_msg.clone());
 
         assert!(response.is_assistant());
@@ -141,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_response_message_assistant_variant() {
-        let assistant_msg = AssistantModelMessage::new("Test message");
+        let assistant_msg = AssistantMessage::new("Test message");
         let response = ResponseMessage::Assistant(assistant_msg.clone());
 
         match response {
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_response_message_clone() {
-        let assistant_msg = AssistantModelMessage::new("Test");
+        let assistant_msg = AssistantMessage::new("Test");
         let response = ResponseMessage::from_assistant(assistant_msg);
         let cloned = response.clone();
 
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_from_model_message_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hello");
+        let assistant_msg = AssistantMessage::new("Hello");
         let model_msg = Message::Assistant(assistant_msg.clone());
         let response = ResponseMessage::from(model_msg);
 

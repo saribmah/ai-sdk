@@ -3,7 +3,7 @@ use crate::prompt::message::Message;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::tool::ToolContentPart;
-use crate::prompt::message::{AssistantModelMessage, ToolModelMessage};
+use crate::prompt::message::{AssistantMessage, ToolModelMessage};
 use serde_json::Value;
 
 use super::content_part::ContentPart;
@@ -170,7 +170,7 @@ pub fn to_response_messages(
 
     // Add assistant message if there's content
     if !assistant_content.is_empty() {
-        response_messages.push(Message::Assistant(AssistantModelMessage::with_parts(
+        response_messages.push(Message::Assistant(AssistantMessage::with_parts(
             assistant_content,
         )));
     }

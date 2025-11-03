@@ -5,7 +5,7 @@ pub mod system;
 pub mod tool;
 pub mod user;
 
-pub use assistant::{AssistantContent, AssistantContentPart, AssistantModelMessage};
+pub use assistant::{AssistantContent, AssistantContentPart, AssistantMessage};
 pub use content_parts::{
     FileId, FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart,
     ToolResultContentPart, ToolResultOutput, ToolResultPart,
@@ -33,7 +33,7 @@ pub enum Message {
     User(UserMessage),
 
     /// Assistant message containing the AI's response.
-    Assistant(AssistantModelMessage),
+    Assistant(AssistantMessage),
 
     /// Tool message containing tool execution results.
     Tool(ToolModelMessage),
@@ -120,8 +120,8 @@ impl From<UserMessage> for Message {
     }
 }
 
-impl From<AssistantModelMessage> for Message {
-    fn from(message: AssistantModelMessage) -> Self {
+impl From<AssistantMessage> for Message {
+    fn from(message: AssistantMessage) -> Self {
         Message::Assistant(message)
     }
 }
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_model_message_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hello, how can I help you?");
+        let assistant_msg = AssistantMessage::new("Hello, how can I help you?");
         let message = Message::from(assistant_msg);
 
         assert_eq!(message.role(), "assistant");
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_model_message_serialization_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hi there!");
+        let assistant_msg = AssistantMessage::new("Hi there!");
         let message = Message::from(assistant_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
@@ -295,7 +295,7 @@ mod tests {
         let messages = vec![
             Message::from(SystemMessage::new("You are helpful.")),
             Message::from(UserMessage::new("Hello!")),
-            Message::from(AssistantModelMessage::new("Hi! How can I help?")),
+            Message::from(AssistantMessage::new("Hi! How can I help?")),
         ];
 
         assert_eq!(messages.len(), 3);

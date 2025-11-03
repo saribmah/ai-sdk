@@ -28,7 +28,7 @@ pub enum AssistantContentPart {
 
 /// An assistant message. It can contain text, tool calls, or a combination of text and tool calls.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AssistantModelMessage {
+pub struct AssistantMessage {
     /// Role is always 'assistant' for assistant messages.
     pub role: String,
 
@@ -42,7 +42,7 @@ pub struct AssistantModelMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
-impl AssistantModelMessage {
+impl AssistantMessage {
     /// Creates a new assistant model message with text content.
     pub fn new(content: impl Into<String>) -> Self {
         Self {
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_new_text() {
-        let message = AssistantModelMessage::new("Hello, how can I help you?");
+        let message = AssistantMessage::new("Hello, how can I help you?");
 
         assert_eq!(message.role, "assistant");
         match message.content {
@@ -151,7 +151,7 @@ mod tests {
             )),
         ];
 
-        let message = AssistantModelMessage::with_parts(parts);
+        let message = AssistantMessage::with_parts(parts);
 
         assert_eq!(message.role, "assistant");
         match message.content {
@@ -169,7 +169,7 @@ mod tests {
         let provider_options = SharedProviderOptions::new();
 
         let message =
-            AssistantModelMessage::new("Hello").with_provider_options(provider_options.clone());
+            AssistantMessage::new("Hello").with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_serialization_text() {
-        let message = AssistantModelMessage::new("Hello, world!");
+        let message = AssistantMessage::new("Hello, world!");
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -270,7 +270,7 @@ mod tests {
     fn test_assistant_model_message_serialization_parts() {
         let parts = vec![AssistantContentPart::Text(TextPart::new("Response"))];
 
-        let message = AssistantModelMessage::with_parts(parts);
+        let message = AssistantMessage::with_parts(parts);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -283,7 +283,7 @@ mod tests {
     fn test_assistant_model_message_serialization_with_provider_options() {
         let provider_options = SharedProviderOptions::new();
 
-        let message = AssistantModelMessage::new("Hello").with_provider_options(provider_options);
+        let message = AssistantMessage::new("Hello").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -298,7 +298,7 @@ mod tests {
             "content": "Hello, world!"
         });
 
-        let message: AssistantModelMessage = serde_json::from_value(json).unwrap();
+        let message: AssistantMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "assistant");
         match message.content {
@@ -320,7 +320,7 @@ mod tests {
             ]
         });
 
-        let message: AssistantModelMessage = serde_json::from_value(json).unwrap();
+        let message: AssistantMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "assistant");
         match message.content {
@@ -334,7 +334,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_clone() {
-        let message = AssistantModelMessage::new("Hello");
+        let message = AssistantMessage::new("Hello");
         let cloned = message.clone();
 
         assert_eq!(message, cloned);
@@ -352,7 +352,7 @@ mod tests {
             )),
         ];
 
-        let message = AssistantModelMessage::with_parts(parts);
+        let message = AssistantMessage::with_parts(parts);
 
         match message.content {
             AssistantContent::Parts(parts) => {

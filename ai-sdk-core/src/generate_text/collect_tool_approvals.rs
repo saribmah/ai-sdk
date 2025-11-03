@@ -245,7 +245,7 @@ mod tests {
     use super::*;
     use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
     use crate::prompt::message::{
-        AssistantContentPart, AssistantModelMessage, ToolModelMessage,
+        AssistantContentPart, AssistantMessage, ToolModelMessage,
     };
     use serde_json::json;
 
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_collect_tool_approvals_non_tool_last_message() {
-        let messages = vec![Message::Assistant(AssistantModelMessage::new("Hello"))];
+        let messages = vec![Message::Assistant(AssistantMessage::new("Hello"))];
 
         let result = collect_tool_approvals(&messages);
 
@@ -271,7 +271,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_approved() {
         let messages = vec![
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "delete_file",
@@ -309,7 +309,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_denied() {
         let messages = vec![
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "delete_database",
@@ -349,7 +349,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_mixed() {
         let messages = vec![
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_1",
                     "read_file",
@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_skips_with_existing_result() {
         let messages = vec![
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new(
                     "call_123",
                     "some_tool",
@@ -415,7 +415,7 @@ mod tests {
     #[test]
     fn test_collect_tool_approvals_multiple_messages() {
         let messages = vec![
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new("call_1", "tool_a", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_1",
@@ -425,7 +425,7 @@ mod tests {
             Message::Tool(ToolModelMessage::new(vec![
                 ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
             ])),
-            Message::Assistant(AssistantModelMessage::with_parts(vec![
+            Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new("call_2", "tool_b", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
                     "approval_2",
