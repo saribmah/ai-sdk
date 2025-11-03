@@ -108,7 +108,7 @@ pub fn no_repair() -> ToolCallRepairFunction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::UserModelMessage;
+    use crate::prompt::message::UserMessage;
     use crate::prompt::message::tool::definition::Tool;
     use serde_json::json;
 
@@ -132,7 +132,7 @@ mod tests {
 
         let options = ToolCallRepairOptions::new(
             Some("You are a helpful assistant".to_string()),
-            vec![Message::User(UserModelMessage::new("Hello"))],
+            vec![Message::User(UserMessage::new("Hello"))],
             LanguageModelToolCall::new("call_123", "test_tool", "{}"),
             create_test_toolset(),
             AISDKError::invalid_tool_input("test_tool", "{}", "Invalid input"),
@@ -185,7 +185,7 @@ mod tests {
     #[tokio::test]
     async fn test_repair_options_creation() {
         let system = Some("System prompt".to_string());
-        let messages = vec![Message::User(UserModelMessage::new("Test"))];
+        let messages = vec![Message::User(UserMessage::new("Test"))];
         let tool_call = LanguageModelToolCall::new("call_789", "my_tool", "{}");
 
         let mut tools = ToolSet::new();

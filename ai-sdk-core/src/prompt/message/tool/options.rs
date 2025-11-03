@@ -47,13 +47,13 @@ impl ToolCallOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemMessage, UserModelMessage};
+    use crate::prompt::message::{SystemMessage, UserMessage};
 
     #[test]
     fn test_tool_call_options_new() {
         let messages = vec![
             Message::from(SystemMessage::new("You are helpful.")),
-            Message::from(UserModelMessage::new("Hello!")),
+            Message::from(UserMessage::new("Hello!")),
         ];
 
         let options = ToolCallOptions::new("call_123", messages.clone());
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_tool_call_options_with_abort_signal() {
-        let messages = vec![Message::from(UserModelMessage::new("Hello!"))];
+        let messages = vec![Message::from(UserMessage::new("Hello!"))];
 
         let token = CancellationToken::new();
         let options = ToolCallOptions::new("call_123", messages).with_abort_signal(token.clone());
@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_tool_call_options_with_experimental_context() {
-        let messages = vec![Message::from(UserModelMessage::new("Hello!"))];
+        let messages = vec![Message::from(UserMessage::new("Hello!"))];
 
         let context = serde_json::json!({"key": "value"});
         let options =

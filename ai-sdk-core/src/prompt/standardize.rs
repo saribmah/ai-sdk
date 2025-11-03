@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::prompt::message::{Message, UserContent, UserModelMessage};
+use crate::prompt::message::{Message, UserContent, UserMessage};
 use crate::prompt::{Prompt, PromptContent};
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +40,7 @@ impl From<Prompt> for StandardizedPrompt {
         let messages = match prompt.content {
             PromptContent::Text { text } => {
                 // Convert text to a user message
-                vec![Message::User(UserModelMessage {
+                vec![Message::User(UserMessage {
                     role: "user".to_string(),
                     content: UserContent::Text(text),
                     provider_options: None,
@@ -86,7 +86,7 @@ pub fn validate_and_standardize(prompt: Prompt) -> Result<StandardizedPrompt, AI
     let messages = match &prompt.content {
         PromptContent::Text { text } => {
             // Convert text to a user message
-            vec![Message::User(UserModelMessage {
+            vec![Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text(text.clone()),
                 provider_options: None,
@@ -113,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_standardized_prompt_new() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_standardized_prompt_with_system() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -176,12 +176,12 @@ mod tests {
     #[test]
     fn test_from_prompt_messages() {
         let messages = vec![
-            Message::User(UserModelMessage {
+            Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,
             }),
-            Message::User(UserModelMessage {
+            Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("How are you?".to_string()),
                 provider_options: None,
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_from_prompt_messages_with_system() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_serialize_standardized_prompt() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_serialize_standardized_prompt_with_system() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -292,12 +292,12 @@ mod tests {
     #[test]
     fn test_validate_and_standardize_messages_prompt() {
         let messages = vec![
-            Message::User(UserModelMessage {
+            Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,
             }),
-            Message::User(UserModelMessage {
+            Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("How are you?".to_string()),
                 provider_options: None,

@@ -17,7 +17,7 @@ pub use tool::{
     ToolContent, ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput,
     ToolModelMessage, ToolNeedsApprovalFunction, ToolResult, ToolType,
 };
-pub use user::{UserContent, UserContentPart, UserModelMessage};
+pub use user::{UserContent, UserContentPart, UserMessage};
 
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -30,7 +30,7 @@ pub enum Message {
     System(SystemMessage),
 
     /// User message containing the user's input.
-    User(UserModelMessage),
+    User(UserMessage),
 
     /// Assistant message containing the AI's response.
     Assistant(AssistantModelMessage),
@@ -114,8 +114,8 @@ impl From<SystemMessage> for Message {
     }
 }
 
-impl From<UserModelMessage> for Message {
-    fn from(message: UserModelMessage) -> Self {
+impl From<UserMessage> for Message {
+    fn from(message: UserMessage) -> Self {
         Message::User(message)
     }
 }
@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_model_message_user() {
-        let user_msg = UserModelMessage::new("Hello!");
+        let user_msg = UserMessage::new("Hello!");
         let message = Message::from(user_msg);
 
         assert_eq!(message.role(), "user");
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_model_message_serialization_user() {
-        let user_msg = UserModelMessage::new("Hello!");
+        let user_msg = UserMessage::new("Hello!");
         let message = Message::from(user_msg);
 
         let serialized = serde_json::to_value(&message).unwrap();
@@ -294,7 +294,7 @@ mod tests {
     fn test_model_message_conversation() {
         let messages = vec![
             Message::from(SystemMessage::new("You are helpful.")),
-            Message::from(UserModelMessage::new("Hello!")),
+            Message::from(UserMessage::new("Hello!")),
             Message::from(AssistantModelMessage::new("Hi! How can I help?")),
         ];
 

@@ -154,7 +154,7 @@ impl PromptContent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use message::{UserContent, UserModelMessage};
+    use message::{UserContent, UserMessage};
 
     #[test]
     fn test_text_prompt() {
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt_with_system() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_from_messages() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_serialize_messages_prompt() {
-        let messages = vec![Message::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,

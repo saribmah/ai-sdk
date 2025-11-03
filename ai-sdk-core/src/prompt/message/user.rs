@@ -23,7 +23,7 @@ pub enum UserContentPart {
 
 /// A user message. It can contain text or a combination of text and images.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UserModelMessage {
+pub struct UserMessage {
     /// Role is always 'user' for user messages.
     pub role: String,
 
@@ -37,7 +37,7 @@ pub struct UserModelMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
-impl UserModelMessage {
+impl UserMessage {
     /// Creates a new user model message with text content.
     pub fn new(content: impl Into<String>) -> Self {
         Self {
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_user_model_message_new_text() {
-        let message = UserModelMessage::new("Hello, world!");
+        let message = UserMessage::new("Hello, world!");
 
         assert_eq!(message.role, "user");
         match message.content {
@@ -125,7 +125,7 @@ mod tests {
             )),
         ];
 
-        let message = UserModelMessage::with_parts(parts);
+        let message = UserMessage::with_parts(parts);
 
         assert_eq!(message.role, "user");
         match message.content {
@@ -143,7 +143,7 @@ mod tests {
         let provider_options = SharedProviderOptions::new();
 
         let message =
-            UserModelMessage::new("Hello").with_provider_options(provider_options.clone());
+            UserMessage::new("Hello").with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_user_model_message_serialization_text() {
-        let message = UserModelMessage::new("Hello, world!");
+        let message = UserMessage::new("Hello, world!");
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -220,7 +220,7 @@ mod tests {
     fn test_user_model_message_serialization_parts() {
         let parts = vec![UserContentPart::Text(TextPart::new("Hello"))];
 
-        let message = UserModelMessage::with_parts(parts);
+        let message = UserMessage::with_parts(parts);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -233,7 +233,7 @@ mod tests {
     fn test_user_model_message_serialization_with_provider_options() {
         let provider_options = SharedProviderOptions::new();
 
-        let message = UserModelMessage::new("Hello").with_provider_options(provider_options);
+        let message = UserMessage::new("Hello").with_provider_options(provider_options);
 
         let serialized = serde_json::to_value(&message).unwrap();
 
@@ -248,7 +248,7 @@ mod tests {
             "content": "Hello, world!"
         });
 
-        let message: UserModelMessage = serde_json::from_value(json).unwrap();
+        let message: UserMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "user");
         match message.content {
@@ -270,7 +270,7 @@ mod tests {
             ]
         });
 
-        let message: UserModelMessage = serde_json::from_value(json).unwrap();
+        let message: UserMessage = serde_json::from_value(json).unwrap();
 
         assert_eq!(message.role, "user");
         match message.content {
@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_user_model_message_clone() {
-        let message = UserModelMessage::new("Hello");
+        let message = UserMessage::new("Hello");
         let cloned = message.clone();
 
         assert_eq!(message, cloned);
@@ -304,7 +304,7 @@ mod tests {
             )),
         ];
 
-        let message = UserModelMessage::with_parts(parts);
+        let message = UserMessage::with_parts(parts);
 
         match message.content {
             UserContent::Parts(parts) => {

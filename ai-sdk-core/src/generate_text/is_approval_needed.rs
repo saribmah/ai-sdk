@@ -192,7 +192,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_messages() {
-        use crate::prompt::message::user::UserModelMessage;
+        use crate::prompt::message::user::UserMessage;
 
         let mut tool: Tool<Value, Value> = Tool::function(json!({
             "type": "object",
@@ -204,7 +204,7 @@ mod tests {
             Box::pin(async move { !options.messages.is_empty() })
         }));
 
-        let messages = vec![Message::User(UserModelMessage::new("Hello"))];
+        let messages = vec![Message::User(UserMessage::new("Hello"))];
 
         let result = is_approval_needed(&tool, "call_123", json!({}), messages, None).await;
 

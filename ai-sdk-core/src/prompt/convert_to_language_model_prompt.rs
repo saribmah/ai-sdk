@@ -429,13 +429,13 @@ fn combine_consecutive_tool_messages(messages: Vec<LanguageModelMessage>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemMessage, UserModelMessage};
+    use crate::prompt::message::{SystemMessage, UserMessage};
 
     #[test]
     fn test_convert_text_prompt() {
         let prompt = StandardizedPrompt {
             system: Some("You are helpful".to_string()),
-            messages: vec![Message::User(UserModelMessage {
+            messages: vec![Message::User(UserMessage {
                 role: "user".to_string(),
                 content: UserContent::Text("Hello".to_string()),
                 provider_options: None,
