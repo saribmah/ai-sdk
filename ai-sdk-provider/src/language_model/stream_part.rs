@@ -188,7 +188,9 @@ impl LanguageModelStreamPart {
 
     /// Create a reasoning delta event
     pub fn reasoning_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta::new(id, delta))
+        Self::ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta::new(
+            id, delta,
+        ))
     }
 
     /// Create a reasoning end event
@@ -198,12 +200,16 @@ impl LanguageModelStreamPart {
 
     /// Create a tool input start event
     pub fn tool_input_start(id: impl Into<String>, tool_name: impl Into<String>) -> Self {
-        Self::ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart::new(id, tool_name))
+        Self::ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart::new(
+            id, tool_name,
+        ))
     }
 
     /// Create a tool input delta event
     pub fn tool_input_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta::new(id, delta))
+        Self::ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta::new(
+            id, delta,
+        ))
     }
 
     /// Create a tool input end event

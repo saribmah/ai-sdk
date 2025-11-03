@@ -1,4 +1,7 @@
-use super::parts::{LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart, LanguageModelToolCallPart, LanguageModelToolResultPart};
+use super::parts::{
+    LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart,
+    LanguageModelToolCallPart, LanguageModelToolResultPart,
+};
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +65,8 @@ impl LanguageModelAssistantMessage {
 
     /// Create an assistant message with text
     pub fn text(text: impl Into<String>) -> Self {
-        Self::new(vec![LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::new(text))])
+        Self::new(vec![LanguageModelAssistantMessagePart::Text(
+            LanguageModelTextPart::new(text),
+        )])
     }
 }

@@ -154,7 +154,9 @@ mod tests {
     use super::super::content_part::ContentPart;
     use super::super::text_output::TextOutput;
     use super::*;
-    use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
+    use ai_sdk_provider::language_model::{
+        finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
+    };
 
     fn create_test_step() -> StepResult {
         StepResult::new(
@@ -207,7 +209,10 @@ mod tests {
             messages: None,
         };
 
-        assert!(matches!(result.tool_choice, Some(LanguageModelToolChoice::Required)));
+        assert!(matches!(
+            result.tool_choice,
+            Some(LanguageModelToolChoice::Required)
+        ));
         assert_eq!(result.active_tools.as_ref().unwrap().len(), 2);
         assert_eq!(result.system.as_ref().unwrap(), "Test system");
         assert!(result.messages.is_none());

@@ -1,5 +1,6 @@
 use ai_sdk_provider::language_model::{
-    call_warning::LanguageModelCallWarning, tool::LanguageModelTool, tool_choice::LanguageModelToolChoice,
+    call_warning::LanguageModelCallWarning, tool::LanguageModelTool,
+    tool_choice::LanguageModelToolChoice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -137,7 +138,9 @@ pub fn prepare_tools(
     let openai_tool_choice = match tool_choice {
         LanguageModelToolChoice::Auto => Some(OpenAICompatibleToolChoice::Auto("auto".to_string())),
         LanguageModelToolChoice::None => Some(OpenAICompatibleToolChoice::None("none".to_string())),
-        LanguageModelToolChoice::Required => Some(OpenAICompatibleToolChoice::Required("required".to_string())),
+        LanguageModelToolChoice::Required => {
+            Some(OpenAICompatibleToolChoice::Required("required".to_string()))
+        }
         LanguageModelToolChoice::Tool { name } => Some(OpenAICompatibleToolChoice::Tool {
             tool_type: "function".to_string(),
             function: ToolFunction { name },
@@ -218,11 +221,9 @@ mod tests {
 
     #[test]
     fn test_prepare_tools_provider_defined_warning() {
-        let provider_tool = LanguageModelTool::ProviderDefined(LanguageModelProviderDefinedTool::new(
-            "tool-1",
-            "custom_tool",
-            HashMap::new(),
-        ));
+        let provider_tool = LanguageModelTool::ProviderDefined(
+            LanguageModelProviderDefinedTool::new("tool-1", "custom_tool", HashMap::new()),
+        );
 
         let result = prepare_tools(Some(vec![provider_tool]), None);
 
@@ -237,12 +238,11 @@ mod tests {
 
     #[test]
     fn test_prepare_tools_mixed() {
-        let function_tool = LanguageModelTool::Function(LanguageModelFunctionTool::new("fn1", json!({})));
-        let provider_tool = LanguageModelTool::ProviderDefined(LanguageModelProviderDefinedTool::new(
-            "tool-1",
-            "custom_tool",
-            HashMap::new(),
-        ));
+        let function_tool =
+            LanguageModelTool::Function(LanguageModelFunctionTool::new("fn1", json!({})));
+        let provider_tool = LanguageModelTool::ProviderDefined(
+            LanguageModelProviderDefinedTool::new("tool-1", "custom_tool", HashMap::new()),
+        );
 
         let result = prepare_tools(Some(vec![function_tool, provider_tool]), None);
 
@@ -290,7 +290,8 @@ mod tests {
 
     #[test]
     fn test_prepare_tools_choice_specific_tool() {
-        let tool = LanguageModelTool::Function(LanguageModelFunctionTool::new("get_weather", json!({})));
+        let tool =
+            LanguageModelTool::Function(LanguageModelFunctionTool::new("get_weather", json!({})));
 
         let result = prepare_tools(
             Some(vec![tool]),

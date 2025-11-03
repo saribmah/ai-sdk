@@ -172,7 +172,8 @@ where
         // Files are extracted directly from ContentPart (though currently empty)
         let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
-        let sources: Vec<LanguageModelSource> = final_step.sources().iter().cloned().cloned().collect();
+        let sources: Vec<LanguageModelSource> =
+            final_step.sources().iter().cloned().cloned().collect();
 
         // Tool calls are already TypedToolCall in StepResult
         let all_tool_calls: Vec<TypedToolCall<INPUT>> =
@@ -414,27 +415,27 @@ mod tests {
     #[test]
     fn test_generate_text_result_new() {
         let result: GenerateTextResult<Value, String> = GenerateTextResult::new(
-            vec![],                        // content
-            "Hello".to_string(),           // text
-            vec![],                        // reasoning
-            None,                          // reasoning_text
-            vec![],                        // files
-            vec![],                        // sources
-            vec![],                        // tool_calls
-            vec![],                        // static_tool_calls
-            vec![],                        // dynamic_tool_calls
-            vec![],                        // tool_results
-            vec![],                        // static_tool_results
-            vec![],                        // dynamic_tool_results
-            LanguageModelFinishReason::Stop,            // finish_reason
-            LanguageModelUsage::default(),              // usage
-            LanguageModelUsage::default(),              // total_usage
-            None,                          // warnings
-            RequestMetadata::default(),    // request
-            ResponseMetadata::new(vec![]), // response
-            None,                          // provider_metadata
-            vec![],                        // steps
-            "output".to_string(),          // output
+            vec![],                          // content
+            "Hello".to_string(),             // text
+            vec![],                          // reasoning
+            None,                            // reasoning_text
+            vec![],                          // files
+            vec![],                          // sources
+            vec![],                          // tool_calls
+            vec![],                          // static_tool_calls
+            vec![],                          // dynamic_tool_calls
+            vec![],                          // tool_results
+            vec![],                          // static_tool_results
+            vec![],                          // dynamic_tool_results
+            LanguageModelFinishReason::Stop, // finish_reason
+            LanguageModelUsage::default(),   // usage
+            LanguageModelUsage::default(),   // total_usage
+            None,                            // warnings
+            RequestMetadata::default(),      // request
+            ResponseMetadata::new(vec![]),   // response
+            None,                            // provider_metadata
+            vec![],                          // steps
+            "output".to_string(),            // output
         );
 
         assert_eq!(result.text, "Hello");
@@ -514,8 +515,11 @@ mod tests {
             None,
         );
 
-        let result: GenerateTextResult<Value, Value> =
-            GenerateTextResult::from_steps(vec![step], LanguageModelUsage::new(10, 20), json!(null));
+        let result: GenerateTextResult<Value, Value> = GenerateTextResult::from_steps(
+            vec![step],
+            LanguageModelUsage::new(10, 20),
+            json!(null),
+        );
 
         // Verify tool calls are populated
         assert_eq!(result.tool_calls.len(), 1);

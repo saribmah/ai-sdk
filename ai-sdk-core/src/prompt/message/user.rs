@@ -142,8 +142,7 @@ mod tests {
     fn test_user_model_message_with_provider_options() {
         let provider_options = SharedProviderOptions::new();
 
-        let message =
-            UserMessage::new("Hello").with_provider_options(provider_options.clone());
+        let message = UserMessage::new("Hello").with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }

@@ -64,7 +64,10 @@ impl LanguageModelCallWarning {
     }
 
     /// Create an unsupported tool warning with details
-    pub fn unsupported_tool_with_details(tool: LanguageModelTool, details: impl Into<String>) -> Self {
+    pub fn unsupported_tool_with_details(
+        tool: LanguageModelTool,
+        details: impl Into<String>,
+    ) -> Self {
         Self::UnsupportedTool {
             tool,
             details: Some(details.into()),

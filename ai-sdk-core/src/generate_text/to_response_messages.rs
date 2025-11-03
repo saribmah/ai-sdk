@@ -1,7 +1,7 @@
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
 use crate::prompt::message::Message;
-use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::assistant::AssistantContentPart;
+use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
 use serde_json::Value;
@@ -258,9 +258,7 @@ pub fn to_response_messages(
             .map(|part| ToolContentPart::ToolResult(part))
             .collect();
 
-        response_messages.push(Message::Tool(ToolMessage::new(
-            tool_content_parts,
-        )));
+        response_messages.push(Message::Tool(ToolMessage::new(tool_content_parts)));
     }
 
     response_messages

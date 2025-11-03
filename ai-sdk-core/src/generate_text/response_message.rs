@@ -125,12 +125,11 @@ mod tests {
         use crate::prompt::message::content_parts::{ToolResultOutput, ToolResultPart};
         use crate::prompt::message::tool::ToolContentPart;
 
-        let tool_msg =
-            ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Tool result"),
-            ))]);
+        let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Tool result"),
+        ))]);
         let response = ResponseMessage::from_tool(tool_msg.clone());
 
         assert!(response.is_tool());

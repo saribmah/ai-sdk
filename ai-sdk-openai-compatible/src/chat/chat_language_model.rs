@@ -1,8 +1,10 @@
 use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning, content::LanguageModelContent,
-    content::reasoning::LanguageModelReasoning, content::text::LanguageModelText, content::tool_call::LanguageModelToolCall, usage::LanguageModelUsage,
+    call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning,
+    content::LanguageModelContent, content::reasoning::LanguageModelReasoning,
+    content::text::LanguageModelText, content::tool_call::LanguageModelToolCall,
+    usage::LanguageModelUsage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
@@ -94,7 +96,7 @@ impl OpenAICompatibleChatLanguageModel {
     fn process_stream(
         byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
         warnings: Vec<LanguageModelCallWarning>,
-    ) -> impl Stream<Item =LanguageModelStreamPart> + Unpin + Send {
+    ) -> impl Stream<Item = LanguageModelStreamPart> + Unpin + Send {
         let mut buffer = String::new();
         let mut state = StreamState {
             text_id: None,
@@ -154,7 +156,10 @@ impl OpenAICompatibleChatLanguageModel {
     }
 
     /// Process a single streaming chunk and emit StreamPart events
-    fn process_chunk(state: &mut StreamState, chunk: OpenAIStreamChunk) -> Vec<LanguageModelStreamPart> {
+    fn process_chunk(
+        state: &mut StreamState,
+        chunk: OpenAIStreamChunk,
+    ) -> Vec<LanguageModelStreamPart> {
         let mut parts = Vec::new();
 
         // Get the first choice (we only handle single choice for now)
@@ -245,7 +250,10 @@ impl OpenAICompatibleChatLanguageModel {
                             if !args.is_empty() {
                                 tool_state.arguments.push_str(args);
                                 if tool_state.started {
-                                    parts.push(LanguageModelStreamPart::tool_input_delta(&tool_state.id, args));
+                                    parts.push(LanguageModelStreamPart::tool_input_delta(
+                                        &tool_state.id,
+                                        args,
+                                    ));
                                 }
                             }
                         }
@@ -272,8 +280,11 @@ impl OpenAICompatibleChatLanguageModel {
                     parts.push(LanguageModelStreamPart::tool_input_end(&tool_state.id));
 
                     // Emit the actual ToolCall with the complete arguments
-                    let tool_call =
-                        LanguageModelToolCall::new(&tool_state.id, &tool_state.name, &tool_state.arguments);
+                    let tool_call = LanguageModelToolCall::new(
+                        &tool_state.id,
+                        &tool_state.name,
+                        &tool_state.arguments,
+                    );
                     parts.push(LanguageModelStreamPart::ToolCall(tool_call));
                 }
             }
@@ -569,7 +580,9 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         // Add text content
         if let Some(text) = &choice.message.content {
             if !text.is_empty() {
-                content.push(LanguageModelContent::Text(LanguageModelText::new(text.clone())));
+                content.push(LanguageModelContent::Text(LanguageModelText::new(
+                    text.clone(),
+                )));
             }
         }
 
@@ -581,7 +594,9 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             .or(choice.message.reasoning.as_ref());
         if let Some(reasoning_text) = reasoning {
             if !reasoning_text.is_empty() {
-                content.push(LanguageModelContent::Reasoning(LanguageModelReasoning::init(reasoning_text.clone())));
+                content.push(LanguageModelContent::Reasoning(
+                    LanguageModelReasoning::init(reasoning_text.clone()),
+                ));
             }
         }
 
@@ -653,7 +668,9 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             finish_reason,
             usage,
             provider_metadata: Some(provider_metadata),
-            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
+            request: Some(
+                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+            ),
             response: Some(response_metadata),
             warnings,
         })
@@ -740,7 +757,9 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
-            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
+            request: Some(
+                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+            ),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),

@@ -25,7 +25,10 @@ impl LanguageModelReasoning {
         }
     }
 
-    pub fn with_metadata(text: impl Into<String>, provider_metadata: SharedProviderMetadata) -> Self {
+    pub fn with_metadata(
+        text: impl Into<String>,
+        provider_metadata: SharedProviderMetadata,
+    ) -> Self {
         Self {
             content_type: ReasoningType,
             text: text.into(),

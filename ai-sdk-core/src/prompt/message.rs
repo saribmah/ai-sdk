@@ -13,9 +13,9 @@ pub use content_parts::{
 pub use data_content::DataContent;
 pub use system::SystemMessage;
 pub use tool::{
-    execute_tool, Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions,
-    ToolContent, ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput,
-    ToolMessage, ToolNeedsApprovalFunction, ToolResult, ToolType,
+    Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions, ToolContent,
+    ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput, ToolMessage,
+    ToolNeedsApprovalFunction, ToolResult, ToolType, execute_tool,
 };
 pub use user::{UserContent, UserContentPart, UserMessage};
 
@@ -174,9 +174,11 @@ mod tests {
 
     #[test]
     fn test_model_message_tool() {
-        let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(
-            ToolResultPart::new("call_123", "tool_name", ToolResultOutput::text("Success")),
-        )]);
+        let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Success"),
+        ))]);
         let message = Message::from(tool_msg);
 
         assert_eq!(message.role(), "tool");

@@ -53,6 +53,8 @@ impl LanguageModelUserMessage {
 
     /// Create a user message with text
     pub fn text(text: impl Into<String>) -> Self {
-        Self::new(vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(text))])
+        Self::new(vec![LanguageModelUserMessagePart::Text(
+            LanguageModelTextPart::new(text),
+        )])
     }
 }

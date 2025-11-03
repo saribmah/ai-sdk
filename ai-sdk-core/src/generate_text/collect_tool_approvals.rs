@@ -1,7 +1,7 @@
 use crate::generate_text::tool_call::{StaticToolCall, TypedToolCall};
 use crate::prompt::message::Message;
-use crate::prompt::message::{AssistantContent, ToolContentPart};
 use crate::prompt::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
+use crate::prompt::message::{AssistantContent, ToolContentPart};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -244,9 +244,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
 mod tests {
     use super::*;
     use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
-    use crate::prompt::message::{
-        AssistantContentPart, AssistantMessage, ToolMessage,
-    };
+    use crate::prompt::message::{AssistantContentPart, AssistantMessage, ToolMessage};
     use serde_json::json;
 
     #[test]
@@ -282,9 +280,9 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            Message::Tool(ToolMessage::new(vec![
-                ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_456")),
-            ])),
+            Message::Tool(ToolMessage::new(vec![ToolContentPart::ApprovalResponse(
+                ToolApprovalResponse::granted("approval_456"),
+            )])),
         ];
 
         let result = collect_tool_approvals(&messages);
@@ -320,11 +318,9 @@ mod tests {
                     "call_123",
                 )),
             ])),
-            Message::Tool(ToolMessage::new(vec![
-                ToolContentPart::ApprovalResponse(
-                    ToolApprovalResponse::denied("approval_456").with_reason("Too dangerous"),
-                ),
-            ])),
+            Message::Tool(ToolMessage::new(vec![ToolContentPart::ApprovalResponse(
+                ToolApprovalResponse::denied("approval_456").with_reason("Too dangerous"),
+            )])),
         ];
 
         let result = collect_tool_approvals(&messages);
@@ -422,9 +418,9 @@ mod tests {
                     "call_1",
                 )),
             ])),
-            Message::Tool(ToolMessage::new(vec![
-                ToolContentPart::ApprovalResponse(ToolApprovalResponse::granted("approval_1")),
-            ])),
+            Message::Tool(ToolMessage::new(vec![ToolContentPart::ApprovalResponse(
+                ToolApprovalResponse::granted("approval_1"),
+            )])),
             Message::Assistant(AssistantMessage::with_parts(vec![
                 AssistantContentPart::ToolCall(ToolCallPart::new("call_2", "tool_b", json!({}))),
                 AssistantContentPart::ToolApprovalRequest(ToolApprovalRequest::new(
@@ -432,9 +428,9 @@ mod tests {
                     "call_2",
                 )),
             ])),
-            Message::Tool(ToolMessage::new(vec![
-                ToolContentPart::ApprovalResponse(ToolApprovalResponse::denied("approval_2")),
-            ])),
+            Message::Tool(ToolMessage::new(vec![ToolContentPart::ApprovalResponse(
+                ToolApprovalResponse::denied("approval_2"),
+            )])),
         ];
 
         let result = collect_tool_approvals(&messages);

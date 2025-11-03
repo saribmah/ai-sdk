@@ -86,7 +86,8 @@ pub struct FinishEvent {
     pub usage: LanguageModelUsage,
 
     /// Warnings from the final step.
-    pub warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
+    pub warnings:
+        Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
 
     /// Details for all steps.
     ///
@@ -117,13 +118,17 @@ impl FinishEvent {
     /// ```
     pub fn new(final_step: &StepResult, all_steps: Vec<StepResult>) -> Self {
         // Calculate total usage across all steps
-        let total_usage = all_steps.iter().fold(LanguageModelUsage::new(0, 0), |acc, step| LanguageModelUsage {
-            input_tokens: acc.input_tokens + step.usage.input_tokens,
-            output_tokens: acc.output_tokens + step.usage.output_tokens,
-            total_tokens: acc.total_tokens + step.usage.total_tokens,
-            reasoning_tokens: acc.reasoning_tokens + step.usage.reasoning_tokens,
-            cached_input_tokens: acc.cached_input_tokens + step.usage.cached_input_tokens,
-        });
+        let total_usage = all_steps
+            .iter()
+            .fold(LanguageModelUsage::new(0, 0), |acc, step| {
+                LanguageModelUsage {
+                    input_tokens: acc.input_tokens + step.usage.input_tokens,
+                    output_tokens: acc.output_tokens + step.usage.output_tokens,
+                    total_tokens: acc.total_tokens + step.usage.total_tokens,
+                    reasoning_tokens: acc.reasoning_tokens + step.usage.reasoning_tokens,
+                    cached_input_tokens: acc.cached_input_tokens + step.usage.cached_input_tokens,
+                }
+            });
 
         Self {
             text: final_step.text(),
@@ -196,7 +201,9 @@ mod tests {
     use crate::generate_text::content_part::ContentPart;
     use crate::generate_text::text_output::TextOutput;
     use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
-    use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
+    use ai_sdk_provider::language_model::{
+        finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
+    };
     use serde_json::json;
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {

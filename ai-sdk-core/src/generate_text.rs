@@ -64,7 +64,9 @@ use crate::prompt::{
 };
 use ai_sdk_provider::{
     language_model::tool_choice::LanguageModelToolChoice,
-    language_model::{LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage},
+    language_model::{
+        LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage,
+    },
     shared::provider_options::SharedProviderOptions,
 };
 use serde_json::Value;
@@ -634,21 +636,23 @@ pub async fn generate_text(
     }
 
     // Calculate total usage by summing all steps
-    let total_usage = steps.iter().fold(LanguageModelUsage::default(), |acc, step| {
-        let input_tokens = acc.input_tokens + step.usage.input_tokens;
-        let output_tokens = acc.output_tokens + step.usage.output_tokens;
-        let total_tokens = acc.total_tokens + step.usage.total_tokens;
-        let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
-        let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
+    let total_usage = steps
+        .iter()
+        .fold(LanguageModelUsage::default(), |acc, step| {
+            let input_tokens = acc.input_tokens + step.usage.input_tokens;
+            let output_tokens = acc.output_tokens + step.usage.output_tokens;
+            let total_tokens = acc.total_tokens + step.usage.total_tokens;
+            let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
+            let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
 
-        LanguageModelUsage {
-            input_tokens,
-            output_tokens,
-            total_tokens,
-            reasoning_tokens,
-            cached_input_tokens,
-        }
-    });
+            LanguageModelUsage {
+                input_tokens,
+                output_tokens,
+                total_tokens,
+                reasoning_tokens,
+                cached_input_tokens,
+            }
+        });
 
     // Create the resolved output (placeholder for now, as there's no output specification yet)
     let resolved_output = Value::Null;
@@ -781,7 +785,8 @@ pub async fn generate_text(
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        LanguageModelGenerateResponse, LanguageModelStreamResponse, call_options::LanguageModelCallOptions,
+        LanguageModelGenerateResponse, LanguageModelStreamResponse,
+        call_options::LanguageModelCallOptions,
     };
     use async_trait::async_trait;
     use regex::Regex;

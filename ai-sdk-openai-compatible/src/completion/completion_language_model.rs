@@ -1,8 +1,8 @@
 use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
-    call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning, content::LanguageModelContent, content::text::LanguageModelText,
-    usage::LanguageModelUsage,
+    call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning,
+    content::LanguageModelContent, content::text::LanguageModelText, usage::LanguageModelUsage,
 };
 use async_trait::async_trait;
 use futures_util::{Stream, StreamExt};
@@ -285,7 +285,9 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         // Add text content
         if !choice.text.is_empty() {
-            content.push(LanguageModelContent::Text(LanguageModelText::new(choice.text.clone())));
+            content.push(LanguageModelContent::Text(LanguageModelText::new(
+                choice.text.clone(),
+            )));
         }
 
         // Build usage information
@@ -331,7 +333,9 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
             finish_reason,
             usage,
             provider_metadata: Some(provider_metadata),
-            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
+            request: Some(
+                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+            ),
             response: Some(response_metadata),
             warnings,
         })
@@ -418,7 +422,9 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
 
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
-            request: Some(ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) }),
+            request: Some(
+                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+            ),
             response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),
@@ -431,7 +437,7 @@ impl OpenAICompatibleCompletionLanguageModel {
     fn process_stream(
         byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
         warnings: Vec<LanguageModelCallWarning>,
-    ) -> impl Stream<Item =LanguageModelStreamPart> + Unpin + Send {
+    ) -> impl Stream<Item = LanguageModelStreamPart> + Unpin + Send {
         let mut buffer = String::new();
         let mut is_first_chunk = true;
 

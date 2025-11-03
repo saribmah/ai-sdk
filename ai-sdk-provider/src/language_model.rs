@@ -62,7 +62,7 @@ pub struct LanguageModelGenerateResponse {
 }
 
 pub struct LanguageModelStreamResponse {
-    pub stream: Box<dyn Stream<Item =LanguageModelStreamPart> + Unpin + Send>,
+    pub stream: Box<dyn Stream<Item = LanguageModelStreamPart> + Unpin + Send>,
     pub request: Option<LanguageModelRequestMetadata>,
     pub response: Option<StreamResponseMetadata>,
 }

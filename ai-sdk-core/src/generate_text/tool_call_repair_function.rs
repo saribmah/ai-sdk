@@ -84,7 +84,9 @@ impl ToolCallRepairOptions {
 /// let repair_fn: ToolCallRepairFunction = Box::new(no_repair_function);
 /// ```
 pub type ToolCallRepairFunction = Box<
-    dyn Fn(ToolCallRepairOptions) -> Pin<Box<dyn Future<Output = Option<LanguageModelToolCall>> + Send>>
+    dyn Fn(
+            ToolCallRepairOptions,
+        ) -> Pin<Box<dyn Future<Output = Option<LanguageModelToolCall>> + Send>>
         + Send
         + Sync,
 >;

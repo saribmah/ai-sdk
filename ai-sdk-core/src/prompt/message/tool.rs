@@ -106,8 +106,7 @@ mod tests {
 
         let provider_options = SharedProviderOptions::new();
 
-        let message =
-            ToolMessage::new(content).with_provider_options(provider_options.clone());
+        let message = ToolMessage::new(content).with_provider_options(provider_options.clone());
 
         assert_eq!(message.provider_options, Some(provider_options));
     }
