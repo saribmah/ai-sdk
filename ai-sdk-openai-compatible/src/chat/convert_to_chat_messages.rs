@@ -1,7 +1,7 @@
 use ai_sdk_provider::language_model::prompt::message::parts::{LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart};
 use ai_sdk_provider::language_model::prompt::message::{LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage};
 use ai_sdk_provider::language_model::prompt::{
-    LanguageModelAssistantMessagePart, DataContent, LanguageModelMessage, LanguageModelPrompt, ToolResultOutput, LanguageModelToolResultPart,
+    LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage, LanguageModelPrompt, LanguageModelToolResultOutput, LanguageModelToolResultPart,
     LanguageModelUserMessagePart,
 };
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
@@ -25,13 +25,13 @@ fn get_openai_metadata(provider_options: &Option<SharedProviderOptions>) -> Opti
 }
 
 /// Converts data content to a base64 or URL string for image URLs
-fn convert_data_to_url(data: &DataContent, media_type: &str) -> String {
+fn convert_data_to_url(data: &LanguageModelDataContent, media_type: &str) -> String {
     match data {
-        DataContent::Url(url) => url.to_string(),
-        DataContent::Base64(base64) => {
+        LanguageModelDataContent::Url(url) => url.to_string(),
+        LanguageModelDataContent::Base64(base64) => {
             format!("data:{};base64,{}", media_type, base64)
         }
-        DataContent::Bytes(bytes) => {
+        LanguageModelDataContent::Bytes(bytes) => {
             let base64 = general_purpose::STANDARD.encode(bytes);
             format!("data:{};base64,{}", media_type, base64)
         }
@@ -182,15 +182,15 @@ pub fn convert_to_openai_compatible_chat_messages(
             LanguageModelMessage::Tool(tool_msg) => {
                 for tool_response in tool_msg.content {
                     let content_value = match &tool_response.output {
-                        ToolResultOutput::Text { value } => value.clone(),
-                        ToolResultOutput::ErrorText { value } => value.clone(),
-                        ToolResultOutput::Json { value } => {
+                        LanguageModelToolResultOutput::Text { value } => value.clone(),
+                        LanguageModelToolResultOutput::ErrorText { value } => value.clone(),
+                        LanguageModelToolResultOutput::Json { value } => {
                             serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
                         }
-                        ToolResultOutput::ErrorJson { value } => {
+                        LanguageModelToolResultOutput::ErrorJson { value } => {
                             serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
                         }
-                        ToolResultOutput::Content { value } => {
+                        LanguageModelToolResultOutput::Content { value } => {
                             serde_json::to_string(&value).unwrap_or_else(|_| "[]".to_string())
                         }
                     };
@@ -257,7 +257,7 @@ mod tests {
             LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("What's in this image?")),
             LanguageModelUserMessagePart::File(LanguageModelFilePart::with_options(
                 None,
-                DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
+                LanguageModelDataContent::Url("https://example.com/image.jpg".parse().unwrap()),
                 "image/jpeg",
                 None,
             )),
@@ -326,7 +326,7 @@ mod tests {
         let prompt = vec![LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![LanguageModelToolResultPart::new(
             "call_123",
             "get_weather",
-            ToolResultOutput::Text {
+            LanguageModelToolResultOutput::Text {
                 value: "Sunny, 72°F".to_string(),
             },
         )]))];
@@ -347,7 +347,7 @@ mod tests {
     fn test_convert_unsupported_file_type() {
         let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::File(
             LanguageModelFilePart::new(
-                DataContent::Base64("base64data".to_string()),
+                LanguageModelDataContent::Base64("base64data".to_string()),
                 "application/pdf",
             ),
         )]))];
@@ -361,7 +361,7 @@ mod tests {
     #[test]
     fn test_convert_image_with_wildcard_type() {
         let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![LanguageModelUserMessagePart::File(
-            LanguageModelFilePart::new(DataContent::Base64("imagedata".to_string()), "image/*"),
+            LanguageModelFilePart::new(LanguageModelDataContent::Base64("imagedata".to_string()), "image/*"),
         )]))];
 
         let result = convert_to_openai_compatible_chat_messages(prompt).unwrap();

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Data content - can be bytes, base64 string, or URL
 #[derive(Debug, Clone, PartialEq)]
-pub enum DataContent {
+pub enum LanguageModelDataContent {
     /// Binary data
     Bytes(Vec<u8>),
 
@@ -14,7 +14,7 @@ pub enum DataContent {
 }
 
 // Custom serialization for DataContent
-impl Serialize for DataContent {
+impl Serialize for LanguageModelDataContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -32,7 +32,7 @@ impl Serialize for DataContent {
     }
 }
 
-impl<'de> Deserialize<'de> for DataContent {
+impl<'de> Deserialize<'de> for LanguageModelDataContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,

@@ -8,4 +8,4 @@ pub use file::LanguageModelFilePart;
 pub use reasoning::LanguageModelReasoningPart;
 pub use text::LanguageModelTextPart;
 pub use tool_call::LanguageModelToolCallPart;
-pub use tool_result::{ToolResultContentItem, ToolResultOutput, LanguageModelToolResultPart};
+pub use tool_result::{LanguageModelToolResultContentItem, LanguageModelToolResultOutput, LanguageModelToolResultPart};

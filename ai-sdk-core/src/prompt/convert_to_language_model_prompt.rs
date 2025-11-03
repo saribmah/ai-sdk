@@ -9,13 +9,13 @@ use crate::prompt::message::{
 };
 use crate::prompt::standardize::StandardizedPrompt;
 use ai_sdk_provider::language_model::prompt::message::parts::{
-    LanguageModelFilePart as ProviderFilePart, LanguageModelReasoningPart as ProviderReasoningPart,
-    LanguageModelTextPart as ProviderTextPart, LanguageModelToolCallPart as ProviderToolCallPart,
+    LanguageModelFilePart, LanguageModelReasoningPart,
+    LanguageModelTextPart, LanguageModelToolCallPart,
 };
 use ai_sdk_provider::language_model::prompt::message::{LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage};
 use ai_sdk_provider::language_model::prompt::{
-    LanguageModelAssistantMessagePart, DataContent as ProviderDataContent, LanguageModelMessage,
-    ToolResultOutput as ProviderToolResultOutput, LanguageModelToolResultPart as ProviderToolResultPart,
+    LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage,
+    LanguageModelToolResultOutput, LanguageModelToolResultPart,
     LanguageModelUserMessagePart,
 };
 
@@ -69,7 +69,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
             let provider_options = user_msg.provider_options;
             let content = match user_msg.content {
                 UserContent::Text(text) => {
-                    vec![LanguageModelUserMessagePart::Text(ProviderTextPart::new(text))]
+                    vec![LanguageModelUserMessagePart::Text(LanguageModelTextPart::new(text))]
                 }
                 UserContent::Parts(parts) => parts
                     .into_iter()
@@ -91,7 +91,7 @@ fn convert_to_language_model_message(message: ModelMessage) -> Result<LanguageMo
             let provider_options = asst_msg.provider_options;
             let content = match asst_msg.content {
                 AssistantContent::Text(text) => {
-                    vec![LanguageModelAssistantMessagePart::Text(ProviderTextPart::new(text))]
+                    vec![LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::new(text))]
                 }
                 AssistantContent::Parts(parts) => parts
                     .into_iter()
@@ -146,7 +146,7 @@ fn convert_user_content_part(part: UserContentPart) -> Result<LanguageModelUserM
         UserContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(LanguageModelUserMessagePart::Text(ProviderTextPart::with_options(
+        }) => Ok(LanguageModelUserMessagePart::Text(LanguageModelTextPart::with_options(
             text,
             provider_options,
         ))),
@@ -161,7 +161,7 @@ fn convert_user_content_part(part: UserContentPart) -> Result<LanguageModelUserM
                 .or(media_type)
                 .unwrap_or_else(|| "image/*".to_string());
 
-            Ok(LanguageModelUserMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelUserMessagePart::File(LanguageModelFilePart::with_options(
                 None,
                 data,
                 final_media_type,
@@ -177,7 +177,7 @@ fn convert_user_content_part(part: UserContentPart) -> Result<LanguageModelUserM
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(LanguageModelUserMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelUserMessagePart::File(LanguageModelFilePart::with_options(
                 filename,
                 data,
                 media_type,
@@ -195,7 +195,7 @@ fn convert_assistant_content_part(
         AssistantContentPart::Text(TextPart {
             text,
             provider_options,
-        }) => Ok(LanguageModelAssistantMessagePart::Text(ProviderTextPart::with_options(
+        }) => Ok(LanguageModelAssistantMessagePart::Text(LanguageModelTextPart::with_options(
             text,
             provider_options,
         ))),
@@ -208,7 +208,7 @@ fn convert_assistant_content_part(
         }) => {
             let (data, _) = convert_file_source_to_data_content(data)?;
 
-            Ok(LanguageModelAssistantMessagePart::File(ProviderFilePart::with_options(
+            Ok(LanguageModelAssistantMessagePart::File(LanguageModelFilePart::with_options(
                 filename,
                 data,
                 media_type,
@@ -220,7 +220,7 @@ fn convert_assistant_content_part(
             text,
             provider_options,
         }) => Ok(LanguageModelAssistantMessagePart::Reasoning(
-            ProviderReasoningPart::with_options(text, provider_options),
+            LanguageModelReasoningPart::with_options(text, provider_options),
         )),
 
         AssistantContentPart::ToolCall(ToolCallPart {
@@ -230,7 +230,7 @@ fn convert_assistant_content_part(
             provider_executed,
             provider_options,
         }) => Ok(LanguageModelAssistantMessagePart::ToolCall(
-            ProviderToolCallPart::with_options(
+            LanguageModelToolCallPart::with_options(
                 tool_call_id,
                 tool_name,
                 input,
@@ -240,9 +240,9 @@ fn convert_assistant_content_part(
         )),
 
         AssistantContentPart::ToolResult(tool_result) => {
-            use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelToolResultPart as MessageToolResultPart;
+            use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelToolResultPart;
             Ok(LanguageModelAssistantMessagePart::ToolResult(
-                MessageToolResultPart::with_options(
+                LanguageModelToolResultPart::with_options(
                     tool_result.tool_call_id,
                     tool_result.tool_name,
                     convert_tool_result_output(tool_result.output)?,
@@ -263,8 +263,8 @@ fn convert_assistant_content_part(
 /// Convert a tool result part to a provider `ToolResultPart`.
 fn convert_tool_result_to_provider(
     tool_result: ToolResultPart,
-) -> Result<ProviderToolResultPart, AISDKError> {
-    let mut result = ProviderToolResultPart::new(
+) -> Result<LanguageModelToolResultPart, AISDKError> {
+    let mut result = LanguageModelToolResultPart::new(
         tool_result.tool_call_id,
         tool_result.tool_name,
         convert_tool_result_output(tool_result.output)?,
@@ -280,42 +280,42 @@ fn convert_tool_result_to_provider(
 /// Convert core `ToolResultOutput` to provider `ToolResultOutput`.
 fn convert_tool_result_output(
     output: crate::prompt::message::content_parts::ToolResultOutput,
-) -> Result<ProviderToolResultOutput, AISDKError> {
-    use crate::prompt::message::content_parts::ToolResultOutput as CoreOutput;
-    use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
+) -> Result<LanguageModelToolResultOutput, AISDKError> {
+    use crate::prompt::message::content_parts::ToolResultOutput;
+    use ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem;
 
     match output {
-        CoreOutput::Text {
+        ToolResultOutput::Text {
             value,
             provider_options: _,
-        } => Ok(ProviderToolResultOutput::Text { value }),
-        CoreOutput::Json {
+        } => Ok(LanguageModelToolResultOutput::Text { value }),
+        ToolResultOutput::Json {
             value,
             provider_options: _,
-        } => Ok(ProviderToolResultOutput::Json { value }),
-        CoreOutput::ErrorText {
+        } => Ok(LanguageModelToolResultOutput::Json { value }),
+        ToolResultOutput::ErrorText {
             value,
             provider_options: _,
-        } => Ok(ProviderToolResultOutput::ErrorText { value }),
-        CoreOutput::ErrorJson {
+        } => Ok(LanguageModelToolResultOutput::ErrorText { value }),
+        ToolResultOutput::ErrorJson {
             value,
             provider_options: _,
-        } => Ok(ProviderToolResultOutput::ErrorJson { value }),
-        CoreOutput::Content { value } => {
+        } => Ok(LanguageModelToolResultOutput::ErrorJson { value }),
+        ToolResultOutput::Content { value } => {
             // Convert content items from core to provider format
-            let converted_items: Vec<ToolResultContentItem> = value
+            let converted_items: Vec<LanguageModelToolResultContentItem> = value
                 .into_iter()
                 .filter_map(|item| convert_tool_result_content_part(item))
                 .collect();
 
-            Ok(ProviderToolResultOutput::Content {
+            Ok(LanguageModelToolResultOutput::Content {
                 value: converted_items,
             })
         }
-        CoreOutput::ExecutionDenied {
+        ToolResultOutput::ExecutionDenied {
             reason,
             provider_options: _,
-        } => Ok(ProviderToolResultOutput::ErrorText {
+        } => Ok(LanguageModelToolResultOutput::ErrorText {
             value: format!(
                 "Execution denied: {}",
                 reason.unwrap_or_else(|| "No reason provided".to_string())
@@ -329,47 +329,47 @@ fn convert_tool_result_output(
 /// Returns None for items that cannot be converted (like FileId which providers don't support).
 fn convert_tool_result_content_part(
     part: crate::prompt::message::content_parts::ToolResultContentPart,
-) -> Option<ai_sdk_provider::language_model::prompt::ToolResultContentItem> {
-    use crate::prompt::message::content_parts::ToolResultContentPart as CorePart;
-    use ai_sdk_provider::language_model::prompt::ToolResultContentItem;
+) -> Option<ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem> {
+    use crate::prompt::message::content_parts::ToolResultContentPart;
+    use ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem;
 
     match part {
-        CorePart::Text {
+        ToolResultContentPart::Text {
             text,
             provider_options: _,
-        } => Some(ToolResultContentItem::Text { text }),
+        } => Some(LanguageModelToolResultContentItem::Text { text }),
 
         #[allow(deprecated)]
-        CorePart::Media { data, media_type } => {
-            Some(ToolResultContentItem::Media { data, media_type })
+        ToolResultContentPart::Media { data, media_type } => {
+            Some(LanguageModelToolResultContentItem::Media { data, media_type })
         }
 
-        CorePart::FileData {
+        ToolResultContentPart::FileData {
             data, media_type, ..
         } => {
             // Convert FileData to Media (provider doesn't have FileData variant)
-            Some(ToolResultContentItem::Media { data, media_type })
+            Some(LanguageModelToolResultContentItem::Media { data, media_type })
         }
 
-        CorePart::ImageData {
+        ToolResultContentPart::ImageData {
             data, media_type, ..
         } => {
             // Convert ImageData to Media
-            Some(ToolResultContentItem::Media { data, media_type })
+            Some(LanguageModelToolResultContentItem::Media { data, media_type })
         }
 
         // For URL-based and ID-based items, we can't convert them directly
         // The provider expects base64 data, not URLs
-        CorePart::FileUrl { .. }
-        | CorePart::FileId { .. }
-        | CorePart::ImageUrl { .. }
-        | CorePart::ImageFileId { .. } => {
+        ToolResultContentPart::FileUrl { .. }
+        | ToolResultContentPart::FileId { .. }
+        | ToolResultContentPart::ImageUrl { .. }
+        | ToolResultContentPart::ImageFileId { .. } => {
             // TODO: In a real implementation, we might want to download these
             // For now, skip them
             None
         }
 
-        CorePart::Custom { .. } => {
+        ToolResultContentPart::Custom { .. } => {
             // Custom items aren't supported by provider
             None
         }
@@ -379,26 +379,26 @@ fn convert_tool_result_content_part(
 /// Convert an image source to provider `DataContent`.
 fn convert_image_source_to_data_content(
     source: ImageSource,
-) -> Result<(ProviderDataContent, Option<String>), AISDKError> {
+) -> Result<(LanguageModelDataContent, Option<String>), AISDKError> {
     match source {
         ImageSource::Data(data) => {
             let base64 = data.to_base64();
-            Ok((ProviderDataContent::Base64(base64), None))
+            Ok((LanguageModelDataContent::Base64(base64), None))
         }
-        ImageSource::Url(url) => Ok((ProviderDataContent::Url(url), None)),
+        ImageSource::Url(url) => Ok((LanguageModelDataContent::Url(url), None)),
     }
 }
 
 /// Convert a file source to provider `DataContent`.
 fn convert_file_source_to_data_content(
     source: FileSource,
-) -> Result<(ProviderDataContent, Option<String>), AISDKError> {
+) -> Result<(LanguageModelDataContent, Option<String>), AISDKError> {
     match source {
         FileSource::Data(data) => {
             let base64 = data.to_base64();
-            Ok((ProviderDataContent::Base64(base64), None))
+            Ok((LanguageModelDataContent::Base64(base64), None))
         }
-        FileSource::Url(url) => Ok((ProviderDataContent::Url(url), None)),
+        FileSource::Url(url) => Ok((LanguageModelDataContent::Url(url), None)),
     }
 }
 

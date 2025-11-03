@@ -17,7 +17,7 @@ pub struct LanguageModelToolResultPart {
     pub tool_name: String,
 
     /// Result of the tool call
-    pub output: ToolResultOutput,
+    pub output: LanguageModelToolResultOutput,
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,7 +31,7 @@ struct ToolResultPartType;
 /// Tool result output types
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
-pub enum ToolResultOutput {
+pub enum LanguageModelToolResultOutput {
     /// Plain text output
     Text {
         /// The text value
@@ -61,14 +61,14 @@ pub enum ToolResultOutput {
     /// Content with multiple parts (text and/or media)
     Content {
         /// Array of content items
-        value: Vec<ToolResultContentItem>,
+        value: Vec<LanguageModelToolResultContentItem>,
     },
 }
 
 /// Content items within a tool result
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-pub enum ToolResultContentItem {
+pub enum LanguageModelToolResultContentItem {
     /// Text content
     Text {
         /// Text content
@@ -91,7 +91,7 @@ impl LanguageModelToolResultPart {
     pub fn new(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,
-        output: ToolResultOutput,
+        output: LanguageModelToolResultOutput,
     ) -> Self {
         Self {
             part_type: ToolResultPartType,
@@ -105,7 +105,7 @@ impl LanguageModelToolResultPart {
     pub fn with_options(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,
-        output: ToolResultOutput,
+        output: LanguageModelToolResultOutput,
         provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
@@ -118,7 +118,7 @@ impl LanguageModelToolResultPart {
     }
 }
 
-impl ToolResultOutput {
+impl LanguageModelToolResultOutput {
     /// Create a text output
     pub fn text(value: impl Into<String>) -> Self {
         Self::Text {
@@ -144,7 +144,7 @@ impl ToolResultOutput {
     }
 
     /// Create a content output with items
-    pub fn content(value: Vec<ToolResultContentItem>) -> Self {
+    pub fn content(value: Vec<LanguageModelToolResultContentItem>) -> Self {
         Self::Content { value }
     }
 }

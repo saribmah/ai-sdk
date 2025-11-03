@@ -1,7 +1,7 @@
 pub mod message;
 
 pub use message::{
-    LanguageModelAssistantMessagePart, DataContent, LanguageModelMessage, ToolResultContentItem, ToolResultOutput,
+    LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage, LanguageModelToolResultContentItem, LanguageModelToolResultOutput,
     LanguageModelToolResultPart, LanguageModelUserMessagePart,
 };
 

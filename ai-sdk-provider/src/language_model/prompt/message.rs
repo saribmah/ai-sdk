@@ -6,9 +6,9 @@ pub mod tool;
 pub mod user;
 
 pub use assistant::{LanguageModelAssistantMessage, LanguageModelAssistantMessagePart};
-pub use data_content::DataContent;
+pub use data_content::LanguageModelDataContent;
 pub use parts::{
-    LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart, LanguageModelToolCallPart, ToolResultContentItem, ToolResultOutput,
+    LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart, LanguageModelToolCallPart, LanguageModelToolResultContentItem, LanguageModelToolResultOutput,
     LanguageModelToolResultPart,
 };
 pub use system::LanguageModelSystemMessage;

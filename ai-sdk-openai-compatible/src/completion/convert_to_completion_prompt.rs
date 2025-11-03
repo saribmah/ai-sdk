@@ -243,12 +243,12 @@ mod tests {
 
     #[test]
     fn test_tool_message_errors() {
-        use ai_sdk_provider::language_model::prompt::{ToolResultOutput, LanguageModelToolResultPart};
+        use ai_sdk_provider::language_model::prompt::{LanguageModelToolResultOutput, LanguageModelToolResultPart};
 
         let prompt = vec![LanguageModelMessage::Tool(LanguageModelToolMessage::new(vec![LanguageModelToolResultPart::new(
             "call_123",
             "get_weather",
-            ToolResultOutput::Text {
+            LanguageModelToolResultOutput::Text {
                 value: "Sunny".to_string(),
             },
         )]))];
@@ -271,13 +271,13 @@ mod tests {
 
     #[test]
     fn test_file_parts_filtered() {
-        use ai_sdk_provider::language_model::prompt::DataContent;
+        use ai_sdk_provider::language_model::prompt::LanguageModelDataContent;
         use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelFilePart;
 
         let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(vec![
             LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("Look at this: ")),
             LanguageModelUserMessagePart::File(LanguageModelFilePart::new(
-                DataContent::Url("https://example.com/image.jpg".parse().unwrap()),
+                LanguageModelDataContent::Url("https://example.com/image.jpg".parse().unwrap()),
                 "image/jpeg",
             )),
             LanguageModelUserMessagePart::Text(LanguageModelTextPart::new("Cool!")),
