@@ -192,7 +192,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_messages() {
-        use crate::prompt::message::model::user::UserModelMessage;
+        use crate::prompt::message::user::UserModelMessage;
 
         let mut tool: Tool<Value, Value> = Tool::function(json!({
             "type": "object",

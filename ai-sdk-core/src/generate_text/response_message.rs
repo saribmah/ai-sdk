@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn test_response_message_from_tool() {
         use crate::prompt::message::content_parts::{ToolResultOutput, ToolResultPart};
-        use crate::prompt::message::model::tool::ToolContentPart;
+        use crate::prompt::message::tool::ToolContentPart;
 
         let tool_msg =
             ToolModelMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(

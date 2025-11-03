@@ -1,7 +1,5 @@
-use super::super::content_parts::{
-    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart,
-};
-use super::super::tool::ToolApprovalRequest;
+use super::content_parts::{FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart};
+use super::tool::ToolApprovalRequest;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 

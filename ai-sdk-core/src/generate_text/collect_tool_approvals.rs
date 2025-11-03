@@ -1,6 +1,6 @@
 use crate::generate_text::tool_call::{StaticToolCall, TypedToolCall};
 use crate::prompt::message::ModelMessage;
-use crate::prompt::message::model::{AssistantContent, ToolContentPart};
+use crate::prompt::message::{AssistantContent, ToolContentPart};
 use crate::prompt::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -148,7 +148,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
         if let ModelMessage::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
-                    if let crate::prompt::message::model::AssistantContentPart::ToolCall(
+                    if let crate::prompt::message::assistant::AssistantContentPart::ToolCall(
                         tool_call,
                     ) = part
                     {
@@ -174,7 +174,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
         if let ModelMessage::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
                 for part in parts {
-                    if let crate::prompt::message::model::AssistantContentPart::ToolApprovalRequest(
+                    if let crate::prompt::message::assistant::AssistantContentPart::ToolApprovalRequest(
                         approval_req,
                     ) = part
                     {
@@ -244,7 +244,7 @@ pub fn collect_tool_approvals(messages: &[ModelMessage]) -> CollectedToolApprova
 mod tests {
     use super::*;
     use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
-    use crate::prompt::message::model::{
+    use crate::prompt::message::{
         AssistantContentPart, AssistantModelMessage, ToolModelMessage,
     };
     use serde_json::json;

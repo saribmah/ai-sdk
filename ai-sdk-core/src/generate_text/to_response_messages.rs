@@ -1,9 +1,9 @@
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
 use crate::prompt::message::ModelMessage;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
-use crate::prompt::message::model::assistant::AssistantContentPart;
-use crate::prompt::message::model::tool::ToolContentPart;
-use crate::prompt::message::model::{AssistantModelMessage, ToolModelMessage};
+use crate::prompt::message::assistant::AssistantContentPart;
+use crate::prompt::message::tool::ToolContentPart;
+use crate::prompt::message::{AssistantModelMessage, ToolModelMessage};
 use serde_json::Value;
 
 use super::content_part::ContentPart;

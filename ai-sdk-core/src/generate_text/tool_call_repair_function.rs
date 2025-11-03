@@ -108,7 +108,7 @@ pub fn no_repair() -> ToolCallRepairFunction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::model::UserModelMessage;
+    use crate::prompt::message::UserModelMessage;
     use crate::prompt::message::tool::definition::Tool;
     use serde_json::json;
 

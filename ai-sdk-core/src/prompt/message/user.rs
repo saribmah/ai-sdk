@@ -1,4 +1,4 @@
-use super::super::content_parts::{FilePart, ImagePart, TextPart};
+use super::content_parts::{FilePart, ImagePart, TextPart};
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
