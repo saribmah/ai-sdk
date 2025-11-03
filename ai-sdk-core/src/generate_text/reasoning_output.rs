@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Reasoning output of a text generation. It contains reasoning text.
@@ -28,7 +28,7 @@ pub struct ReasoningOutput {
     /// These are passed through to the provider from the AI SDK and enable
     /// provider-specific functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 impl ReasoningOutput {
@@ -68,7 +68,7 @@ impl ReasoningOutput {
     /// let reasoning = ReasoningOutput::new("Thinking...")
     ///     .with_provider_metadata(metadata);
     /// ```
-    pub fn with_provider_metadata(mut self, metadata: ProviderMetadata) -> Self {
+    pub fn with_provider_metadata(mut self, metadata: SharedProviderMetadata) -> Self {
         self.provider_metadata = Some(metadata);
         self
     }
@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn test_reasoning_output_with_provider_metadata() {
-        let mut metadata = ProviderMetadata::new();
+        let mut metadata = SharedProviderMetadata::new();
         let mut inner = HashMap::new();
         inner.insert("key".to_string(), serde_json::json!("value"));
         metadata.insert("provider".to_string(), inner);
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_reasoning_output_with_metadata_serialization() {
-        let mut metadata = ProviderMetadata::new();
+        let mut metadata = SharedProviderMetadata::new();
         let mut inner = HashMap::new();
         inner.insert("tokens".to_string(), serde_json::json!(100));
         metadata.insert("openai".to_string(), inner);

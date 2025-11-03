@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Reasoning content part of a prompt. It contains reasoning text.
@@ -11,7 +11,7 @@ pub struct ReasoningPart {
 
     /// Additional provider-specific metadata.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 impl ReasoningPart {
@@ -24,7 +24,7 @@ impl ReasoningPart {
     }
 
     /// Sets the provider options.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }

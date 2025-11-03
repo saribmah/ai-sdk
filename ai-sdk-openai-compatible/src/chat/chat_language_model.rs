@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::stream_part::StreamPart;
+use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning, content::LanguageModelContent,
@@ -94,7 +94,7 @@ impl OpenAICompatibleChatLanguageModel {
     fn process_stream(
         byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
         warnings: Vec<LanguageModelCallWarning>,
-    ) -> impl Stream<Item = StreamPart> + Unpin + Send {
+    ) -> impl Stream<Item =LanguageModelStreamPart> + Unpin + Send {
         let mut buffer = String::new();
         let mut state = StreamState {
             text_id: None,
@@ -105,7 +105,7 @@ impl OpenAICompatibleChatLanguageModel {
         Box::pin(async_stream::stream! {
             // Emit stream start with warnings
             // This is outside the event loop and only emitted once per stream instance
-            yield StreamPart::stream_start(warnings);
+            yield LanguageModelStreamPart::stream_start(warnings);
 
             let mut stream = Box::pin(byte_stream);
 
@@ -145,7 +145,7 @@ impl OpenAICompatibleChatLanguageModel {
                         }
                     }
                     Err(e) => {
-                        yield StreamPart::error(json!({ "message": e.to_string() }));
+                        yield LanguageModelStreamPart::error(json!({ "message": e.to_string() }));
                         break;
                     }
                 }
@@ -154,7 +154,7 @@ impl OpenAICompatibleChatLanguageModel {
     }
 
     /// Process a single streaming chunk and emit StreamPart events
-    fn process_chunk(state: &mut StreamState, chunk: OpenAIStreamChunk) -> Vec<StreamPart> {
+    fn process_chunk(state: &mut StreamState, chunk: OpenAIStreamChunk) -> Vec<LanguageModelStreamPart> {
         let mut parts = Vec::new();
 
         // Get the first choice (we only handle single choice for now)
@@ -170,12 +170,12 @@ impl OpenAICompatibleChatLanguageModel {
             if !content.is_empty() {
                 if state.text_id.is_none() {
                     let id = format!("text-{}", uuid::Uuid::new_v4());
-                    parts.push(StreamPart::text_start(&id));
+                    parts.push(LanguageModelStreamPart::text_start(&id));
                     state.text_id = Some(id.clone());
                 }
 
                 if let Some(id) = &state.text_id {
-                    parts.push(StreamPart::text_delta(id, content));
+                    parts.push(LanguageModelStreamPart::text_delta(id, content));
                 }
             }
         }
@@ -189,12 +189,12 @@ impl OpenAICompatibleChatLanguageModel {
             if !reasoning_text.is_empty() {
                 if state.reasoning_id.is_none() {
                     let id = format!("reasoning-{}", uuid::Uuid::new_v4());
-                    parts.push(StreamPart::reasoning_start(&id));
+                    parts.push(LanguageModelStreamPart::reasoning_start(&id));
                     state.reasoning_id = Some(id.clone());
                 }
 
                 if let Some(id) = &state.reasoning_id {
-                    parts.push(StreamPart::reasoning_delta(id, reasoning_text));
+                    parts.push(LanguageModelStreamPart::reasoning_delta(id, reasoning_text));
                 }
             }
         }
@@ -233,7 +233,7 @@ impl OpenAICompatibleChatLanguageModel {
                             && !tool_state.id.is_empty()
                             && !tool_state.name.is_empty()
                         {
-                            parts.push(StreamPart::tool_input_start(
+                            parts.push(LanguageModelStreamPart::tool_input_start(
                                 &tool_state.id,
                                 &tool_state.name,
                             ));
@@ -245,7 +245,7 @@ impl OpenAICompatibleChatLanguageModel {
                             if !args.is_empty() {
                                 tool_state.arguments.push_str(args);
                                 if tool_state.started {
-                                    parts.push(StreamPart::tool_input_delta(&tool_state.id, args));
+                                    parts.push(LanguageModelStreamPart::tool_input_delta(&tool_state.id, args));
                                 }
                             }
                         }
@@ -258,23 +258,23 @@ impl OpenAICompatibleChatLanguageModel {
         if let Some(finish_reason) = &choice.finish_reason {
             // End any open text block
             if let Some(id) = state.text_id.take() {
-                parts.push(StreamPart::text_end(&id));
+                parts.push(LanguageModelStreamPart::text_end(&id));
             }
 
             // End any open reasoning block
             if let Some(id) = state.reasoning_id.take() {
-                parts.push(StreamPart::reasoning_end(&id));
+                parts.push(LanguageModelStreamPart::reasoning_end(&id));
             }
 
             // End all open tool calls and emit ToolCall parts
             for tool_state in state.tool_calls.values() {
                 if tool_state.started {
-                    parts.push(StreamPart::tool_input_end(&tool_state.id));
+                    parts.push(LanguageModelStreamPart::tool_input_end(&tool_state.id));
 
                     // Emit the actual ToolCall with the complete arguments
                     let tool_call =
                         LanguageModelToolCall::new(&tool_state.id, &tool_state.name, &tool_state.arguments);
-                    parts.push(StreamPart::ToolCall(tool_call));
+                    parts.push(LanguageModelStreamPart::ToolCall(tool_call));
                 }
             }
 
@@ -303,7 +303,7 @@ impl OpenAICompatibleChatLanguageModel {
             let mapped_finish_reason = map_openai_compatible_finish_reason(Some(finish_reason));
 
             // Emit finish event
-            parts.push(StreamPart::finish(usage, mapped_finish_reason));
+            parts.push(LanguageModelStreamPart::finish(usage, mapped_finish_reason));
         }
 
         parts

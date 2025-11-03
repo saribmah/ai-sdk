@@ -1,6 +1,6 @@
 use super::super::content_parts::ToolResultPart;
 use super::super::tool::ToolApprovalResponse;
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content of a tool message. It is an array of tool result parts.
@@ -25,7 +25,7 @@ pub struct ToolModelMessage {
 
     /// Optional provider-specific options.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 impl ToolModelMessage {
@@ -39,7 +39,7 @@ impl ToolModelMessage {
     }
 
     /// Sets the provider options for this message.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
@@ -87,7 +87,7 @@ mod tests {
             ToolResultOutput::text("Success"),
         ))];
 
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message =
             ToolModelMessage::new(content).with_provider_options(provider_options.clone());
@@ -170,7 +170,7 @@ mod tests {
             ToolResultOutput::text("Success"),
         ))];
 
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message = ToolModelMessage::new(content).with_provider_options(provider_options);
 

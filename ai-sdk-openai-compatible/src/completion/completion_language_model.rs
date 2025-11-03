@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::stream_part::StreamPart;
+use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use ai_sdk_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning, content::LanguageModelContent, content::text::LanguageModelText,
@@ -431,13 +431,13 @@ impl OpenAICompatibleCompletionLanguageModel {
     fn process_stream(
         byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
         warnings: Vec<LanguageModelCallWarning>,
-    ) -> impl Stream<Item = StreamPart> + Unpin + Send {
+    ) -> impl Stream<Item =LanguageModelStreamPart> + Unpin + Send {
         let mut buffer = String::new();
         let mut is_first_chunk = true;
 
         Box::pin(async_stream::stream! {
             // Emit stream start with warnings
-            yield StreamPart::stream_start(warnings);
+            yield LanguageModelStreamPart::stream_start(warnings);
 
             let mut stream = Box::pin(byte_stream);
             let mut finish_reason = ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Unknown;
@@ -473,12 +473,12 @@ impl OpenAICompatibleCompletionLanguageModel {
                                             is_first_chunk = false;
 
                                             // Emit response metadata
-                                            yield StreamPart::ResponseMetadata(
+                                            yield LanguageModelStreamPart::ResponseMetadata(
                                                 get_response_metadata(chunk.id.clone(), chunk.model.clone(), chunk.created)
                                             );
 
                                             // Emit text start
-                                            yield StreamPart::text_start("0");
+                                            yield LanguageModelStreamPart::text_start("0");
                                         }
 
                                         // Update usage if present
@@ -497,7 +497,7 @@ impl OpenAICompatibleCompletionLanguageModel {
 
                                             // Emit text delta
                                             if !choice.text.is_empty() {
-                                                yield StreamPart::text_delta("0", &choice.text);
+                                                yield LanguageModelStreamPart::text_delta("0", &choice.text);
                                             }
                                         }
                                     }
@@ -506,7 +506,7 @@ impl OpenAICompatibleCompletionLanguageModel {
                         }
                     }
                     Err(e) => {
-                        yield StreamPart::error(json!({ "message": e.to_string() }));
+                        yield LanguageModelStreamPart::error(json!({ "message": e.to_string() }));
                         break;
                     }
                 }
@@ -514,11 +514,11 @@ impl OpenAICompatibleCompletionLanguageModel {
 
             // Emit text end if we started
             if !is_first_chunk {
-                yield StreamPart::text_end("0");
+                yield LanguageModelStreamPart::text_end("0");
             }
 
             // Emit finish event
-            yield StreamPart::finish(usage, finish_reason);
+            yield LanguageModelStreamPart::finish(usage, finish_reason);
         })
     }
 }

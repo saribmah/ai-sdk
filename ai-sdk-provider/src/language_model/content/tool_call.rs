@@ -1,4 +1,4 @@
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -17,7 +17,7 @@ pub struct LanguageModelToolCall {
     pub provider_executed: Option<bool>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -46,7 +46,7 @@ impl LanguageModelToolCall {
         tool_name: impl Into<String>,
         input: impl Into<String>,
         provider_executed: Option<bool>,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     ) -> Self {
         Self {
             content_type: ToolCallType,

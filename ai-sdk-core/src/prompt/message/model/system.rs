@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// A system message. It can contain system information.
@@ -18,7 +18,7 @@ pub struct SystemModelMessage {
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 impl SystemModelMessage {
@@ -32,7 +32,7 @@ impl SystemModelMessage {
     }
 
     /// Sets the provider options for this message.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_system_model_message_with_provider_options() {
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message = SystemModelMessage::new("You are a helpful assistant.")
             .with_provider_options(provider_options.clone());
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_system_model_message_serialization_with_provider_options() {
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message =
             SystemModelMessage::new("You are helpful.").with_provider_options(provider_options);

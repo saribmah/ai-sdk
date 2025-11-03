@@ -6,7 +6,7 @@ use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
 use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -62,7 +62,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the end of a text segment.
@@ -73,7 +73,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A text delta (incremental update).
@@ -84,7 +84,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// The text content.
         text: String,
@@ -98,7 +98,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the end of a reasoning segment.
@@ -109,7 +109,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A reasoning delta (incremental update).
@@ -120,7 +120,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// The reasoning text content.
         text: String,
@@ -137,7 +137,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// Whether the provider executed this tool.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -160,7 +160,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A tool input delta (incremental update).
@@ -174,7 +174,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A source/reference in the generation.
@@ -267,7 +267,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the start of the entire generation.

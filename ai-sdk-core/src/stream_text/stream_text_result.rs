@@ -9,7 +9,7 @@ use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
 use serde_json::Value;
@@ -104,7 +104,7 @@ struct StreamState<INPUT, OUTPUT> {
     steps: Vec<StepResult<INPUT, OUTPUT>>,
     request: RequestMetadata,
     response: ResponseMetadata,
-    provider_metadata: Option<ProviderMetadata>,
+    provider_metadata: Option<SharedProviderMetadata>,
 }
 
 impl<INPUT, OUTPUT> Default for StreamState<INPUT, OUTPUT> {
@@ -570,7 +570,7 @@ where
     /// Gets additional provider-specific metadata from the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn provider_metadata(&self) -> Result<Option<ProviderMetadata>, AISDKError> {
+    pub async fn provider_metadata(&self) -> Result<Option<SharedProviderMetadata>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().provider_metadata.clone())
     }

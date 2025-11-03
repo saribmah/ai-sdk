@@ -1,3 +1,3 @@
 use std::collections::HashMap;
 
-pub type Headers = HashMap<String, String>;
+pub type SharedHeaders = HashMap<String, String>;

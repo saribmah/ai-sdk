@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Text output of a text generation.
@@ -27,7 +27,7 @@ pub struct TextOutput {
     /// These are passed through to the provider from the AI SDK and enable
     /// provider-specific functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 impl TextOutput {
@@ -67,7 +67,7 @@ impl TextOutput {
     /// let text = TextOutput::new("Hello")
     ///     .with_provider_metadata(metadata);
     /// ```
-    pub fn with_provider_metadata(mut self, metadata: ProviderMetadata) -> Self {
+    pub fn with_provider_metadata(mut self, metadata: SharedProviderMetadata) -> Self {
         self.provider_metadata = Some(metadata);
         self
     }
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_text_output_with_provider_metadata() {
-        let mut metadata = ProviderMetadata::new();
+        let mut metadata = SharedProviderMetadata::new();
         let mut inner = HashMap::new();
         inner.insert("key".to_string(), serde_json::json!("value"));
         metadata.insert("provider".to_string(), inner);

@@ -1,7 +1,7 @@
-use crate::language_model::prompt::Prompt;
+use crate::language_model::prompt::LanguageModelPrompt;
 use crate::language_model::tool::Tool;
 use crate::language_model::tool_choice::ToolChoice;
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -17,7 +17,7 @@ pub struct LanguageModelCallOptions {
     /// user-facing prompt types such as chat or instruction prompts to this format.
     /// That approach allows us to evolve the user facing prompts without breaking
     /// the language model interface.
-    pub prompt: Prompt,
+    pub prompt: LanguageModelPrompt,
 
     /// Maximum number of tokens to generate.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,7 +84,7 @@ pub struct LanguageModelCallOptions {
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 
     /// Abort/cancellation signal (not serialized, used for runtime control).
     #[serde(skip)]
@@ -119,7 +119,7 @@ pub enum ResponseFormat {
 
 impl LanguageModelCallOptions {
     /// Create new call options with just a prompt
-    pub fn new(prompt: Prompt) -> Self {
+    pub fn new(prompt: LanguageModelPrompt) -> Self {
         Self {
             prompt,
             max_output_tokens: None,
@@ -206,7 +206,7 @@ impl LanguageModelCallOptions {
         self
     }
 
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }

@@ -3,10 +3,10 @@ use crate::language_model::call_warning::LanguageModelCallWarning;
 use crate::language_model::content::LanguageModelContent;
 use crate::language_model::finish_reason::LanguageModelFinishReason;
 use crate::language_model::response_metadata::LanguageModelResponseMetadata;
-use crate::language_model::stream_part::StreamPart;
+use crate::language_model::stream_part::LanguageModelStreamPart;
 use crate::language_model::usage::LanguageModelUsage;
-use crate::shared::headers::Headers;
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::headers::SharedHeaders;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use async_trait::async_trait;
 use futures::Stream;
 use regex::Regex;
@@ -55,14 +55,14 @@ pub struct LanguageModelGenerateResponse {
     pub content: Vec<LanguageModelContent>,
     pub finish_reason: LanguageModelFinishReason,
     pub usage: LanguageModelUsage,
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
     pub request: Option<LanguageModelRequestMetadata>,
     pub response: Option<LanguageModelResponseMetadata>,
     pub warnings: Vec<LanguageModelCallWarning>,
 }
 
 pub struct LanguageModelStreamResponse {
-    pub stream: Box<dyn Stream<Item = StreamPart> + Unpin + Send>,
+    pub stream: Box<dyn Stream<Item =LanguageModelStreamPart> + Unpin + Send>,
     pub request: Option<LanguageModelRequestMetadata>,
     pub response: Option<StreamResponseMetadata>,
 }
@@ -73,5 +73,5 @@ pub struct LanguageModelRequestMetadata {
 }
 
 pub struct StreamResponseMetadata {
-    pub headers: Option<Headers>,
+    pub headers: Option<SharedHeaders>,
 }

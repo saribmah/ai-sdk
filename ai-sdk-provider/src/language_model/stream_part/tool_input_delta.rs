@@ -1,4 +1,4 @@
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub struct ToolInputDelta {
 
     /// Provider-specific metadata
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,7 +35,7 @@ impl ToolInputDelta {
     pub fn with_metadata(
         id: impl Into<String>,
         delta: impl Into<String>,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     ) -> Self {
         Self {
             content_type: ToolInputDeltaType,

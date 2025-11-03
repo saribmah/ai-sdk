@@ -1,5 +1,5 @@
 use crate::prompt::message::DataContent;
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -17,7 +17,7 @@ pub struct ImagePart {
 
     /// Additional provider-specific metadata.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 /// Source of image data - either raw data or a URL.
@@ -56,7 +56,7 @@ impl ImagePart {
     }
 
     /// Sets the provider options.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }

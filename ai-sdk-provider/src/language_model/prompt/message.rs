@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 /// A message in a prompt with role-specific content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Message {
+pub enum LanguageModelMessage {
     /// System message with text content
     System(System),
 
@@ -35,7 +35,7 @@ pub enum Message {
 }
 
 // Helper implementations for Message
-impl Message {
+impl LanguageModelMessage {
     /// Create a system message
     pub fn system(content: impl Into<String>) -> Self {
         Self::System(System::new(content))

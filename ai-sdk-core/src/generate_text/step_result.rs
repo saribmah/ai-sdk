@@ -2,7 +2,7 @@ use ai_sdk_provider::language_model::{
     call_warning::LanguageModelCallWarning, content::source::LanguageModelSource, finish_reason::LanguageModelFinishReason,
     response_metadata::LanguageModelResponseMetadata, usage::LanguageModelUsage,
 };
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -99,7 +99,7 @@ pub struct StepResult<INPUT = Value, OUTPUT = Value> {
     pub response: StepResponseMetadata,
 
     /// Additional provider-specific metadata.
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
@@ -121,7 +121,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         warnings: Option<Vec<LanguageModelCallWarning>>,
         request: RequestMetadata,
         response: StepResponseMetadata,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     ) -> Self {
         Self {
             content,

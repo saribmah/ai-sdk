@@ -30,14 +30,14 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
     /// A text delta (incremental update).
     TextDelta {
         id: String,
-        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
+        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
         text: String,
     },
 
     /// A reasoning delta (incremental update).
     ReasoningDelta {
         id: String,
-        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
+        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
         text: String,
     },
 
@@ -55,7 +55,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
     ToolInputStart {
         id: String,
         tool_name: String,
-        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
+        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
         provider_executed: Option<bool>,
         dynamic: Option<bool>,
         title: Option<String>,
@@ -65,7 +65,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
     ToolInputDelta {
         id: String,
         delta: String,
-        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
+        provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
     },
 
     /// A tool result.

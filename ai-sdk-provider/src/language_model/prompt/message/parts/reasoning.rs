@@ -1,4 +1,4 @@
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -12,7 +12,7 @@ pub struct ReasoningPart {
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -30,7 +30,7 @@ impl ReasoningPart {
 
     pub fn with_options(
         text: impl Into<String>,
-        provider_options: Option<ProviderOptions>,
+        provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
             content_type: ReasoningPartType,

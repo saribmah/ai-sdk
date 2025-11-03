@@ -1,5 +1,5 @@
 use super::parts::{FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart};
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content parts that can appear in an assistant message
@@ -34,7 +34,7 @@ pub struct Assistant {
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,7 +52,7 @@ impl Assistant {
 
     pub fn with_options(
         content: Vec<AssistantMessagePart>,
-        provider_options: Option<ProviderOptions>,
+        provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
             message_role: AssistantRole,

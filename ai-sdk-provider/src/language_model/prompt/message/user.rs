@@ -1,5 +1,5 @@
 use super::parts::{FilePart, TextPart};
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content parts that can appear in a user message
@@ -25,7 +25,7 @@ pub struct User {
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -43,7 +43,7 @@ impl User {
 
     pub fn with_options(
         content: Vec<UserMessagePart>,
-        provider_options: Option<ProviderOptions>,
+        provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
             message_role: UserRole,

@@ -65,7 +65,7 @@ use crate::prompt::{
 use ai_sdk_provider::{
     language_model::tool_choice::ToolChoice,
     language_model::{LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage},
-    shared::provider_options::ProviderOptions,
+    shared::provider_options::SharedProviderOptions,
 };
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
@@ -342,7 +342,7 @@ pub async fn generate_text(
     settings: CallSettings,
     tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
-    provider_options: Option<ProviderOptions>,
+    provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     on_step_finish: Option<Box<dyn OnStepFinish>>,
@@ -910,7 +910,7 @@ mod tests {
         let model = MockLanguageModel::new();
         let prompt = Prompt::text("Hello, world!");
         let settings = CallSettings::default();
-        let mut provider_options = ProviderOptions::new();
+        let mut provider_options = SharedProviderOptions::new();
         provider_options.insert(
             "custom".to_string(),
             [("key".to_string(), Value::String("value".to_string()))]

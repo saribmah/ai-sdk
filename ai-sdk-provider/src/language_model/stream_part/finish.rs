@@ -1,6 +1,6 @@
 use crate::language_model::finish_reason::LanguageModelFinishReason;
 use crate::language_model::usage::LanguageModelUsage;
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -17,7 +17,7 @@ pub struct Finish {
 
     /// Provider-specific metadata
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -37,7 +37,7 @@ impl Finish {
     pub fn with_metadata(
         usage: LanguageModelUsage,
         finish_reason: LanguageModelFinishReason,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     ) -> Self {
         Self {
             content_type: FinishType,

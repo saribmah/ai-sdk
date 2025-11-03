@@ -1,4 +1,4 @@
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -9,7 +9,7 @@ pub struct LanguageModelReasoning {
     pub text: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -25,7 +25,7 @@ impl LanguageModelReasoning {
         }
     }
 
-    pub fn with_metadata(text: impl Into<String>, provider_metadata: ProviderMetadata) -> Self {
+    pub fn with_metadata(text: impl Into<String>, provider_metadata: SharedProviderMetadata) -> Self {
         Self {
             content_type: ReasoningType,
             text: text.into(),

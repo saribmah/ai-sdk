@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Text content part of a prompt. It contains a string of text.
@@ -11,7 +11,7 @@ pub struct TextPart {
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 impl TextPart {
@@ -24,7 +24,7 @@ impl TextPart {
     }
 
     /// Sets the provider options.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }

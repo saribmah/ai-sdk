@@ -1,4 +1,4 @@
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -14,7 +14,7 @@ pub enum LanguageModelSource {
         title: Option<String>,
 
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     #[serde(rename_all = "camelCase")]
@@ -29,7 +29,7 @@ pub enum LanguageModelSource {
         filename: Option<String>,
 
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 }
 
@@ -45,7 +45,7 @@ impl LanguageModelSource {
         }
     }
 
-    pub fn provider_metadata(&self) -> Option<&ProviderMetadata> {
+    pub fn provider_metadata(&self) -> Option<&SharedProviderMetadata> {
         match self {
             LanguageModelSource::Url {
                 provider_metadata, ..

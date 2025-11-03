@@ -26,7 +26,7 @@ use serde_json::Value;
 /// Stream parts that can be emitted during model generation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum StreamPart {
+pub enum LanguageModelStreamPart {
     // Text blocks
     /// Start of a text block
     TextStart(text_start::TextStart),
@@ -90,7 +90,7 @@ pub enum StreamPart {
 }
 
 // Helper implementations
-impl StreamPart {
+impl LanguageModelStreamPart {
     /// Check if this is a text-related part
     pub fn is_text(&self) -> bool {
         matches!(
@@ -165,7 +165,7 @@ impl StreamPart {
 }
 
 // Constructors for common cases
-impl StreamPart {
+impl LanguageModelStreamPart {
     /// Create a text start event
     pub fn text_start(id: impl Into<String>) -> Self {
         Self::TextStart(text_start::TextStart::new(id))

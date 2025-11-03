@@ -2,7 +2,7 @@ use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
 use super::content_part::ContentPart;
@@ -120,7 +120,7 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     ///
     /// They are passed through from the provider to the AI SDK and enable
     /// provider-specific results that can be fully encapsulated in the provider.
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 
     /// Details for all steps.
     ///
@@ -262,7 +262,7 @@ where
         warnings: Option<Vec<LanguageModelCallWarning>>,
         request: RequestMetadata,
         response: ResponseMetadata,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
         steps: Vec<StepResult<INPUT, OUTPUT>>,
         output: OUTPUT,
     ) -> Self

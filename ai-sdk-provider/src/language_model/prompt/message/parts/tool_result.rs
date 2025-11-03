@@ -1,4 +1,4 @@
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -21,7 +21,7 @@ pub struct ToolResultPart {
 
     /// Additional provider-specific options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -106,7 +106,7 @@ impl ToolResultPart {
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,
         output: ToolResultOutput,
-        provider_options: Option<ProviderOptions>,
+        provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
             part_type: ToolResultPartType,

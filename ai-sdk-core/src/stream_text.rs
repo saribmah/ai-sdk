@@ -40,7 +40,7 @@ use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
 use ai_sdk_provider::language_model::{
     LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::ToolChoice, usage::LanguageModelUsage,
 };
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -69,7 +69,7 @@ struct SingleStepStreamResult {
     response: crate::generate_text::StepResponseMetadata,
 
     /// Provider metadata
-    provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
+    provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
 
     /// Warnings from the provider
     warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
@@ -90,7 +90,7 @@ async fn stream_single_step(
     on_error: Option<&Arc<OnErrorCallback>>,
 ) -> Result<SingleStepStreamResult, AISDKError> {
     use crate::generate_text::{ReasoningOutput, SourceOutput, TextOutput};
-    use ai_sdk_provider::language_model::stream_part::StreamPart;
+    use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
     use futures_util::StreamExt;
 
     // Call model.do_stream
@@ -124,11 +124,11 @@ async fn stream_single_step(
     while let Some(part) = provider_stream.next().await {
         // Convert StreamPart to TextStreamPart
         let text_stream_part = match part {
-            StreamPart::TextStart(ts) => TextStreamPart::TextStart {
+            LanguageModelStreamPart::TextStart(ts) => TextStreamPart::TextStart {
                 id: ts.id,
                 provider_metadata: ts.provider_metadata,
             },
-            StreamPart::TextDelta(td) => {
+            LanguageModelStreamPart::TextDelta(td) => {
                 current_text.push_str(&td.delta);
                 TextStreamPart::TextDelta {
                     id: td.id,
@@ -136,7 +136,7 @@ async fn stream_single_step(
                     text: td.delta,
                 }
             }
-            StreamPart::TextEnd(te) => {
+            LanguageModelStreamPart::TextEnd(te) => {
                 // Add accumulated text to content
                 if !current_text.is_empty() {
                     step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
@@ -147,11 +147,11 @@ async fn stream_single_step(
                     provider_metadata: te.provider_metadata,
                 }
             }
-            StreamPart::ReasoningStart(rs) => TextStreamPart::ReasoningStart {
+            LanguageModelStreamPart::ReasoningStart(rs) => TextStreamPart::ReasoningStart {
                 id: rs.id,
                 provider_metadata: rs.provider_metadata,
             },
-            StreamPart::ReasoningDelta(rd) => {
+            LanguageModelStreamPart::ReasoningDelta(rd) => {
                 current_reasoning.push_str(&rd.delta);
                 TextStreamPart::ReasoningDelta {
                     id: rd.id,
@@ -159,7 +159,7 @@ async fn stream_single_step(
                     text: rd.delta,
                 }
             }
-            StreamPart::ReasoningEnd(re) => {
+            LanguageModelStreamPart::ReasoningEnd(re) => {
                 // Add accumulated reasoning to content
                 if !current_reasoning.is_empty() {
                     step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
@@ -172,7 +172,7 @@ async fn stream_single_step(
                     provider_metadata: re.provider_metadata,
                 }
             }
-            StreamPart::ToolInputStart(tis) => TextStreamPart::ToolInputStart {
+            LanguageModelStreamPart::ToolInputStart(tis) => TextStreamPart::ToolInputStart {
                 id: tis.id,
                 tool_name: tis.tool_name,
                 provider_metadata: tis.provider_metadata,
@@ -180,23 +180,23 @@ async fn stream_single_step(
                 dynamic: None,
                 title: None,
             },
-            StreamPart::ToolInputDelta(tid) => TextStreamPart::ToolInputDelta {
+            LanguageModelStreamPart::ToolInputDelta(tid) => TextStreamPart::ToolInputDelta {
                 id: tid.id,
                 delta: tid.delta,
                 provider_metadata: tid.provider_metadata,
             },
-            StreamPart::ToolInputEnd(tie) => TextStreamPart::ToolInputEnd {
+            LanguageModelStreamPart::ToolInputEnd(tie) => TextStreamPart::ToolInputEnd {
                 id: tie.id,
                 provider_metadata: tie.provider_metadata,
             },
-            StreamPart::Source(source) => {
+            LanguageModelStreamPart::Source(source) => {
                 let source_output = SourceOutput::new(source.clone());
                 step_content.push(ContentPart::Source(source_output.clone()));
                 TextStreamPart::Source {
                     source: source_output,
                 }
             }
-            StreamPart::File(file) => {
+            LanguageModelStreamPart::File(file) => {
                 use ai_sdk_provider::language_model::content::file::FileData;
 
                 // Convert FileData to base64
@@ -216,7 +216,7 @@ async fn stream_single_step(
                     },
                 }
             }
-            StreamPart::StreamStart(ss) => {
+            LanguageModelStreamPart::StreamStart(ss) => {
                 step_warnings = if ss.warnings.is_empty() {
                     None
                 } else {
@@ -229,7 +229,7 @@ async fn stream_single_step(
                     warnings: ss.warnings,
                 }
             }
-            StreamPart::Finish(f) => {
+            LanguageModelStreamPart::Finish(f) => {
                 // Flush any remaining text/reasoning
                 if !current_text.is_empty() {
                     step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
@@ -253,7 +253,7 @@ async fn stream_single_step(
                     provider_metadata: f.provider_metadata.clone(),
                 }
             }
-            StreamPart::Raw(r) => {
+            LanguageModelStreamPart::Raw(r) => {
                 if include_raw_chunks {
                     TextStreamPart::Raw {
                         raw_value: r.raw_value,
@@ -262,7 +262,7 @@ async fn stream_single_step(
                     continue;
                 }
             }
-            StreamPart::Error(e) => {
+            LanguageModelStreamPart::Error(e) => {
                 // Call on_error callback if provided
                 if let Some(callback) = on_error {
                     let event = callbacks::StreamTextErrorEvent {
@@ -275,7 +275,7 @@ async fn stream_single_step(
                     e.error
                 )));
             }
-            StreamPart::ToolCall(provider_tool_call) => {
+            LanguageModelStreamPart::ToolCall(provider_tool_call) => {
                 // Parse the tool call using parse_tool_call
                 use crate::generate_text::parse_tool_call;
 
@@ -307,7 +307,7 @@ async fn stream_single_step(
                     }
                 }
             }
-            StreamPart::ToolResult(provider_tool_result) => {
+            LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
                 use crate::generate_text::{DynamicToolResult, StaticToolResult, TypedToolResult};
 
@@ -350,7 +350,7 @@ async fn stream_single_step(
                 }
             }
             // Handle response metadata
-            StreamPart::ResponseMetadata(_) => {
+            LanguageModelStreamPart::ResponseMetadata(_) => {
                 // Skip response metadata in stream parts
                 continue;
             }
@@ -448,7 +448,7 @@ pub async fn stream_text(
     settings: CallSettings,
     tools: Option<ToolSet>,
     tool_choice: Option<ToolChoice>,
-    provider_options: Option<ProviderOptions>,
+    provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     include_raw_chunks: bool,

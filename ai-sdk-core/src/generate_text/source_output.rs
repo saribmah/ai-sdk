@@ -1,5 +1,5 @@
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Source output representing a source/reference in the generation.
@@ -26,7 +26,7 @@ pub struct SourceOutput {
 
     /// Additional provider-specific metadata.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
 impl SourceOutput {
@@ -48,7 +48,7 @@ impl SourceOutput {
     /// # Arguments
     ///
     /// * `metadata` - Provider-specific metadata
-    pub fn with_provider_metadata(mut self, metadata: ProviderMetadata) -> Self {
+    pub fn with_provider_metadata(mut self, metadata: SharedProviderMetadata) -> Self {
         self.provider_metadata = Some(metadata);
         self
     }
@@ -82,7 +82,7 @@ mod tests {
             title: None,
             provider_metadata: None,
         };
-        let mut metadata = ProviderMetadata::new();
+        let mut metadata = SharedProviderMetadata::new();
         let mut inner = HashMap::new();
         inner.insert("key".to_string(), serde_json::json!("value"));
         metadata.insert("provider".to_string(), inner);

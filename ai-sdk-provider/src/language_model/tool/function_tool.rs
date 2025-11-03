@@ -1,4 +1,4 @@
-use crate::shared::provider_options::ProviderOptions;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -27,7 +27,7 @@ pub struct FunctionTool {
 
     /// The provider-specific options for the tool.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -51,7 +51,7 @@ impl FunctionTool {
         name: impl Into<String>,
         input_schema: Value,
         description: Option<String>,
-        provider_options: Option<ProviderOptions>,
+        provider_options: Option<SharedProviderOptions>,
     ) -> Self {
         Self {
             tool_type: FunctionToolType,
@@ -69,7 +69,7 @@ impl FunctionTool {
     }
 
     /// Set provider options
-    pub fn with_provider_options(mut self, provider_options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, provider_options: SharedProviderOptions) -> Self {
         self.provider_options = Some(provider_options);
         self
     }

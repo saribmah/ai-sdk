@@ -2,7 +2,7 @@ use super::super::content_parts::{
     FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart,
 };
 use super::super::tool::ToolApprovalRequest;
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content of an assistant message.
@@ -41,7 +41,7 @@ pub struct AssistantModelMessage {
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 }
 
 impl AssistantModelMessage {
@@ -64,7 +64,7 @@ impl AssistantModelMessage {
     }
 
     /// Sets the provider options for this message.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_with_provider_options() {
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message =
             AssistantModelMessage::new("Hello").with_provider_options(provider_options.clone());
@@ -283,7 +283,7 @@ mod tests {
 
     #[test]
     fn test_assistant_model_message_serialization_with_provider_options() {
-        let provider_options = ProviderOptions::new();
+        let provider_options = SharedProviderOptions::new();
 
         let message = AssistantModelMessage::new("Hello").with_provider_options(provider_options);
 

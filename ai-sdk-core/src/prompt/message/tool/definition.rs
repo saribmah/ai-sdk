@@ -1,6 +1,6 @@
 use super::options::ToolCallOptions;
 use crate::prompt::message::content_parts::ToolResultOutput;
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -89,7 +89,7 @@ where
     pub description: Option<String>,
 
     /// Additional provider-specific metadata.
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 
     /// The schema of the input that the tool expects.
     /// Use JSON Schema to describe the input structure.
@@ -207,7 +207,7 @@ where
     }
 
     /// Sets the provider options.
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
@@ -418,7 +418,7 @@ mod tests {
     #[test]
     fn test_tool_with_provider_options() {
         let schema = json!({"type": "object"});
-        let options = ProviderOptions::new();
+        let options = SharedProviderOptions::new();
 
         let tool: Tool = Tool::function(schema).with_provider_options(options.clone());
 

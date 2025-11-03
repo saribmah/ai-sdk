@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -44,7 +44,7 @@ pub struct StaticToolCall<INPUT> {
 
     /// Provider-specific metadata for this tool call.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 
     /// Whether this is a dynamic tool (false or None for static tools).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,7 +108,7 @@ impl<INPUT> StaticToolCall<INPUT> {
     /// # Arguments
     ///
     /// * `metadata` - Provider-specific metadata
-    pub fn with_provider_metadata(mut self, metadata: ProviderMetadata) -> Self {
+    pub fn with_provider_metadata(mut self, metadata: SharedProviderMetadata) -> Self {
         self.provider_metadata = Some(metadata);
         self
     }
@@ -163,7 +163,7 @@ pub struct DynamicToolCall {
 
     /// Provider-specific metadata for this tool call.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 
     /// Whether this is a dynamic tool (always true).
     pub dynamic: bool,
@@ -240,7 +240,7 @@ impl DynamicToolCall {
     /// # Arguments
     ///
     /// * `metadata` - Provider-specific metadata
-    pub fn with_provider_metadata(mut self, metadata: ProviderMetadata) -> Self {
+    pub fn with_provider_metadata(mut self, metadata: SharedProviderMetadata) -> Self {
         self.provider_metadata = Some(metadata);
         self
     }
@@ -350,7 +350,7 @@ mod tests {
     #[test]
     fn test_static_tool_call_with_provider_metadata() {
         use std::collections::HashMap;
-        let mut metadata = ProviderMetadata::new();
+        let mut metadata = SharedProviderMetadata::new();
         let mut inner = HashMap::new();
         inner.insert("key".to_string(), json!("value"));
         metadata.insert("provider".to_string(), inner);
