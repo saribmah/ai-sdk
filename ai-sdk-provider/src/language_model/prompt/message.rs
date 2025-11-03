@@ -8,10 +8,11 @@ pub mod user;
 pub use assistant::{Assistant, AssistantMessagePart};
 pub use data_content::DataContent;
 pub use parts::{
-    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart as MessageToolResultPart,
+    FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultContentItem, ToolResultOutput,
+    ToolResultPart,
 };
 pub use system::System;
-pub use tool::{Tool, ToolResultContentItem, ToolResultOutput, ToolResultPart};
+pub use tool::Tool;
 pub use user::{User, UserMessagePart};
 
 use serde::{Deserialize, Serialize};
