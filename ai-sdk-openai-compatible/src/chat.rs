@@ -1,13 +1,13 @@
-pub mod chat_language_model;
-pub mod chat_options;
-pub mod convert_to_chat_messages;
+pub mod language_model;
+pub mod options;
+pub mod convert_prompt;
 pub mod metadata_extractor;
 pub mod prepare_tools;
 pub mod prompt;
 
-pub use chat_language_model::*;
-pub use chat_options::*;
-pub use convert_to_chat_messages::*;
+pub use language_model::*;
+pub use options::*;
+pub use convert_prompt::*;
 pub use metadata_extractor::*;
 pub use prepare_tools::*;
 pub use prompt::message::*;
