@@ -9,15 +9,7 @@ use ai_sdk_provider::language_model::prompt::{
     LanguageModelAssistantMessagePart, LanguageModelMessage, LanguageModelPrompt,
     LanguageModelUserMessagePart,
 };
-
-/// Result of converting a prompt to OpenAI-compatible completion format
-#[derive(Debug, Clone, PartialEq)]
-pub struct CompletionPrompt {
-    /// The formatted prompt text
-    pub prompt: String,
-    /// Optional stop sequences to use with the completion
-    pub stop_sequences: Option<Vec<String>>,
-}
+use crate::completion::prompt::OpenAICompatibleCompletionPrompt;
 
 /// Converts a language model prompt to OpenAI-compatible completion format.
 ///
@@ -65,7 +57,7 @@ pub fn convert_to_openai_compatible_completion_prompt(
     mut prompt: LanguageModelPrompt,
     user: Option<&str>,
     assistant: Option<&str>,
-) -> Result<CompletionPrompt, String> {
+) -> Result<OpenAICompatibleCompletionPrompt, String> {
     let user_prefix = user.unwrap_or("user");
     let assistant_prefix = assistant.unwrap_or("assistant");
 
@@ -130,7 +122,7 @@ pub fn convert_to_openai_compatible_completion_prompt(
     // Add assistant message prefix
     text.push_str(&format!("{}:\n", assistant_prefix));
 
-    Ok(CompletionPrompt {
+    Ok(OpenAICompatibleCompletionPrompt {
         prompt: text,
         stop_sequences: Some(vec![format!("\n{}:", user_prefix)]),
     })

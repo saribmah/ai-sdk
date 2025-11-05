@@ -59,6 +59,7 @@ pub mod chat;
 pub mod completion;
 pub mod error;
 mod provider;
+mod utils;
 
 pub use chat::*;
 pub use completion::*;
