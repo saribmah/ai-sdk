@@ -6,7 +6,7 @@ use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, Typ
 use crate::prompt::message::Message;
 use crate::prompt::message::tool::definition::Tool;
 use crate::prompt::message::tool::execute::{ToolExecutionEvent, execute_tool};
-use crate::prompt::message::tool::options::ToolCallOptions;
+use crate::prompt::message::tool::options::ToolExecuteOptions;
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::Arc;
@@ -86,7 +86,7 @@ pub async fn execute_tool_call(
     }
 
     // Create tool call options
-    let mut options = ToolCallOptions::new(&tool_call_id, messages);
+    let mut options = ToolExecuteOptions::new(&tool_call_id, messages);
 
     if let Some(signal) = abort_signal {
         options = options.with_abort_signal(signal);

@@ -3,7 +3,7 @@ use tokio_util::sync::CancellationToken;
 
 /// Additional options that are sent into each tool call.
 #[derive(Debug, Clone)]
-pub struct ToolCallOptions {
+pub struct ToolExecuteOptions {
     /// The ID of the tool call. You can use it e.g. when sending tool-call related information with stream data.
     pub tool_call_id: String,
 
@@ -20,7 +20,7 @@ pub struct ToolCallOptions {
     pub experimental_context: Option<serde_json::Value>,
 }
 
-impl ToolCallOptions {
+impl ToolExecuteOptions {
     /// Creates new tool call options.
     pub fn new(tool_call_id: impl Into<String>, messages: Vec<Message>) -> Self {
         Self {
@@ -56,7 +56,7 @@ mod tests {
             Message::from(UserMessage::new("Hello!")),
         ];
 
-        let options = ToolCallOptions::new("call_123", messages.clone());
+        let options = ToolExecuteOptions::new("call_123", messages.clone());
 
         assert_eq!(options.tool_call_id, "call_123");
         assert_eq!(options.messages.len(), 2);
@@ -69,7 +69,7 @@ mod tests {
         let messages = vec![Message::from(UserMessage::new("Hello!"))];
 
         let token = CancellationToken::new();
-        let options = ToolCallOptions::new("call_123", messages).with_abort_signal(token.clone());
+        let options = ToolExecuteOptions::new("call_123", messages).with_abort_signal(token.clone());
 
         assert!(options.abort_signal.is_some());
     }
@@ -80,7 +80,7 @@ mod tests {
 
         let context = serde_json::json!({"key": "value"});
         let options =
-            ToolCallOptions::new("call_123", messages).with_experimental_context(context.clone());
+            ToolExecuteOptions::new("call_123", messages).with_experimental_context(context.clone());
 
         assert_eq!(options.experimental_context, Some(context));
     }

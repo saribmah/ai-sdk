@@ -1,5 +1,5 @@
 use super::definition::{ToolExecuteFunction, ToolExecutionOutput};
-use super::options::ToolCallOptions;
+use super::options::ToolExecuteOptions;
 use futures_util::Stream;
 
 /// Event emitted during tool execution.
@@ -57,7 +57,7 @@ impl<OUTPUT> Eq for ToolExecutionEvent<OUTPUT> where OUTPUT: Eq + Send + Clone +
 pub fn execute_tool<INPUT, OUTPUT>(
     execute: &ToolExecuteFunction<INPUT, OUTPUT>,
     input: INPUT,
-    options: ToolCallOptions,
+    options: ToolExecuteOptions,
 ) -> impl Stream<Item = ToolExecutionEvent<OUTPUT>>
 where
     INPUT: Send + 'static,
@@ -120,7 +120,7 @@ mod tests {
             ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
         });
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let mut stream = Box::pin(execute_tool(&execute, json!({"city": "SF"}), options));
 
         // Should get exactly one Final event
@@ -146,7 +146,7 @@ mod tests {
             }))
         });
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let mut stream = Box::pin(execute_tool(&execute, json!({}), options));
 
         // Should get 3 Preliminary events
@@ -199,7 +199,7 @@ mod tests {
             }))
         });
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let mut stream = Box::pin(execute_tool(&execute, json!({}), options));
 
         // Should get no events (not even a Final event since there's no output)
@@ -214,7 +214,7 @@ mod tests {
             ))
         });
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let mut stream = Box::pin(execute_tool(&execute, json!({}), options));
 
         // Should get exactly one Error event
@@ -240,7 +240,7 @@ mod tests {
             }))
         });
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let mut stream = Box::pin(execute_tool(&execute, json!({}), options));
 
         // Should get 1 Preliminary event

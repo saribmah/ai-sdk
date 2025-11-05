@@ -13,7 +13,7 @@ pub use content_parts::{
 pub use data_content::DataContent;
 pub use system::SystemMessage;
 pub use tool::{
-    Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions, ToolContent,
+    Tool, ToolApprovalRequest, ToolApprovalResponse, ToolExecuteOptions, ToolContent,
     ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput, ToolMessage,
     ToolNeedsApprovalFunction, ToolType, execute_tool,
 };

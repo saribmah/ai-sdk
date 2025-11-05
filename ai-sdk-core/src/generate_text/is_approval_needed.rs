@@ -1,6 +1,6 @@
 use crate::prompt::message::Message;
 use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
-use crate::prompt::message::tool::options::ToolCallOptions;
+use crate::prompt::message::tool::options::ToolExecuteOptions;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -60,7 +60,7 @@ where
         // Tool needs approval based on a function
         NeedsApproval::Function(needs_approval_fn) => {
             // Create tool call options
-            let mut options = ToolCallOptions::new(tool_call_id, messages);
+            let mut options = ToolExecuteOptions::new(tool_call_id, messages);
 
             if let Some(context) = experimental_context {
                 options = options.with_experimental_context(context);

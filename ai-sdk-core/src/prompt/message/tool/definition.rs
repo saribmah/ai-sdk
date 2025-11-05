@@ -1,4 +1,4 @@
-use super::options::ToolCallOptions;
+use super::options::ToolExecuteOptions;
 use crate::prompt::message::content_parts::ToolResultOutput;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use futures_util::Stream;
@@ -30,23 +30,23 @@ where
 ///
 /// Returns either a Future that resolves to a single output, or a Stream of outputs.
 pub type ToolExecuteFunction<INPUT, OUTPUT> =
-    Box<dyn Fn(INPUT, ToolCallOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
+    Box<dyn Fn(INPUT, ToolExecuteOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
 
 /// Function that determines if a tool needs approval before execution.
 pub type ToolNeedsApprovalFunction<INPUT> =
-    Box<dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync>;
+    Box<dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync>;
 
 /// Callback that is called when tool input streaming starts.
 pub type OnInputStartCallback =
-    Box<dyn Fn(ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+    Box<dyn Fn(ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when a tool input delta is available.
 pub type OnInputDeltaCallback =
-    Box<dyn Fn(String, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+    Box<dyn Fn(String, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when tool input is available.
 pub type OnInputAvailableCallback<INPUT> =
-    Box<dyn Fn(INPUT, ToolCallOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+    Box<dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Function that converts tool output to model output format.
 pub type ToModelOutputFunction<OUTPUT> = Box<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;
@@ -280,7 +280,7 @@ where
     }
 
     /// Checks if this tool needs approval for the given input.
-    pub async fn check_needs_approval(&self, input: INPUT, options: ToolCallOptions) -> bool {
+    pub async fn check_needs_approval(&self, input: INPUT, options: ToolExecuteOptions) -> bool {
         match &self.needs_approval {
             NeedsApproval::No => false,
             NeedsApproval::Yes => true,
@@ -298,7 +298,7 @@ where
     pub async fn execute_tool(
         &self,
         input: INPUT,
-        options: ToolCallOptions,
+        options: ToolExecuteOptions,
     ) -> Option<Result<OUTPUT, Value>>
     where
         OUTPUT: Clone,
@@ -430,7 +430,7 @@ mod tests {
         let schema = json!({"type": "object"});
         let tool: Tool = Tool::function(schema);
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let needs_approval = tool.check_needs_approval(json!({}), options).await;
 
         assert!(!needs_approval);
@@ -441,7 +441,7 @@ mod tests {
         let schema = json!({"type": "object"});
         let tool: Tool = Tool::function(schema).with_needs_approval(true);
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let needs_approval = tool.check_needs_approval(json!({}), options).await;
 
         assert!(needs_approval);
@@ -455,7 +455,7 @@ mod tests {
             ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
         }));
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({"city": "SF"}), options).await;
 
         assert!(result.is_some());
@@ -469,7 +469,7 @@ mod tests {
         let schema = json!({"type": "object"});
         let tool: Tool = Tool::function(schema);
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({}), options).await;
 
         assert!(result.is_none());
@@ -488,7 +488,7 @@ mod tests {
                 }))
             }));
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({}), options).await;
 
         // Should return the last output
@@ -509,7 +509,7 @@ mod tests {
                 }))
             }));
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({}), options).await;
 
         // Should return an error
@@ -535,7 +535,7 @@ mod tests {
                 }))
             }));
 
-        let options = ToolCallOptions::new("call_123", vec![]);
+        let options = ToolExecuteOptions::new("call_123", vec![]);
         let result = tool.execute_tool(json!({}), options).await;
 
         // Should return the error immediately
