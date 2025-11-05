@@ -6,6 +6,7 @@ pub mod get_response_metadata;
 pub mod map_finish_reason;
 pub mod metadata_extractor;
 pub mod prepare_tools;
+pub mod prompt;
 
 pub use api_types::*;
 pub use chat_language_model::*;
@@ -15,3 +16,4 @@ pub use get_response_metadata::*;
 pub use map_finish_reason::*;
 pub use metadata_extractor::*;
 pub use prepare_tools::*;
+pub use prompt::message::*;
