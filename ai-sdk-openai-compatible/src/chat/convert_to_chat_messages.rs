@@ -14,7 +14,7 @@ use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use base64::{Engine as _, engine::general_purpose};
 use serde_json::Value;
 
-use crate::chat::api_types::{
+use crate::chat::prompt::message::{
     OpenAICompatibleAssistantMessage, OpenAICompatibleContentPart,
     OpenAICompatibleContentPartImage, OpenAICompatibleContentPartText, OpenAICompatibleMessage,
     OpenAICompatibleMessageToolCall, OpenAICompatibleSystemMessage, OpenAICompatibleToolMessage,
