@@ -1,48 +1,9 @@
-use ai_sdk_provider::language_model::prompt::message::parts::{
-    LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart,
-};
-use ai_sdk_provider::language_model::prompt::message::{
-    LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
-    LanguageModelUserMessage,
-};
-use ai_sdk_provider::language_model::prompt::{
-    LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage,
-    LanguageModelPrompt, LanguageModelToolResultOutput, LanguageModelToolResultPart,
-    LanguageModelUserMessagePart,
-};
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use base64::{Engine as _, engine::general_purpose};
-use serde_json::Value;
+use ai_sdk_provider::language_model::prompt::{LanguageModelMessage, LanguageModelPrompt};
 
 use crate::chat::prompt::message::{
-    OpenAICompatibleAssistantMessage, OpenAICompatibleContentPart,
-    OpenAICompatibleContentPartImage, OpenAICompatibleContentPartText, OpenAICompatibleMessage,
-    OpenAICompatibleMessageToolCall, OpenAICompatibleSystemMessage, OpenAICompatibleToolMessage,
-    OpenAICompatibleUserMessage, UserMessageContent,
+    OpenAICompatibleAssistantMessage, OpenAICompatibleMessage, OpenAICompatibleSystemMessage,
+    OpenAICompatibleToolMessage, OpenAICompatibleUserMessage,
 };
-
-/// Extracts OpenAI-compatible metadata from provider options
-fn get_openai_metadata(provider_options: &Option<SharedProviderOptions>) -> Option<Value> {
-    provider_options
-        .as_ref()
-        .and_then(|opts| opts.get("openaiCompatible"))
-        .map(|metadata| serde_json::to_value(metadata).ok())
-        .flatten()
-}
-
-/// Converts data content to a base64 or URL string for image URLs
-fn convert_data_to_url(data: &LanguageModelDataContent, media_type: &str) -> String {
-    match data {
-        LanguageModelDataContent::Url(url) => url.to_string(),
-        LanguageModelDataContent::Base64(base64) => {
-            format!("data:{};base64,{}", media_type, base64)
-        }
-        LanguageModelDataContent::Bytes(bytes) => {
-            let base64 = general_purpose::STANDARD.encode(bytes);
-            format!("data:{};base64,{}", media_type, base64)
-        }
-    }
-}
 
 /// Converts a provider prompt to OpenAI-compatible chat messages.
 ///
@@ -67,147 +28,23 @@ pub fn convert_to_openai_compatible_chat_messages(
     for message in prompt {
         match message {
             LanguageModelMessage::System(sys_msg) => {
-                let mut system_msg = OpenAICompatibleSystemMessage::new(sys_msg.content);
-                if let Some(metadata) = get_openai_metadata(&sys_msg.provider_options) {
-                    system_msg.additional_properties = Some(metadata);
-                }
+                let system_msg = OpenAICompatibleSystemMessage::from_provider(sys_msg);
                 messages.push(OpenAICompatibleMessage::System(system_msg));
             }
 
             LanguageModelMessage::User(user_msg) => {
-                let content = user_msg.content;
-                let provider_options = user_msg.provider_options;
-                // Check if it's a simple text message
-                if content.len() == 1 {
-                    if let LanguageModelUserMessagePart::Text(text_part) = &content[0] {
-                        let mut user_msg =
-                            OpenAICompatibleUserMessage::new_text(text_part.text.clone());
-                        if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
-                            user_msg.additional_properties = Some(metadata);
-                        }
-                        messages.push(OpenAICompatibleMessage::User(user_msg));
-                        continue;
-                    }
-                }
-
-                // Multi-part message
-                let mut parts: Vec<OpenAICompatibleContentPart> = Vec::new();
-
-                for part in content {
-                    match part {
-                        LanguageModelUserMessagePart::Text(text_part) => {
-                            let mut text_part_out =
-                                OpenAICompatibleContentPartText::new(text_part.text);
-                            if let Some(metadata) = get_openai_metadata(&text_part.provider_options)
-                            {
-                                text_part_out.additional_properties = Some(metadata);
-                            }
-                            parts.push(OpenAICompatibleContentPart::Text(text_part_out));
-                        }
-                        LanguageModelUserMessagePart::File(file_part) => {
-                            if file_part.media_type.starts_with("image/") {
-                                // Handle wildcard image type
-                                let actual_media_type = if file_part.media_type == "image/*" {
-                                    "image/jpeg"
-                                } else {
-                                    &file_part.media_type
-                                };
-
-                                let url = convert_data_to_url(&file_part.data, actual_media_type);
-                                let mut image_part = OpenAICompatibleContentPartImage::new(url);
-                                if let Some(metadata) =
-                                    get_openai_metadata(&file_part.provider_options)
-                                {
-                                    image_part.additional_properties = Some(metadata);
-                                }
-                                parts.push(OpenAICompatibleContentPart::ImageUrl(image_part));
-                            } else {
-                                return Err(format!(
-                                    "Unsupported file media type: {}",
-                                    file_part.media_type
-                                ));
-                            }
-                        }
-                    }
-                }
-
-                let mut user_msg = OpenAICompatibleUserMessage::new_parts(parts);
-                if let Some(metadata) = get_openai_metadata(&provider_options) {
-                    user_msg.additional_properties = Some(metadata);
-                }
+                let user_msg = OpenAICompatibleUserMessage::from_provider(user_msg)?;
                 messages.push(OpenAICompatibleMessage::User(user_msg));
             }
 
             LanguageModelMessage::Assistant(asst_msg) => {
-                let content = asst_msg.content;
-                let provider_options = asst_msg.provider_options;
-                let mut text = String::new();
-                let mut tool_calls: Vec<OpenAICompatibleMessageToolCall> = Vec::new();
-
-                for part in content {
-                    match part {
-                        LanguageModelAssistantMessagePart::Text(text_part) => {
-                            text.push_str(&text_part.text);
-                        }
-                        LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
-                            let arguments = serde_json::to_string(&tool_call_part.input)
-                                .unwrap_or_else(|_| "{}".to_string());
-                            let mut tool_call = OpenAICompatibleMessageToolCall::new(
-                                tool_call_part.tool_call_id,
-                                tool_call_part.tool_name,
-                                arguments,
-                            );
-                            if let Some(metadata) =
-                                get_openai_metadata(&tool_call_part.provider_options)
-                            {
-                                tool_call.additional_properties = Some(metadata);
-                            }
-                            tool_calls.push(tool_call);
-                        }
-                        // Ignore other assistant content types (File, Reasoning, ToolResult)
-                        _ => {}
-                    }
-                }
-
-                let content_opt = if text.is_empty() { None } else { Some(text) };
-
-                let tool_calls_opt = if tool_calls.is_empty() {
-                    None
-                } else {
-                    Some(tool_calls)
-                };
-
-                let mut assistant_msg =
-                    OpenAICompatibleAssistantMessage::new(content_opt, tool_calls_opt);
-                if let Some(metadata) = get_openai_metadata(&provider_options) {
-                    assistant_msg.additional_properties = Some(metadata);
-                }
+                let assistant_msg = OpenAICompatibleAssistantMessage::from_provider(asst_msg);
                 messages.push(OpenAICompatibleMessage::Assistant(assistant_msg));
             }
 
             LanguageModelMessage::Tool(tool_msg) => {
-                for tool_response in tool_msg.content {
-                    let content_value = match &tool_response.output {
-                        LanguageModelToolResultOutput::Text { value } => value.clone(),
-                        LanguageModelToolResultOutput::ErrorText { value } => value.clone(),
-                        LanguageModelToolResultOutput::Json { value } => {
-                            serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
-                        }
-                        LanguageModelToolResultOutput::ErrorJson { value } => {
-                            serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
-                        }
-                        LanguageModelToolResultOutput::Content { value } => {
-                            serde_json::to_string(&value).unwrap_or_else(|_| "[]".to_string())
-                        }
-                    };
-
-                    let mut tool_message = OpenAICompatibleToolMessage::new(
-                        content_value,
-                        tool_response.tool_call_id.clone(),
-                    );
-                    if let Some(metadata) = get_openai_metadata(&tool_response.provider_options) {
-                        tool_message.additional_properties = Some(metadata);
-                    }
+                let tool_messages = OpenAICompatibleToolMessage::from_provider(tool_msg);
+                for tool_message in tool_messages {
                     messages.push(OpenAICompatibleMessage::Tool(tool_message));
                 }
             }
@@ -220,6 +57,18 @@ pub fn convert_to_openai_compatible_chat_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ai_sdk_provider::language_model::prompt::message::parts::{
+        LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart,
+    };
+    use ai_sdk_provider::language_model::prompt::message::{
+        LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
+        LanguageModelUserMessage,
+    };
+    use ai_sdk_provider::language_model::prompt::{
+        LanguageModelAssistantMessagePart, LanguageModelDataContent,
+        LanguageModelToolResultOutput, LanguageModelToolResultPart, LanguageModelUserMessagePart,
+    };
+    use crate::chat::prompt::message::{OpenAICompatibleContentPart, UserMessageContent};
     use serde_json::json;
 
     #[test]

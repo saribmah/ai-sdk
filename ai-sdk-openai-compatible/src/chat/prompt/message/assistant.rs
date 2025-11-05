@@ -1,3 +1,6 @@
+use ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessage;
+use ai_sdk_provider::language_model::prompt::LanguageModelAssistantMessagePart;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -75,6 +78,51 @@ impl OpenAICompatibleAssistantMessage {
             additional_properties: None,
         }
     }
+
+    /// Creates an assistant message from a provider assistant message
+    pub fn from_provider(msg: LanguageModelAssistantMessage) -> Self {
+        let content = msg.content;
+        let provider_options = msg.provider_options;
+        let mut text = String::new();
+        let mut tool_calls: Vec<OpenAICompatibleMessageToolCall> = Vec::new();
+
+        for part in content {
+            match part {
+                LanguageModelAssistantMessagePart::Text(text_part) => {
+                    text.push_str(&text_part.text);
+                }
+                LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
+                    let arguments = serde_json::to_string(&tool_call_part.input)
+                        .unwrap_or_else(|_| "{}".to_string());
+                    let mut tool_call = OpenAICompatibleMessageToolCall::new(
+                        tool_call_part.tool_call_id,
+                        tool_call_part.tool_name,
+                        arguments,
+                    );
+                    if let Some(metadata) = get_openai_metadata(&tool_call_part.provider_options) {
+                        tool_call.additional_properties = Some(metadata);
+                    }
+                    tool_calls.push(tool_call);
+                }
+                // Ignore other assistant content types (File, Reasoning, ToolResult)
+                _ => {}
+            }
+        }
+
+        let content_opt = if text.is_empty() { None } else { Some(text) };
+
+        let tool_calls_opt = if tool_calls.is_empty() {
+            None
+        } else {
+            Some(tool_calls)
+        };
+
+        let mut assistant_msg = Self::new(content_opt, tool_calls_opt);
+        if let Some(metadata) = get_openai_metadata(&provider_options) {
+            assistant_msg.additional_properties = Some(metadata);
+        }
+        assistant_msg
+    }
 }
 
 impl OpenAICompatibleMessageToolCall {
@@ -87,6 +135,15 @@ impl OpenAICompatibleMessageToolCall {
             additional_properties: None,
         }
     }
+}
+
+/// Extracts OpenAI-compatible metadata from provider options
+fn get_openai_metadata(provider_options: &Option<SharedProviderOptions>) -> Option<Value> {
+    provider_options
+        .as_ref()
+        .and_then(|opts| opts.get("openaiCompatible"))
+        .map(|metadata| serde_json::to_value(metadata).ok())
+        .flatten()
 }
 
 #[cfg(test)]
