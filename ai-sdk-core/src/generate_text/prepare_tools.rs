@@ -1,5 +1,5 @@
 use crate::generate_text::tool_set::ToolSet;
-use crate::prompt::message::tool::definition::Tool;
+use crate::tool::definition::Tool;
 use ai_sdk_provider::{
     language_model::tool::{
         LanguageModelTool, function_tool::LanguageModelFunctionTool,
@@ -68,7 +68,7 @@ pub fn prepare_tools_and_tool_choice(
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
 fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> LanguageModelTool {
-    use crate::prompt::message::tool::definition::ToolType;
+    use crate::tool::definition::ToolType;
 
     match &core_tool.tool_type {
         ToolType::Function => {

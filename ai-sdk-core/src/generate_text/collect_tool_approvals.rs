@@ -1,6 +1,6 @@
 use crate::generate_text::tool_call::{StaticToolCall, TypedToolCall};
 use crate::prompt::message::Message;
-use crate::prompt::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
+use crate::tool::{ToolApprovalRequest, ToolApprovalResponse};
 use crate::prompt::message::{AssistantContent, ToolContentPart};
 use serde_json::Value;
 use std::collections::HashMap;

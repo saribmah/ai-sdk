@@ -1,4 +1,4 @@
-use ai_sdk_core::prompt::message::tool::definition::Tool;
+use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Tool calling example demonstrating function calling with a weather tool.
 ///
@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tool");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::prompt::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::tool::definition::ToolExecutionOutput;
 
     let weather_tool = Tool::function(json!({
         "type": "object",

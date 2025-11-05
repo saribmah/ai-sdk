@@ -1,6 +1,6 @@
 use crate::prompt::message::Message;
-use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
-use crate::prompt::message::tool::options::ToolExecuteOptions;
+use crate::tool::definition::{NeedsApproval, Tool};
+use crate::tool::options::ToolExecuteOptions;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -75,7 +75,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::tool::definition::{NeedsApproval, Tool};
+    use crate::tool::definition::{NeedsApproval, Tool};
     use serde_json::json;
 
     #[tokio::test]

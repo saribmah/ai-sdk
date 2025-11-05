@@ -12,7 +12,7 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
-use ai_sdk_core::prompt::message::tool::definition::Tool;
+use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::{ToolSet, step_count_is, stream_text};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::prompt::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::tool::definition::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({

@@ -25,7 +25,7 @@
 
 use crate::error::AISDKError;
 use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
-use crate::prompt::message::tool::definition::Tool;
+use crate::tool::definition::Tool;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -230,7 +230,7 @@ pub fn parse_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::tool::definition::Tool;
+    use crate::tool::definition::Tool;
     use serde_json::json;
 
     #[test]

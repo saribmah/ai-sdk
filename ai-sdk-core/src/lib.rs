@@ -2,6 +2,7 @@ pub mod error;
 pub mod generate_text;
 pub mod prompt;
 pub mod stream_text;
+pub mod tool;
 
 pub use error::AISDKError;
 pub use generate_text::{
@@ -22,4 +23,9 @@ pub use stream_text::{
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
     OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamTextResult, TextStreamPart,
     stream_text,
+};
+pub use tool::{
+    Tool, ToolApprovalRequest, ToolApprovalResponse, ToolExecuteOptions,
+    ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput, 
+    ToolNeedsApprovalFunction, ToolType, execute_tool,
 };

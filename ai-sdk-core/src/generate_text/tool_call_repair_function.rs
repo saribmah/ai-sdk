@@ -111,7 +111,7 @@ pub fn no_repair() -> ToolCallRepairFunction {
 mod tests {
     use super::*;
     use crate::prompt::message::UserMessage;
-    use crate::prompt::message::tool::definition::Tool;
+    use crate::tool::definition::Tool;
     use serde_json::json;
 
     fn create_test_toolset() -> ToolSet {
