@@ -59,11 +59,11 @@ pub mod chat;
 pub mod completion;
 pub mod error;
 mod provider;
+pub mod settings;
 mod utils;
 
 pub use chat::*;
 pub use completion::*;
 pub use error::*;
-pub use provider::{
-    OpenAICompatibleProvider, OpenAICompatibleProviderSettings, create_openai_compatible,
-};
+pub use provider::{OpenAICompatibleProvider, create_openai_compatible};
+pub use settings::OpenAICompatibleProviderSettings;
