@@ -15,7 +15,7 @@ pub use system::SystemMessage;
 pub use tool::{
     Tool, ToolApprovalRequest, ToolApprovalResponse, ToolCall, ToolCallOptions, ToolContent,
     ToolContentPart, ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput, ToolMessage,
-    ToolNeedsApprovalFunction, ToolResult, ToolType, execute_tool,
+    ToolNeedsApprovalFunction, ToolType, execute_tool,
 };
 pub use user::{UserContent, UserContentPart, UserMessage};
 

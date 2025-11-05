@@ -13,7 +13,7 @@ use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// cargo run --example multi_step_tools
 /// ```
 use ai_sdk_core::{ToolSet, generate_text, step_count_is};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, OpenAICompatibleProvider};
 use serde_json::{Value, json};
 use std::env;
 
@@ -101,12 +101,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ API key loaded from environment");
 
     // Create OpenAI provider
-    let provider = create_openai_compatible(
+    let provider = OpenAICompatibleProvider::new(
         OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
+            .with_api_key(api_key)
     );
 
-    let model = provider.chat_model("openai/gpt-4o");
+    let model = provider.model("openai/gpt-4o");
     println!("✓ Model loaded: {}\n", model.model_id());
 
     // Define tools

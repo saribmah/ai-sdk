@@ -18,7 +18,7 @@ pub struct OpenAICompatibleProvider {
 
 impl OpenAICompatibleProvider {
     /// Creates a new OpenAI-compatible provider.
-    fn new(settings: OpenAICompatibleProviderSettings) -> Self {
+    pub fn new(settings: OpenAICompatibleProviderSettings) -> Self {
         Self { settings }
     }
 
