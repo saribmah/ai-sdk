@@ -233,7 +233,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool calls.
-    pub fn tool_calls(&self) -> Vec<&super::tool_call::TypedToolCall<INPUT>> {
+    pub fn tool_calls(&self) -> Vec<&crate::tool::TypedToolCall<INPUT>> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -284,8 +284,8 @@ mod tests {
             Output::Reasoning(ReasoningOutput::new(
                 "Thinking step 2.".to_string(),
             )),
-            Output::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
-                super::super::tool_call::DynamicToolCall::new(
+            Output::ToolCall(crate::tool::TypedToolCall::Dynamic(
+                crate::tool::DynamicToolCall::new(
                     "call_1".to_string(),
                     "get_weather".to_string(),
                     json!({"city": "SF"}),
@@ -372,7 +372,7 @@ mod tests {
         let tool_calls = result.tool_calls();
         assert_eq!(tool_calls.len(), 1);
         match &tool_calls[0] {
-            super::super::tool_call::TypedToolCall::Dynamic(call) => {
+            crate::tool::TypedToolCall::Dynamic(call) => {
                 assert_eq!(call.tool_name, "get_weather");
                 assert_eq!(call.tool_call_id, "call_1");
             }

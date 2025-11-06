@@ -1,4 +1,4 @@
-use super::tool_call::TypedToolCall;
+use crate::tool::TypedToolCall;
 use serde::{Deserialize, Serialize};
 
 /// Output part that indicates that a tool approval request has been made.
@@ -79,7 +79,7 @@ impl<INPUT> ToolApprovalRequestOutput<INPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+    use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
     use serde_json::{Value, json};
 
     #[test]

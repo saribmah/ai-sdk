@@ -4,6 +4,7 @@ pub mod definition;
 pub mod execute;
 pub mod options;
 pub mod tool_set;
+pub mod tool_call;
 
 pub use approval_request::ToolApprovalRequest;
 pub use approval_response::ToolApprovalResponse;
@@ -13,7 +14,4 @@ pub use definition::{
 pub use execute::{ToolExecutionEvent, execute_tool};
 pub use options::ToolExecuteOptions;
 pub use tool_set::ToolSet;
-
-use crate::prompt::message::content_parts::ToolResultPart;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use serde::{Deserialize, Serialize};
+pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};

@@ -13,7 +13,6 @@ mod step_result;
 mod stop_condition;
 pub mod to_response_messages;
 pub mod tool_approval_request_output;
-pub mod tool_call;
 pub mod tool_call_repair_function;
 pub mod tool_error;
 pub mod tool_output;
@@ -42,7 +41,6 @@ pub use crate::output::reasoning::ReasoningOutput;
 pub use crate::output::source::SourceOutput;
 pub use to_response_messages::to_response_messages;
 pub use tool_approval_request_output::ToolApprovalRequestOutput;
-pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
 pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 pub use tool_output::ToolOutput;
@@ -65,7 +63,7 @@ use ai_sdk_provider::{
 };
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
-use crate::tool::ToolSet;
+use crate::tool::{ToolSet, TypedToolCall};
 
 /// Executes tool calls and returns the outputs.
 ///

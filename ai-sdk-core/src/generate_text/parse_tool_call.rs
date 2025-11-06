@@ -24,7 +24,7 @@
 //! When validation fails, detailed error messages indicate which constraints were violated.
 
 use crate::error::AISDKError;
-use crate::generate_text::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
 use crate::tool::definition::Tool;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use serde_json::Value;

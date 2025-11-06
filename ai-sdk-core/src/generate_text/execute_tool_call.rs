@@ -1,4 +1,4 @@
-use crate::generate_text::tool_call::TypedToolCall;
+use crate::tool::TypedToolCall;
 use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 use crate::generate_text::tool_output::ToolOutput;
 use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
@@ -182,7 +182,7 @@ pub async fn execute_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::tool_call::StaticToolCall;
+    use crate::tool::StaticToolCall;
     use crate::tool::definition::ToolExecutionOutput;
     use serde_json::json;
     use std::pin::Pin;

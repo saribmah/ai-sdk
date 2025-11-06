@@ -7,7 +7,8 @@ use serde_json::Value;
 use text::TextOutput;
 use reasoning::ReasoningOutput;
 use source::SourceOutput;
-use super::{TypedToolCall, TypedToolError, TypedToolResult};
+use crate::tool::TypedToolCall;
+use crate::{TypedToolError, TypedToolResult};
 
 /// An output part that can appear in an assistant message.
 ///
@@ -75,7 +76,7 @@ impl<INPUT, OUTPUT> Output<INPUT, OUTPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::tool_call::StaticToolCall;
+    use crate::tool::StaticToolCall;
     use crate::generate_text::tool_error::StaticToolError;
     use crate::generate_text::tool_result::StaticToolResult;
     use serde_json::json;

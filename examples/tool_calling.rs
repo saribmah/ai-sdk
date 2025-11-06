@@ -149,7 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check the last step for tool calls
     if let Some(last_step) = result.steps.last() {
         for content in &last_step.content {
-            use ai_sdk_core::{TypedToolCall};
+            use ai_sdk_core::tool::{TypedToolCall};
             if let Output::ToolCall(tool_call) = content {
                 found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

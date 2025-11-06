@@ -200,7 +200,7 @@ mod tests {
     use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
+    use crate::tool::{DynamicToolCall, TypedToolCall};
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };

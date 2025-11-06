@@ -24,7 +24,7 @@ pub use transform::{
 use crate::error::AISDKError;
 use crate::generate_text::{
     Output, PrepareStep, PrepareStepOptions, StepResult, StopCondition,
-    TypedToolCall, execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
+    execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
     to_response_messages,
 };
 use crate::prompt::{
@@ -44,7 +44,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use crate::prompt::message::Message;
 use crate::ResponseMessage;
-use crate::tool::ToolSet;
+use crate::tool::{ToolSet, TypedToolCall};
 
 /// Result of streaming a single step.
 ///

@@ -10,7 +10,7 @@ use super::generated_file::GeneratedFile;
 use crate::output::reasoning::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
-use super::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
+use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
 use super::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 
 /// Metadata for the response, including messages and optional body.
@@ -351,6 +351,7 @@ impl ResponseMetadata {
 mod tests {
     use super::*;
     use serde_json::json;
+    use crate::TextOutput;
 
     #[test]
     fn test_generated_file_new() {
@@ -477,8 +478,8 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use super::super::{
-            DynamicToolCall, DynamicToolResult, TextOutput, TypedToolCall, TypedToolResult,
+        use crate::tool::{
+            DynamicToolCall, TypedToolCall,
         };
 
         // Create a step with tool calls and tool results using Output

@@ -244,7 +244,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!();
             }
             TextStreamPart::ToolCall { tool_call } => {
-                use ai_sdk_core::TypedToolCall;
+                use ai_sdk_core::tool::TypedToolCall;
                 let (tool_name, args) = match &tool_call {
                     TypedToolCall::Static(call) => (&call.tool_name, &call.input),
                     TypedToolCall::Dynamic(call) => (&call.tool_name, &call.input),
@@ -351,7 +351,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 std::io::Write::flush(&mut std::io::stdout())?;
             }
             TextStreamPart::ToolCall { tool_call } => {
-                use ai_sdk_core::TypedToolCall;
+                use ai_sdk_core::tool::TypedToolCall;
                 let (tool_name, args) = match &tool_call {
                     TypedToolCall::Static(call) => (&call.tool_name, &call.input),
                     TypedToolCall::Dynamic(call) => (&call.tool_name, &call.input),

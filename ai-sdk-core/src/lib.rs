@@ -7,13 +7,13 @@ pub mod output;
 
 pub use error::AISDKError;
 pub use generate_text::{
-    CollectedToolApproval, CollectedToolApprovals, DynamicToolCall, DynamicToolError,
+    CollectedToolApproval, CollectedToolApprovals, DynamicToolError,
     DynamicToolResult, FinishEvent, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
     OnPreliminaryToolResult, OnStepFinish, PrepareStep, PrepareStepOptions, PrepareStepResult,
     RequestMetadata, ResponseMessage, ResponseMetadata, 
-    StaticToolCall, StaticToolError, StaticToolResult, StepCountIs, StepResponseMetadata,
+    StaticToolError, StaticToolResult, StepCountIs, StepResponseMetadata,
     StepResult, StopCondition, ToolApprovalRequestOutput, ToolCallRepairFunction,
-    ToolCallRepairOptions, ToolOutput, TypedToolCall, TypedToolError, TypedToolResult,
+    ToolCallRepairOptions, ToolOutput, TypedToolError, TypedToolResult,
     as_output, collect_tool_approvals, execute_tool_call, generate_text, has_tool_call,
     is_approval_needed, is_stop_condition_met, no_repair,
     parse_provider_executed_dynamic_tool_call, parse_tool_call, prepare_tools_and_tool_choice,

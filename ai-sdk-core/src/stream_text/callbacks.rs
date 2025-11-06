@@ -50,7 +50,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
 
     /// A tool call.
     ToolCall {
-        tool_call: crate::generate_text::TypedToolCall<INPUT>,
+        tool_call: crate::tool::TypedToolCall<INPUT>,
     },
 
     /// Indicates the start of a tool input.
@@ -299,7 +299,7 @@ pub type StreamTextOnAbortCallback<INPUT = Value, OUTPUT = Value> = Box<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::{StaticToolCall, TypedToolCall};
+    use crate::tool::{StaticToolCall, TypedToolCall};
 
     #[test]
     fn test_chunk_from_text_delta() {

@@ -91,13 +91,13 @@ pub fn to_response_messages(
                 )),
                 Output::ToolCall(tool_call) => {
                     let (tool_call_id, tool_name, input, provider_executed) = match tool_call {
-                        super::tool_call::TypedToolCall::Static(call) => (
+                        crate::tool::TypedToolCall::Static(call) => (
                             call.tool_call_id.clone(),
                             call.tool_name.clone(),
                             call.input.clone(),
                             call.provider_executed,
                         ),
-                        super::tool_call::TypedToolCall::Dynamic(call) => (
+                        crate::tool::TypedToolCall::Dynamic(call) => (
                             call.tool_call_id.clone(),
                             call.tool_name.clone(),
                             call.input.clone(),
@@ -267,9 +267,10 @@ pub fn to_response_messages(
 mod tests {
     use super::*;
     use crate::generate_text::{
-        ReasoningOutput, StaticToolCall, StaticToolError, StaticToolResult, TextOutput,
+        ReasoningOutput, StaticToolError, StaticToolResult, TextOutput,
         TypedToolCall, TypedToolError, TypedToolResult,
     };
+    use crate::tool::StaticToolCall;
     use serde_json::json;
 
     #[test]

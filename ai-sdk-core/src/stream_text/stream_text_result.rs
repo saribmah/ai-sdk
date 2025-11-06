@@ -1,9 +1,10 @@
 use crate::error::AISDKError;
 use crate::generate_text::{
-    DynamicToolCall, DynamicToolResult, GeneratedFile, ReasoningOutput,
-    RequestMetadata, ResponseMetadata, StaticToolCall, StaticToolResult, StepResult, TypedToolCall,
+    DynamicToolResult, GeneratedFile, ReasoningOutput,
+    RequestMetadata, ResponseMetadata, StaticToolResult, StepResult, 
     TypedToolResult,
 };
+use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
 use crate::stream_text::TextStreamPart;
 use crate::output::Output;
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
