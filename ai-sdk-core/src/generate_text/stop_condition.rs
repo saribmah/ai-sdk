@@ -201,8 +201,8 @@ mod tests {
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
-        use super::super::output::Output;
-        use super::super::output::text::TextOutput;
+        use crate::output::Output;
+        use crate::output::text::TextOutput;
         use super::super::tool_call::{DynamicToolCall, TypedToolCall};
         use serde_json::json;
 

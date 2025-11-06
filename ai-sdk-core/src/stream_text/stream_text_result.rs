@@ -5,6 +5,7 @@ use crate::generate_text::{
     TypedToolResult,
 };
 use crate::stream_text::TextStreamPart;
+use crate::output::Output;
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
@@ -16,7 +17,6 @@ use serde_json::Value;
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
-use crate::generate_text::output::Output;
 
 /// A type alias for error handlers used in stream consumption.
 ///

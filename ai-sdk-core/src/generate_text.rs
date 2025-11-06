@@ -18,13 +18,12 @@ pub mod tool_call_repair_function;
 pub mod tool_error;
 pub mod tool_output;
 pub mod tool_result;
-pub mod output;
 
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use collect_tool_approvals::{
     CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
 };
-pub use output::Output;
+pub use crate::output::Output;
 pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use generated_file::{GeneratedFile, GeneratedFileWithType};
@@ -38,9 +37,9 @@ pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     HasToolCall, StepCountIs, StopCondition, has_tool_call, is_stop_condition_met, step_count_is,
 };
-pub use output::text::TextOutput;
-pub use output::reasoning::ReasoningOutput;
-pub use output::source::SourceOutput;
+pub use crate::output::text::TextOutput;
+pub use crate::output::reasoning::ReasoningOutput;
+pub use crate::output::source::SourceOutput;
 pub use to_response_messages::to_response_messages;
 pub use tool_approval_request_output::ToolApprovalRequestOutput;
 pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};

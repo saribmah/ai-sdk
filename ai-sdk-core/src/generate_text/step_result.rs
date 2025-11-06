@@ -7,9 +7,9 @@ use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::output::Output;
+use crate::output::Output;
 use super::generated_file::GeneratedFile;
-use super::output::reasoning::ReasoningOutput;
+use crate::output::reasoning::ReasoningOutput;
 
 /// Metadata about the request sent to the language model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -272,16 +272,16 @@ mod tests {
 
     fn create_test_step_result() -> StepResult {
         let content = vec![
-            Output::Text(super::super::output::text::TextOutput::new(
+            Output::Text(crate::output::text::TextOutput::new(
                 "Hello ".to_string(),
             )),
-            Output::Text(super::super::output::text::TextOutput::new(
+            Output::Text(crate::output::text::TextOutput::new(
                 "world!".to_string(),
             )),
-            Output::Reasoning(super::super::output::reasoning::ReasoningOutput::new(
+            Output::Reasoning(ReasoningOutput::new(
                 "Thinking step 1. ".to_string(),
             )),
-            Output::Reasoning(super::super::output::reasoning::ReasoningOutput::new(
+            Output::Reasoning(ReasoningOutput::new(
                 "Thinking step 2.".to_string(),
             )),
             Output::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
@@ -348,7 +348,7 @@ mod tests {
     fn test_step_result_reasoning_text_empty() {
         let result: StepResult<Value, Value> = StepResult::new(
             vec![Output::Text(
-                super::super::output::text::TextOutput::new("Hello".to_string()),
+                crate::output::text::TextOutput::new("Hello".to_string()),
             )],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(5, 5),

@@ -5,9 +5,9 @@ use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
-use super::output::Output;
+use crate::output::Output;
 use super::generated_file::GeneratedFile;
-use super::output::reasoning::ReasoningOutput;
+use crate::output::reasoning::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 use super::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
