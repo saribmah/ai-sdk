@@ -16,9 +16,9 @@ pub struct StreamTextErrorEvent {
 ///
 /// Contains a chunk that represents one of the streamable content types.
 #[derive(Debug, Clone, PartialEq)]
-pub struct StreamTextChunkEvent<INPUT = Value, OUTPUT = Value> {
+pub struct StreamTextChunkEvent {
     /// The stream chunk.
-    pub chunk: ChunkStreamPart<INPUT, OUTPUT>,
+    pub chunk: ChunkStreamPart,
 }
 
 /// A subset of TextStreamPart that represents chunks that are streamed incrementally.
@@ -26,7 +26,7 @@ pub struct StreamTextChunkEvent<INPUT = Value, OUTPUT = Value> {
 /// This includes only the stream parts that represent actual content being generated,
 /// not lifecycle or metadata events.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
+pub enum ChunkStreamPart {
     /// A text delta (incremental update).
     TextDelta {
         id: String,
@@ -48,7 +48,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
 
     /// A tool call.
     ToolCall {
-        tool_call: crate::tool::TypedToolCall<INPUT>,
+        tool_call: crate::tool::ToolCall,
     },
 
     /// Indicates the start of a tool input.
@@ -72,22 +72,18 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
 
     /// A tool result.
     ToolResult {
-        tool_result: crate::tool::TypedToolResult<INPUT, OUTPUT>,
+        tool_result: crate::tool::ToolResult,
     },
 
     /// A raw value from the provider (for debugging/custom handling).
     Raw { raw_value: Value },
 }
 
-impl<INPUT, OUTPUT> ChunkStreamPart<INPUT, OUTPUT> {
+impl ChunkStreamPart {
     /// Attempts to extract a ChunkStreamPart from a TextStreamPart.
     ///
     /// Returns Some if the part is a chunk type, None otherwise.
-    pub fn from_stream_part(part: &TextStreamPart<INPUT, OUTPUT>) -> Option<Self>
-    where
-        INPUT: Clone,
-        OUTPUT: Clone,
-    {
+    pub fn from_stream_part(part: &TextStreamPart) -> Option<Self> {
         match part {
             TextStreamPart::TextDelta {
                 id,
@@ -153,12 +149,12 @@ impl<INPUT, OUTPUT> ChunkStreamPart<INPUT, OUTPUT> {
 /// This extends the step result with additional information about all steps
 /// and total usage across the entire generation.
 #[derive(Debug, Clone, PartialEq)]
-pub struct StreamTextFinishEvent<INPUT = Value, OUTPUT = Value> {
+pub struct StreamTextFinishEvent {
     /// The final step result.
-    pub step_result: StepResult<INPUT, OUTPUT>,
+    pub step_result: StepResult,
 
     /// Details for all steps in the generation.
-    pub steps: Vec<StepResult<INPUT, OUTPUT>>,
+    pub steps: Vec<StepResult>,
 
     /// Total usage for all steps. This is the sum of the usage of all steps.
     pub total_usage: LanguageModelUsage,
@@ -166,9 +162,9 @@ pub struct StreamTextFinishEvent<INPUT = Value, OUTPUT = Value> {
 
 /// Event passed to the `on_abort` callback during streaming.
 #[derive(Debug, Clone, PartialEq)]
-pub struct StreamTextAbortEvent<INPUT = Value, OUTPUT = Value> {
+pub struct StreamTextAbortEvent {
     /// Details for all previously finished steps.
-    pub steps: Vec<StepResult<INPUT, OUTPUT>>,
+    pub steps: Vec<StepResult>,
 }
 
 /// Callback that is called when an error occurs during streaming.
@@ -204,15 +200,14 @@ pub type StreamTextOnErrorCallback =
 /// use std::pin::Pin;
 /// use std::future::Future;
 ///
-/// let callback: StreamTextOnStepFinishCallback<Value, Value> = Box::new(|step_result: StepResult<Value, Value>| {
+/// let callback: StreamTextOnStepFinishCallback = Box::new(|step_result: StepResult| {
 ///     Box::pin(async move {
 ///         println!("Step finished with {} tokens", step_result.usage.total_tokens);
 ///     })
 /// });
 /// ```
-pub type StreamTextOnStepFinishCallback<INPUT = Value, OUTPUT = Value> = Box<
-    dyn Fn(StepResult<INPUT, OUTPUT>) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
+pub type StreamTextOnStepFinishCallback =
+    Box<dyn Fn(StepResult) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called for each chunk during streaming.
 ///
@@ -230,16 +225,14 @@ pub type StreamTextOnStepFinishCallback<INPUT = Value, OUTPUT = Value> = Box<
 /// use std::pin::Pin;
 /// use std::future::Future;
 ///
-/// let callback: StreamTextOnChunkCallback<Value, Value> = Box::new(|event: StreamTextChunkEvent<Value, Value>| {
+/// let callback: StreamTextOnChunkCallback = Box::new(|event: StreamTextChunkEvent| {
 ///     Box::pin(async move {
 ///         println!("Received chunk: {:?}", event.chunk);
 ///     })
 /// });
 /// ```
-pub type StreamTextOnChunkCallback<INPUT = Value, OUTPUT = Value> = Box<
-    dyn Fn(StreamTextChunkEvent<INPUT, OUTPUT>) -> Pin<Box<dyn Future<Output = ()> + Send>>
-        + Send
-        + Sync,
+pub type StreamTextOnChunkCallback = Box<
+    dyn Fn(StreamTextChunkEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
 >;
 
 /// Callback that is called when the entire generation finishes.
@@ -257,18 +250,15 @@ pub type StreamTextOnChunkCallback<INPUT = Value, OUTPUT = Value> = Box<
 /// use std::pin::Pin;
 /// use std::future::Future;
 ///
-/// let callback: StreamTextOnFinishCallback<Value, Value> = Box::new(|event: StreamTextFinishEvent<Value, Value>| {
+/// let callback: StreamTextOnFinishCallback = Box::new(|event: StreamTextFinishEvent| {
 ///     Box::pin(async move {
 ///         println!("Generation finished. Total steps: {}", event.steps.len());
 ///         println!("Total tokens used: {}", event.total_usage.total_tokens);
 ///     })
 /// });
 /// ```
-pub type StreamTextOnFinishCallback<INPUT = Value, OUTPUT = Value> = Box<
-    dyn Fn(StreamTextFinishEvent<INPUT, OUTPUT>) -> Pin<Box<dyn Future<Output = ()> + Send>>
-        + Send
-        + Sync,
->;
+pub type StreamTextOnFinishCallback =
+    Box<dyn Fn(StreamTextFinishEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when the generation is aborted.
 ///
@@ -282,26 +272,23 @@ pub type StreamTextOnFinishCallback<INPUT = Value, OUTPUT = Value> = Box<
 /// use std::pin::Pin;
 /// use std::future::Future;
 ///
-/// let callback: StreamTextOnAbortCallback<Value, Value> = Box::new(|event: StreamTextAbortEvent<Value, Value>| {
+/// let callback: StreamTextOnAbortCallback = Box::new(|event: StreamTextAbortEvent| {
 ///     Box::pin(async move {
 ///         println!("Generation aborted. Steps completed: {}", event.steps.len());
 ///     })
 /// });
 /// ```
-pub type StreamTextOnAbortCallback<INPUT = Value, OUTPUT = Value> = Box<
-    dyn Fn(StreamTextAbortEvent<INPUT, OUTPUT>) -> Pin<Box<dyn Future<Output = ()> + Send>>
-        + Send
-        + Sync,
->;
+pub type StreamTextOnAbortCallback =
+    Box<dyn Fn(StreamTextAbortEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::{StaticToolCall, TypedToolCall};
+    use crate::tool::ToolCall;
 
     #[test]
     fn test_chunk_from_text_delta() {
-        let part = TextStreamPart::<Value, Value>::TextDelta {
+        let part = TextStreamPart::TextDelta {
             id: "text_1".to_string(),
             provider_metadata: None,
             text: "Hello".to_string(),
@@ -319,7 +306,7 @@ mod tests {
 
     #[test]
     fn test_chunk_from_non_chunk_part() {
-        let part = TextStreamPart::<Value, Value>::Start;
+        let part = TextStreamPart::Start;
 
         let chunk = ChunkStreamPart::from_stream_part(&part);
         assert!(chunk.is_none());
@@ -327,13 +314,13 @@ mod tests {
 
     #[test]
     fn test_chunk_from_tool_call() {
-        let tool_call = TypedToolCall::Static(StaticToolCall::new(
-            "call_123",
-            "test_tool",
+        let tool_call = ToolCall::new(
+            "call_123".to_string(),
+            "test_tool".to_string(),
             serde_json::json!({"arg": "value"}),
-        ));
+        );
 
-        let part = TextStreamPart::<Value, Value>::ToolCall {
+        let part = TextStreamPart::ToolCall {
             tool_call: tool_call.clone(),
         };
 
@@ -341,13 +328,8 @@ mod tests {
         assert!(chunk.is_some());
 
         if let Some(ChunkStreamPart::ToolCall { tool_call: tc }) = chunk {
-            match tc {
-                TypedToolCall::Static(sc) => {
-                    assert_eq!(sc.tool_call_id, "call_123");
-                    assert_eq!(sc.tool_name, "test_tool");
-                }
-                _ => panic!("Expected Static tool call"),
-            }
+            assert_eq!(tc.tool_call_id, "call_123");
+            assert_eq!(tc.tool_name, "test_tool");
         } else {
             panic!("Expected ToolCall chunk");
         }
@@ -376,7 +358,7 @@ mod tests {
 
     #[test]
     fn test_finish_event_creation() {
-        let step_result: StepResult<Value, Value> = StepResult::new(
+        let step_result = StepResult::new(
             vec![],
             ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(100, 50),
@@ -398,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_abort_event_creation() {
-        let event = StreamTextAbortEvent::<Value, Value> { steps: vec![] };
+        let event = StreamTextAbortEvent { steps: vec![] };
 
         assert_eq!(event.steps.len(), 0);
     }

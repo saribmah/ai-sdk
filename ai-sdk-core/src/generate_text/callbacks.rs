@@ -74,10 +74,10 @@ pub struct FinishEvent {
     pub text: String,
 
     /// Tool calls from the final step (user-facing types).
-    pub tool_calls: Vec<super::TypedToolCall<serde_json::Value>>,
+    pub tool_calls: Vec<crate::tool::ToolCall>,
 
     /// Tool results from the final step (user-facing types).
-    pub tool_results: Vec<super::TypedToolResult<serde_json::Value, serde_json::Value>>,
+    pub tool_results: Vec<crate::tool::ToolResult>,
 
     /// The reason why the generation finished.
     pub finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason,
@@ -92,7 +92,7 @@ pub struct FinishEvent {
     /// Details for all steps.
     ///
     /// This includes all intermediate steps plus the final step.
-    pub steps: Vec<StepResult<serde_json::Value, serde_json::Value>>,
+    pub steps: Vec<StepResult>,
 
     /// Total usage for all steps.
     ///
@@ -200,7 +200,7 @@ mod tests {
     use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use crate::tool::{DynamicToolCall, TypedToolCall};
+    use crate::tool::ToolCall;
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
@@ -285,11 +285,11 @@ mod tests {
     async fn test_finish_event_with_tool_calls() {
         let content = vec![
             Output::Text(TextOutput::new("Calling tool".to_string())),
-            Output::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+            Output::ToolCall(ToolCall::new(
                 "call_1".to_string(),
                 "get_weather".to_string(),
                 json!({}),
-            ))),
+            )),
         ];
 
         let step = StepResult::new(
@@ -311,12 +311,8 @@ mod tests {
         let event = FinishEvent::new(&step, all_steps);
 
         assert_eq!(event.tool_calls.len(), 1);
-        match &event.tool_calls[0] {
-            TypedToolCall::Dynamic(call) => {
-                assert_eq!(call.tool_name, "get_weather");
-            }
-            _ => panic!("Expected dynamic tool call"),
-        }
+        let call = &event.tool_calls[0];
+        assert_eq!(call.tool_name, "get_weather");
         assert_eq!(event.finish_reason, LanguageModelFinishReason::ToolCalls);
     }
 

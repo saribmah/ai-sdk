@@ -30,8 +30,7 @@ use crate::prompt::{
     standardize::{StandardizedPrompt, validate_and_standardize},
 };
 use crate::tool::{
-    DynamicToolError, DynamicToolResult, StaticToolError, StaticToolResult, ToolOutput, ToolSet,
-    TypedToolCall, TypedToolError, TypedToolResult, execute_tool_call, parse_tool_call,
+    ToolCall, ToolError, ToolOutput, ToolResult, ToolSet, execute_tool_call, parse_tool_call,
     prepare_tools_and_tool_choice,
 };
 use ai_sdk_provider::{
@@ -71,11 +70,11 @@ use tokio_util::sync::CancellationToken;
 /// ).await;
 /// ```
 async fn execute_tools(
-    tool_calls: &[&TypedToolCall<Value>],
+    tool_calls: &[&ToolCall],
     tools: &ToolSet,
     messages: &[Message],
     abort_signal: Option<CancellationToken>,
-) -> Vec<ToolOutput<Value, Value>> {
+) -> Vec<ToolOutput> {
     let mut outputs = Vec::new();
 
     for &tool_call in tool_calls {
@@ -127,9 +126,9 @@ async fn execute_tools(
 /// ```
 pub fn as_output(
     content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
-    tool_calls: Vec<TypedToolCall<Value>>,
-    tool_outputs: Vec<ToolOutput<Value, Value>>,
-) -> Vec<Output<Value, Value>> {
+    tool_calls: Vec<ToolCall>,
+    tool_outputs: Vec<ToolOutput>,
+) -> Vec<Output> {
     use ai_sdk_provider::language_model::content::LanguageModelContent;
 
     let mut result = Vec::new();
@@ -159,13 +158,7 @@ pub fn as_output(
                 // Find the matching TypedToolCall
                 if let Some(typed_call) = tool_calls
                     .iter()
-                    .find(|tc| {
-                        let tc_id = match tc {
-                            TypedToolCall::Static(c) => &c.tool_call_id,
-                            TypedToolCall::Dynamic(c) => &c.tool_call_id,
-                        };
-                        tc_id == &provider_tool_call.tool_call_id
-                    })
+                    .find(|tc| tc.tool_call_id == provider_tool_call.tool_call_id)
                     .cloned()
                 {
                     result.push(Output::ToolCall(typed_call));
@@ -175,69 +168,33 @@ pub fn as_output(
             // Convert provider ToolResult to TypedToolResult or TypedToolError
             LanguageModelContent::ToolResult(provider_result) => {
                 // Find the matching tool call to get the input
-                let matching_call = tool_calls.iter().find(|tc| {
-                    let tc_id = match tc {
-                        TypedToolCall::Static(c) => &c.tool_call_id,
-                        TypedToolCall::Dynamic(c) => &c.tool_call_id,
-                    };
-                    tc_id == &provider_result.tool_call_id
-                });
+                let matching_call = tool_calls
+                    .iter()
+                    .find(|tc| tc.tool_call_id == provider_result.tool_call_id);
 
                 if let Some(tool_call) = matching_call {
-                    let (input, is_dynamic) = match tool_call {
-                        TypedToolCall::Static(c) => (c.input.clone(), false),
-                        TypedToolCall::Dynamic(c) => (c.input.clone(), true),
-                    };
 
                     // Check if this is an error result
                     if provider_result.is_error == Some(true) {
-                        // Create TypedToolError
-                        let error = if is_dynamic {
-                            TypedToolError::Dynamic(
-                                DynamicToolError::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        } else {
-                            TypedToolError::Static(
-                                StaticToolError::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        };
+                        // Create ToolError
+                        let error = ToolError::new(
+                            provider_result.tool_call_id.clone(),
+                            provider_result.tool_name.clone(),
+                            tool_call.input.clone(),
+                            provider_result.result.clone(),
+                        )
+                        .with_provider_executed(true);
 
                         result.push(Output::ToolError(error));
                     } else {
-                        // Create TypedToolResult
-                        let tool_result = if is_dynamic {
-                            TypedToolResult::Dynamic(
-                                DynamicToolResult::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        } else {
-                            TypedToolResult::Static(
-                                StaticToolResult::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        };
+                        // Create ToolResult
+                        let tool_result = ToolResult::new(
+                            provider_result.tool_call_id.clone(),
+                            provider_result.tool_name.clone(),
+                            tool_call.input.clone(),
+                            provider_result.result.clone(),
+                        )
+                        .with_provider_executed(true);
 
                         result.push(Output::ToolResult(tool_result));
                     }
@@ -424,7 +381,7 @@ impl<'a> GenerateTextBuilder<'a> {
     }
 
     /// Executes the text generation with the configured settings.
-    pub async fn execute(self) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
+    pub async fn execute(self) -> Result<GenerateTextResult, AISDKError> {
         generate_text(
             self.model,
             self.prompt,
@@ -493,7 +450,7 @@ pub async fn generate_text(
     prepare_step: Option<Box<dyn PrepareStep>>,
     on_step_finish: Option<Box<dyn OnStepFinish>>,
     on_finish: Option<Box<dyn OnFinish>>,
-) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
+) -> Result<GenerateTextResult, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
 
@@ -671,7 +628,7 @@ pub async fn generate_text(
         // Step 9: Parse tool calls from the response
         use ai_sdk_provider::language_model::content::LanguageModelContent;
 
-        let step_tool_calls: Vec<TypedToolCall<Value>> = if let Some(tool_set) = tools.as_ref() {
+        let step_tool_calls: Vec<ToolCall> = if let Some(tool_set) = tools.as_ref() {
             response
                 .content
                 .iter()
@@ -697,14 +654,10 @@ pub async fn generate_text(
         // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
 
         // Filter client tool calls (those not executed by the provider)
-        let client_tool_calls: Vec<&TypedToolCall<Value>> = step_tool_calls
+        let client_tool_calls: Vec<&ToolCall> = step_tool_calls
             .iter()
             .filter(|tool_call| {
-                let provider_executed = match tool_call {
-                    TypedToolCall::Static(c) => c.provider_executed,
-                    TypedToolCall::Dynamic(c) => c.provider_executed,
-                };
-                provider_executed != Some(true)
+                tool_call.provider_executed != Some(true)
             })
             .collect();
 
@@ -798,23 +751,10 @@ pub async fn generate_text(
             }
         });
 
-    // Create the resolved output (placeholder for now, as there's no output specification yet)
-    let resolved_output = Value::Null;
-
-    // Call on_finish callback before returning
-    if let Some(ref callback) = on_finish {
-        // Get the final step
-        if let Some(final_step) = steps.last() {
-            let finish_event = FinishEvent::new(final_step, steps.clone());
-            callback.call(finish_event).await;
-        }
-    }
-
     // Return the GenerateTextResult
     Ok(GenerateTextResult::from_steps(
         steps,
         total_usage,
-        resolved_output,
     ))
 }
 

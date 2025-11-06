@@ -93,7 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📝 Streaming partial JSON (will parse to Person):\n");
 
     // Stream partial outputs as JSON values
-    let mut partial_stream = result.partial_output_stream();
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut last_value: Option<serde_json::Value> = None;
 
     while let Some(value) = partial_stream.next().await {
@@ -144,7 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("📝 Streaming partial JSON (will parse to Recipe):\n");
 
-    let mut partial_stream = result.partial_output_stream();
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut last_value: Option<serde_json::Value> = None;
 
     while let Some(value) = partial_stream.next().await {
@@ -199,7 +199,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("📝 Streaming partial JSON values:\n");
 
-    let mut partial_stream = result.partial_output_stream();
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut update_count = 0;
 
     while let Some(value) = partial_stream.next().await {

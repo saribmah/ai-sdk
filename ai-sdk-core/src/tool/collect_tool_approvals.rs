@@ -1,6 +1,5 @@
-use super::{StaticToolCall, ToolApprovalRequest, ToolApprovalResponse, TypedToolCall};
+use super::{ToolApprovalRequest, ToolApprovalResponse, ToolCall};
 use crate::prompt::message::{AssistantContent, Message, ToolContentPart};
-use serde_json::Value;
 use std::collections::HashMap;
 
 /// A collected tool approval containing the approval request, response, and associated tool call.
@@ -18,8 +17,7 @@ pub struct CollectedToolApproval {
     pub approval_response: ToolApprovalResponse,
 
     /// The tool call that this approval is for.
-    /// This is a TypedToolCall to match the TypeScript implementation.
-    pub tool_call: TypedToolCall<Value>,
+    pub tool_call: ToolCall,
 }
 
 impl CollectedToolApproval {
@@ -27,7 +25,7 @@ impl CollectedToolApproval {
     pub fn new(
         approval_request: ToolApprovalRequest,
         approval_response: ToolApprovalResponse,
-        tool_call: TypedToolCall<Value>,
+        tool_call: ToolCall,
     ) -> Self {
         Self {
             approval_request,
@@ -95,16 +93,15 @@ impl CollectedToolApprovals {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::generate_text::collect_tool_approvals;
-/// use ai_sdk_core::message::ModelMessage;
-/// use ai_sdk_core::message::model::{AssistantMessage, ToolMessage, AssistantContent, AssistantContentPart, ToolContentPart};
-/// use ai_sdk_core::message::content_parts::ToolCallPart;
-/// use ai_sdk_core::message::tool::{ToolApprovalRequest, ToolApprovalResponse};
+/// use ai_sdk_core::tool::collect_tool_approvals;
+/// use ai_sdk_core::prompt::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
+/// use ai_sdk_core::prompt::message::content_parts::ToolCallPart;
+/// use ai_sdk_core::tool::{ToolApprovalRequest, ToolApprovalResponse};
 /// use serde_json::json;
 ///
 /// // Create a message history with an approval request
 /// let messages = vec![
-///     ModelMessage::Assistant(AssistantMessage::with_parts(vec![
+///     Message::Assistant(AssistantMessage::with_parts(vec![
 ///         AssistantContentPart::ToolCall(ToolCallPart::new(
 ///             "call_123",
 ///             "delete_file",
@@ -114,7 +111,7 @@ impl CollectedToolApprovals {
 ///             ToolApprovalRequest::new("approval_456", "call_123")
 ///         ),
 ///     ])),
-///     ModelMessage::Tool(ToolMessage::new(vec![
+///     Message::Tool(ToolMessage::new(vec![
 ///         ToolContentPart::ApprovalResponse(
 ///             ToolApprovalResponse::granted("approval_456")
 ///         ),
@@ -128,7 +125,7 @@ impl CollectedToolApprovals {
 /// assert_eq!(result.approved_tool_approvals.len(), 1);
 /// assert_eq!(result.denied_tool_approvals.len(), 0);
 ///
-/// // The tool call is available as a TypedToolCall
+/// // The tool call is available
 /// let approval = &result.approved_tool_approvals[0];
 /// assert_eq!(approval.approval_response.approved, true);
 /// ```
@@ -140,8 +137,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
     };
 
     // Gather tool calls from assistant messages and create lookup by tool_call_id
-    // Convert ToolCallPart to TypedToolCall<Value> (as StaticToolCall since we have the input as Value)
-    let mut tool_calls_by_id: HashMap<String, TypedToolCall<Value>> = HashMap::new();
+    let mut tool_calls_by_id: HashMap<String, ToolCall> = HashMap::new();
     for message in messages {
         if let Message::Assistant(assistant_msg) = message {
             if let AssistantContent::Parts(parts) = &assistant_msg.content {
@@ -150,16 +146,15 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
                         tool_call,
                     ) = part
                     {
-                        // Convert ToolCallPart to TypedToolCall<Value>
-                        let typed_tool_call = TypedToolCall::Static(
-                            StaticToolCall::new(
-                                tool_call.tool_call_id.clone(),
-                                tool_call.tool_name.clone(),
-                                tool_call.input.clone(),
-                            )
-                            .with_provider_executed(tool_call.provider_executed.unwrap_or(false)),
-                        );
-                        tool_calls_by_id.insert(tool_call.tool_call_id.clone(), typed_tool_call);
+                        // Convert ToolCallPart to ToolCall
+                        let call = ToolCall::new(
+                            tool_call.tool_call_id.clone(),
+                            tool_call.tool_name.clone(),
+                            tool_call.input.clone(),
+                        )
+                        .with_provider_executed(tool_call.provider_executed.unwrap_or(false));
+                        
+                        tool_calls_by_id.insert(tool_call.tool_call_id.clone(), call);
                     }
                 }
             }
@@ -292,14 +287,9 @@ mod tests {
         assert_eq!(approval.approval_request.approval_id, "approval_456");
         assert_eq!(approval.approval_response.approved, true);
 
-        // Verify the tool call (it should be a StaticToolCall)
-        match &approval.tool_call {
-            TypedToolCall::Static(static_call) => {
-                assert_eq!(static_call.tool_call_id, "call_123");
-                assert_eq!(static_call.tool_name, "delete_file");
-            }
-            _ => panic!("Expected StaticToolCall"),
-        }
+        // Verify the tool call
+        assert_eq!(approval.tool_call.tool_call_id, "call_123");
+        assert_eq!(approval.tool_call.tool_name, "delete_file");
     }
 
     #[test]
@@ -331,13 +321,8 @@ mod tests {
         assert_eq!(denial.approval_response.approved, false);
 
         // Verify the tool call
-        match &denial.tool_call {
-            TypedToolCall::Static(static_call) => {
-                assert_eq!(static_call.tool_call_id, "call_123");
-                assert_eq!(static_call.tool_name, "delete_database");
-            }
-            _ => panic!("Expected StaticToolCall"),
-        }
+        assert_eq!(denial.tool_call.tool_call_id, "call_123");
+        assert_eq!(denial.tool_call.tool_name, "delete_database");
     }
 
     #[test]
@@ -453,8 +438,7 @@ mod tests {
     fn test_collected_tool_approval_new() {
         let approval_request = ToolApprovalRequest::new("approval_123", "call_456");
         let approval_response = ToolApprovalResponse::granted("approval_123");
-        let tool_call =
-            TypedToolCall::Static(StaticToolCall::new("call_456", "test_tool", json!({})));
+        let tool_call = ToolCall::new("call_456", "test_tool", json!({}));
 
         let collected = CollectedToolApproval::new(
             approval_request.clone(),

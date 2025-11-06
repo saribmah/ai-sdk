@@ -1,6 +1,5 @@
-use super::{TypedToolError, TypedToolResult};
+use super::{ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Output from a tool execution, which can be either a successful result or an error.
 ///
@@ -9,50 +8,50 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::generate_text::tool_output::ToolOutput;
-/// use ai_sdk_core::generate_text::tool_result::StaticToolResult;
-/// use ai_sdk_core::generate_text::tool_error::StaticToolError;
-/// use serde_json::{json, Value};
+/// use ai_sdk_core::tool::{ToolOutput, ToolResult, ToolError};
+/// use serde_json::json;
 ///
 /// // Success case
-/// let result = StaticToolResult::new(
+/// let result = ToolResult::new(
 ///     "call_123",
 ///     "get_weather",
 ///     json!({"city": "SF"}),
 ///     json!({"temperature": 72}),
 /// );
-/// let output = ToolOutput::Result(result.into());
+/// let output = ToolOutput::Result(result);
 ///
 /// // Error case
-/// let error = StaticToolError::new(
+/// let error = ToolError::new(
 ///     "call_456",
 ///     "get_weather",
 ///     json!({"city": "Unknown"}),
 ///     "City not found",
 /// );
-/// let output: ToolOutput<Value, Value> = ToolOutput::Error(error.into());
+/// let output = ToolOutput::Error(error);
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum ToolOutput<INPUT = Value, OUTPUT = Value> {
+pub enum ToolOutput {
     /// A successful tool execution result.
-    Result(TypedToolResult<INPUT, OUTPUT>),
+    Result(ToolResult),
 
     /// A tool execution error.
-    Error(TypedToolError<INPUT>),
+    Error(ToolError),
 }
 
-impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
+impl ToolOutput {
     /// Creates a new `ToolOutput` from a successful result.
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::generate_text::tool_output::ToolOutput;
+    /// ```
+    /// use ai_sdk_core::tool::{ToolOutput, ToolResult};
+    /// use serde_json::json;
     ///
+    /// let result = ToolResult::new("call_123", "tool", json!({}), json!({}));
     /// let output = ToolOutput::from_result(result);
     /// ```
-    pub fn from_result(result: TypedToolResult<INPUT, OUTPUT>) -> Self {
+    pub fn from_result(result: ToolResult) -> Self {
         ToolOutput::Result(result)
     }
 
@@ -60,12 +59,14 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::generate_text::tool_output::ToolOutput;
+    /// ```
+    /// use ai_sdk_core::tool::{ToolOutput, ToolError};
+    /// use serde_json::json;
     ///
+    /// let error = ToolError::new("call_123", "tool", json!({}), "Failed");
     /// let output = ToolOutput::from_error(error);
     /// ```
-    pub fn from_error(error: TypedToolError<INPUT>) -> Self {
+    pub fn from_error(error: ToolError) -> Self {
         ToolOutput::Error(error)
     }
 
@@ -80,7 +81,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
     }
 
     /// Returns a reference to the result if this is a successful result.
-    pub fn as_result(&self) -> Option<&TypedToolResult<INPUT, OUTPUT>> {
+    pub fn as_result(&self) -> Option<&ToolResult> {
         match self {
             ToolOutput::Result(result) => Some(result),
             _ => None,
@@ -88,7 +89,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
     }
 
     /// Returns a reference to the error if this is an error.
-    pub fn as_error(&self) -> Option<&TypedToolError<INPUT>> {
+    pub fn as_error(&self) -> Option<&ToolError> {
         match self {
             ToolOutput::Error(error) => Some(error),
             _ => None,
@@ -96,7 +97,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
     }
 
     /// Consumes the `ToolOutput` and returns the result if this is a successful result.
-    pub fn into_result(self) -> Option<TypedToolResult<INPUT, OUTPUT>> {
+    pub fn into_result(self) -> Option<ToolResult> {
         match self {
             ToolOutput::Result(result) => Some(result),
             _ => None,
@@ -104,7 +105,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
     }
 
     /// Consumes the `ToolOutput` and returns the error if this is an error.
-    pub fn into_error(self) -> Option<TypedToolError<INPUT>> {
+    pub fn into_error(self) -> Option<ToolError> {
         match self {
             ToolOutput::Error(error) => Some(error),
             _ => None,
@@ -114,20 +115,19 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{StaticToolError, StaticToolResult};
     use super::*;
     use serde_json::json;
 
     #[test]
     fn test_tool_output_from_result() {
-        let result = StaticToolResult::new(
+        let result = ToolResult::new(
             "call_123",
             "get_weather",
             json!({"city": "SF"}),
             json!({"temperature": 72}),
         );
 
-        let output = ToolOutput::from_result(result.into());
+        let output = ToolOutput::from_result(result);
 
         assert!(output.is_result());
         assert!(!output.is_error());
@@ -137,14 +137,14 @@ mod tests {
 
     #[test]
     fn test_tool_output_from_error() {
-        let error = StaticToolError::new(
+        let error = ToolError::new(
             "call_123",
             "get_weather",
             json!({"city": "Unknown"}),
             "City not found",
         );
 
-        let output: ToolOutput<Value, Value> = ToolOutput::from_error(error.into());
+        let output = ToolOutput::from_error(error);
 
         assert!(!output.is_result());
         assert!(output.is_error());
@@ -154,10 +154,9 @@ mod tests {
 
     #[test]
     fn test_tool_output_result_variant() {
-        let result =
-            StaticToolResult::new("call_123", "test_tool", json!({}), json!({"status": "ok"}));
+        let result = ToolResult::new("call_123", "test_tool", json!({}), json!({"status": "ok"}));
 
-        let output = ToolOutput::Result(result.into());
+        let output = ToolOutput::Result(result);
 
         match output {
             ToolOutput::Result(_) => {} // Expected
@@ -167,9 +166,9 @@ mod tests {
 
     #[test]
     fn test_tool_output_error_variant() {
-        let error = StaticToolError::new("call_123", "test_tool", json!({}), "Test error");
+        let error = ToolError::new("call_123", "test_tool", json!({}), "Test error");
 
-        let output: ToolOutput<Value, Value> = ToolOutput::Error(error.into());
+        let output = ToolOutput::Error(error);
 
         match output {
             ToolOutput::Error(_) => {} // Expected
@@ -179,10 +178,9 @@ mod tests {
 
     #[test]
     fn test_tool_output_into_result() {
-        let result =
-            StaticToolResult::new("call_123", "test_tool", json!({}), json!({"data": "value"}));
+        let result = ToolResult::new("call_123", "test_tool", json!({}), json!({"data": "value"}));
 
-        let output = ToolOutput::from_result(result.clone().into());
+        let output = ToolOutput::from_result(result.clone());
         let extracted = output.into_result();
 
         assert!(extracted.is_some());
@@ -190,9 +188,9 @@ mod tests {
 
     #[test]
     fn test_tool_output_into_error() {
-        let error = StaticToolError::new("call_123", "test_tool", json!({}), "Error message");
+        let error = ToolError::new("call_123", "test_tool", json!({}), "Error message");
 
-        let output: ToolOutput<Value, Value> = ToolOutput::from_error(error.clone().into());
+        let output = ToolOutput::from_error(error.clone());
         let extracted = output.into_error();
 
         assert!(extracted.is_some());
@@ -200,14 +198,14 @@ mod tests {
 
     #[test]
     fn test_tool_output_serialization_result() {
-        let result = StaticToolResult::new(
+        let result = ToolResult::new(
             "call_123",
             "test_tool",
             json!({"key": "value"}),
             json!({"result": "success"}),
         );
 
-        let output: ToolOutput = ToolOutput::from_result(result.into());
+        let output = ToolOutput::from_result(result);
         let serialized = serde_json::to_value(&output).unwrap();
 
         assert_eq!(serialized["type"], "tool-result");
@@ -216,14 +214,14 @@ mod tests {
 
     #[test]
     fn test_tool_output_serialization_error() {
-        let error = StaticToolError::new(
+        let error = ToolError::new(
             "call_456",
             "test_tool",
             json!({"key": "value"}),
             "Something failed",
         );
 
-        let output: ToolOutput = ToolOutput::from_error(error.into());
+        let output = ToolOutput::from_error(error);
         let serialized = serde_json::to_value(&output).unwrap();
 
         assert_eq!(serialized["type"], "tool-error");
@@ -233,9 +231,9 @@ mod tests {
 
     #[test]
     fn test_tool_output_clone() {
-        let result = StaticToolResult::new("call_123", "test_tool", json!({}), json!({}));
+        let result = ToolResult::new("call_123", "test_tool", json!({}), json!({}));
 
-        let output = ToolOutput::from_result(result.into());
+        let output = ToolOutput::from_result(result);
         let cloned = output.clone();
 
         assert_eq!(output, cloned);

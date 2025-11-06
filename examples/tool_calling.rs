@@ -149,30 +149,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check the last step for tool calls
     if let Some(last_step) = result.steps.last() {
         for content in &last_step.content {
-            use ai_sdk_core::tool::TypedToolCall;
             if let Output::ToolCall(tool_call) = content {
                 found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 println!("Tool Call Detected!");
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-                // Extract tool call details based on the variant
-                let (tool_call_id, tool_name, input_str) = match tool_call {
-                    TypedToolCall::Static(call) => (
-                        &call.tool_call_id,
-                        &call.tool_name,
-                        serde_json::to_string(&call.input)?,
-                    ),
-                    TypedToolCall::Dynamic(call) => (
-                        &call.tool_call_id,
-                        &call.tool_name,
-                        serde_json::to_string(&call.input)?,
-                    ),
-                };
+                // Extract tool call details
+                let input_str = serde_json::to_string(&tool_call.input)?;
 
                 println!("🔧 Tool Call Details:");
-                println!("  • Tool ID: {}", tool_call_id);
-                println!("  • Tool Name: {}", tool_name);
+                println!("  • Tool ID: {}", tool_call.tool_call_id);
+                println!("  • Tool Name: {}", tool_call.tool_name);
                 println!("  • Arguments: {}\n", input_str);
 
                 // Parse the arguments

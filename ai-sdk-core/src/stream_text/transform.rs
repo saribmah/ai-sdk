@@ -18,7 +18,7 @@ use std::pin::Pin;
 ///     matches!(part, TextStreamPart::TextDelta { .. })
 /// });
 /// ```
-pub trait StreamTransform<TOOLS, OUTPUT>: Send + Sync {
+pub trait StreamTransform: Send + Sync {
     /// Transform the input stream into an output stream.
     ///
     /// # Arguments
@@ -31,27 +31,23 @@ pub trait StreamTransform<TOOLS, OUTPUT>: Send + Sync {
     /// A new stream with the transformation applied
     fn transform(
         &self,
-        stream: Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>,
-        options: TransformOptions<TOOLS>,
-    ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>;
+        stream: Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>,
+        options: TransformOptions,
+    ) -> Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>;
 }
 
 /// Options passed to stream transformations.
 #[derive(Clone)]
-pub struct TransformOptions<TOOLS> {
+pub struct TransformOptions {
     /// A function that can be called to stop the stream early
     pub stop_stream: Option<StopStreamHandle>,
-
-    /// The tools that are available (if any)
-    pub tools: Option<TOOLS>,
 }
 
-impl<TOOLS> TransformOptions<TOOLS> {
+impl TransformOptions {
     /// Create new transform options
     pub fn new() -> Self {
         Self {
             stop_stream: None,
-            tools: None,
         }
     }
 
@@ -60,15 +56,9 @@ impl<TOOLS> TransformOptions<TOOLS> {
         self.stop_stream = Some(handle);
         self
     }
-
-    /// Set the tools
-    pub fn with_tools(mut self, tools: TOOLS) -> Self {
-        self.tools = Some(tools);
-        self
-    }
 }
 
-impl<TOOLS> Default for TransformOptions<TOOLS> {
+impl Default for TransformOptions {
     fn default() -> Self {
         Self::new()
     }
@@ -98,46 +88,32 @@ impl StopStreamHandle {
 }
 
 /// A filter transformation that only passes through items matching a predicate.
-///
-/// # Examples
-///
-/// ```ignore
-/// let text_only = filter_transform(|part| {
-///     matches!(part, TextStreamPart::TextDelta { .. })
-/// });
-/// ```
-pub struct FilterTransform<TOOLS, OUTPUT, F>
+pub struct FilterTransform<F>
 where
-    F: Fn(&TextStreamPart<TOOLS, OUTPUT>) -> bool + Send + Sync + Clone,
+    F: Fn(&TextStreamPart) -> bool + Send + Sync + Clone,
 {
     predicate: F,
-    _phantom: std::marker::PhantomData<(TOOLS, OUTPUT)>,
 }
 
-impl<TOOLS, OUTPUT, F> FilterTransform<TOOLS, OUTPUT, F>
+impl<F> FilterTransform<F>
 where
-    F: Fn(&TextStreamPart<TOOLS, OUTPUT>) -> bool + Send + Sync + Clone,
+    F: Fn(&TextStreamPart) -> bool + Send + Sync + Clone,
 {
     /// Create a new filter transformation
     pub fn new(predicate: F) -> Self {
-        Self {
-            predicate,
-            _phantom: std::marker::PhantomData,
-        }
+        Self { predicate }
     }
 }
 
-impl<TOOLS, OUTPUT, F> StreamTransform<TOOLS, OUTPUT> for FilterTransform<TOOLS, OUTPUT, F>
+impl<F> StreamTransform for FilterTransform<F>
 where
-    TOOLS: Send + Sync + 'static,
-    OUTPUT: Send + Sync + 'static,
-    F: Fn(&TextStreamPart<TOOLS, OUTPUT>) -> bool + Send + Sync + Clone + 'static,
+    F: Fn(&TextStreamPart) -> bool + Send + Sync + Clone + 'static,
 {
     fn transform(
         &self,
-        stream: Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>,
-        _options: TransformOptions<TOOLS>,
-    ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
+        stream: Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>,
+        _options: TransformOptions,
+    ) -> Pin<Box<dyn Stream<Item = TextStreamPart> + Send>> {
         use futures_util::StreamExt;
 
         let predicate = self.predicate.clone();
@@ -166,42 +142,32 @@ where
 ///     }
 /// });
 /// ```
-pub struct MapTransform<TOOLS, OUTPUT, F>
+pub struct MapTransform<F>
 where
-    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT> + Send + Sync + Clone,
+    F: Fn(TextStreamPart) -> TextStreamPart + Send + Sync + Clone,
 {
     mapper: F,
-    _phantom: std::marker::PhantomData<(TOOLS, OUTPUT)>,
 }
 
-impl<TOOLS, OUTPUT, F> MapTransform<TOOLS, OUTPUT, F>
+impl<F> MapTransform<F>
 where
-    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT> + Send + Sync + Clone,
+    F: Fn(TextStreamPart) -> TextStreamPart + Send + Sync + Clone,
 {
     /// Create a new map transformation
     pub fn new(mapper: F) -> Self {
-        Self {
-            mapper,
-            _phantom: std::marker::PhantomData,
-        }
+        Self { mapper }
     }
 }
 
-impl<TOOLS, OUTPUT, F> StreamTransform<TOOLS, OUTPUT> for MapTransform<TOOLS, OUTPUT, F>
+impl<F> StreamTransform for MapTransform<F>
 where
-    TOOLS: Send + Sync + 'static,
-    OUTPUT: Send + Sync + 'static,
-    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT>
-        + Send
-        + Sync
-        + Clone
-        + 'static,
+    F: Fn(TextStreamPart) -> TextStreamPart + Send + Sync + Clone + 'static,
 {
     fn transform(
         &self,
-        stream: Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>,
-        _options: TransformOptions<TOOLS>,
-    ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
+        stream: Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>,
+        _options: TransformOptions,
+    ) -> Pin<Box<dyn Stream<Item = TextStreamPart> + Send>> {
         use futures_util::StreamExt;
 
         let mapper = self.mapper.clone();
@@ -232,16 +198,12 @@ impl ThrottleTransform {
     }
 }
 
-impl<TOOLS, OUTPUT> StreamTransform<TOOLS, OUTPUT> for ThrottleTransform
-where
-    TOOLS: Send + Sync + 'static,
-    OUTPUT: Send + Sync + 'static,
-{
+impl StreamTransform for ThrottleTransform {
     fn transform(
         &self,
-        stream: Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>,
-        _options: TransformOptions<TOOLS>,
-    ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
+        stream: Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>,
+        _options: TransformOptions,
+    ) -> Pin<Box<dyn Stream<Item = TextStreamPart> + Send>> {
         use futures_util::StreamExt;
 
         let delay = self.delay;
@@ -278,16 +240,12 @@ impl BatchTextTransform {
     }
 }
 
-impl<TOOLS, OUTPUT> StreamTransform<TOOLS, OUTPUT> for BatchTextTransform
-where
-    TOOLS: Send + Sync + 'static,
-    OUTPUT: Send + Sync + 'static,
-{
+impl StreamTransform for BatchTextTransform {
     fn transform(
         &self,
-        stream: Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>>,
-        _options: TransformOptions<TOOLS>,
-    ) -> Pin<Box<dyn Stream<Item = TextStreamPart<TOOLS, OUTPUT>> + Send>> {
+        stream: Pin<Box<dyn Stream<Item = TextStreamPart> + Send>>,
+        _options: TransformOptions,
+    ) -> Pin<Box<dyn Stream<Item = TextStreamPart> + Send>> {
         use futures_util::StreamExt;
 
         let max_batch_size = self.max_batch_size;
@@ -365,9 +323,9 @@ where
 ///     matches!(part, TextStreamPart::TextDelta { .. })
 /// });
 /// ```
-pub fn filter_transform<TOOLS, OUTPUT, F>(predicate: F) -> FilterTransform<TOOLS, OUTPUT, F>
+pub fn filter_transform<F>(predicate: F) -> FilterTransform<F>
 where
-    F: Fn(&TextStreamPart<TOOLS, OUTPUT>) -> bool + Send + Sync + Clone,
+    F: Fn(&TextStreamPart) -> bool + Send + Sync + Clone,
 {
     FilterTransform::new(predicate)
 }
@@ -382,9 +340,9 @@ where
 ///     part
 /// });
 /// ```
-pub fn map_transform<TOOLS, OUTPUT, F>(mapper: F) -> MapTransform<TOOLS, OUTPUT, F>
+pub fn map_transform<F>(mapper: F) -> MapTransform<F>
 where
-    F: Fn(TextStreamPart<TOOLS, OUTPUT>) -> TextStreamPart<TOOLS, OUTPUT> + Send + Sync + Clone,
+    F: Fn(TextStreamPart) -> TextStreamPart + Send + Sync + Clone,
 {
     MapTransform::new(mapper)
 }
@@ -428,7 +386,7 @@ mod tests {
     #[tokio::test]
     async fn test_filter_transform() {
         let items = vec![
-            TextStreamPart::<Value, Value>::Start,
+            TextStreamPart::Start,
             TextStreamPart::TextDelta {
                 id: "1".to_string(),
                 text: "hello".to_string(),
@@ -462,7 +420,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_map_transform() {
-        let items = vec![TextStreamPart::<Value, Value>::TextDelta {
+        let items = vec![TextStreamPart::TextDelta {
             id: "1".to_string(),
             text: "hello".to_string(),
             provider_metadata: None,
@@ -495,7 +453,7 @@ mod tests {
     #[tokio::test]
     async fn test_batch_text_transform() {
         let items = vec![
-            TextStreamPart::<Value, Value>::TextDelta {
+            TextStreamPart::TextDelta {
                 id: "1".to_string(),
                 text: "h".to_string(),
                 provider_metadata: None,

@@ -244,22 +244,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!();
             }
             TextStreamPart::ToolCall { tool_call } => {
-                use ai_sdk_core::tool::TypedToolCall;
-                let (tool_name, args) = match &tool_call {
-                    TypedToolCall::Static(call) => (&call.tool_name, &call.input),
-                    TypedToolCall::Dynamic(call) => (&call.tool_name, &call.input),
-                };
-                println!("\n\n🔧 Tool Call: {}", tool_name);
-                println!("   Args: {}", serde_json::to_string_pretty(args)?);
+                println!("\n\n🔧 Tool Call: {}", tool_call.tool_name);
+                println!("   Args: {}", serde_json::to_string_pretty(&tool_call.input)?);
             }
             TextStreamPart::ToolResult { tool_result } => {
-                use ai_sdk_core::tool::TypedToolResult;
-                let result_value = match &tool_result {
-                    TypedToolResult::Static(r) => &r.output,
-                    TypedToolResult::Dynamic(r) => &r.output,
-                };
                 println!("\n✅ Tool Result:");
-                println!("   {}", serde_json::to_string_pretty(result_value)?);
+                println!("   {}", serde_json::to_string_pretty(&tool_result.output)?);
                 print!("\n📝 ");
             }
             _ => {}
@@ -351,22 +341,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 std::io::Write::flush(&mut std::io::stdout())?;
             }
             TextStreamPart::ToolCall { tool_call } => {
-                use ai_sdk_core::tool::TypedToolCall;
-                let (tool_name, args) = match &tool_call {
-                    TypedToolCall::Static(call) => (&call.tool_name, &call.input),
-                    TypedToolCall::Dynamic(call) => (&call.tool_name, &call.input),
-                };
-                println!("\n\n🔧 Tool Call: {}", tool_name);
-                println!("   Args: {}", serde_json::to_string_pretty(args)?);
+                println!("\n\n🔧 Tool Call: {}", tool_call.tool_name);
+                println!("   Args: {}", serde_json::to_string_pretty(&tool_call.input)?);
             }
             TextStreamPart::ToolResult { tool_result } => {
-                use ai_sdk_core::tool::TypedToolResult;
-                let result_value = match &tool_result {
-                    TypedToolResult::Static(r) => &r.output,
-                    TypedToolResult::Dynamic(r) => &r.output,
-                };
                 println!("\n✅ Tool Result:");
-                println!("   {}", serde_json::to_string_pretty(result_value)?);
+                println!("   {}", serde_json::to_string_pretty(&tool_result.output)?);
                 print!("\n📝 ");
             }
             TextStreamPart::FinishStep { usage, .. } => {

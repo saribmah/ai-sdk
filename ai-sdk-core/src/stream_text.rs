@@ -35,7 +35,7 @@ use crate::prompt::{
     standardize::StandardizedPrompt, standardize::validate_and_standardize,
 };
 use crate::tool::{
-    ToolSet, TypedToolCall, execute_tool_call, parse_provider_executed_dynamic_tool_call,
+    ToolCall, ToolSet, execute_tool_call, parse_provider_executed_dynamic_tool_call,
     parse_tool_call, prepare_tools_and_tool_choice,
 };
 use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
@@ -54,10 +54,10 @@ use tokio::sync::mpsc;
 /// This contains all the accumulated data from processing one streaming call to the model.
 struct SingleStepStreamResult {
     /// The content parts accumulated during the step
-    content: Vec<Output<Value, Value>>,
+    content: Vec<Output>,
 
     /// Tool calls made during the step
-    tool_calls: Vec<TypedToolCall<Value>>,
+    tool_calls: Vec<ToolCall>,
 
     /// Finish reason for the step
     finish_reason: LanguageModelFinishReason,
@@ -88,7 +88,7 @@ async fn stream_single_step(
     call_options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
     tools: Option<&ToolSet>,
     include_raw_chunks: bool,
-    tx: &mpsc::UnboundedSender<TextStreamPart<Value, Value>>,
+    tx: &mpsc::UnboundedSender<TextStreamPart>,
     on_chunk: Option<&Arc<OnChunkCallback>>,
     on_error: Option<&Arc<OnErrorCallback>>,
 ) -> Result<SingleStepStreamResult, AISDKError> {
@@ -110,8 +110,8 @@ async fn stream_single_step(
     let mut provider_stream = stream_response.stream;
 
     // Accumulate step data
-    let mut step_content: Vec<Output<Value, Value>> = Vec::new();
-    let mut step_tool_calls: Vec<TypedToolCall<Value>> = Vec::new();
+    let mut step_content: Vec<Output> = Vec::new();
+    let mut step_tool_calls: Vec<ToolCall> = Vec::new();
     let mut current_text = String::new();
     let mut current_reasoning = String::new();
     let step_request = crate::generate_text::RequestMetadata {
@@ -309,7 +309,12 @@ async fn stream_single_step(
             }
             LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use crate::tool::{DynamicToolResult, StaticToolResult, TypedToolResult};
+                use crate::tool::ToolResult;
+
+                // Find the matching tool call to get the input
+                let matching_call = step_tool_calls
+                    .iter()
+                    .find(|tc| tc.tool_call_id == provider_tool_result.tool_call_id);
 
                 // Check if this is a dynamic tool based on whether we have it in our tool set
                 let is_dynamic = if let Some(tool_set) = tools {
@@ -318,29 +323,19 @@ async fn stream_single_step(
                     true // No tools provided, treat as dynamic
                 };
 
-                let typed_result = if is_dynamic {
-                    let mut dynamic_result = DynamicToolResult::new(
-                        &provider_tool_result.tool_call_id,
-                        &provider_tool_result.tool_name,
-                        serde_json::Value::Null, // input - we don't have it in tool result
-                        provider_tool_result.result.clone(),
-                    );
-                    if let Some(provider_executed) = provider_tool_result.provider_executed {
-                        dynamic_result = dynamic_result.with_provider_executed(provider_executed);
-                    }
-                    TypedToolResult::Dynamic(dynamic_result)
-                } else {
-                    let mut static_result = StaticToolResult::new(
-                        &provider_tool_result.tool_call_id,
-                        &provider_tool_result.tool_name,
-                        serde_json::Value::Null, // input - we don't have it in tool result
-                        provider_tool_result.result.clone(),
-                    );
-                    if let Some(provider_executed) = provider_tool_result.provider_executed {
-                        static_result = static_result.with_provider_executed(provider_executed);
-                    }
-                    TypedToolResult::Static(static_result)
-                };
+                let input = matching_call
+                    .map(|tc| tc.input.clone())
+                    .unwrap_or(Value::Null);
+
+                let mut typed_result = ToolResult::new(
+                    provider_tool_result.tool_call_id.clone(),
+                    provider_tool_result.tool_name.clone(),
+                    input,
+                    provider_tool_result.result.clone(),
+                );
+                if let Some(provider_executed) = provider_tool_result.provider_executed {
+                    typed_result = typed_result.with_provider_executed(provider_executed);
+                }
 
                 // Add to step content
                 step_content.push(Output::ToolResult(typed_result.clone()));
@@ -416,7 +411,7 @@ pub struct StreamTextBuilder {
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     include_raw_chunks: bool,
-    transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
+    transforms: Option<Vec<Box<dyn StreamTransform>>>,
     on_chunk: Option<OnChunkCallback>,
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
@@ -553,7 +548,7 @@ impl StreamTextBuilder {
     }
 
     /// Sets stream transformations to apply to the output.
-    pub fn transforms(mut self, transforms: Vec<Box<dyn StreamTransform<Value, Value>>>) -> Self {
+    pub fn transforms(mut self, transforms: Vec<Box<dyn StreamTransform>>) -> Self {
         self.transforms = Some(transforms);
         self
     }
@@ -583,7 +578,7 @@ impl StreamTextBuilder {
     }
 
     /// Executes the text streaming with the configured settings.
-    pub async fn execute(self) -> Result<StreamTextResult<Value, Value>, AISDKError> {
+    pub async fn execute(self) -> Result<StreamTextResult, AISDKError> {
         stream_text(
             self.model,
             self.prompt,
@@ -658,12 +653,12 @@ pub async fn stream_text(
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     include_raw_chunks: bool,
-    transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
+    transforms: Option<Vec<Box<dyn StreamTransform>>>,
     on_chunk: Option<OnChunkCallback>,
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
-) -> Result<StreamTextResult<Value, Value>, AISDKError> {
+) -> Result<StreamTextResult, AISDKError> {
     // Initialize stop conditions with default if not provided
     let stop_conditions = Arc::new(
         stop_when.unwrap_or_else(|| vec![Box::new(crate::generate_text::step_count_is(1))]),
@@ -680,7 +675,7 @@ pub async fn stream_text(
         prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
     // Create a channel to emit TextStreamPart events
-    let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart<Value, Value>>();
+    let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart>();
 
     // Wrap callbacks in Arc for sharing in the spawned task
     let on_chunk_arc = on_chunk.map(Arc::new);
@@ -704,7 +699,7 @@ pub async fn stream_text(
         let _ = tx_clone.send(TextStreamPart::Start);
 
         // Accumulate all steps
-        let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
+        let mut all_steps: Vec<StepResult> = Vec::new();
         let mut total_usage = LanguageModelUsage::default();
 
         let mut response_messages: Vec<ResponseMessage> = Vec::new();
@@ -879,15 +874,11 @@ pub async fn stream_text(
             };
 
             // Filter client tool calls (those not executed by the provider)
-            let client_tool_calls: Vec<&TypedToolCall<Value>> = step_result
+            let client_tool_calls: Vec<&ToolCall> = step_result
                 .tool_calls
                 .iter()
                 .filter(|tool_call| {
-                    let provider_executed = match tool_call {
-                        TypedToolCall::Static(c) => c.provider_executed,
-                        TypedToolCall::Dynamic(c) => c.provider_executed,
-                    };
-                    provider_executed != Some(true)
+                    tool_call.provider_executed != Some(true)
                 })
                 .collect();
 
@@ -997,7 +988,7 @@ pub async fn stream_text(
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver
-    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart<Value, Value>> + Send>> =
+    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart> + Send>> =
         Box::pin(async_stream::stream! {
             let mut rx = rx;
             while let Some(part) = rx.recv().await {

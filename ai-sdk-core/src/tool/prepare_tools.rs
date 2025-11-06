@@ -67,7 +67,7 @@ pub fn prepare_tools_and_tool_choice(
 ///
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
-fn convert_tool_to_provider(name: String, core_tool: &Tool<Value, Value>) -> LanguageModelTool {
+fn convert_tool_to_provider(name: String, core_tool: &Tool) -> LanguageModelTool {
     use crate::tool::definition::ToolType;
 
     match &core_tool.tool_type {

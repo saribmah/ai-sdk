@@ -256,15 +256,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !tool_calls.is_empty() {
             println!("    Tool calls made: {}", tool_calls.len());
             for tc in tool_calls {
-                use ai_sdk_core::tool::TypedToolCall;
-                match tc {
-                    TypedToolCall::Static(call) => {
-                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
-                    }
-                    TypedToolCall::Dynamic(call) => {
-                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
-                    }
-                }
+                println!("      → {} ({})", tc.tool_name, tc.tool_call_id);
             }
         }
 

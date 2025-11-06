@@ -82,11 +82,9 @@ pub enum ToolType {
 /// This enables the language model to generate the input.
 ///
 /// The tool can also contain an optional execute function for the actual execution of the tool.
-pub struct Tool<INPUT = Value, OUTPUT = Value>
-where
-    INPUT: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-    OUTPUT: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-{
+/// 
+/// For type-safe tools with compile-time guarantees, use the `TypeSafeTool` trait instead.
+pub struct Tool {
     /// An optional description of what the tool does.
     /// Will be used by the language model to decide whether to use the tool.
     pub description: Option<String>,
@@ -102,13 +100,13 @@ where
     pub output_schema: Option<Value>,
 
     /// Whether the tool needs approval before it can be executed.
-    pub needs_approval: NeedsApproval<INPUT>,
+    pub needs_approval: NeedsApproval,
 
     /// The type of tool.
     pub tool_type: ToolType,
 
     /// An async function that is called with the arguments from the tool call and produces a result.
-    pub execute: Option<ToolExecuteFunction<INPUT, OUTPUT>>,
+    pub execute: Option<ToolExecuteFunction<Value, Value>>,
 
     /// Optional function that is called when the argument streaming starts.
     pub on_input_start: Option<OnInputStartCallback>,
@@ -117,17 +115,14 @@ where
     pub on_input_delta: Option<OnInputDeltaCallback>,
 
     /// Optional function that is called when a tool call can be started.
-    pub on_input_available: Option<OnInputAvailableCallback<INPUT>>,
+    pub on_input_available: Option<OnInputAvailableCallback<Value>>,
 
     /// Optional conversion function that maps the tool result to an output that can be used by the language model.
-    pub to_model_output: Option<ToModelOutputFunction<OUTPUT>>,
+    pub to_model_output: Option<ToModelOutputFunction<Value>>,
 }
 
 /// Whether a tool needs approval before execution.
-pub enum NeedsApproval<INPUT>
-where
-    INPUT: Send + 'static,
-{
+pub enum NeedsApproval {
     /// Tool does not need approval.
     No,
 
@@ -135,14 +130,10 @@ where
     Yes,
 
     /// Tool needs approval based on a function.
-    Function(ToolNeedsApprovalFunction<INPUT>),
+    Function(ToolNeedsApprovalFunction<Value>),
 }
 
-impl<INPUT, OUTPUT> Tool<INPUT, OUTPUT>
-where
-    INPUT: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-    OUTPUT: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-{
+impl Tool {
     /// Creates a new function tool with the given input schema.
     pub fn function(input_schema: Value) -> Self {
         Self {
@@ -232,13 +223,13 @@ where
     }
 
     /// Sets the needs approval function.
-    pub fn with_needs_approval_function(mut self, func: ToolNeedsApprovalFunction<INPUT>) -> Self {
+    pub fn with_needs_approval_function(mut self, func: ToolNeedsApprovalFunction<Value>) -> Self {
         self.needs_approval = NeedsApproval::Function(func);
         self
     }
 
     /// Sets the execute function.
-    pub fn with_execute(mut self, func: ToolExecuteFunction<INPUT, OUTPUT>) -> Self {
+    pub fn with_execute(mut self, func: ToolExecuteFunction<Value, Value>) -> Self {
         self.execute = Some(func);
         self
     }
@@ -256,13 +247,13 @@ where
     }
 
     /// Sets the on_input_available callback.
-    pub fn with_on_input_available(mut self, callback: OnInputAvailableCallback<INPUT>) -> Self {
+    pub fn with_on_input_available(mut self, callback: OnInputAvailableCallback<Value>) -> Self {
         self.on_input_available = Some(callback);
         self
     }
 
     /// Sets the to_model_output conversion function.
-    pub fn with_to_model_output(mut self, func: ToModelOutputFunction<OUTPUT>) -> Self {
+    pub fn with_to_model_output(mut self, func: ToModelOutputFunction<Value>) -> Self {
         self.to_model_output = Some(func);
         self
     }
@@ -283,7 +274,7 @@ where
     }
 
     /// Checks if this tool needs approval for the given input.
-    pub async fn check_needs_approval(&self, input: INPUT, options: ToolExecuteOptions) -> bool {
+    pub async fn check_needs_approval(&self, input: Value, options: ToolExecuteOptions) -> bool {
         match &self.needs_approval {
             NeedsApproval::No => false,
             NeedsApproval::Yes => true,
@@ -300,12 +291,9 @@ where
     /// Returns Some(Err(error)) if the tool execution fails.
     pub async fn execute_tool(
         &self,
-        input: INPUT,
+        input: Value,
         options: ToolExecuteOptions,
-    ) -> Option<Result<OUTPUT, Value>>
-    where
-        OUTPUT: Clone,
-    {
+    ) -> Option<Result<Value, Value>> {
         use futures_util::StreamExt;
 
         if let Some(execute) = &self.execute {
@@ -313,7 +301,7 @@ where
             match result {
                 ToolExecutionOutput::Single(future) => Some(future.await),
                 ToolExecutionOutput::Streaming(mut stream) => {
-                    let mut last_output: Option<Result<OUTPUT, Value>> = None;
+                    let mut last_output: Option<Result<Value, Value>> = None;
                     while let Some(output) = stream.next().await {
                         // If we encounter an error in the stream, return it immediately
                         if output.is_err() {

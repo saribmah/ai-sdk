@@ -5,13 +5,12 @@ use std::collections::HashMap;
 /// A set of tools indexed by their names.
 ///
 /// The key is the tool name that will be used by the language model.
-/// Each tool is a `Tool<Value, Value>` which can accept and return any JSON-serializable data.
 ///
 /// # Example
 ///
 /// ```
 /// use ai_sdk_core::ToolSet;
-/// use ai_sdk_core::message::tool::definition::Tool;
+/// use ai_sdk_core::tool::Tool;
 /// use serde_json::json;
 ///
 /// let mut tools = ToolSet::new();
@@ -42,7 +41,7 @@ use std::collections::HashMap;
 /// // Get all tool names
 /// let tool_names: Vec<&String> = tools.keys().collect();
 /// ```
-pub type ToolSet = HashMap<String, Tool<Value, Value>>;
+pub type ToolSet = HashMap<String, Tool>;
 
 #[cfg(test)]
 mod tests {

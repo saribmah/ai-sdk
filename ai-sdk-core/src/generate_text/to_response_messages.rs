@@ -5,7 +5,7 @@ use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
-use crate::tool::{ToolSet, TypedToolError, TypedToolResult};
+use crate::tool::{ToolSet, ToolError, ToolResult};
 use serde_json::Value;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
@@ -32,7 +32,7 @@ use serde_json::Value;
 /// let messages = to_response_messages(content, None);
 /// ```
 pub fn to_response_messages(
-    content: Vec<Output<Value, Value>>,
+    content: Vec<Output>,
     tools: Option<&ToolSet>,
 ) -> Vec<ResponseMessage> {
     let mut response_messages: Vec<ResponseMessage> = Vec::new();
@@ -49,17 +49,11 @@ pub fn to_response_messages(
             match part {
                 Output::ToolResult(result) => {
                     // Include only if provider executed
-                    match result {
-                        TypedToolResult::Static(r) => r.provider_executed == Some(true),
-                        TypedToolResult::Dynamic(r) => r.provider_executed == Some(true),
-                    }
+                    result.provider_executed == Some(true)
                 }
                 Output::ToolError(error) => {
                     // Include only if provider executed
-                    match error {
-                        TypedToolError::Static(e) => e.provider_executed == Some(true),
-                        TypedToolError::Dynamic(e) => e.provider_executed == Some(true),
-                    }
+                    error.provider_executed == Some(true)
                 }
                 _ => true,
             }
@@ -82,74 +76,37 @@ pub fn to_response_messages(
                     ),
                 )),
                 Output::ToolCall(tool_call) => {
-                    let (tool_call_id, tool_name, input, provider_executed) = match tool_call {
-                        crate::tool::TypedToolCall::Static(call) => (
-                            call.tool_call_id.clone(),
-                            call.tool_name.clone(),
-                            call.input.clone(),
-                            call.provider_executed,
-                        ),
-                        crate::tool::TypedToolCall::Dynamic(call) => (
-                            call.tool_call_id.clone(),
-                            call.tool_name.clone(),
-                            call.input.clone(),
-                            call.provider_executed,
-                        ),
-                    };
-
                     Some(AssistantContentPart::ToolCall(
                         crate::prompt::message::content_parts::ToolCallPart::new(
-                            tool_call_id,
-                            tool_name,
-                            input,
+                            tool_call.tool_call_id.clone(),
+                            tool_call.tool_name.clone(),
+                            tool_call.input.clone(),
                         )
-                        .with_provider_executed(provider_executed.unwrap_or(false)),
+                        .with_provider_executed(tool_call.provider_executed.unwrap_or(false)),
                     ))
                 }
                 Output::ToolResult(result) => {
-                    let (tool_call_id, tool_name, output) = match result {
-                        TypedToolResult::Static(r) => (
-                            r.tool_call_id.clone(),
-                            r.tool_name.clone(),
-                            r.output.clone(),
-                        ),
-                        TypedToolResult::Dynamic(r) => (
-                            r.tool_call_id.clone(),
-                            r.tool_name.clone(),
-                            r.output.clone(),
-                        ),
-                    };
-
                     // Get the tool from the toolset
-                    let tool = tools.and_then(|ts| ts.get(&tool_name));
+                    let tool = tools.and_then(|ts| ts.get(&result.tool_name));
 
-                    let tool_output = create_tool_model_output(output, tool, ErrorMode::None);
+                    let tool_output = create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
 
                     Some(AssistantContentPart::ToolResult(ToolResultPart {
-                        tool_call_id,
-                        tool_name,
+                        tool_call_id: result.tool_call_id.clone(),
+                        tool_name: result.tool_name.clone(),
                         output: tool_output,
                         provider_options: None,
                     }))
                 }
                 Output::ToolError(error) => {
-                    let (tool_call_id, tool_name, error_value) = match error {
-                        TypedToolError::Static(e) => {
-                            (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
-                        }
-                        TypedToolError::Dynamic(e) => {
-                            (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
-                        }
-                    };
-
                     // Get the tool from the toolset
-                    let tool = tools.and_then(|ts| ts.get(&tool_name));
+                    let tool = tools.and_then(|ts| ts.get(&error.tool_name));
 
-                    let tool_output = create_tool_model_output(error_value, tool, ErrorMode::Json);
+                    let tool_output = create_tool_model_output(error.error.clone(), tool, ErrorMode::Json);
 
                     Some(AssistantContentPart::ToolResult(ToolResultPart {
-                        tool_call_id,
-                        tool_name,
+                        tool_call_id: error.tool_call_id.clone(),
+                        tool_name: error.tool_name.clone(),
                         output: tool_output,
                         provider_options: None,
                     }))
@@ -173,58 +130,30 @@ pub fn to_response_messages(
         .filter(|part| {
             // Include only if NOT provider-executed
             match part {
-                Output::ToolResult(result) => match result {
-                    TypedToolResult::Static(r) => r.provider_executed != Some(true),
-                    TypedToolResult::Dynamic(r) => r.provider_executed != Some(true),
-                },
-                Output::ToolError(error) => match error {
-                    TypedToolError::Static(e) => e.provider_executed != Some(true),
-                    TypedToolError::Dynamic(e) => e.provider_executed != Some(true),
-                },
+                Output::ToolResult(result) => result.provider_executed != Some(true),
+                Output::ToolError(error) => error.provider_executed != Some(true),
                 _ => false,
             }
         })
         .map(|part| match part {
             Output::ToolResult(result) => {
-                let (tool_call_id, tool_name, output) = match result {
-                    TypedToolResult::Static(r) => (
-                        r.tool_call_id.clone(),
-                        r.tool_name.clone(),
-                        r.output.clone(),
-                    ),
-                    TypedToolResult::Dynamic(r) => (
-                        r.tool_call_id.clone(),
-                        r.tool_name.clone(),
-                        r.output.clone(),
-                    ),
-                };
-
-                let tool = tools.and_then(|ts| ts.get(&tool_name));
-                let tool_output = create_tool_model_output(output, tool, ErrorMode::None);
+                let tool = tools.and_then(|ts| ts.get(&result.tool_name));
+                let tool_output = create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
 
                 ToolResultPart {
-                    tool_call_id,
-                    tool_name,
+                    tool_call_id: result.tool_call_id.clone(),
+                    tool_name: result.tool_name.clone(),
                     output: tool_output,
                     provider_options: None,
                 }
             }
             Output::ToolError(error) => {
-                let (tool_call_id, tool_name, error_value) = match error {
-                    TypedToolError::Static(e) => {
-                        (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
-                    }
-                    TypedToolError::Dynamic(e) => {
-                        (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
-                    }
-                };
-
-                let tool = tools.and_then(|ts| ts.get(&tool_name));
-                let tool_output = create_tool_model_output(error_value, tool, ErrorMode::Text);
+                let tool = tools.and_then(|ts| ts.get(&error.tool_name));
+                let tool_output = create_tool_model_output(error.error.clone(), tool, ErrorMode::Text);
 
                 ToolResultPart {
-                    tool_call_id,
-                    tool_name,
+                    tool_call_id: error.tool_call_id.clone(),
+                    tool_name: error.tool_name.clone(),
                     output: tool_output,
                     provider_options: None,
                 }
@@ -250,11 +179,8 @@ pub fn to_response_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::{
-        ReasoningOutput, StaticToolError, StaticToolResult, TextOutput, TypedToolCall,
-        TypedToolError, TypedToolResult,
-    };
-    use crate::tool::StaticToolCall;
+    use crate::generate_text::{ReasoningOutput, TextOutput};
+    use crate::tool::{ToolCall, ToolError, ToolResult};
     use serde_json::json;
 
     #[test]
@@ -308,8 +234,8 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_with_tool_call() {
-        let tool_call = StaticToolCall::new("call_1", "test_tool", json!({"arg": "value"}));
-        let content = vec![Output::ToolCall(TypedToolCall::Static(tool_call))];
+        let tool_call = ToolCall::new("call_1", "test_tool", json!({"arg": "value"}));
+        let content = vec![Output::ToolCall(tool_call)];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -323,7 +249,7 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_provider_executed_tool_result() {
-        let tool_result = StaticToolResult::new(
+        let tool_result = ToolResult::new(
             "call_1",
             "test_tool",
             json!({"arg": "value"}),
@@ -331,7 +257,7 @@ mod tests {
         )
         .with_provider_executed(true);
 
-        let content = vec![Output::ToolResult(TypedToolResult::Static(tool_result))];
+        let content = vec![Output::ToolResult(tool_result)];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -345,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_client_executed_tool_result() {
-        let tool_result = StaticToolResult::new(
+        let tool_result = ToolResult::new(
             "call_1",
             "test_tool",
             json!({"arg": "value"}),
@@ -353,7 +279,7 @@ mod tests {
         );
         // provider_executed defaults to None/false
 
-        let content = vec![Output::ToolResult(TypedToolResult::Static(tool_result))];
+        let content = vec![Output::ToolResult(tool_result)];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -367,14 +293,14 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_client_executed_tool_error() {
-        let tool_error = StaticToolError::new(
+        let tool_error = ToolError::new(
             "call_1",
             "test_tool",
             json!({"arg": "value"}),
             json!({"error": "failed"}),
         );
 
-        let content = vec![Output::ToolError(TypedToolError::Static(tool_error))];
+        let content = vec![Output::ToolError(tool_error)];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -388,8 +314,8 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_mixed_content() {
-        let tool_call = StaticToolCall::new("call_1", "test_tool", json!({"arg": "value"}));
-        let tool_result = StaticToolResult::new(
+        let tool_call = ToolCall::new("call_1", "test_tool", json!({"arg": "value"}));
+        let tool_result = ToolResult::new(
             "call_1",
             "test_tool",
             json!({"arg": "value"}),
@@ -398,8 +324,8 @@ mod tests {
 
         let content = vec![
             Output::Text(TextOutput::new("Before call")),
-            Output::ToolCall(TypedToolCall::Static(tool_call)),
-            Output::ToolResult(TypedToolResult::Static(tool_result)),
+            Output::ToolCall(tool_call),
+            Output::ToolResult(tool_result),
         ];
         let messages = to_response_messages(content, None);
 

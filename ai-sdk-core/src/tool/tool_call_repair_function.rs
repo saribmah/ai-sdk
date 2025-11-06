@@ -67,13 +67,13 @@ impl ToolCallRepairOptions {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::generate_text::tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
-/// use ai_sdk_provider::language_model::tool_call::ToolCall;
+/// use ai_sdk_core::tool::tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
+/// use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 /// use std::future::Future;
 /// use std::pin::Pin;
 ///
 /// // Define a simple repair function that returns None (no repair)
-/// fn no_repair_function(options: ToolCallRepairOptions) -> Pin<Box<dyn Future<Output = Option<ToolCall>> + Send>> {
+/// fn no_repair_function(options: ToolCallRepairOptions) -> Pin<Box<dyn Future<Output = Option<LanguageModelToolCall>> + Send>> {
 ///     Box::pin(async move {
 ///         // In a real implementation, you might use an LLM to repair the tool call
 ///         None
@@ -98,7 +98,7 @@ pub type ToolCallRepairFunction = Box<
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::generate_text::tool_call_repair_function::no_repair;
+/// use ai_sdk_core::tool::tool_call_repair_function::no_repair;
 ///
 /// let repair_fn = no_repair();
 /// // This repair function will always return None, indicating no repair is possible

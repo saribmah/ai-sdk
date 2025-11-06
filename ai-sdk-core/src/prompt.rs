@@ -59,10 +59,10 @@ impl Prompt {
     ///
     /// ```
     /// use ai_sdk_core::prompt::Prompt;
-    /// use ai_sdk_core::message::{ModelMessage, UserModelMessage};
+    /// use ai_sdk_core::prompt::message::{Message, UserMessage};
     ///
     /// let messages = vec![
-    ///     ModelMessage::User(UserModelMessage::new("Hello")),
+    ///     Message::User(UserMessage::new("Hello")),
     /// ];
     /// let prompt = Prompt::messages(messages);
     /// ```

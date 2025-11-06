@@ -8,9 +8,10 @@ A unified Rust SDK for building AI-powered applications with multiple model prov
 
 - **Provider-agnostic API**: Write once, switch providers easily
 - **Type-safe**: Leverages Rust's type system for compile-time safety
+- **Type-safe Tools**: Define tools with compile-time checked inputs/outputs using the `TypeSafeTool` trait
 - **Async/await**: Built on Tokio for efficient async operations
-- **Streaming support**: Stream responses from language models (in progress)
-- **Tool calling**: Support for function/tool calling with LLMs
+- **Streaming support**: Stream responses from language models with real-time processing
+- **Tool calling**: Support for function/tool calling with LLMs, both dynamic and type-safe
 - **Multiple providers**: OpenAI-compatible APIs (OpenAI, Azure OpenAI, and others)
 
 ## Project Structure
@@ -80,6 +81,60 @@ let settings = CallSettings::default()
 
 let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
 ```
+
+### Type-Safe Tools
+
+The SDK provides a `TypeSafeTool` trait for defining tools with compile-time type checking:
+
+```rust
+use ai_sdk_core::tool::TypeSafeTool;
+use async_trait::async_trait;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+// Define typed input/output structures
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+struct WeatherInput {
+    city: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct WeatherOutput {
+    temperature: f64,
+    conditions: String,
+}
+
+// Implement the type-safe tool
+struct WeatherTool;
+
+#[async_trait]
+impl TypeSafeTool for WeatherTool {
+    type Input = WeatherInput;
+    type Output = WeatherOutput;
+
+    fn name(&self) -> &str { "get_weather" }
+    fn description(&self) -> &str { "Get weather for a city" }
+
+    async fn execute(&self, input: Self::Input) -> Result<Self::Output, String> {
+        Ok(WeatherOutput {
+            temperature: 72.0,
+            conditions: format!("Sunny in {}", input.city),
+        })
+    }
+}
+
+// Convert to untyped Tool for use with LLMs
+let weather_tool = WeatherTool.into_tool();
+```
+
+**Benefits:**
+- ✅ Compile-time type checking - catch errors before runtime
+- ✅ Automatic JSON schema generation from Rust types
+- ✅ IDE support - autocomplete, go-to-definition, refactoring
+- ✅ Can be used with LLMs or called directly in your code
+- ✅ Impossible to pass wrong types or forget required fields
+
+See the `type_safe_tools` example for a complete demonstration.
 
 ### Using Different Providers
 
@@ -305,6 +360,21 @@ cargo run --example conversation
 # Tool calling example - function calling with a weather tool
 export OPENAI_API_KEY="your-api-key"
 cargo run --example tool_calling
+
+# Type-safe tools example - compile-time type checking for tools
+export OPENAI_API_KEY="your-api-key"
+cargo run --example type_safe_tools
+
+# Multi-step tools example - iterative tool calling
+export OPENAI_API_KEY="your-api-key"
+cargo run --example multi_step_tools
+
+# Streaming examples
+export OPENAI_API_KEY="your-api-key"
+cargo run --example basic_stream
+cargo run --example stream_tool_calling
+cargo run --example stream_transforms
+cargo run --example partial_output
 ```
 
 The examples demonstrate:
@@ -314,6 +384,10 @@ The examples demonstrate:
 - System messages and temperature settings
 - Token usage tracking
 - Tool/function calling and handling tool call responses
+- **Type-safe tools** with compile-time type checking (see `type_safe_tools.rs`)
+- Multi-step tool execution with iterative calls
+- Streaming responses in real-time
+- Partial output parsing for structured data
 
 ## Development
 

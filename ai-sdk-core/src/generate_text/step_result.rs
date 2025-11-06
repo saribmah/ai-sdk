@@ -55,12 +55,6 @@ impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
 /// This struct contains all the information about a generation step, including
 /// the generated content, token usage, finish reason, and metadata.
 ///
-/// # Type Parameters
-///
-/// * `INPUT` - The input type for tool calls/results
-/// * `OUTPUT` - The output type for tool calls/results
-///
-/// # Example
 ///
 /// ```ignore
 /// use ai_sdk_core::StepResult;
@@ -80,9 +74,9 @@ impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
 /// let tool_calls = result.tool_calls();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct StepResult<INPUT = Value, OUTPUT = Value> {
+pub struct StepResult {
     /// The content that was generated in the step (user-facing Output types).
-    pub content: Vec<Output<INPUT, OUTPUT>>,
+    pub content: Vec<Output>,
 
     /// The reason why the generation finished.
     pub finish_reason: LanguageModelFinishReason,
@@ -103,7 +97,7 @@ pub struct StepResult<INPUT = Value, OUTPUT = Value> {
     pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
-impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
+impl StepResult {
     /// Creates a new StepResult.
     ///
     /// # Arguments
@@ -116,7 +110,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// * `response` - Response metadata
     /// * `provider_metadata` - Optional provider-specific metadata
     pub fn new(
-        content: Vec<Output<INPUT, OUTPUT>>,
+        content: Vec<Output>,
         finish_reason: LanguageModelFinishReason,
         usage: LanguageModelUsage,
         warnings: Option<Vec<LanguageModelCallWarning>>,
@@ -233,7 +227,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool calls.
-    pub fn tool_calls(&self) -> Vec<&crate::tool::TypedToolCall<INPUT>> {
+    pub fn tool_calls(&self) -> Vec<&crate::tool::ToolCall> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -251,7 +245,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool results.
-    pub fn tool_results(&self) -> Vec<&crate::tool::TypedToolResult<INPUT, OUTPUT>> {
+    pub fn tool_results(&self) -> Vec<&crate::tool::ToolResult> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -276,12 +270,10 @@ mod tests {
             Output::Text(crate::output::text::TextOutput::new("world!".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 1. ".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 2.".to_string())),
-            Output::ToolCall(crate::tool::TypedToolCall::Dynamic(
-                crate::tool::DynamicToolCall::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({"city": "SF"}),
-                ),
+            Output::ToolCall(crate::tool::ToolCall::new(
+                "call_1",
+                "get_weather",
+                json!({"city": "SF"}),
             )),
         ];
 
@@ -338,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_step_result_reasoning_text_empty() {
-        let result: StepResult<Value, Value> = StepResult::new(
+        let result = StepResult::new(
             vec![Output::Text(crate::output::text::TextOutput::new(
                 "Hello".to_string(),
             ))],
@@ -363,13 +355,8 @@ mod tests {
         let result = create_test_step_result();
         let tool_calls = result.tool_calls();
         assert_eq!(tool_calls.len(), 1);
-        match &tool_calls[0] {
-            crate::tool::TypedToolCall::Dynamic(call) => {
-                assert_eq!(call.tool_name, "get_weather");
-                assert_eq!(call.tool_call_id, "call_1");
-            }
-            _ => panic!("Expected dynamic tool call"),
-        }
+        assert_eq!(tool_calls[0].tool_name, "get_weather");
+        assert_eq!(tool_calls[0].tool_call_id, "call_1");
     }
 
     #[test]
@@ -393,7 +380,7 @@ mod tests {
             "Temperature not supported",
         )];
 
-        let result: StepResult<Value, Value> = StepResult::new(
+        let result = StepResult::new(
             vec![],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(0, 0),

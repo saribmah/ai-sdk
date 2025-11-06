@@ -1,7 +1,5 @@
 use super::{NeedsApproval, Tool, ToolExecuteOptions};
 use crate::prompt::message::Message;
-use serde::Serialize;
-use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 /// Checks if a tool call needs approval before execution.
@@ -24,7 +22,7 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::generate_text::is_approval_needed;
+/// use ai_sdk_core::tool::is_approval_needed;
 ///
 /// let needs_approval = is_approval_needed(
 ///     &tool,
@@ -38,17 +36,13 @@ use serde_json::Value;
 ///     println!("This tool call requires user approval");
 /// }
 /// ```
-pub async fn is_approval_needed<INPUT, OUTPUT>(
-    tool: &Tool<INPUT, OUTPUT>,
+pub async fn is_approval_needed(
+    tool: &Tool,
     tool_call_id: impl Into<String>,
-    input: INPUT,
+    input: Value,
     messages: Vec<Message>,
     experimental_context: Option<Value>,
-) -> bool
-where
-    INPUT: Serialize + DeserializeOwned + Send + Clone + 'static,
-    OUTPUT: Serialize + DeserializeOwned + Send + 'static,
-{
+) -> bool {
     match &tool.needs_approval {
         // Tool does not need approval
         NeedsApproval::No => false,
@@ -79,7 +73,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_no_approval_needed() {
-        let tool: Tool<Value, Value> = Tool::function(json!({
+        let tool = Tool::function(json!({
             "type": "object",
             "properties": {
                 "city": {"type": "string"}
@@ -94,7 +88,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_always_needs_approval() {
-        let mut tool: Tool<Value, Value> = Tool::function(json!({
+        let mut tool = Tool::function(json!({
             "type": "object",
             "properties": {
                 "city": {"type": "string"}
@@ -110,7 +104,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_conditional_approval_returns_true() {
-        let mut tool: Tool<Value, Value> = Tool::function(json!({
+        let mut tool = Tool::function(json!({
             "type": "object",
             "properties": {
                 "action": {"type": "string"}
@@ -136,7 +130,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_conditional_approval_returns_false() {
-        let mut tool: Tool<Value, Value> = Tool::function(json!({
+        let mut tool = Tool::function(json!({
             "type": "object",
             "properties": {
                 "action": {"type": "string"}
@@ -162,7 +156,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_experimental_context() {
-        let mut tool: Tool<Value, Value> = Tool::function(json!({
+        let mut tool = Tool::function(json!({
             "type": "object",
             "properties": {}
         }));
@@ -193,7 +187,7 @@ mod tests {
     async fn test_with_messages() {
         use crate::prompt::message::user::UserMessage;
 
-        let mut tool: Tool<Value, Value> = Tool::function(json!({
+        let mut tool = Tool::function(json!({
             "type": "object",
             "properties": {}
         }));

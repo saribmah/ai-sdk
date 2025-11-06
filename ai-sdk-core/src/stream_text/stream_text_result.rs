@@ -2,10 +2,7 @@ use crate::error::AISDKError;
 use crate::generate_text::{GeneratedFile, RequestMetadata, ResponseMetadata, StepResult};
 use crate::output::{Output, ReasoningOutput, TextOutput};
 use crate::stream_text::TextStreamPart;
-use crate::tool::{
-    DynamicToolCall, DynamicToolResult, StaticToolCall, StaticToolResult, TypedToolCall,
-    TypedToolResult,
-};
+use crate::tool::{ToolCall, ToolResult};
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
@@ -85,30 +82,26 @@ pub type AsyncIterableStream<T> = Pin<Box<dyn Stream<Item = T> + Send>>;
 /// This struct holds the accumulated results from consuming the stream, allowing
 /// multiple accessors to read the same data without re-consuming the stream.
 #[derive(Clone)]
-struct StreamState<INPUT, OUTPUT> {
-    content: Vec<Output<INPUT, OUTPUT>>,
+struct StreamState {
+    content: Vec<Output>,
     text: String,
     reasoning: Vec<ReasoningOutput>,
     reasoning_text: Option<String>,
     files: Vec<GeneratedFile>,
     sources: Vec<LanguageModelSource>,
-    tool_calls: Vec<TypedToolCall<INPUT>>,
-    static_tool_calls: Vec<StaticToolCall<INPUT>>,
-    dynamic_tool_calls: Vec<DynamicToolCall>,
-    static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>>,
-    dynamic_tool_results: Vec<DynamicToolResult>,
-    tool_results: Vec<TypedToolResult<INPUT, OUTPUT>>,
+    tool_calls: Vec<ToolCall>,
+    tool_results: Vec<ToolResult>,
     finish_reason: LanguageModelFinishReason,
     usage: LanguageModelUsage,
     total_usage: LanguageModelUsage,
     warnings: Option<Vec<LanguageModelCallWarning>>,
-    steps: Vec<StepResult<INPUT, OUTPUT>>,
+    steps: Vec<StepResult>,
     request: RequestMetadata,
     response: ResponseMetadata,
     provider_metadata: Option<SharedProviderMetadata>,
 }
 
-impl<INPUT, OUTPUT> Default for StreamState<INPUT, OUTPUT> {
+impl Default for StreamState {
     fn default() -> Self {
         Self {
             content: Vec::new(),
@@ -118,10 +111,6 @@ impl<INPUT, OUTPUT> Default for StreamState<INPUT, OUTPUT> {
             files: Vec::new(),
             sources: Vec::new(),
             tool_calls: Vec::new(),
-            static_tool_calls: Vec::new(),
-            dynamic_tool_calls: Vec::new(),
-            static_tool_results: Vec::new(),
-            dynamic_tool_results: Vec::new(),
             tool_results: Vec::new(),
             finish_reason: LanguageModelFinishReason::Unknown,
             usage: LanguageModelUsage::default(),
@@ -166,22 +155,18 @@ impl<INPUT, OUTPUT> Default for StreamState<INPUT, OUTPUT> {
 ///     print!("{}", delta);
 /// }
 /// ```
-pub struct StreamTextResult<INPUT = Value, OUTPUT = Value> {
+pub struct StreamTextResult {
     /// Shared state that holds the consumed stream data
-    state: Arc<OnceLock<StreamState<INPUT, OUTPUT>>>,
+    state: Arc<OnceLock<StreamState>>,
 
     /// The underlying full stream
-    full_stream: Arc<Mutex<Option<AsyncIterableStream<TextStreamPart<INPUT, OUTPUT>>>>>,
+    full_stream: Arc<Mutex<Option<AsyncIterableStream<TextStreamPart>>>>,
 
     /// Whether the stream has been consumed
     consumed: Arc<Mutex<bool>>,
 }
 
-impl<INPUT, OUTPUT> StreamTextResult<INPUT, OUTPUT>
-where
-    INPUT: Clone + Send + Sync + 'static,
-    OUTPUT: Clone + Send + Sync + 'static,
-{
+impl StreamTextResult {
     /// Creates a new `StreamTextResult` from a full stream.
     ///
     /// # Arguments
@@ -195,7 +180,7 @@ where
     ///
     /// let result = StreamTextResult::new(stream);
     /// ```
-    pub fn new(full_stream: AsyncIterableStream<TextStreamPart<INPUT, OUTPUT>>) -> Self {
+    pub fn new(full_stream: AsyncIterableStream<TextStreamPart>) -> Self {
         Self {
             state: Arc::new(OnceLock::new()),
             full_stream: Arc::new(Mutex::new(Some(full_stream))),
@@ -249,8 +234,8 @@ where
     /// Internal method to consume the stream and build the state.
     async fn consume_stream_internal(
         &self,
-        mut stream: AsyncIterableStream<TextStreamPart<INPUT, OUTPUT>>,
-    ) -> Result<StreamState<INPUT, OUTPUT>, AISDKError> {
+        mut stream: AsyncIterableStream<TextStreamPart>,
+    ) -> Result<StreamState, AISDKError> {
         let mut state = StreamState::default();
         let mut current_text = String::new();
         let mut current_reasoning = String::new();
@@ -296,30 +281,12 @@ where
                         .push(GeneratedFile::from_base64(&file.base64, &file.media_type));
                 }
                 TextStreamPart::ToolCall { tool_call } => {
-                    // Add to appropriate lists based on type
-                    match &tool_call {
-                        TypedToolCall::Static(call) => {
-                            state.static_tool_calls.push(call.clone());
-                        }
-                        TypedToolCall::Dynamic(call) => {
-                            state.dynamic_tool_calls.push(call.clone());
-                        }
-                    }
-                    // Also add to content
+                    // Add to content and tool_calls list
                     state.content.push(Output::ToolCall(tool_call.clone()));
                     state.tool_calls.push(tool_call);
                 }
                 TextStreamPart::ToolResult { tool_result } => {
-                    // Add to appropriate lists based on type
-                    match &tool_result {
-                        TypedToolResult::Static(result) => {
-                            state.static_tool_results.push(result.clone());
-                        }
-                        TypedToolResult::Dynamic(result) => {
-                            state.dynamic_tool_results.push(result.clone());
-                        }
-                    }
-                    // Also add to content
+                    // Add to content and tool_results list
                     state.content.push(Output::ToolResult(tool_result.clone()));
                     state.tool_results.push(tool_result);
                 }
@@ -406,7 +373,7 @@ where
     ///     // Process content parts
     /// }
     /// ```
-    pub async fn content(&self) -> Result<Vec<Output<INPUT, OUTPUT>>, AISDKError> {
+    pub async fn content(&self) -> Result<Vec<Output>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().content.clone())
     }
@@ -454,49 +421,15 @@ where
     /// Gets the tool calls that have been executed in the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn tool_calls(&self) -> Result<Vec<TypedToolCall<INPUT>>, AISDKError> {
+    pub async fn tool_calls(&self) -> Result<Vec<ToolCall>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().tool_calls.clone())
-    }
-
-    /// Gets the static tool calls that have been executed in the last step.
-    ///
-    /// Automatically consumes the stream.
-    pub async fn static_tool_calls(&self) -> Result<Vec<StaticToolCall<INPUT>>, AISDKError> {
-        self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().static_tool_calls.clone())
-    }
-
-    /// Gets the dynamic tool calls that have been executed in the last step.
-    ///
-    /// Automatically consumes the stream.
-    pub async fn dynamic_tool_calls(&self) -> Result<Vec<DynamicToolCall>, AISDKError> {
-        self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().dynamic_tool_calls.clone())
-    }
-
-    /// Gets the static tool results that have been generated in the last step.
-    ///
-    /// Automatically consumes the stream.
-    pub async fn static_tool_results(
-        &self,
-    ) -> Result<Vec<StaticToolResult<INPUT, OUTPUT>>, AISDKError> {
-        self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().static_tool_results.clone())
-    }
-
-    /// Gets the dynamic tool results that have been generated in the last step.
-    ///
-    /// Automatically consumes the stream.
-    pub async fn dynamic_tool_results(&self) -> Result<Vec<DynamicToolResult>, AISDKError> {
-        self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().dynamic_tool_results.clone())
     }
 
     /// Gets the tool results that have been generated in the last step.
     ///
     /// Automatically consumes the stream.
-    pub async fn tool_results(&self) -> Result<Vec<TypedToolResult<INPUT, OUTPUT>>, AISDKError> {
+    pub async fn tool_results(&self) -> Result<Vec<ToolResult>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().tool_results.clone())
     }
@@ -539,7 +472,7 @@ where
     /// such as the tool calls or the response headers.
     ///
     /// Automatically consumes the stream.
-    pub async fn steps(&self) -> Result<Vec<StepResult<INPUT, OUTPUT>>, AISDKError> {
+    pub async fn steps(&self) -> Result<Vec<StepResult>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().steps.clone())
     }
@@ -594,7 +527,7 @@ where
     ///
     /// You can use it as either an AsyncIterable or a Stream.
     /// Only errors that stop the stream, such as network errors, are yielded.
-    pub fn full_stream(&self) -> AsyncIterableStream<TextStreamPart<INPUT, OUTPUT>> {
+    pub fn full_stream(&self) -> AsyncIterableStream<TextStreamPart> {
         let full_stream = self.full_stream.clone();
 
         Box::pin(async_stream::stream! {
@@ -622,7 +555,7 @@ where
     ///     println!("Partial JSON: {:?}", partial_value);
     /// }
     /// ```
-    pub fn partial_output_stream(&self) -> AsyncIterableStream<OUTPUT>
+    pub fn partial_output_stream<OUTPUT>(&self) -> AsyncIterableStream<OUTPUT>
     where
         OUTPUT: for<'de> serde::Deserialize<'de> + Send + 'static,
     {
@@ -706,7 +639,7 @@ where
     }
 }
 
-impl<INPUT, OUTPUT> Clone for StreamTextResult<INPUT, OUTPUT> {
+impl Clone for StreamTextResult {
     fn clone(&self) -> Self {
         Self {
             state: Arc::clone(&self.state),

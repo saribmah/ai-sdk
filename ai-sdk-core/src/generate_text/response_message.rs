@@ -8,7 +8,7 @@ use crate::prompt::message::{AssistantMessage, Message, ToolMessage};
 ///
 /// ```
 /// use ai_sdk_core::ResponseMessage;
-/// use ai_sdk_core::message::AssistantMessage;
+/// use ai_sdk_core::prompt::message::AssistantMessage;
 ///
 /// // Create an assistant response message
 /// let assistant_msg = AssistantMessage::new("Hello, how can I help you?");

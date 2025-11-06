@@ -99,13 +99,10 @@ pub struct HasToolCall {
 impl StopCondition for HasToolCall {
     async fn check(&self, steps: &[StepResult]) -> bool {
         if let Some(last_step) = steps.last() {
-            last_step.tool_calls().iter().any(|tc| {
-                use super::TypedToolCall;
-                match tc {
-                    TypedToolCall::Static(call) => call.tool_name == self.tool_name,
-                    TypedToolCall::Dynamic(call) => call.tool_name == self.tool_name,
-                }
-            })
+            last_step
+                .tool_calls()
+                .iter()
+                .any(|tc| tc.tool_name == self.tool_name)
         } else {
             false
         }
@@ -203,14 +200,16 @@ mod tests {
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
         use crate::output::Output;
         use crate::output::text::TextOutput;
-        use crate::tool::{DynamicToolCall, TypedToolCall};
+        use crate::tool::ToolCall;
         use serde_json::json;
 
         let mut content: Vec<Output> = vec![Output::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
-            content.push(Output::ToolCall(TypedToolCall::Dynamic(
-                DynamicToolCall::new(id.to_string(), name.to_string(), json!({})),
+            content.push(Output::ToolCall(ToolCall::new(
+                id.to_string(),
+                name.to_string(),
+                json!({}),
             )));
         }
 

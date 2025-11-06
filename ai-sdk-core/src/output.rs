@@ -6,22 +6,16 @@ pub use reasoning::ReasoningOutput;
 pub use source::SourceOutput;
 pub use text::TextOutput;
 
-use crate::tool::{TypedToolCall, TypedToolError, TypedToolResult};
+use crate::tool::{ToolCall, ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An output part that can appear in an assistant message.
 ///
 /// This represents all possible outputs that can be included in a response,
 /// including text, reasoning, sources, tool calls, tool results, and tool errors.
-///
-/// # Type Parameters
-///
-/// * `INPUT` - The input type for tool calls, results, and errors
-/// * `OUTPUT` - The output type for tool results
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Output<INPUT = Value, OUTPUT = Value> {
+pub enum Output {
     /// A text content part with optional provider metadata.
     Text(TextOutput),
 
@@ -32,16 +26,16 @@ pub enum Output<INPUT = Value, OUTPUT = Value> {
     Source(SourceOutput),
 
     /// A tool call that was made.
-    ToolCall(TypedToolCall<INPUT>),
+    ToolCall(ToolCall),
 
     /// A tool result.
-    ToolResult(TypedToolResult<INPUT, OUTPUT>),
+    ToolResult(ToolResult),
 
     /// A tool error.
-    ToolError(TypedToolError<INPUT>),
+    ToolError(ToolError),
 }
 
-impl<INPUT, OUTPUT> Output<INPUT, OUTPUT> {
+impl Output {
     /// Returns true if this is a text content part.
     pub fn is_text(&self) -> bool {
         matches!(self, Output::Text(_))
@@ -76,13 +70,13 @@ impl<INPUT, OUTPUT> Output<INPUT, OUTPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::{StaticToolCall, StaticToolError, StaticToolResult};
+    use crate::tool::{ToolCall, ToolError, ToolResult};
     use serde_json::json;
 
     #[test]
-    fn test_content_part_text() {
+    fn test_output_text() {
         let text = TextOutput::new("Hello, world!");
-        let part: Output<Value, Value> = Output::Text(text);
+        let part = Output::Text(text);
 
         assert!(part.is_text());
         assert!(!part.is_reasoning());
@@ -90,9 +84,9 @@ mod tests {
     }
 
     #[test]
-    fn test_content_part_reasoning() {
+    fn test_output_reasoning() {
         let reasoning = ReasoningOutput::new("Let me think...");
-        let part: Output<Value, Value> = Output::Reasoning(reasoning);
+        let part = Output::Reasoning(reasoning);
 
         assert!(part.is_reasoning());
         assert!(!part.is_text());
@@ -100,9 +94,9 @@ mod tests {
     }
 
     #[test]
-    fn test_content_part_tool_call() {
-        let call = StaticToolCall::new("call_1", "tool", json!({}));
-        let part: Output<Value, Value> = Output::ToolCall(TypedToolCall::Static(call));
+    fn test_output_tool_call() {
+        let call = ToolCall::new("call_1", "tool", json!({}));
+        let part = Output::ToolCall(call);
 
         assert!(part.is_tool_call());
         assert!(!part.is_text());
@@ -110,9 +104,9 @@ mod tests {
     }
 
     #[test]
-    fn test_content_part_tool_result() {
-        let result = StaticToolResult::new("call_1", "tool", json!({}), json!({}));
-        let part: Output<Value, Value> = Output::ToolResult(TypedToolResult::Static(result));
+    fn test_output_tool_result() {
+        let result = ToolResult::new("call_1", "tool", json!({}), json!({}));
+        let part = Output::ToolResult(result);
 
         assert!(part.is_tool_result());
         assert!(!part.is_tool_error());
@@ -120,9 +114,9 @@ mod tests {
     }
 
     #[test]
-    fn test_content_part_tool_error() {
-        let error = StaticToolError::new("call_1", "tool", json!({}), json!({"error": "failed"}));
-        let part: Output<Value, Value> = Output::ToolError(TypedToolError::Static(error));
+    fn test_output_tool_error() {
+        let error = ToolError::new("call_1", "tool", json!({}), json!({"error": "failed"}));
+        let part = Output::ToolError(error);
 
         assert!(part.is_tool_error());
         assert!(!part.is_tool_result());

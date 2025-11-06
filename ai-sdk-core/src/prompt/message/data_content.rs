@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::message::DataContent;
+/// use ai_sdk_core::prompt::message::DataContent;
 ///
 /// // From a base64-encoded string
 /// let data = DataContent::from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
