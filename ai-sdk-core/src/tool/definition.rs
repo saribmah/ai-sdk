@@ -82,7 +82,7 @@ pub enum ToolType {
 /// This enables the language model to generate the input.
 ///
 /// The tool can also contain an optional execute function for the actual execution of the tool.
-/// 
+///
 /// For type-safe tools with compile-time guarantees, use the `TypeSafeTool` trait instead.
 pub struct Tool {
     /// An optional description of what the tool does.

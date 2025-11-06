@@ -1,4 +1,3 @@
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Streaming tool calling example demonstrating real-time tool execution with streaming.
 ///
 /// This example shows how to:
@@ -13,9 +12,10 @@ use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{ToolSet, step_count_is, stream_text};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::env;
@@ -80,11 +80,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
         Arc::from(provider.chat_model("gpt-4o-mini"));
@@ -245,7 +245,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             TextStreamPart::ToolCall { tool_call } => {
                 println!("\n\n🔧 Tool Call: {}", tool_call.tool_name);
-                println!("   Args: {}", serde_json::to_string_pretty(&tool_call.input)?);
+                println!(
+                    "   Args: {}",
+                    serde_json::to_string_pretty(&tool_call.input)?
+                );
             }
             TextStreamPart::ToolResult { tool_result } => {
                 println!("\n✅ Tool Result:");
@@ -342,7 +345,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             TextStreamPart::ToolCall { tool_call } => {
                 println!("\n\n🔧 Tool Call: {}", tool_call.tool_name);
-                println!("   Args: {}", serde_json::to_string_pretty(&tool_call.input)?);
+                println!(
+                    "   Args: {}",
+                    serde_json::to_string_pretty(&tool_call.input)?
+                );
             }
             TextStreamPart::ToolResult { tool_result } => {
                 println!("\n✅ Tool Result:");

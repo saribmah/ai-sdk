@@ -173,7 +173,6 @@ pub fn as_output(
                     .find(|tc| tc.tool_call_id == provider_result.tool_call_id);
 
                 if let Some(tool_call) = matching_call {
-
                     // Check if this is an error result
                     if provider_result.is_error == Some(true) {
                         // Create ToolError
@@ -656,9 +655,7 @@ pub async fn generate_text(
         // Filter client tool calls (those not executed by the provider)
         let client_tool_calls: Vec<&ToolCall> = step_tool_calls
             .iter()
-            .filter(|tool_call| {
-                tool_call.provider_executed != Some(true)
-            })
+            .filter(|tool_call| tool_call.provider_executed != Some(true))
             .collect();
 
         // Execute client tool calls and collect outputs
@@ -752,10 +749,7 @@ pub async fn generate_text(
         });
 
     // Return the GenerateTextResult
-    Ok(GenerateTextResult::from_steps(
-        steps,
-        total_usage,
-    ))
+    Ok(GenerateTextResult::from_steps(steps, total_usage))
 }
 
 #[cfg(test)]

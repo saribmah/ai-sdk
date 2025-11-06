@@ -877,9 +877,7 @@ pub async fn stream_text(
             let client_tool_calls: Vec<&ToolCall> = step_result
                 .tool_calls
                 .iter()
-                .filter(|tool_call| {
-                    tool_call.provider_executed != Some(true)
-                })
+                .filter(|tool_call| tool_call.provider_executed != Some(true))
                 .collect();
 
             // Execute client tool calls

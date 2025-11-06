@@ -46,9 +46,7 @@ pub struct TransformOptions {
 impl TransformOptions {
     /// Create new transform options
     pub fn new() -> Self {
-        Self {
-            stop_stream: None,
-        }
+        Self { stop_stream: None }
     }
 
     /// Set the stop stream handle

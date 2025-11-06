@@ -5,7 +5,7 @@ use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
-use crate::tool::{ToolSet, ToolError, ToolResult};
+use crate::tool::{ToolError, ToolResult, ToolSet};
 use serde_json::Value;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
@@ -31,10 +31,7 @@ use serde_json::Value;
 /// let content = vec![/* content parts */];
 /// let messages = to_response_messages(content, None);
 /// ```
-pub fn to_response_messages(
-    content: Vec<Output>,
-    tools: Option<&ToolSet>,
-) -> Vec<ResponseMessage> {
+pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Vec<ResponseMessage> {
     let mut response_messages: Vec<ResponseMessage> = Vec::new();
 
     // Filter and map content for assistant message
@@ -75,21 +72,20 @@ pub fn to_response_messages(
                         reasoning_output.text.clone(),
                     ),
                 )),
-                Output::ToolCall(tool_call) => {
-                    Some(AssistantContentPart::ToolCall(
-                        crate::prompt::message::content_parts::ToolCallPart::new(
-                            tool_call.tool_call_id.clone(),
-                            tool_call.tool_name.clone(),
-                            tool_call.input.clone(),
-                        )
-                        .with_provider_executed(tool_call.provider_executed.unwrap_or(false)),
-                    ))
-                }
+                Output::ToolCall(tool_call) => Some(AssistantContentPart::ToolCall(
+                    crate::prompt::message::content_parts::ToolCallPart::new(
+                        tool_call.tool_call_id.clone(),
+                        tool_call.tool_name.clone(),
+                        tool_call.input.clone(),
+                    )
+                    .with_provider_executed(tool_call.provider_executed.unwrap_or(false)),
+                )),
                 Output::ToolResult(result) => {
                     // Get the tool from the toolset
                     let tool = tools.and_then(|ts| ts.get(&result.tool_name));
 
-                    let tool_output = create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
+                    let tool_output =
+                        create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
 
                     Some(AssistantContentPart::ToolResult(ToolResultPart {
                         tool_call_id: result.tool_call_id.clone(),
@@ -102,7 +98,8 @@ pub fn to_response_messages(
                     // Get the tool from the toolset
                     let tool = tools.and_then(|ts| ts.get(&error.tool_name));
 
-                    let tool_output = create_tool_model_output(error.error.clone(), tool, ErrorMode::Json);
+                    let tool_output =
+                        create_tool_model_output(error.error.clone(), tool, ErrorMode::Json);
 
                     Some(AssistantContentPart::ToolResult(ToolResultPart {
                         tool_call_id: error.tool_call_id.clone(),
@@ -138,7 +135,8 @@ pub fn to_response_messages(
         .map(|part| match part {
             Output::ToolResult(result) => {
                 let tool = tools.and_then(|ts| ts.get(&result.tool_name));
-                let tool_output = create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
+                let tool_output =
+                    create_tool_model_output(result.output.clone(), tool, ErrorMode::None);
 
                 ToolResultPart {
                     tool_call_id: result.tool_call_id.clone(),
@@ -149,7 +147,8 @@ pub fn to_response_messages(
             }
             Output::ToolError(error) => {
                 let tool = tools.and_then(|ts| ts.get(&error.tool_name));
-                let tool_output = create_tool_model_output(error.error.clone(), tool, ErrorMode::Text);
+                let tool_output =
+                    create_tool_model_output(error.error.clone(), tool, ErrorMode::Text);
 
                 ToolResultPart {
                     tool_call_id: error.tool_call_id.clone(),

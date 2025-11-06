@@ -23,17 +23,8 @@ impl OpenAICompatibleProvider {
     }
 
     /// Creates a language model with the given model ID.
-    /// This is an alias for `chat_model`.
-    pub fn language_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
-        self.chat_model(model_id)
-    }
-
-    /// Creates a chat language model with the given model ID.
     pub fn model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
-        let model_id = model_id.into();
-        let config = self.create_chat_config();
-
-        Box::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
+        self.chat_model(model_id)
     }
 
     /// Creates a chat language model with the given model ID.
@@ -282,7 +273,8 @@ mod tests {
             .with_api_key("test-key");
 
         let provider = create_openai_compatible(settings);
-        let model = provider.language_model("gpt-4");
+        let model_result = provider.language_model("gpt-4");
+        let model = model_result.unwrap();
 
         assert_eq!(model.provider(), "openai.chat");
         assert_eq!(model.model_id(), "gpt-4");
@@ -377,7 +369,8 @@ mod tests {
         assert_eq!(model3.model_id(), "model-3");
 
         // Test language_model as struct method (alias for chat_model)
-        let model4 = provider.language_model("model-4");
+        let model4_result = provider.language_model("model-4");
+        let model4 = model4_result.unwrap();
         assert_eq!(model4.provider(), "example.chat");
         assert_eq!(model4.model_id(), "model-4");
     }

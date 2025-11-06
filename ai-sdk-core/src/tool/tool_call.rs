@@ -165,8 +165,8 @@ mod tests {
         inner.insert("key".to_string(), json!("value"));
         metadata.insert("provider".to_string(), inner);
 
-        let call = ToolCall::new("call_123", "tool", json!({}))
-            .with_provider_metadata(metadata.clone());
+        let call =
+            ToolCall::new("call_123", "tool", json!({})).with_provider_metadata(metadata.clone());
 
         assert_eq!(call.provider_metadata, Some(metadata));
     }

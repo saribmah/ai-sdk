@@ -153,7 +153,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
                             tool_call.input.clone(),
                         )
                         .with_provider_executed(tool_call.provider_executed.unwrap_or(false));
-                        
+
                         tool_calls_by_id.insert(tool_call.tool_call_id.clone(), call);
                     }
                 }

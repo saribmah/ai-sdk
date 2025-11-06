@@ -113,12 +113,7 @@ pub async fn execute_tool_call(
             }
             ToolExecutionEvent::Error { error } => {
                 // Return tool error
-                let tool_error = ToolError::new(
-                    tool_call_id,
-                    tool_name,
-                    input,
-                    error,
-                );
+                let tool_error = ToolError::new(tool_call_id, tool_name, input, error);
 
                 return Some(ToolOutput::Error(tool_error));
             }
@@ -127,12 +122,7 @@ pub async fn execute_tool_call(
 
     // Return the final result if we have one
     final_output.map(|output| {
-        let result = ToolResult::new(
-            tool_call_id,
-            tool_name,
-            input,
-            output,
-        );
+        let result = ToolResult::new(tool_call_id, tool_name, input, output);
 
         ToolOutput::Result(result)
     })
@@ -151,28 +141,14 @@ mod tests {
         let tool = Tool::function(json!({"type": "object"}))
             .with_description("Test tool")
             .with_execute(Box::new(|input: Value, _options| {
-                ToolExecutionOutput::Single(Box::pin(async move {
-                    Ok(json!({"result": input}))
-                }))
+                ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
             }));
 
         tools.insert("test_tool".to_string(), tool);
 
-        let tool_call = ToolCall::new(
-            "call_123",
-            "test_tool",
-            json!({"city": "SF"}),
-        );
+        let tool_call = ToolCall::new("call_123", "test_tool", json!({"city": "SF"}));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_some());
         let output = result.unwrap();
@@ -189,26 +165,19 @@ mod tests {
     async fn test_execute_tool_call_error() {
         let mut tools = ToolSet::new();
 
-        let tool = Tool::function(json!({"type": "object"}))
-            .with_execute(Box::new(|_input: Value, _options| {
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+            |_input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move {
                     Err(json!({"error": "Something went wrong"}))
                 }))
-            }));
+            },
+        ));
 
         tools.insert("test_tool".to_string(), tool);
 
         let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_some());
         let output = result.unwrap();
@@ -227,15 +196,7 @@ mod tests {
 
         let tool_call = ToolCall::new("call_123", "nonexistent_tool", json!({}));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_none());
     }
@@ -250,15 +211,7 @@ mod tests {
 
         let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
 
         assert!(result.is_none());
     }
@@ -267,14 +220,15 @@ mod tests {
     async fn test_execute_tool_call_with_streaming() {
         let mut tools = ToolSet::new();
 
-        let tool = Tool::function(json!({"type": "object"}))
-            .with_execute(Box::new(|_input: Value, _options| {
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+            |_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));
                     yield Ok(json!({"step": 2}));
                     yield Ok(json!({"step": 3}));
                 }))
-            }));
+            },
+        ));
 
         tools.insert("test_tool".to_string(), tool);
 
@@ -290,20 +244,15 @@ mod tests {
             }
         });
 
-        let result = execute_tool_call(
-            tool_call,
-            &tools,
-            vec![],
-            None,
-            None,
-            Some(callback),
-        )
-        .await;
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, Some(callback)).await;
 
         assert!(result.is_some());
 
         // Should have received 3 preliminary results
-        assert_eq!(preliminary_count.load(std::sync::atomic::Ordering::SeqCst), 3);
+        assert_eq!(
+            preliminary_count.load(std::sync::atomic::Ordering::SeqCst),
+            3
+        );
 
         // Final result should be the last output
         if let Some(ToolOutput::Result(res)) = result {

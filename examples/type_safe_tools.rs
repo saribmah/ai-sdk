@@ -12,10 +12,10 @@
 /// cargo run --example type_safe_tools
 /// ```
 use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::{call_settings::CallSettings, Prompt};
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::tool::TypeSafeTool;
-use ai_sdk_core::{generate_text, ToolSet};
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_core::{ToolSet, generate_text};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -145,7 +145,10 @@ impl TypeSafeTool for TemperatureConversionTool {
             converted_unit: input.to_unit.clone(),
         };
 
-        println!("   Result: {}°{}", output.converted_value, output.converted_unit);
+        println!(
+            "   Result: {}°{}",
+            output.converted_value, output.converted_unit
+        );
 
         Ok(output)
     }
@@ -162,11 +165,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}\n", model.model_id());
@@ -200,7 +203,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("📋 Type-Safe Tools Registered:");
     println!("   • get_weather: WeatherInput -> WeatherOutput");
-    println!("   • convert_temperature: TemperatureConversionInput -> TemperatureConversionOutput\n");
+    println!(
+        "   • convert_temperature: TemperatureConversionInput -> TemperatureConversionOutput\n"
+    );
 
     // Example 1: Simple tool call
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -250,7 +255,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     tool_calls_found = true;
                 }
                 println!("   • {} ({})", tool_call.tool_name, tool_call.tool_call_id);
-                println!("     Input: {}", serde_json::to_string_pretty(&tool_call.input)?);
+                println!(
+                    "     Input: {}",
+                    serde_json::to_string_pretty(&tool_call.input)?
+                );
             }
         }
         if tool_calls_found {
@@ -274,11 +282,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tools2.insert("get_weather".to_string(), weather_tool2);
     tools2.insert("convert_temperature".to_string(), conversion_tool2);
 
-    let prompt2 = Prompt::text(
-        "What's the weather in Tokyo? Then convert that temperature to Celsius."
+    let prompt2 =
+        Prompt::text("What's the weather in Tokyo? Then convert that temperature to Celsius.");
+
+    println!(
+        "📤 Prompt: \"What's the weather in Tokyo? Then convert that temperature to Celsius.\"\n"
     );
-    
-    println!("📤 Prompt: \"What's the weather in Tokyo? Then convert that temperature to Celsius.\"\n");
     println!("⏳ Generating response with multi-step tool execution...");
 
     let result2 = generate_text(
@@ -309,24 +318,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔧 Tool Execution Trace:");
     for (step_idx, step) in result2.steps.iter().enumerate() {
         let mut step_has_tools = false;
-        
+
         for content in &step.content {
             if let Output::ToolCall(tool_call) = content {
                 if !step_has_tools {
                     println!("   Step {}:", step_idx + 1);
                     step_has_tools = true;
                 }
-                println!("   └─ {} (id: {})", tool_call.tool_name, tool_call.tool_call_id);
+                println!(
+                    "   └─ {} (id: {})",
+                    tool_call.tool_name, tool_call.tool_call_id
+                );
                 println!("      Input: {}", serde_json::to_string(&tool_call.input)?);
             }
         }
-        
+
         for content in &step.content {
             if let Output::ToolResult(tool_result) = content {
-                println!("      Result: {}", serde_json::to_string_pretty(&tool_result.output)?);
+                println!(
+                    "      Result: {}",
+                    serde_json::to_string_pretty(&tool_result.output)?
+                );
             }
         }
-        
+
         if step_has_tools {
             println!();
         }
@@ -351,7 +366,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("   Typed Output (WeatherOutput):");
     println!("   └─ city: {}", typed_output.city);
-    println!("   └─ temperature: {}°{}", typed_output.temperature, typed_output.unit);
+    println!(
+        "   └─ temperature: {}°{}",
+        typed_output.temperature, typed_output.unit
+    );
     println!("   └─ conditions: {}", typed_output.conditions);
     println!("   └─ humidity: {}%\n", typed_output.humidity);
 

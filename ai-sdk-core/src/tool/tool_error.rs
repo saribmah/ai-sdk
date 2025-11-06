@@ -117,8 +117,8 @@ mod tests {
 
     #[test]
     fn test_tool_error_with_provider_executed() {
-        let error = ToolError::new("call_123", "tool", json!({}), "Error")
-            .with_provider_executed(true);
+        let error =
+            ToolError::new("call_123", "tool", json!({}), "Error").with_provider_executed(true);
 
         assert_eq!(error.provider_executed, Some(true));
     }

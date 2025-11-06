@@ -1,5 +1,3 @@
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_core::tool::definition::Tool;
 /// Multi-step tool execution example demonstrating iterative tool calling.
 ///
 /// This example shows how to:
@@ -12,8 +10,10 @@ use ai_sdk_core::tool::definition::Tool;
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example multi_step_tools
 /// ```
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{ToolSet, generate_text, step_count_is};
-use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
 
@@ -100,11 +100,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = OpenAICompatibleProvider::new(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     let model = provider.model("openai/gpt-4o");
     println!("✓ Model loaded: {}\n", model.model_id());

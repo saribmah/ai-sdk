@@ -214,8 +214,7 @@ mod tests {
 
     #[test]
     fn test_parse_provider_executed_dynamic_tool_call_with_input() {
-        let tool_call =
-            LanguageModelToolCall::new("call_123", "dynamic_tool", r#"{"city": "SF"}"#);
+        let tool_call = LanguageModelToolCall::new("call_123", "dynamic_tool", r#"{"city": "SF"}"#);
 
         let result = parse_provider_executed_dynamic_tool_call(&tool_call);
         assert!(result.is_ok());

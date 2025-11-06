@@ -47,9 +47,7 @@ pub enum ChunkStreamPart {
     Source { source: crate::output::SourceOutput },
 
     /// A tool call.
-    ToolCall {
-        tool_call: crate::tool::ToolCall,
-    },
+    ToolCall { tool_call: crate::tool::ToolCall },
 
     /// Indicates the start of a tool input.
     ToolInputStart {
@@ -231,9 +229,8 @@ pub type StreamTextOnStepFinishCallback =
 ///     })
 /// });
 /// ```
-pub type StreamTextOnChunkCallback = Box<
-    dyn Fn(StreamTextChunkEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
+pub type StreamTextOnChunkCallback =
+    Box<dyn Fn(StreamTextChunkEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when the entire generation finishes.
 ///

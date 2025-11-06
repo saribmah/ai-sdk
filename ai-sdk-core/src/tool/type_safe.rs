@@ -98,41 +98,43 @@ pub trait TypeSafeTool: Send + Sync {
     {
         // Generate JSON schema from the Input type
         let schema = schemars::schema_for!(Self::Input);
-        let schema_value = serde_json::to_value(schema.schema)
-            .expect("Failed to convert schema to JSON value");
+        let schema_value =
+            serde_json::to_value(schema.schema).expect("Failed to convert schema to JSON value");
 
         let tool_arc = Arc::new(self);
         let description = tool_arc.description().to_string();
 
         // Create the execute function that wraps the typed execute
-        let execute_fn: ToolExecuteFunction<Value, Value> = Box::new(move |input: Value, _options| {
-            let tool = tool_arc.clone();
+        let execute_fn: ToolExecuteFunction<Value, Value> =
+            Box::new(move |input: Value, _options| {
+                let tool = tool_arc.clone();
 
-            ToolExecutionOutput::Single(Box::pin(async move {
-                // Deserialize the input to the typed Input
-                let typed_input: Self::Input = serde_json::from_value(input)
-                    .map_err(|e| serde_json::json!({
-                        "error": "Failed to parse input",
-                        "details": e.to_string()
-                    }))?;
+                ToolExecutionOutput::Single(Box::pin(async move {
+                    // Deserialize the input to the typed Input
+                    let typed_input: Self::Input = serde_json::from_value(input).map_err(|e| {
+                        serde_json::json!({
+                            "error": "Failed to parse input",
+                            "details": e.to_string()
+                        })
+                    })?;
 
-                // Execute the tool
-                let output = tool
-                    .execute(typed_input)
-                    .await
-                    .map_err(|e| serde_json::json!({
-                        "error": "Tool execution failed",
-                        "details": e
-                    }))?;
+                    // Execute the tool
+                    let output = tool.execute(typed_input).await.map_err(|e| {
+                        serde_json::json!({
+                            "error": "Tool execution failed",
+                            "details": e
+                        })
+                    })?;
 
-                // Serialize the output back to JSON
-                serde_json::to_value(output)
-                    .map_err(|e| serde_json::json!({
-                        "error": "Failed to serialize output",
-                        "details": e.to_string()
-                    }))
-            }))
-        });
+                    // Serialize the output back to JSON
+                    serde_json::to_value(output).map_err(|e| {
+                        serde_json::json!({
+                            "error": "Failed to serialize output",
+                            "details": e.to_string()
+                        })
+                    })
+                }))
+            });
 
         Tool::function(schema_value)
             .with_description(description)

@@ -392,14 +392,12 @@ mod tests {
                 "get_weather".to_string(),
                 json!({"city": "SF"}),
             )),
-            Output::ToolResult(
-                ToolResult::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({"city": "SF"}),
-                    json!({"temp": 72}),
-                )
-            ),
+            Output::ToolResult(ToolResult::new(
+                "call_1".to_string(),
+                "get_weather".to_string(),
+                json!({"city": "SF"}),
+                json!({"temp": 72}),
+            )),
         ];
 
         let step = StepResult::new(
@@ -417,10 +415,7 @@ mod tests {
             None,
         );
 
-        let result = GenerateTextResult::from_steps(
-            vec![step],
-            LanguageModelUsage::new(10, 20),
-        );
+        let result = GenerateTextResult::from_steps(vec![step], LanguageModelUsage::new(10, 20));
 
         // Verify tool calls are populated
         assert_eq!(result.tool_calls.len(), 1);
