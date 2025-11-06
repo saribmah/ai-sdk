@@ -23,7 +23,7 @@ pub use stream_text::{
 pub use tool::{
     OnPreliminaryToolResult, Tool, ToolApprovalRequest, ToolApprovalRequestOutput,
     ToolApprovalResponse, ToolCallRepairFunction, ToolCallRepairOptions, ToolExecuteFunction,
-    ToolExecuteOptions, ToolExecutionEvent, ToolExecutionOutput, ToolNeedsApprovalFunction,
-    ToolSet, ToolType, execute_tool, execute_tool_call, is_approval_needed, no_repair,
-    parse_provider_executed_dynamic_tool_call, parse_tool_call, prepare_tools_and_tool_choice,
+    ToolExecuteOptions, ToolExecutionOutput, ToolNeedsApprovalFunction, ToolSet, ToolType,
+    execute_tool_call, is_approval_needed, no_repair, parse_provider_executed_dynamic_tool_call,
+    parse_tool_call, prepare_tools_and_tool_choice,
 };

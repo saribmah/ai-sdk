@@ -281,7 +281,7 @@ mod tests {
         });
 
         let result = untyped_tool
-            .execute_tool(input, ToolExecuteOptions::new("call_123", vec![]))
+            .execute_tool(input, ToolExecuteOptions::new("call_123", vec![]), None::<fn(Value)>)
             .await
             .unwrap()
             .unwrap();
@@ -300,7 +300,7 @@ mod tests {
         });
 
         let result = untyped_tool
-            .execute_tool(input, ToolExecuteOptions::new("call_123", vec![]))
+            .execute_tool(input, ToolExecuteOptions::new("call_123", vec![]), None::<fn(Value)>)
             .await
             .unwrap();
 

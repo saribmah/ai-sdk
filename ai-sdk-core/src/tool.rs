@@ -2,8 +2,6 @@ pub mod approval_request;
 pub mod approval_response;
 pub mod collect_tool_approvals;
 pub mod definition;
-pub mod execute;
-pub mod execute_tool_call;
 pub mod is_approval_needed;
 pub mod options;
 pub mod parse_tool_call;
@@ -23,11 +21,9 @@ pub use collect_tool_approvals::{
     CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
 };
 pub use definition::{
-    NeedsApproval, Tool, ToolExecuteFunction, ToolExecutionOutput, ToolNeedsApprovalFunction,
-    ToolType,
+    NeedsApproval, OnPreliminaryToolResult, Tool, ToolExecuteFunction, ToolExecutionOutput,
+    ToolNeedsApprovalFunction, ToolType, execute_tool_call,
 };
-pub use execute::{ToolExecutionEvent, execute_tool};
-pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use is_approval_needed::is_approval_needed;
 pub use options::ToolExecuteOptions;
 pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};

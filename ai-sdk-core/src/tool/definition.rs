@@ -1,5 +1,7 @@
 use super::options::ToolExecuteOptions;
+use super::{ToolCall, ToolError, ToolOutput, ToolResult, ToolSet};
 use crate::prompt::message::content_parts::ToolResultOutput;
+use crate::prompt::message::Message;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};
@@ -7,6 +9,8 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
+use tokio_util::sync::CancellationToken;
 
 /// The output from a tool execution, which can be either a single value or a stream of values.
 ///
@@ -289,11 +293,27 @@ impl Tool {
     ///
     /// Returns None if the tool has no execute function.
     /// Returns Some(Err(error)) if the tool execution fails.
-    pub async fn execute_tool(
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The input to pass to the tool
+    /// * `options` - Additional options for the tool execution
+    /// * `on_preliminary_output` - Optional callback for preliminary streaming results
+    ///
+    /// # Returns
+    ///
+    /// Returns `Some(Ok(output))` if the tool executed successfully,
+    /// `Some(Err(error))` if the tool execution failed,
+    /// or `None` if the tool has no execute function.
+    pub async fn execute_tool<F>(
         &self,
         input: Value,
         options: ToolExecuteOptions,
-    ) -> Option<Result<Value, Value>> {
+        on_preliminary_output: Option<F>,
+    ) -> Option<Result<Value, Value>>
+    where
+        F: Fn(Value) + Send + Sync,
+    {
         use futures_util::StreamExt;
 
         if let Some(execute) = &self.execute {
@@ -307,6 +327,12 @@ impl Tool {
                         if output.is_err() {
                             return Some(output);
                         }
+                        
+                        // Call the preliminary output callback if provided
+                        if let (Some(callback), Ok(value)) = (on_preliminary_output.as_ref(), &output) {
+                            callback(value.clone());
+                        }
+                        
                         last_output = Some(output);
                     }
                     last_output
@@ -318,10 +344,125 @@ impl Tool {
     }
 }
 
+/// Callback function for preliminary tool results during streaming.
+pub type OnPreliminaryToolResult = Arc<dyn Fn(ToolResult) + Send + Sync>;
+
+/// Executes a tool call and returns the output or error.
+///
+/// This function takes a tool call, looks up the tool in the tool set,
+/// executes it with the provided options, and returns the result or error.
+///
+/// For streaming tools, it handles preliminary results through the callback.
+///
+/// # Arguments
+///
+/// * `tool_call` - The tool call to execute
+/// * `tools` - The tool set containing tool definitions
+/// * `messages` - The conversation messages for context
+/// * `abort_signal` - Optional cancellation token to abort execution
+/// * `experimental_context` - Optional experimental context data
+/// * `on_preliminary_tool_result` - Optional callback for preliminary streaming results
+///
+/// # Returns
+///
+/// Returns `Some(ToolOutput)` if the tool was executed (successfully or with error),
+/// or `None` if the tool has no execute function.
+///
+/// # Example
+///
+/// ```ignore
+/// use ai_sdk_core::tool::execute_tool_call;
+///
+/// let output = execute_tool_call(
+///     tool_call,
+///     &tools,
+///     messages,
+///     Some(abort_signal),
+///     None,
+///     None,
+/// ).await;
+/// ```
+pub async fn execute_tool_call(
+    tool_call: ToolCall,
+    tools: &ToolSet,
+    messages: Vec<Message>,
+    abort_signal: Option<CancellationToken>,
+    experimental_context: Option<Value>,
+    on_preliminary_tool_result: Option<OnPreliminaryToolResult>,
+) -> Option<ToolOutput> {
+    // Extract tool call information
+    let tool_call_id = tool_call.tool_call_id.clone();
+    let tool_name = tool_call.tool_name.clone();
+    let input = tool_call.input.clone();
+
+    // Look up the tool
+    let tool = match tools.get(&tool_name) {
+        Some(tool) => tool,
+        None => return None,
+    };
+
+    // Check if tool has an execute function
+    if tool.execute.is_none() {
+        return None;
+    }
+
+    // Create tool call options
+    let mut options = ToolExecuteOptions::new(&tool_call_id, messages);
+
+    if let Some(signal) = abort_signal {
+        options = options.with_abort_signal(signal);
+    }
+
+    if let Some(context) = experimental_context {
+        options = options.with_experimental_context(context);
+    }
+
+    // Execute the tool using the Tool::execute_tool method
+    let result = if let Some(callback) = on_preliminary_tool_result.as_ref() {
+        let callback = callback.clone();
+        let tool_call_id_clone = tool_call_id.clone();
+        let tool_name_clone = tool_name.clone();
+        let input_clone = input.clone();
+        
+        let preliminary_callback = move |output: Value| {
+            let result = ToolResult::new(
+                tool_call_id_clone.clone(),
+                tool_name_clone.clone(),
+                input_clone.clone(),
+                output,
+            )
+            .with_preliminary(true);
+
+            callback(result);
+        };
+        
+        tool.execute_tool(input.clone(), options, Some(preliminary_callback))
+            .await
+    } else {
+        tool.execute_tool(input.clone(), options, None::<fn(Value)>)
+            .await
+    };
+
+    // Convert the result to ToolOutput
+    match result {
+        Some(Ok(output)) => {
+            let result = ToolResult::new(tool_call_id, tool_name, input, output);
+            Some(ToolOutput::Result(result))
+        }
+        Some(Err(error)) => {
+            let tool_error = ToolError::new(tool_call_id, tool_name, input, error);
+            Some(ToolOutput::Error(tool_error))
+        }
+        None => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::sync::Arc;
+    use crate::tool::ToolSet;
 
     #[test]
     fn test_tool_function() {
@@ -447,7 +588,7 @@ mod tests {
         }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({"city": "SF"}), options).await;
+        let result = tool.execute_tool(json!({"city": "SF"}), options, None::<fn(Value)>).await;
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -461,7 +602,7 @@ mod tests {
         let tool: Tool = Tool::function(schema);
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options).await;
+        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
 
         assert!(result.is_none());
     }
@@ -479,8 +620,22 @@ mod tests {
                 }))
             }));
 
+        // Track preliminary results
+        let preliminary_count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let preliminary_count_clone = preliminary_count.clone();
+
+        let callback = move |_output: Value| {
+            preliminary_count_clone.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        };
+
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options).await;
+        let result = tool.execute_tool(json!({}), options, Some(&callback)).await;
+
+        // Should have received 3 preliminary results
+        assert_eq!(
+            preliminary_count.load(std::sync::atomic::Ordering::SeqCst),
+            3
+        );
 
         // Should return the last output
         assert!(result.is_some());
@@ -501,7 +656,7 @@ mod tests {
             }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options).await;
+        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
 
         // Should return an error
         assert!(result.is_some());
@@ -527,12 +682,141 @@ mod tests {
             }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options).await;
+        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
 
         // Should return the error immediately
         assert!(result.is_some());
         let result = result.unwrap();
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), json!("Error in stream"));
+    }
+
+    // Tests for execute_tool_call function
+
+    #[tokio::test]
+    async fn test_execute_tool_call_success() {
+        let mut tools = ToolSet::new();
+
+        let tool = Tool::function(json!({"type": "object"}))
+            .with_description("Test tool")
+            .with_execute(Box::new(|input: Value, _options| {
+                ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
+            }));
+
+        tools.insert("test_tool".to_string(), tool);
+
+        let tool_call = ToolCall::new("call_123", "test_tool", json!({"city": "SF"}));
+
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
+
+        assert!(result.is_some());
+        let output = result.unwrap();
+        assert!(output.is_result());
+
+        if let ToolOutput::Result(res) = output {
+            assert_eq!(res.tool_call_id, "call_123");
+            assert_eq!(res.tool_name, "test_tool");
+            assert_eq!(res.output, json!({"result": {"city": "SF"}}));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_error() {
+        let mut tools = ToolSet::new();
+
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+            |_input: Value, _options| {
+                ToolExecutionOutput::Single(Box::pin(async move {
+                    Err(json!({"error": "Something went wrong"}))
+                }))
+            },
+        ));
+
+        tools.insert("test_tool".to_string(), tool);
+
+        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
+
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
+
+        assert!(result.is_some());
+        let output = result.unwrap();
+        assert!(output.is_error());
+
+        if let ToolOutput::Error(err) = output {
+            assert_eq!(err.tool_call_id, "call_123");
+            assert_eq!(err.tool_name, "test_tool");
+            assert_eq!(err.error, json!({"error": "Something went wrong"}));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_tool_not_found() {
+        let tools = ToolSet::new();
+
+        let tool_call = ToolCall::new("call_123", "nonexistent_tool", json!({}));
+
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
+
+        assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_no_execute_function() {
+        let mut tools = ToolSet::new();
+
+        let tool = Tool::function(json!({"type": "object"}));
+
+        tools.insert("test_tool".to_string(), tool);
+
+        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
+
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
+
+        assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_call_with_streaming() {
+        let mut tools = ToolSet::new();
+
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+            |_input: Value, _options| {
+                ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
+                    yield Ok(json!({"step": 1}));
+                    yield Ok(json!({"step": 2}));
+                    yield Ok(json!({"step": 3}));
+                }))
+            },
+        ));
+
+        tools.insert("test_tool".to_string(), tool);
+
+        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
+
+        // Track preliminary results
+        let preliminary_count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let preliminary_count_clone = preliminary_count.clone();
+
+        let callback = Arc::new(move |result: ToolResult| {
+            if result.preliminary == Some(true) {
+                preliminary_count_clone.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            }
+        });
+
+        let result = execute_tool_call(tool_call, &tools, vec![], None, None, Some(callback)).await;
+
+        assert!(result.is_some());
+
+        // Should have received 3 preliminary results
+        assert_eq!(
+            preliminary_count.load(std::sync::atomic::Ordering::SeqCst),
+            3
+        );
+
+        // Final result should be the last output
+        if let Some(ToolOutput::Result(res)) = result {
+            assert_eq!(res.output, json!({"step": 3}));
+            assert_eq!(res.preliminary, None); // Final result is not preliminary
+        }
     }
 }
