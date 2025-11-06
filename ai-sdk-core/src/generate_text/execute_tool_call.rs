@@ -1,12 +1,10 @@
-use crate::tool::TypedToolCall;
-use crate::generate_text::tool_error::{DynamicToolError, StaticToolError, TypedToolError};
-use crate::generate_text::tool_output::ToolOutput;
-use crate::generate_text::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 use crate::prompt::message::Message;
-use crate::tool::definition::Tool;
-use crate::tool::execute::{ToolExecutionEvent, execute_tool};
-use crate::tool::options::ToolExecuteOptions;
-use crate::tool::tool_set::ToolSet;
+use crate::tool::{
+    Tool, execute_tool, ToolExecuteOptions,
+    ToolExecutionEvent, ToolSet, ToolOutput, TypedToolCall,
+    DynamicToolResult, StaticToolResult, TypedToolResult,
+    DynamicToolError, StaticToolError, TypedToolError
+};
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::Arc;

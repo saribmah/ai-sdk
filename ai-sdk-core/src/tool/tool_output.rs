@@ -1,5 +1,4 @@
-use super::tool_error::TypedToolError;
-use super::tool_result::TypedToolResult;
+use super::{TypedToolError, TypedToolResult};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -116,8 +115,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::tool_error::StaticToolError;
-    use crate::generate_text::tool_result::StaticToolResult;
+    use crate::tool::{StaticToolError, StaticToolResult};
     use serde_json::json;
 
     #[test]

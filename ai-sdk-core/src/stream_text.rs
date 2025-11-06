@@ -309,7 +309,7 @@ async fn stream_single_step(
             }
             LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use crate::generate_text::{DynamicToolResult, StaticToolResult, TypedToolResult};
+                use crate::tool::{DynamicToolResult, StaticToolResult, TypedToolResult};
 
                 // Check if this is a dynamic tool based on whether we have it in our tool set
                 let is_dynamic = if let Some(tool_set) = tools {
@@ -701,12 +701,12 @@ pub async fn stream_text(
                     {
                         // Emit tool result to the stream
                         match &output {
-                            crate::generate_text::ToolOutput::Result(result) => {
+                            crate::tool::ToolOutput::Result(result) => {
                                 let _ = tx_clone.send(TextStreamPart::ToolResult {
                                     tool_result: result.clone(),
                                 });
                             }
-                            crate::generate_text::ToolOutput::Error(error) => {
+                            crate::tool::ToolOutput::Error(error) => {
                                 let _ = tx_clone.send(TextStreamPart::ToolError {
                                     tool_error: error.clone(),
                                 });
@@ -723,10 +723,10 @@ pub async fn stream_text(
             let mut step_content = step_result.content.clone();
             for output in client_tool_outputs {
                 match output {
-                    crate::generate_text::ToolOutput::Result(tool_result) => {
+                    crate::tool::ToolOutput::Result(tool_result) => {
                         step_content.push(Output::ToolResult(tool_result));
                     }
-                    crate::generate_text::ToolOutput::Error(tool_error) => {
+                    crate::tool::ToolOutput::Error(tool_error) => {
                         step_content.push(Output::ToolError(tool_error));
                     }
                 }

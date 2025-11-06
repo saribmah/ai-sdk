@@ -6,7 +6,9 @@ use crate::prompt::message::{AssistantMessage, ToolMessage};
 use serde_json::Value;
 use crate::ResponseMessage;
 use crate::output::Output;
-use crate::tool::tool_set::ToolSet;
+use crate::tool::{
+    ToolSet, TypedToolResult, TypedToolError
+};
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///
@@ -50,10 +52,10 @@ pub fn to_response_messages(
                 Output::ToolResult(result) => {
                     // Include only if provider executed
                     match result {
-                        super::tool_result::TypedToolResult::Static(r) => {
+                        TypedToolResult::Static(r) => {
                             r.provider_executed == Some(true)
                         }
-                        super::tool_result::TypedToolResult::Dynamic(r) => {
+                        TypedToolResult::Dynamic(r) => {
                             r.provider_executed == Some(true)
                         }
                     }
@@ -61,10 +63,10 @@ pub fn to_response_messages(
                 Output::ToolError(error) => {
                     // Include only if provider executed
                     match error {
-                        super::tool_error::TypedToolError::Static(e) => {
+                        TypedToolError::Static(e) => {
                             e.provider_executed == Some(true)
                         }
-                        super::tool_error::TypedToolError::Dynamic(e) => {
+                        TypedToolError::Dynamic(e) => {
                             e.provider_executed == Some(true)
                         }
                     }
@@ -116,12 +118,12 @@ pub fn to_response_messages(
                 }
                 Output::ToolResult(result) => {
                     let (tool_call_id, tool_name, output) = match result {
-                        super::tool_result::TypedToolResult::Static(r) => (
+                        TypedToolResult::Static(r) => (
                             r.tool_call_id.clone(),
                             r.tool_name.clone(),
                             r.output.clone(),
                         ),
-                        super::tool_result::TypedToolResult::Dynamic(r) => (
+                        TypedToolResult::Dynamic(r) => (
                             r.tool_call_id.clone(),
                             r.tool_name.clone(),
                             r.output.clone(),
@@ -142,10 +144,10 @@ pub fn to_response_messages(
                 }
                 Output::ToolError(error) => {
                     let (tool_call_id, tool_name, error_value) = match error {
-                        super::tool_error::TypedToolError::Static(e) => {
+                        TypedToolError::Static(e) => {
                             (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
                         }
-                        super::tool_error::TypedToolError::Dynamic(e) => {
+                        TypedToolError::Dynamic(e) => {
                             (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
                         }
                     };
@@ -182,18 +184,18 @@ pub fn to_response_messages(
             // Include only if NOT provider-executed
             match part {
                 Output::ToolResult(result) => match result {
-                    super::tool_result::TypedToolResult::Static(r) => {
+                    TypedToolResult::Static(r) => {
                         r.provider_executed != Some(true)
                     }
-                    super::tool_result::TypedToolResult::Dynamic(r) => {
+                    TypedToolResult::Dynamic(r) => {
                         r.provider_executed != Some(true)
                     }
                 },
                 Output::ToolError(error) => match error {
-                    super::tool_error::TypedToolError::Static(e) => {
+                    TypedToolError::Static(e) => {
                         e.provider_executed != Some(true)
                     }
-                    super::tool_error::TypedToolError::Dynamic(e) => {
+                    TypedToolError::Dynamic(e) => {
                         e.provider_executed != Some(true)
                     }
                 },
@@ -203,12 +205,12 @@ pub fn to_response_messages(
         .map(|part| match part {
             Output::ToolResult(result) => {
                 let (tool_call_id, tool_name, output) = match result {
-                    super::tool_result::TypedToolResult::Static(r) => (
+                    TypedToolResult::Static(r) => (
                         r.tool_call_id.clone(),
                         r.tool_name.clone(),
                         r.output.clone(),
                     ),
-                    super::tool_result::TypedToolResult::Dynamic(r) => (
+                    TypedToolResult::Dynamic(r) => (
                         r.tool_call_id.clone(),
                         r.tool_name.clone(),
                         r.output.clone(),
@@ -227,10 +229,10 @@ pub fn to_response_messages(
             }
             Output::ToolError(error) => {
                 let (tool_call_id, tool_name, error_value) = match error {
-                    super::tool_error::TypedToolError::Static(e) => {
+                    TypedToolError::Static(e) => {
                         (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
                     }
-                    super::tool_error::TypedToolError::Dynamic(e) => {
+                    TypedToolError::Dynamic(e) => {
                         (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
                     }
                 };

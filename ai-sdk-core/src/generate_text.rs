@@ -1,5 +1,4 @@
 mod callbacks;
-pub mod collect_tool_approvals;
 pub mod execute_tool_call;
 pub mod generate_text_result;
 pub mod generated_file;
@@ -14,14 +13,8 @@ mod stop_condition;
 pub mod to_response_messages;
 pub mod tool_approval_request_output;
 pub mod tool_call_repair_function;
-pub mod tool_error;
-pub mod tool_output;
-pub mod tool_result;
 
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
-pub use collect_tool_approvals::{
-    CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
-};
 pub use crate::output::Output;
 pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
@@ -42,9 +35,6 @@ pub use crate::output::source::SourceOutput;
 pub use to_response_messages::to_response_messages;
 pub use tool_approval_request_output::ToolApprovalRequestOutput;
 pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
-pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
-pub use tool_output::ToolOutput;
-pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
 
 use crate::error::AISDKError;
 use crate::prompt::message::Message;
@@ -63,7 +53,11 @@ use ai_sdk_provider::{
 };
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
-use crate::tool::{ToolSet, TypedToolCall};
+use crate::tool::{
+    ToolSet, TypedToolCall, ToolOutput,
+    DynamicToolResult, StaticToolResult, TypedToolResult,
+    DynamicToolError, StaticToolError, TypedToolError
+};
 
 /// Executes tool calls and returns the outputs.
 ///

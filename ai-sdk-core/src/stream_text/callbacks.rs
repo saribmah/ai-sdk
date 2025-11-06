@@ -74,7 +74,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
 
     /// A tool result.
     ToolResult {
-        tool_result: crate::generate_text::TypedToolResult<INPUT, OUTPUT>,
+        tool_result: crate::tool::TypedToolResult<INPUT, OUTPUT>,
     },
 
     /// A raw value from the provider (for debugging/custom handling).

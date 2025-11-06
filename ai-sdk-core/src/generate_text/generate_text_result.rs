@@ -10,8 +10,10 @@ use super::generated_file::GeneratedFile;
 use crate::output::reasoning::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
-use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
-use super::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
+use crate::tool::{
+    DynamicToolCall, StaticToolCall, TypedToolCall,
+    DynamicToolResult, StaticToolResult, TypedToolResult
+};
 
 /// Metadata for the response, including messages and optional body.
 #[derive(Debug, Clone, PartialEq)]

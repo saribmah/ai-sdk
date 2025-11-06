@@ -253,7 +253,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   Args: {}", serde_json::to_string_pretty(args)?);
             }
             TextStreamPart::ToolResult { tool_result } => {
-                use ai_sdk_core::TypedToolResult;
+                use ai_sdk_core::tool::TypedToolResult;
                 let result_value = match &tool_result {
                     TypedToolResult::Static(r) => &r.output,
                     TypedToolResult::Dynamic(r) => &r.output,
@@ -360,7 +360,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   Args: {}", serde_json::to_string_pretty(args)?);
             }
             TextStreamPart::ToolResult { tool_result } => {
-                use ai_sdk_core::TypedToolResult;
+                use ai_sdk_core::tool::TypedToolResult;
                 let result_value = match &tool_result {
                     TypedToolResult::Static(r) => &r.output,
                     TypedToolResult::Dynamic(r) => &r.output,

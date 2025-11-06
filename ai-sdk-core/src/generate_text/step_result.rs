@@ -251,7 +251,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool results.
-    pub fn tool_results(&self) -> Vec<&super::tool_result::TypedToolResult<INPUT, OUTPUT>> {
+    pub fn tool_results(&self) -> Vec<&crate::tool::TypedToolResult<INPUT, OUTPUT>> {
         self.content
             .iter()
             .filter_map(|part| {
