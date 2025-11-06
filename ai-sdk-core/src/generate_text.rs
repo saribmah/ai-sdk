@@ -608,11 +608,10 @@ pub async fn generate_text(
         }
 
         // Step 8: Call model.do_generate with retry logic
-        let model_clone = Arc::clone(&model);
         let response = retry_config
             .execute(|| {
                 let call_options_clone = call_options.clone();
-                let model_clone = Arc::clone(&model_clone);
+                let model_clone = Arc::clone(&model);
                 async move {
                     model_clone
                         .do_generate(call_options_clone)
