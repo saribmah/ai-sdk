@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use serde::{Deserialize, Serialize};
 
 /// Reasoning output of a text generation. It contains reasoning text.
 ///

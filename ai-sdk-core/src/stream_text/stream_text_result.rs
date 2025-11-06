@@ -1,14 +1,11 @@
 use crate::error::AISDKError;
-use crate::generate_text::{
-    GeneratedFile, ReasoningOutput,
-    RequestMetadata, ResponseMetadata, StepResult, 
-};
-use crate::tool::{
-    DynamicToolCall, StaticToolCall, TypedToolCall,
-    DynamicToolResult, StaticToolResult, TypedToolResult
-};
+use crate::generate_text::{GeneratedFile, RequestMetadata, ResponseMetadata, StepResult};
+use crate::output::{Output, ReasoningOutput, TextOutput};
 use crate::stream_text::TextStreamPart;
-use crate::output::Output;
+use crate::tool::{
+    DynamicToolCall, DynamicToolResult, StaticToolCall, StaticToolResult, TypedToolCall,
+    TypedToolResult,
+};
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
@@ -267,7 +264,6 @@ where
                     if !current_text.is_empty() {
                         state.text.push_str(&current_text);
                         // Also add to content
-                        use crate::generate_text::TextOutput;
                         state
                             .content
                             .push(Output::Text(TextOutput::new(current_text.clone())));
@@ -283,11 +279,9 @@ where
                             .reasoning
                             .push(ReasoningOutput::new(current_reasoning.clone()));
                         // Also add to content
-                        state
-                            .content
-                            .push(Output::Reasoning(ReasoningOutput::new(
-                                current_reasoning.clone(),
-                            )));
+                        state.content.push(Output::Reasoning(ReasoningOutput::new(
+                            current_reasoning.clone(),
+                        )));
                         current_reasoning.clear();
                     }
                 }
@@ -326,9 +320,7 @@ where
                         }
                     }
                     // Also add to content
-                    state
-                        .content
-                        .push(Output::ToolResult(tool_result.clone()));
+                    state.content.push(Output::ToolResult(tool_result.clone()));
                     state.tool_results.push(tool_result);
                 }
                 TextStreamPart::StartStep { request, warnings } => {
@@ -372,7 +364,6 @@ where
         // Flush any remaining text
         if !current_text.is_empty() {
             state.text.push_str(&current_text);
-            use crate::generate_text::TextOutput;
             state
                 .content
                 .push(Output::Text(TextOutput::new(current_text)));
@@ -385,9 +376,7 @@ where
                 .push(ReasoningOutput::new(current_reasoning.clone()));
             state
                 .content
-                .push(Output::Reasoning(ReasoningOutput::new(
-                    current_reasoning,
-                )));
+                .push(Output::Reasoning(ReasoningOutput::new(current_reasoning)));
         }
 
         // Finalize reasoning text

@@ -208,9 +208,7 @@ mod tests {
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {
         StepResult::new(
-            vec![Output::Text(TextOutput::new(
-                "Test response".to_string(),
-            ))],
+            vec![Output::Text(TextOutput::new("Test response".to_string()))],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(input_tokens, output_tokens),
             None,

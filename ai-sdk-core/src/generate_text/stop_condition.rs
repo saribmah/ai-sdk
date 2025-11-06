@@ -206,8 +206,7 @@ mod tests {
         use crate::tool::{DynamicToolCall, TypedToolCall};
         use serde_json::json;
 
-        let mut content: Vec<Output> =
-            vec![Output::Text(TextOutput::new("Test".to_string()))];
+        let mut content: Vec<Output> = vec![Output::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
             content.push(Output::ToolCall(TypedToolCall::Dynamic(

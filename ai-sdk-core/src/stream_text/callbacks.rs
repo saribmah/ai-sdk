@@ -44,9 +44,7 @@ pub enum ChunkStreamPart<INPUT = Value, OUTPUT = Value> {
     },
 
     /// A source/reference in the generation.
-    Source {
-        source: crate::generate_text::SourceOutput,
-    },
+    Source { source: crate::output::SourceOutput },
 
     /// A tool call.
     ToolCall {

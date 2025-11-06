@@ -16,12 +16,11 @@ use std::collections::HashMap;
 
 use crate::chat::MetadataExtractor;
 use crate::chat::{
-    OpenAICompatibleChatModelId, convert_to_openai_compatible_chat_messages,
-    prepare_tools,
+    OpenAICompatibleChatModelId, convert_to_openai_compatible_chat_messages, prepare_tools,
 };
 use crate::error::{DefaultOpenAICompatibleErrorStructure, ProviderErrorStructure};
-use crate::utils::response_metadata::get_response_metadata;
 use crate::utils::finish_reason::map_openai_compatible_finish_reason;
+use crate::utils::response_metadata::get_response_metadata;
 
 /// Configuration for an OpenAI-compatible chat language model
 pub struct OpenAICompatibleChatConfig {

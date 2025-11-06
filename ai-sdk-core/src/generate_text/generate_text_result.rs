@@ -5,14 +5,14 @@ use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
-use crate::output::Output;
 use super::generated_file::GeneratedFile;
-use crate::output::reasoning::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
+use crate::output::Output;
+use crate::output::reasoning::ReasoningOutput;
 use crate::tool::{
-    DynamicToolCall, StaticToolCall, TypedToolCall,
-    DynamicToolResult, StaticToolResult, TypedToolResult
+    DynamicToolCall, DynamicToolResult, StaticToolCall, StaticToolResult, TypedToolCall,
+    TypedToolResult,
 };
 
 /// Metadata for the response, including messages and optional body.
@@ -352,8 +352,8 @@ impl ResponseMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
     use crate::TextOutput;
+    use serde_json::json;
 
     #[test]
     fn test_generated_file_new() {
@@ -480,9 +480,7 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use crate::tool::{
-            DynamicToolCall, TypedToolCall,
-        };
+        use crate::tool::{DynamicToolCall, TypedToolCall};
 
         // Create a step with tool calls and tool results using Output
         let content = vec![

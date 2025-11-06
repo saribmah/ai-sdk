@@ -1,10 +1,9 @@
-use crate::prompt::message::Message;
 use super::{
-    Tool, execute_tool, ToolExecuteOptions,
-    ToolExecutionEvent, ToolSet, ToolOutput, TypedToolCall,
-    DynamicToolResult, StaticToolResult, TypedToolResult,
-    DynamicToolError, StaticToolError, TypedToolError
+    DynamicToolError, DynamicToolResult, StaticToolError, StaticToolResult, Tool,
+    ToolExecuteOptions, ToolExecutionEvent, ToolOutput, ToolSet, TypedToolCall, TypedToolError,
+    TypedToolResult, execute_tool,
 };
+use crate::prompt::message::Message;
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::Arc;
@@ -179,9 +178,9 @@ pub async fn execute_tool_call(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::StaticToolCall;
     use super::super::ToolExecutionOutput;
+    use super::*;
     use serde_json::json;
     use std::pin::Pin;
     use std::sync::Mutex;

@@ -33,20 +33,23 @@ pub type ToolExecuteFunction<INPUT, OUTPUT> =
     Box<dyn Fn(INPUT, ToolExecuteOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
 
 /// Function that determines if a tool needs approval before execution.
-pub type ToolNeedsApprovalFunction<INPUT> =
-    Box<dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync>;
+pub type ToolNeedsApprovalFunction<INPUT> = Box<
+    dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync,
+>;
 
 /// Callback that is called when tool input streaming starts.
 pub type OnInputStartCallback =
     Box<dyn Fn(ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when a tool input delta is available.
-pub type OnInputDeltaCallback =
-    Box<dyn Fn(String, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+pub type OnInputDeltaCallback = Box<
+    dyn Fn(String, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
+>;
 
 /// Callback that is called when tool input is available.
-pub type OnInputAvailableCallback<INPUT> =
-    Box<dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+pub type OnInputAvailableCallback<INPUT> = Box<
+    dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
+>;
 
 /// Function that converts tool output to model output format.
 pub type ToModelOutputFunction<OUTPUT> = Box<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;

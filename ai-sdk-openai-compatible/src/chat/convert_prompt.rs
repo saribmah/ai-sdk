@@ -57,6 +57,7 @@ pub fn convert_to_openai_compatible_chat_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chat::prompt::message::{OpenAICompatibleContentPart, UserMessageContent};
     use ai_sdk_provider::language_model::prompt::message::parts::{
         LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart,
     };
@@ -65,10 +66,9 @@ mod tests {
         LanguageModelUserMessage,
     };
     use ai_sdk_provider::language_model::prompt::{
-        LanguageModelAssistantMessagePart, LanguageModelDataContent,
-        LanguageModelToolResultOutput, LanguageModelToolResultPart, LanguageModelUserMessagePart,
+        LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelToolResultOutput,
+        LanguageModelToolResultPart, LanguageModelUserMessagePart,
     };
-    use crate::chat::prompt::message::{OpenAICompatibleContentPart, UserMessageContent};
     use serde_json::json;
 
     #[test]

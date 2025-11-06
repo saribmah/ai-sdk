@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use crate::prompt::message::ToolResultPart;
 use crate::ToolApprovalResponse;
+use crate::prompt::message::ToolResultPart;
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use serde::{Deserialize, Serialize};
 
 /// Content of a tool message. It is an array of tool result parts.
 pub type ToolContent = Vec<ToolContentPart>;

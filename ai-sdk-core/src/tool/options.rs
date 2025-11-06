@@ -69,7 +69,8 @@ mod tests {
         let messages = vec![Message::from(UserMessage::new("Hello!"))];
 
         let token = CancellationToken::new();
-        let options = ToolExecuteOptions::new("call_123", messages).with_abort_signal(token.clone());
+        let options =
+            ToolExecuteOptions::new("call_123", messages).with_abort_signal(token.clone());
 
         assert!(options.abort_signal.is_some());
     }
@@ -79,8 +80,8 @@ mod tests {
         let messages = vec![Message::from(UserMessage::new("Hello!"))];
 
         let context = serde_json::json!({"key": "value"});
-        let options =
-            ToolExecuteOptions::new("call_123", messages).with_experimental_context(context.clone());
+        let options = ToolExecuteOptions::new("call_123", messages)
+            .with_experimental_context(context.clone());
 
         assert_eq!(options.experimental_context, Some(context));
     }

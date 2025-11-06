@@ -1,14 +1,12 @@
+use crate::ResponseMessage;
+use crate::output::Output;
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
 use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
+use crate::tool::{ToolSet, TypedToolError, TypedToolResult};
 use serde_json::Value;
-use crate::ResponseMessage;
-use crate::output::Output;
-use crate::tool::{
-    ToolSet, TypedToolResult, TypedToolError
-};
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///
@@ -52,23 +50,15 @@ pub fn to_response_messages(
                 Output::ToolResult(result) => {
                     // Include only if provider executed
                     match result {
-                        TypedToolResult::Static(r) => {
-                            r.provider_executed == Some(true)
-                        }
-                        TypedToolResult::Dynamic(r) => {
-                            r.provider_executed == Some(true)
-                        }
+                        TypedToolResult::Static(r) => r.provider_executed == Some(true),
+                        TypedToolResult::Dynamic(r) => r.provider_executed == Some(true),
                     }
                 }
                 Output::ToolError(error) => {
                     // Include only if provider executed
                     match error {
-                        TypedToolError::Static(e) => {
-                            e.provider_executed == Some(true)
-                        }
-                        TypedToolError::Dynamic(e) => {
-                            e.provider_executed == Some(true)
-                        }
+                        TypedToolError::Static(e) => e.provider_executed == Some(true),
+                        TypedToolError::Dynamic(e) => e.provider_executed == Some(true),
                     }
                 }
                 _ => true,
@@ -184,20 +174,12 @@ pub fn to_response_messages(
             // Include only if NOT provider-executed
             match part {
                 Output::ToolResult(result) => match result {
-                    TypedToolResult::Static(r) => {
-                        r.provider_executed != Some(true)
-                    }
-                    TypedToolResult::Dynamic(r) => {
-                        r.provider_executed != Some(true)
-                    }
+                    TypedToolResult::Static(r) => r.provider_executed != Some(true),
+                    TypedToolResult::Dynamic(r) => r.provider_executed != Some(true),
                 },
                 Output::ToolError(error) => match error {
-                    TypedToolError::Static(e) => {
-                        e.provider_executed != Some(true)
-                    }
-                    TypedToolError::Dynamic(e) => {
-                        e.provider_executed != Some(true)
-                    }
+                    TypedToolError::Static(e) => e.provider_executed != Some(true),
+                    TypedToolError::Dynamic(e) => e.provider_executed != Some(true),
                 },
                 _ => false,
             }
@@ -269,8 +251,8 @@ pub fn to_response_messages(
 mod tests {
     use super::*;
     use crate::generate_text::{
-        ReasoningOutput, StaticToolError, StaticToolResult, TextOutput,
-        TypedToolCall, TypedToolError, TypedToolResult,
+        ReasoningOutput, StaticToolError, StaticToolResult, TextOutput, TypedToolCall,
+        TypedToolError, TypedToolResult,
     };
     use crate::tool::StaticToolCall;
     use serde_json::json;
@@ -349,9 +331,7 @@ mod tests {
         )
         .with_provider_executed(true);
 
-        let content = vec![Output::ToolResult(TypedToolResult::Static(
-            tool_result,
-        ))];
+        let content = vec![Output::ToolResult(TypedToolResult::Static(tool_result))];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -373,9 +353,7 @@ mod tests {
         );
         // provider_executed defaults to None/false
 
-        let content = vec![Output::ToolResult(TypedToolResult::Static(
-            tool_result,
-        ))];
+        let content = vec![Output::ToolResult(TypedToolResult::Static(tool_result))];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);

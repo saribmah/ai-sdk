@@ -1,2 +1,2 @@
-pub mod response_metadata;
 pub mod finish_reason;
+pub mod response_metadata;

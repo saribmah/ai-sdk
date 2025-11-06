@@ -1,13 +1,14 @@
-pub mod text;
 pub mod reasoning;
 pub mod source;
+pub mod text;
 
+pub use reasoning::ReasoningOutput;
+pub use source::SourceOutput;
+pub use text::TextOutput;
+
+use crate::tool::{TypedToolCall, TypedToolError, TypedToolResult};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use text::TextOutput;
-use reasoning::ReasoningOutput;
-use source::SourceOutput;
-use crate::tool::{TypedToolCall, TypedToolError, TypedToolResult};
 
 /// An output part that can appear in an assistant message.
 ///
@@ -111,8 +112,7 @@ mod tests {
     #[test]
     fn test_content_part_tool_result() {
         let result = StaticToolResult::new("call_1", "tool", json!({}), json!({}));
-        let part: Output<Value, Value> =
-            Output::ToolResult(TypedToolResult::Static(result));
+        let part: Output<Value, Value> = Output::ToolResult(TypedToolResult::Static(result));
 
         assert!(part.is_tool_result());
         assert!(!part.is_tool_error());

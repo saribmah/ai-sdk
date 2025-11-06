@@ -1,3 +1,4 @@
+use crate::completion::prompt::OpenAICompatibleCompletionPrompt;
 use ai_sdk_provider::language_model::prompt::message::parts::{
     LanguageModelTextPart, LanguageModelToolCallPart,
 };
@@ -9,7 +10,6 @@ use ai_sdk_provider::language_model::prompt::{
     LanguageModelAssistantMessagePart, LanguageModelMessage, LanguageModelPrompt,
     LanguageModelUserMessagePart,
 };
-use crate::completion::prompt::OpenAICompatibleCompletionPrompt;
 
 /// Converts a language model prompt to OpenAI-compatible completion format.
 ///

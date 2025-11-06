@@ -15,8 +15,8 @@ use std::collections::HashMap;
 use crate::completion::{
     OpenAICompatibleCompletionModelId, convert_to_openai_compatible_completion_prompt,
 };
-use crate::utils::response_metadata::get_response_metadata;
 use crate::utils::finish_reason::map_openai_compatible_finish_reason;
+use crate::utils::response_metadata::get_response_metadata;
 
 /// Configuration for an OpenAI-compatible completion language model
 pub struct OpenAICompatibleCompletionConfig {

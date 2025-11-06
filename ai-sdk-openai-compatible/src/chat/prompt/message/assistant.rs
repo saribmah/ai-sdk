@@ -1,5 +1,5 @@
-use ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessage;
 use ai_sdk_provider::language_model::prompt::LanguageModelAssistantMessagePart;
+use ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessage;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

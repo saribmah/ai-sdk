@@ -151,9 +151,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use super::*;
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };

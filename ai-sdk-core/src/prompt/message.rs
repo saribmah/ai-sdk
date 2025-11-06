@@ -12,9 +12,7 @@ pub use content_parts::{
 };
 pub use data_content::DataContent;
 pub use system::SystemMessage;
-pub use tool::{
-    ToolContent, ToolContentPart, ToolMessage,
-};
+pub use tool::{ToolContent, ToolContentPart, ToolMessage};
 pub use user::{UserContent, UserContentPart, UserMessage};
 
 use serde::{Deserialize, Deserializer, Serialize};

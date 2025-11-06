@@ -1,5 +1,5 @@
+use super::{NeedsApproval, Tool, ToolExecuteOptions};
 use crate::prompt::message::Message;
-use super::{ToolExecuteOptions, NeedsApproval, Tool};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;

@@ -78,8 +78,8 @@ impl<INPUT> ToolApprovalRequestOutput<INPUT> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::{DynamicToolCall, StaticToolCall, TypedToolCall};
+    use super::*;
     use serde_json::{Value, json};
 
     #[test]

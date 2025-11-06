@@ -1,3 +1,4 @@
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Streaming tool calling example demonstrating real-time tool execution with streaming.
 ///
 /// This example shows how to:
@@ -13,7 +14,6 @@
 /// cargo run --example stream_tool_calling
 /// ```
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::{ToolSet, step_count_is, stream_text};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use futures_util::StreamExt;
