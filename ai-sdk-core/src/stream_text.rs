@@ -382,59 +382,23 @@ async fn stream_single_step(
     })
 }
 
-/// Stream text using a language model with multi-step tool execution support.
+/// Builder for streaming text using a language model with fluent API.
 ///
-/// This is the main user-facing function for streaming text generation in the AI SDK.
-/// It supports multi-step generation where the model can call tools, receive results,
-/// and continue generating text based on those results.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
-/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
-/// * `model` - The language model to use for generation
-/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
-/// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
-/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
-///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
-/// * `provider_options` - Optional provider-specific options.
-/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
-/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
-/// * `transforms` - Optional list of stream transformations to apply to the output stream.
-/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
-/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
-/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
-/// * `on_finish` - Optional callback that is called when the LLM response and all tool executions are finished.
-/// * `on_abort` - Optional callback that is called when the generation is aborted.
-///
-/// # Returns
-///
-/// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
-/// ways to access the streamed data, or a validation error.
+/// This builder provides a chainable interface for configuring text streaming.
 ///
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::stream_text;
-/// use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
 ///
-/// let result = stream_text(
-///     settings,
-///     prompt,
-///     model,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-///     false,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-/// ).await?;
+/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+///     .temperature(0.8)
+///     .max_output_tokens(500)
+///     .include_raw_chunks(true)
+///     .execute()
+///     .await?;
 ///
 /// // Stream text deltas in real-time
 /// let mut stream = result.text_stream();
@@ -442,6 +406,248 @@ async fn stream_single_step(
 ///     print!("{}", delta);
 /// }
 /// ```
+pub struct StreamTextBuilder {
+    model: Arc<dyn LanguageModel>,
+    prompt: Prompt,
+    settings: CallSettings,
+    tools: Option<ToolSet>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    include_raw_chunks: bool,
+    transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
+    on_chunk: Option<OnChunkCallback>,
+    on_error: Option<OnErrorCallback>,
+    on_step_finish: Option<OnStepFinishCallback>,
+    on_finish: Option<OnFinishCallback>,
+}
+
+impl StreamTextBuilder {
+    /// Creates a new builder with the required model and prompt.
+    pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
+        Self {
+            model,
+            prompt,
+            settings: CallSettings::default(),
+            tools: None,
+            tool_choice: None,
+            provider_options: None,
+            stop_when: None,
+            prepare_step: None,
+            include_raw_chunks: false,
+            transforms: None,
+            on_chunk: None,
+            on_error: None,
+            on_step_finish: None,
+            on_finish: None,
+        }
+    }
+
+    /// Sets the complete call settings.
+    pub fn settings(mut self, settings: CallSettings) -> Self {
+        self.settings = settings;
+        self
+    }
+
+    /// Sets the temperature for generation.
+    pub fn temperature(mut self, temperature: f64) -> Self {
+        self.settings = self.settings.with_temperature(temperature);
+        self
+    }
+
+    /// Sets the maximum output tokens.
+    pub fn max_output_tokens(mut self, max_tokens: u32) -> Self {
+        self.settings = self.settings.with_max_output_tokens(max_tokens);
+        self
+    }
+
+    /// Sets the top_p sampling parameter.
+    pub fn top_p(mut self, top_p: f64) -> Self {
+        self.settings = self.settings.with_top_p(top_p);
+        self
+    }
+
+    /// Sets the top_k sampling parameter.
+    pub fn top_k(mut self, top_k: u32) -> Self {
+        self.settings = self.settings.with_top_k(top_k);
+        self
+    }
+
+    /// Sets the presence penalty.
+    pub fn presence_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_presence_penalty(penalty);
+        self
+    }
+
+    /// Sets the frequency penalty.
+    pub fn frequency_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_frequency_penalty(penalty);
+        self
+    }
+
+    /// Sets the random seed for deterministic generation.
+    pub fn seed(mut self, seed: u32) -> Self {
+        self.settings = self.settings.with_seed(seed);
+        self
+    }
+
+    /// Sets the stop sequences.
+    pub fn stop_sequences(mut self, sequences: Vec<String>) -> Self {
+        self.settings = self.settings.with_stop_sequences(sequences);
+        self
+    }
+
+    /// Sets the maximum number of retries.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.settings = self.settings.with_max_retries(max_retries);
+        self
+    }
+
+    /// Sets custom headers for the request.
+    pub fn headers(mut self, headers: std::collections::HashMap<String, String>) -> Self {
+        self.settings = self.settings.with_headers(headers);
+        self
+    }
+
+    /// Sets the abort signal for cancellation.
+    pub fn abort_signal(mut self, signal: tokio_util::sync::CancellationToken) -> Self {
+        self.settings = self.settings.with_abort_signal(signal);
+        self
+    }
+
+    /// Sets the tools available for the model to use.
+    pub fn tools(mut self, tools: ToolSet) -> Self {
+        self.tools = Some(tools);
+        self
+    }
+
+    /// Sets the tool choice strategy.
+    pub fn tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
+        self.tool_choice = Some(choice);
+        self
+    }
+
+    /// Sets provider-specific options.
+    pub fn provider_options(mut self, options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(options);
+        self
+    }
+
+    /// Sets stop conditions for multi-step generation.
+    pub fn stop_when(mut self, conditions: Vec<Box<dyn StopCondition>>) -> Self {
+        self.stop_when = Some(conditions);
+        self
+    }
+
+    /// Sets the prepare step callback.
+    pub fn prepare_step(mut self, callback: Box<dyn PrepareStep>) -> Self {
+        self.prepare_step = Some(callback);
+        self
+    }
+
+    /// Enables or disables inclusion of raw chunks from the provider.
+    pub fn include_raw_chunks(mut self, include: bool) -> Self {
+        self.include_raw_chunks = include;
+        self
+    }
+
+    /// Sets stream transformations to apply to the output.
+    pub fn transforms(mut self, transforms: Vec<Box<dyn StreamTransform<Value, Value>>>) -> Self {
+        self.transforms = Some(transforms);
+        self
+    }
+
+    /// Sets the on_chunk callback.
+    pub fn on_chunk(mut self, callback: OnChunkCallback) -> Self {
+        self.on_chunk = Some(callback);
+        self
+    }
+
+    /// Sets the on_error callback.
+    pub fn on_error(mut self, callback: OnErrorCallback) -> Self {
+        self.on_error = Some(callback);
+        self
+    }
+
+    /// Sets the on_step_finish callback.
+    pub fn on_step_finish(mut self, callback: OnStepFinishCallback) -> Self {
+        self.on_step_finish = Some(callback);
+        self
+    }
+
+    /// Sets the on_finish callback.
+    pub fn on_finish(mut self, callback: OnFinishCallback) -> Self {
+        self.on_finish = Some(callback);
+        self
+    }
+
+    /// Executes the text streaming with the configured settings.
+    pub async fn execute(self) -> Result<StreamTextResult<Value, Value>, AISDKError> {
+        stream_text(
+            self.model,
+            self.prompt,
+            self.settings,
+            self.tools,
+            self.tool_choice,
+            self.provider_options,
+            self.stop_when,
+            self.prepare_step,
+            self.include_raw_chunks,
+            self.transforms,
+            self.on_chunk,
+            self.on_error,
+            self.on_step_finish,
+            self.on_finish,
+        )
+        .await
+    }
+}
+
+/// Stream text using a language model with multi-step tool execution support.
+///
+/// This is the main user-facing function for streaming text generation in the AI SDK.
+/// It supports multi-step generation where the model can call tools, receive results,
+/// and continue generating text based on those results.
+///
+/// # Note
+///
+/// Consider using `StreamTextBuilder` for a more ergonomic fluent API:
+///
+/// ```ignore
+/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
+///
+/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+///     .temperature(0.8)
+///     .max_output_tokens(500)
+///     .execute()
+///     .await?;
+/// ```
+///
+/// # Arguments
+///
+/// * `model` - The language model to use for generation
+/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
+/// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
+/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
+/// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
+/// * `provider_options` - Optional provider-specific options.
+/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
+///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
+/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
+/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
+/// * `transforms` - Optional list of stream transformations to apply to the output stream.
+/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
+/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
+/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
+/// * `on_finish` - Optional callback that is called when the LLM response and all tool executions are finished.
+///
+/// # Returns
+///
+/// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
+/// ways to access the streamed data, or a validation error.
 pub async fn stream_text(
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,

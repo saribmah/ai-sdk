@@ -2,7 +2,7 @@
 ///
 /// This example shows how to:
 /// - Create a provider from environment variables
-/// - Use generate_text to get responses
+/// - Use GenerateTextBuilder with fluent API to get responses
 /// - Handle the response properly
 ///
 /// Run with:
@@ -10,8 +10,8 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_chat
 /// ```
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use std::env;
 
@@ -44,17 +44,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text("What is the capital of France? Answer in one sentence.");
     println!("📤 Sending prompt: \"What is the capital of France? Answer in one sentence.\"\n");
 
-    // Configure settings
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(100);
-
-    // Generate text
+    // Generate text using the builder pattern
     println!("⏳ Generating response...\n");
-    let result = generate_text(
-        &*model, prompt, settings, None, None, None, None, None, None, None,
-    )
-    .await?;
+    let result = GenerateTextBuilder::new(&*model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(10)
+        .execute()
+        .await?;
 
     // Display the response
     println!("✅ Response received!\n");

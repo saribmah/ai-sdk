@@ -1,4 +1,4 @@
-use ai_sdk_core::generate_text::Output;
+use ai_sdk_core::output::Output;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::tool::definition::Tool;
 /// Tool calling example demonstrating function calling with a weather tool.

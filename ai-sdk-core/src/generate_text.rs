@@ -261,10 +261,205 @@ pub fn as_output(
     result
 }
 
+/// Builder for generating text using a language model with fluent API.
+///
+/// This builder provides a chainable interface for configuring text generation.
+///
+/// # Examples
+///
+/// ```ignore
+/// use ai_sdk_core::{GenerateTextBuilder, step_count_is};
+/// use ai_sdk_core::prompt::Prompt;
+///
+/// let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+///     .temperature(0.7)
+///     .max_output_tokens(100)
+///     .tools(my_tools)
+///     .stop_when(vec![Box::new(step_count_is(1))])
+///     .execute()
+///     .await?;
+/// ```
+pub struct GenerateTextBuilder<'a> {
+    model: &'a dyn LanguageModel,
+    prompt: Prompt,
+    settings: CallSettings,
+    tools: Option<ToolSet>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    on_step_finish: Option<Box<dyn OnStepFinish>>,
+    on_finish: Option<Box<dyn OnFinish>>,
+}
+
+impl<'a> GenerateTextBuilder<'a> {
+    /// Creates a new builder with the required model and prompt.
+    pub fn new(model: &'a dyn LanguageModel, prompt: Prompt) -> Self {
+        Self {
+            model,
+            prompt,
+            settings: CallSettings::default(),
+            tools: None,
+            tool_choice: None,
+            provider_options: None,
+            stop_when: None,
+            prepare_step: None,
+            on_step_finish: None,
+            on_finish: None,
+        }
+    }
+
+    /// Sets the complete call settings.
+    pub fn settings(mut self, settings: CallSettings) -> Self {
+        self.settings = settings;
+        self
+    }
+
+    /// Sets the temperature for generation.
+    pub fn temperature(mut self, temperature: f64) -> Self {
+        self.settings = self.settings.with_temperature(temperature);
+        self
+    }
+
+    /// Sets the maximum output tokens.
+    pub fn max_output_tokens(mut self, max_tokens: u32) -> Self {
+        self.settings = self.settings.with_max_output_tokens(max_tokens);
+        self
+    }
+
+    /// Sets the top_p sampling parameter.
+    pub fn top_p(mut self, top_p: f64) -> Self {
+        self.settings = self.settings.with_top_p(top_p);
+        self
+    }
+
+    /// Sets the top_k sampling parameter.
+    pub fn top_k(mut self, top_k: u32) -> Self {
+        self.settings = self.settings.with_top_k(top_k);
+        self
+    }
+
+    /// Sets the presence penalty.
+    pub fn presence_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_presence_penalty(penalty);
+        self
+    }
+
+    /// Sets the frequency penalty.
+    pub fn frequency_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_frequency_penalty(penalty);
+        self
+    }
+
+    /// Sets the random seed for deterministic generation.
+    pub fn seed(mut self, seed: u32) -> Self {
+        self.settings = self.settings.with_seed(seed);
+        self
+    }
+
+    /// Sets the stop sequences.
+    pub fn stop_sequences(mut self, sequences: Vec<String>) -> Self {
+        self.settings = self.settings.with_stop_sequences(sequences);
+        self
+    }
+
+    /// Sets the maximum number of retries.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.settings = self.settings.with_max_retries(max_retries);
+        self
+    }
+
+    /// Sets custom headers for the request.
+    pub fn headers(mut self, headers: std::collections::HashMap<String, String>) -> Self {
+        self.settings = self.settings.with_headers(headers);
+        self
+    }
+
+    /// Sets the abort signal for cancellation.
+    pub fn abort_signal(mut self, signal: CancellationToken) -> Self {
+        self.settings = self.settings.with_abort_signal(signal);
+        self
+    }
+
+    /// Sets the tools available for the model to use.
+    pub fn tools(mut self, tools: ToolSet) -> Self {
+        self.tools = Some(tools);
+        self
+    }
+
+    /// Sets the tool choice strategy.
+    pub fn tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
+        self.tool_choice = Some(choice);
+        self
+    }
+
+    /// Sets provider-specific options.
+    pub fn provider_options(mut self, options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(options);
+        self
+    }
+
+    /// Sets stop conditions for multi-step generation.
+    pub fn stop_when(mut self, conditions: Vec<Box<dyn StopCondition>>) -> Self {
+        self.stop_when = Some(conditions);
+        self
+    }
+
+    /// Sets the prepare step callback.
+    pub fn prepare_step(mut self, callback: Box<dyn PrepareStep>) -> Self {
+        self.prepare_step = Some(callback);
+        self
+    }
+
+    /// Sets the on_step_finish callback.
+    pub fn on_step_finish(mut self, callback: Box<dyn OnStepFinish>) -> Self {
+        self.on_step_finish = Some(callback);
+        self
+    }
+
+    /// Sets the on_finish callback.
+    pub fn on_finish(mut self, callback: Box<dyn OnFinish>) -> Self {
+        self.on_finish = Some(callback);
+        self
+    }
+
+    /// Executes the text generation with the configured settings.
+    pub async fn execute(self) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
+        generate_text(
+            self.model,
+            self.prompt,
+            self.settings,
+            self.tools,
+            self.tool_choice,
+            self.provider_options,
+            self.stop_when,
+            self.prepare_step,
+            self.on_step_finish,
+            self.on_finish,
+        )
+        .await
+    }
+}
+
 /// Generate text using a language model.
 ///
 /// This is the main user-facing function for text generation in the AI SDK.
 /// It takes a prompt, model, settings, and optionally tools to generate text.
+///
+/// # Note
+///
+/// Consider using `GenerateTextBuilder` for a more ergonomic fluent API:
+///
+/// ```ignore
+/// use ai_sdk_core::GenerateTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+///
+/// let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+///     .temperature(0.7)
+///     .max_output_tokens(100)
+///     .execute()
+///     .await?;
+/// ```
 ///
 /// # Arguments
 ///
@@ -287,29 +482,6 @@ pub fn as_output(
 /// # Errors
 ///
 /// Returns `AISDKError::InvalidArgument` if any settings are invalid (e.g., non-finite temperature).
-///
-/// # Examples
-///
-/// ```ignore
-/// use ai_sdk_core::{generate_text, step_count_is};
-/// use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-///
-/// let prompt = Prompt::text("Tell me a joke");
-/// let settings = CallSettings::default();
-/// let response = generate_text(
-///     model,
-///     prompt,
-///     settings,
-///     None,
-///     None,
-///     None,
-///     Some(vec![Box::new(step_count_is(1))]),
-///     None,
-///     None,
-///     None,
-/// ).await?;
-/// println!("Response: {:?}", response.content);
-/// ```
 pub async fn generate_text(
     model: &dyn LanguageModel,
     prompt: Prompt,
@@ -725,6 +897,20 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_generate_text_builder_basic() {
+        let model = MockLanguageModel::new();
+        let prompt = Prompt::text("Tell me a joke");
+
+        // Test the builder pattern
+        let result = GenerateTextBuilder::new(&model, prompt).execute().await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
+    }
+
+    #[tokio::test]
     async fn test_generate_text_with_settings() {
         let model = MockLanguageModel::new();
         let prompt =
@@ -739,6 +925,25 @@ mod tests {
             &model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_generate_text_builder_with_settings() {
+        let model = MockLanguageModel::new();
+        let prompt =
+            Prompt::text("What is the weather?").with_system("You are a helpful assistant");
+
+        // Test the builder pattern with chained settings
+        let result = GenerateTextBuilder::new(&model, prompt)
+            .temperature(0.7)
+            .max_output_tokens(100)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected

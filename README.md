@@ -34,9 +34,11 @@ tokio = { version = "1.41", features = ["full"] }
 
 ### Basic Text Generation
 
+The SDK provides a fluent builder API for ergonomic text generation:
+
 ```rust
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::{GenerateTextBuilder};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 
 #[tokio::main]
@@ -53,16 +55,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get a language model
     let model = provider.chat_model("gpt-4");
 
-    // Create a prompt
-    let prompt = Prompt::text("What is the capital of France?");
-    let settings = CallSettings::default();
-
-    // Generate text
-    let result = generate_text(&*model, prompt, settings, None, None, None).await?;
+    // Generate text using the builder pattern
+    let result = GenerateTextBuilder::new(&*model, Prompt::text("What is the capital of France?"))
+        .temperature(0.7)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
 
     println!("Response: {:?}", result);
     Ok(())
 }
+```
+
+Alternatively, you can use the function-based API:
+
+```rust
+use ai_sdk_core::generate_text;
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+
+let prompt = Prompt::text("What is the capital of France?");
+let settings = CallSettings::default()
+    .with_temperature(0.7)
+    .with_max_output_tokens(100);
+
+let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
 ```
 
 ### Using Different Providers
@@ -99,6 +115,97 @@ let custom = create_openai_compatible(
     .with_query_param("version", "2024-01")
 );
 ```
+
+### Builder Pattern API
+
+Both `GenerateTextBuilder` and `StreamTextBuilder` provide fluent, chainable APIs for configuring text generation and streaming:
+
+#### Text Generation
+
+```rust
+use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::prompt::Prompt;
+
+let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+    .temperature(0.7)            // Creativity control
+    .max_output_tokens(100)      // Response length limit
+    .top_p(0.9)                  // Nucleus sampling
+    .presence_penalty(0.6)       // Discourage repetition
+    .frequency_penalty(0.5)      // Vary word choice
+    .seed(42)                    // Deterministic generation
+    .max_retries(3)              // Retry on failures
+    .execute()
+    .await?;
+```
+
+#### Available Builder Methods
+
+- **Sampling Parameters:**
+  - `.temperature(f64)` - Controls randomness (0.0 to 2.0)
+  - `.top_p(f64)` - Nucleus sampling threshold
+  - `.top_k(u32)` - Top-K sampling parameter
+  - `.presence_penalty(f64)` - Penalizes token presence
+  - `.frequency_penalty(f64)` - Penalizes token frequency
+
+- **Output Control:**
+  - `.max_output_tokens(u32)` - Maximum tokens to generate
+  - `.stop_sequences(Vec<String>)` - Stop generation at sequences
+  - `.seed(u32)` - Seed for deterministic output
+
+- **Tools and Advanced:**
+  - `.tools(ToolSet)` - Add function calling tools
+  - `.tool_choice(LanguageModelToolChoice)` - Control tool selection
+  - `.stop_when(Vec<Box<dyn StopCondition>>)` - Multi-step stop conditions
+  - `.prepare_step(Box<dyn PrepareStep>)` - Customize each generation step
+  - `.on_step_finish(Box<dyn OnStepFinish>)` - Callback after each step
+  - `.on_finish(Box<dyn OnFinish>)` - Callback when complete
+
+- **Configuration:**
+  - `.max_retries(u32)` - Maximum retry attempts
+  - `.headers(HashMap<String, String>)` - Custom HTTP headers
+  - `.abort_signal(CancellationToken)` - Cancellation support
+  - `.provider_options(SharedProviderOptions)` - Provider-specific options
+  - `.settings(CallSettings)` - Set all settings at once
+
+#### Text Streaming
+
+The `StreamTextBuilder` provides similar functionality for streaming responses:
+
+```rust
+use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::prompt::Prompt;
+use futures_util::StreamExt;
+use std::sync::Arc;
+
+let result = StreamTextBuilder::new(Arc::from(model), Prompt::text("Tell me a story"))
+    .temperature(0.8)
+    .max_output_tokens(500)
+    .include_raw_chunks(true)
+    .on_chunk(Box::new(|event| {
+        Box::pin(async move {
+            // Process each chunk as it arrives
+        })
+    }))
+    .on_finish(Box::new(|event| {
+        Box::pin(async move {
+            println!("Total tokens: {}", event.total_usage.total_tokens);
+        })
+    }))
+    .execute()
+    .await?;
+
+// Stream text deltas in real-time
+let mut text_stream = result.text_stream();
+while let Some(delta) = text_stream.next().await {
+    print!("{}", delta);
+}
+```
+
+**Additional StreamTextBuilder Methods:**
+- `.include_raw_chunks(bool)` - Include raw provider chunks
+- `.transforms(Vec<Box<dyn StreamTransform>>)` - Apply stream transformations
+- `.on_chunk(OnChunkCallback)` - Callback for each chunk
+- `.on_error(OnErrorCallback)` - Error handling callback
 
 ### Vercel-Style Chaining
 
