@@ -151,8 +151,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::super::content_part::ContentPart;
-    use super::super::text_output::TextOutput;
+    use super::super::output::Output;
+    use super::super::output::text::TextOutput;
     use super::*;
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
@@ -160,7 +160,7 @@ mod tests {
 
     fn create_test_step() -> StepResult {
         StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
+            vec![Output::Text(TextOutput::new("Test".to_string()))],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(10, 20),
             None,

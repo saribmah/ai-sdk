@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use serde::{Deserialize, Serialize};
 
 /// Source output representing a source/reference in the generation.
 ///

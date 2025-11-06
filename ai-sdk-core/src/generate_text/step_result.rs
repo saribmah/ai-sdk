@@ -7,9 +7,9 @@ use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::content_part::ContentPart;
+use super::output::Output;
 use super::generated_file::GeneratedFile;
-use super::reasoning_output::ReasoningOutput;
+use super::output::reasoning::ReasoningOutput;
 
 /// Metadata about the request sent to the language model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -81,8 +81,8 @@ impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct StepResult<INPUT = Value, OUTPUT = Value> {
-    /// The content that was generated in the step (user-facing ContentPart types).
-    pub content: Vec<ContentPart<INPUT, OUTPUT>>,
+    /// The content that was generated in the step (user-facing Output types).
+    pub content: Vec<Output<INPUT, OUTPUT>>,
 
     /// The reason why the generation finished.
     pub finish_reason: LanguageModelFinishReason,
@@ -108,7 +108,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     ///
     /// # Arguments
     ///
-    /// * `content` - The generated content parts (user-facing ContentPart types)
+    /// * `content` - The generated content parts (user-facing Output types)
     /// * `finish_reason` - Why the generation finished
     /// * `usage` - Token usage information
     /// * `warnings` - Optional warnings from the provider
@@ -116,7 +116,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// * `response` - Response metadata
     /// * `provider_metadata` - Optional provider-specific metadata
     pub fn new(
-        content: Vec<ContentPart<INPUT, OUTPUT>>,
+        content: Vec<Output<INPUT, OUTPUT>>,
         finish_reason: LanguageModelFinishReason,
         usage: LanguageModelUsage,
         warnings: Option<Vec<LanguageModelCallWarning>>,
@@ -151,7 +151,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Text(text_output) = part {
+                if let Output::Text(text_output) = part {
                     Some(text_output.text.as_str())
                 } else {
                     None
@@ -170,7 +170,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Reasoning(reasoning) = part {
+                if let Output::Reasoning(reasoning) = part {
                     Some(reasoning)
                 } else {
                     None
@@ -205,7 +205,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     ///
     /// A vector of references to files.
     pub fn files(&self) -> Vec<&GeneratedFile> {
-        // ContentPart doesn't have File variant in the user-facing API
+        // Output doesn't have File variant in the user-facing API
         // Files are extracted separately in GenerateTextResult
         vec![]
     }
@@ -219,7 +219,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Source(source_output) = part {
+                if let Output::Source(source_output) = part {
                     Some(&source_output.source)
                 } else {
                     None
@@ -237,7 +237,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::ToolCall(tool_call) = part {
+                if let Output::ToolCall(tool_call) = part {
                     Some(tool_call)
                 } else {
                     None
@@ -255,7 +255,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::ToolResult(tool_result) = part {
+                if let Output::ToolResult(tool_result) = part {
                     Some(tool_result)
                 } else {
                     None
@@ -272,19 +272,19 @@ mod tests {
 
     fn create_test_step_result() -> StepResult {
         let content = vec![
-            ContentPart::Text(super::super::text_output::TextOutput::new(
+            Output::Text(super::super::output::text::TextOutput::new(
                 "Hello ".to_string(),
             )),
-            ContentPart::Text(super::super::text_output::TextOutput::new(
+            Output::Text(super::super::output::text::TextOutput::new(
                 "world!".to_string(),
             )),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
+            Output::Reasoning(super::super::output::reasoning::ReasoningOutput::new(
                 "Thinking step 1. ".to_string(),
             )),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
+            Output::Reasoning(super::super::output::reasoning::ReasoningOutput::new(
                 "Thinking step 2.".to_string(),
             )),
-            ContentPart::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
+            Output::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
                 super::super::tool_call::DynamicToolCall::new(
                     "call_1".to_string(),
                     "get_weather".to_string(),
@@ -347,8 +347,8 @@ mod tests {
     #[test]
     fn test_step_result_reasoning_text_empty() {
         let result: StepResult<Value, Value> = StepResult::new(
-            vec![ContentPart::Text(
-                super::super::text_output::TextOutput::new("Hello".to_string()),
+            vec![Output::Text(
+                super::super::output::text::TextOutput::new("Hello".to_string()),
             )],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(5, 5),

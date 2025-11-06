@@ -1,6 +1,6 @@
 use crate::error::AISDKError;
 use crate::generate_text::{
-    ContentPart, DynamicToolCall, DynamicToolResult, GeneratedFile, ReasoningOutput,
+    DynamicToolCall, DynamicToolResult, GeneratedFile, ReasoningOutput,
     RequestMetadata, ResponseMetadata, StaticToolCall, StaticToolResult, StepResult, TypedToolCall,
     TypedToolResult,
 };
@@ -16,6 +16,7 @@ use serde_json::Value;
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
+use crate::generate_text::output::Output;
 
 /// A type alias for error handlers used in stream consumption.
 ///
@@ -85,7 +86,7 @@ pub type AsyncIterableStream<T> = Pin<Box<dyn Stream<Item = T> + Send>>;
 /// multiple accessors to read the same data without re-consuming the stream.
 #[derive(Clone)]
 struct StreamState<INPUT, OUTPUT> {
-    content: Vec<ContentPart<INPUT, OUTPUT>>,
+    content: Vec<Output<INPUT, OUTPUT>>,
     text: String,
     reasoning: Vec<ReasoningOutput>,
     reasoning_text: Option<String>,
@@ -266,7 +267,7 @@ where
                         use crate::generate_text::TextOutput;
                         state
                             .content
-                            .push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                            .push(Output::Text(TextOutput::new(current_text.clone())));
                         current_text.clear();
                     }
                 }
@@ -281,7 +282,7 @@ where
                         // Also add to content
                         state
                             .content
-                            .push(ContentPart::Reasoning(ReasoningOutput::new(
+                            .push(Output::Reasoning(ReasoningOutput::new(
                                 current_reasoning.clone(),
                             )));
                         current_reasoning.clear();
@@ -290,7 +291,7 @@ where
                 TextStreamPart::Source { source } => {
                     state.sources.push(source.source.clone());
                     // Also add to content
-                    state.content.push(ContentPart::Source(source));
+                    state.content.push(Output::Source(source));
                 }
                 TextStreamPart::File { file } => {
                     state
@@ -308,7 +309,7 @@ where
                         }
                     }
                     // Also add to content
-                    state.content.push(ContentPart::ToolCall(tool_call.clone()));
+                    state.content.push(Output::ToolCall(tool_call.clone()));
                     state.tool_calls.push(tool_call);
                 }
                 TextStreamPart::ToolResult { tool_result } => {
@@ -324,7 +325,7 @@ where
                     // Also add to content
                     state
                         .content
-                        .push(ContentPart::ToolResult(tool_result.clone()));
+                        .push(Output::ToolResult(tool_result.clone()));
                     state.tool_results.push(tool_result);
                 }
                 TextStreamPart::StartStep { request, warnings } => {
@@ -371,7 +372,7 @@ where
             use crate::generate_text::TextOutput;
             state
                 .content
-                .push(ContentPart::Text(TextOutput::new(current_text)));
+                .push(Output::Text(TextOutput::new(current_text)));
         }
 
         // Flush any remaining reasoning
@@ -381,7 +382,7 @@ where
                 .push(ReasoningOutput::new(current_reasoning.clone()));
             state
                 .content
-                .push(ContentPart::Reasoning(ReasoningOutput::new(
+                .push(Output::Reasoning(ReasoningOutput::new(
                     current_reasoning,
                 )));
         }
@@ -413,7 +414,7 @@ where
     ///     // Process content parts
     /// }
     /// ```
-    pub async fn content(&self) -> Result<Vec<ContentPart<INPUT, OUTPUT>>, AISDKError> {
+    pub async fn content(&self) -> Result<Vec<Output<INPUT, OUTPUT>>, AISDKError> {
         self.ensure_consumed().await?;
         Ok(self.state.get().unwrap().content.clone())
     }

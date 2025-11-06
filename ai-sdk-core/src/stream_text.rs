@@ -11,10 +11,6 @@ pub use callbacks::{
     StreamTextOnErrorCallback as OnErrorCallback, StreamTextOnFinishCallback as OnFinishCallback,
     StreamTextOnStepFinishCallback as OnStepFinishCallback,
 };
-pub use output::{
-    ArrayOutput, ChoiceOutput, JsonOutput, ObjectOutput, Output, OutputParseError,
-    OutputParseErrorKind, TextOutput,
-};
 pub use stream_text_result::{
     AsyncIterableStream, ConsumeStreamOptions, ErrorHandler, StreamTextResult,
 };
@@ -27,7 +23,7 @@ pub use transform::{
 
 use crate::error::AISDKError;
 use crate::generate_text::{
-    ContentPart, PrepareStep, PrepareStepOptions, StepResult, StopCondition, ToolSet,
+    Output, PrepareStep, PrepareStepOptions, StepResult, StopCondition, ToolSet,
     TypedToolCall, execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
     to_response_messages,
 };
@@ -52,7 +48,7 @@ use tokio::sync::mpsc;
 /// This contains all the accumulated data from processing one streaming call to the model.
 struct SingleStepStreamResult {
     /// The content parts accumulated during the step
-    content: Vec<ContentPart<Value, Value>>,
+    content: Vec<Output<Value, Value>>,
 
     /// Tool calls made during the step
     tool_calls: Vec<TypedToolCall<Value>>,
@@ -109,7 +105,7 @@ async fn stream_single_step(
     let mut provider_stream = stream_response.stream;
 
     // Accumulate step data
-    let mut step_content: Vec<ContentPart<Value, Value>> = Vec::new();
+    let mut step_content: Vec<Output<Value, Value>> = Vec::new();
     let mut step_tool_calls: Vec<TypedToolCall<Value>> = Vec::new();
     let mut current_text = String::new();
     let mut current_reasoning = String::new();
@@ -140,7 +136,7 @@ async fn stream_single_step(
             LanguageModelStreamPart::TextEnd(te) => {
                 // Add accumulated text to content
                 if !current_text.is_empty() {
-                    step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                    step_content.push(Output::Text(TextOutput::new(current_text.clone())));
                     current_text.clear();
                 }
                 TextStreamPart::TextEnd {
@@ -163,7 +159,7 @@ async fn stream_single_step(
             LanguageModelStreamPart::ReasoningEnd(re) => {
                 // Add accumulated reasoning to content
                 if !current_reasoning.is_empty() {
-                    step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                    step_content.push(Output::Reasoning(ReasoningOutput::new(
                         current_reasoning.clone(),
                     )));
                     current_reasoning.clear();
@@ -192,7 +188,7 @@ async fn stream_single_step(
             },
             LanguageModelStreamPart::Source(source) => {
                 let source_output = SourceOutput::new(source.clone());
-                step_content.push(ContentPart::Source(source_output.clone()));
+                step_content.push(Output::Source(source_output.clone()));
                 TextStreamPart::Source {
                     source: source_output,
                 }
@@ -233,11 +229,11 @@ async fn stream_single_step(
             LanguageModelStreamPart::Finish(f) => {
                 // Flush any remaining text/reasoning
                 if !current_text.is_empty() {
-                    step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                    step_content.push(Output::Text(TextOutput::new(current_text.clone())));
                     current_text.clear();
                 }
                 if !current_reasoning.is_empty() {
-                    step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                    step_content.push(Output::Reasoning(ReasoningOutput::new(
                         current_reasoning.clone(),
                     )));
                     current_reasoning.clear();
@@ -291,7 +287,7 @@ async fn stream_single_step(
                 match typed_tool_call {
                     Ok(tool_call) => {
                         // Add to step content and tool_calls list
-                        step_content.push(ContentPart::ToolCall(tool_call.clone()));
+                        step_content.push(Output::ToolCall(tool_call.clone()));
                         step_tool_calls.push(tool_call.clone());
 
                         TextStreamPart::ToolCall { tool_call }
@@ -344,7 +340,7 @@ async fn stream_single_step(
                 };
 
                 // Add to step content
-                step_content.push(ContentPart::ToolResult(typed_result.clone()));
+                step_content.push(Output::ToolResult(typed_result.clone()));
 
                 TextStreamPart::ToolResult {
                     tool_result: typed_result,
@@ -716,10 +712,10 @@ pub async fn stream_text(
             for output in client_tool_outputs {
                 match output {
                     crate::generate_text::ToolOutput::Result(tool_result) => {
-                        step_content.push(ContentPart::ToolResult(tool_result));
+                        step_content.push(Output::ToolResult(tool_result));
                     }
                     crate::generate_text::ToolOutput::Error(tool_error) => {
-                        step_content.push(ContentPart::ToolError(tool_error));
+                        step_content.push(Output::ToolError(tool_error));
                     }
                 }
             }

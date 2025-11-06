@@ -5,9 +5,9 @@ use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
-use super::content_part::ContentPart;
+use super::output::Output;
 use super::generated_file::GeneratedFile;
-use super::reasoning_output::ReasoningOutput;
+use super::output::reasoning::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 use super::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
@@ -57,7 +57,7 @@ pub struct ResponseMetadata {
 #[derive(Debug, Clone, PartialEq)]
 pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     /// The content that was generated in the last step.
-    pub content: Vec<ContentPart<INPUT, OUTPUT>>,
+    pub content: Vec<Output<INPUT, OUTPUT>>,
 
     /// The text that was generated in the last step.
     pub text: String,
@@ -161,15 +161,15 @@ where
     {
         let final_step = steps.last().expect("steps cannot be empty");
 
-        // Content is already ContentPart, just clone it
-        let content: Vec<ContentPart<INPUT, OUTPUT>> = final_step.content.clone();
+        // Content is already Output, just clone it
+        let content: Vec<Output<INPUT, OUTPUT>> = final_step.content.clone();
 
         let text = final_step.text();
         let reasoning: Vec<ReasoningOutput> =
             final_step.reasoning().iter().cloned().cloned().collect();
         let reasoning_text = final_step.reasoning_text();
 
-        // Files are extracted directly from ContentPart (though currently empty)
+        // Files are extracted directly from Output (though currently empty)
         let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
         let sources: Vec<LanguageModelSource> =
@@ -245,7 +245,7 @@ where
     /// Creates a new `GenerateTextResult` with the given parameters.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        content: Vec<ContentPart<INPUT, OUTPUT>>,
+        content: Vec<Output<INPUT, OUTPUT>>,
         text: String,
         reasoning: Vec<ReasoningOutput>,
         reasoning_text: Option<String>,
@@ -481,15 +481,15 @@ mod tests {
             DynamicToolCall, DynamicToolResult, TextOutput, TypedToolCall, TypedToolResult,
         };
 
-        // Create a step with tool calls and tool results using ContentPart
+        // Create a step with tool calls and tool results using Output
         let content = vec![
-            ContentPart::Text(TextOutput::new("Hello".to_string())),
-            ContentPart::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+            Output::Text(TextOutput::new("Hello".to_string())),
+            Output::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
                 "call_1".to_string(),
                 "get_weather".to_string(),
                 json!({"city": "SF"}),
             ))),
-            ContentPart::ToolResult(TypedToolResult::Dynamic(
+            Output::ToolResult(TypedToolResult::Dynamic(
                 DynamicToolResult::new(
                     "call_1".to_string(),
                     "get_weather".to_string(),

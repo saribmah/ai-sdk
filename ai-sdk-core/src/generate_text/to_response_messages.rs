@@ -6,7 +6,7 @@ use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
 use serde_json::Value;
 
-use super::content_part::ContentPart;
+use super::output::Output;
 use super::tool_set::ToolSet;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
@@ -27,13 +27,13 @@ use super::tool_set::ToolSet;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::generate_text::{to_response_messages, ContentPart};
+/// use ai_sdk_core::generate_text::{to_response_messages, Output};
 ///
 /// let content = vec![/* content parts */];
 /// let messages = to_response_messages(content, None);
 /// ```
 pub fn to_response_messages(
-    content: Vec<ContentPart<Value, Value>>,
+    content: Vec<Output<Value, Value>>,
     tools: Option<&ToolSet>,
 ) -> Vec<Message> {
     let mut response_messages: Vec<Message> = Vec::new();
@@ -43,12 +43,12 @@ pub fn to_response_messages(
         .iter()
         .filter(|part| {
             // Filter out source parts
-            !matches!(part, ContentPart::Source(_))
+            !matches!(part, Output::Source(_))
         })
         .filter(|part| {
             // Filter out tool-result and tool-error if NOT provider-executed
             match part {
-                ContentPart::ToolResult(result) => {
+                Output::ToolResult(result) => {
                     // Include only if provider executed
                     match result {
                         super::tool_result::TypedToolResult::Static(r) => {
@@ -59,7 +59,7 @@ pub fn to_response_messages(
                         }
                     }
                 }
-                ContentPart::ToolError(error) => {
+                Output::ToolError(error) => {
                     // Include only if provider executed
                     match error {
                         super::tool_error::TypedToolError::Static(e) => {
@@ -76,21 +76,21 @@ pub fn to_response_messages(
         .filter(|part| {
             // Filter out empty text
             match part {
-                ContentPart::Text(text_output) => !text_output.text.is_empty(),
+                Output::Text(text_output) => !text_output.text.is_empty(),
                 _ => true,
             }
         })
         .filter_map(|part| {
             match part {
-                ContentPart::Text(text_output) => Some(AssistantContentPart::Text(
+                Output::Text(text_output) => Some(AssistantContentPart::Text(
                     crate::prompt::message::content_parts::TextPart::new(text_output.text.clone()),
                 )),
-                ContentPart::Reasoning(reasoning_output) => Some(AssistantContentPart::Reasoning(
+                Output::Reasoning(reasoning_output) => Some(AssistantContentPart::Reasoning(
                     crate::prompt::message::content_parts::ReasoningPart::new(
                         reasoning_output.text.clone(),
                     ),
                 )),
-                ContentPart::ToolCall(tool_call) => {
+                Output::ToolCall(tool_call) => {
                     let (tool_call_id, tool_name, input, provider_executed) = match tool_call {
                         super::tool_call::TypedToolCall::Static(call) => (
                             call.tool_call_id.clone(),
@@ -115,7 +115,7 @@ pub fn to_response_messages(
                         .with_provider_executed(provider_executed.unwrap_or(false)),
                     ))
                 }
-                ContentPart::ToolResult(result) => {
+                Output::ToolResult(result) => {
                     let (tool_call_id, tool_name, output) = match result {
                         super::tool_result::TypedToolResult::Static(r) => (
                             r.tool_call_id.clone(),
@@ -141,7 +141,7 @@ pub fn to_response_messages(
                         provider_options: None,
                     }))
                 }
-                ContentPart::ToolError(error) => {
+                Output::ToolError(error) => {
                     let (tool_call_id, tool_name, error_value) = match error {
                         super::tool_error::TypedToolError::Static(e) => {
                             (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
@@ -178,11 +178,11 @@ pub fn to_response_messages(
     // Filter and map content for tool message (client-executed tool results)
     let tool_content: Vec<ToolResultPart> = content
         .iter()
-        .filter(|part| matches!(part, ContentPart::ToolResult(_) | ContentPart::ToolError(_)))
+        .filter(|part| matches!(part, Output::ToolResult(_) | Output::ToolError(_)))
         .filter(|part| {
             // Include only if NOT provider-executed
             match part {
-                ContentPart::ToolResult(result) => match result {
+                Output::ToolResult(result) => match result {
                     super::tool_result::TypedToolResult::Static(r) => {
                         r.provider_executed != Some(true)
                     }
@@ -190,7 +190,7 @@ pub fn to_response_messages(
                         r.provider_executed != Some(true)
                     }
                 },
-                ContentPart::ToolError(error) => match error {
+                Output::ToolError(error) => match error {
                     super::tool_error::TypedToolError::Static(e) => {
                         e.provider_executed != Some(true)
                     }
@@ -202,7 +202,7 @@ pub fn to_response_messages(
             }
         })
         .map(|part| match part {
-            ContentPart::ToolResult(result) => {
+            Output::ToolResult(result) => {
                 let (tool_call_id, tool_name, output) = match result {
                     super::tool_result::TypedToolResult::Static(r) => (
                         r.tool_call_id.clone(),
@@ -226,7 +226,7 @@ pub fn to_response_messages(
                     provider_options: None,
                 }
             }
-            ContentPart::ToolError(error) => {
+            Output::ToolError(error) => {
                 let (tool_call_id, tool_name, error_value) = match error {
                     super::tool_error::TypedToolError::Static(e) => {
                         (e.tool_call_id.clone(), e.tool_name.clone(), e.error.clone())
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_to_response_messages_text_only() {
-        let content = vec![ContentPart::Text(TextOutput::new("Hello, world!"))];
+        let content = vec![Output::Text(TextOutput::new("Hello, world!"))];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -297,8 +297,8 @@ mod tests {
     #[test]
     fn test_to_response_messages_filters_empty_text() {
         let content = vec![
-            ContentPart::Text(TextOutput::new("")),
-            ContentPart::Text(TextOutput::new("Hello")),
+            Output::Text(TextOutput::new("")),
+            Output::Text(TextOutput::new("Hello")),
         ];
         let messages = to_response_messages(content, None);
 
@@ -308,8 +308,8 @@ mod tests {
     #[test]
     fn test_to_response_messages_with_reasoning() {
         let content = vec![
-            ContentPart::Reasoning(ReasoningOutput::new("Thinking...")),
-            ContentPart::Text(TextOutput::new("Answer")),
+            Output::Reasoning(ReasoningOutput::new("Thinking...")),
+            Output::Text(TextOutput::new("Answer")),
         ];
         let messages = to_response_messages(content, None);
 
@@ -325,7 +325,7 @@ mod tests {
     #[test]
     fn test_to_response_messages_with_tool_call() {
         let tool_call = StaticToolCall::new("call_1", "test_tool", json!({"arg": "value"}));
-        let content = vec![ContentPart::ToolCall(TypedToolCall::Static(tool_call))];
+        let content = vec![Output::ToolCall(TypedToolCall::Static(tool_call))];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -347,7 +347,7 @@ mod tests {
         )
         .with_provider_executed(true);
 
-        let content = vec![ContentPart::ToolResult(TypedToolResult::Static(
+        let content = vec![Output::ToolResult(TypedToolResult::Static(
             tool_result,
         ))];
         let messages = to_response_messages(content, None);
@@ -371,7 +371,7 @@ mod tests {
         );
         // provider_executed defaults to None/false
 
-        let content = vec![ContentPart::ToolResult(TypedToolResult::Static(
+        let content = vec![Output::ToolResult(TypedToolResult::Static(
             tool_result,
         ))];
         let messages = to_response_messages(content, None);
@@ -394,7 +394,7 @@ mod tests {
             json!({"error": "failed"}),
         );
 
-        let content = vec![ContentPart::ToolError(TypedToolError::Static(tool_error))];
+        let content = vec![Output::ToolError(TypedToolError::Static(tool_error))];
         let messages = to_response_messages(content, None);
 
         assert_eq!(messages.len(), 1);
@@ -417,9 +417,9 @@ mod tests {
         );
 
         let content = vec![
-            ContentPart::Text(TextOutput::new("Before call")),
-            ContentPart::ToolCall(TypedToolCall::Static(tool_call)),
-            ContentPart::ToolResult(TypedToolResult::Static(tool_result)),
+            Output::Text(TextOutput::new("Before call")),
+            Output::ToolCall(TypedToolCall::Static(tool_call)),
+            Output::ToolResult(TypedToolResult::Static(tool_result)),
         ];
         let messages = to_response_messages(content, None);
 

@@ -1,6 +1,5 @@
 mod callbacks;
 pub mod collect_tool_approvals;
-pub mod content_part;
 pub mod execute_tool_call;
 pub mod generate_text_result;
 pub mod generated_file;
@@ -8,13 +7,10 @@ pub mod is_approval_needed;
 mod parse_tool_call;
 mod prepare_step;
 mod prepare_tools;
-pub mod reasoning_output;
 mod response_message;
 mod retries;
-pub mod source_output;
 mod step_result;
 mod stop_condition;
-pub mod text_output;
 pub mod to_response_messages;
 pub mod tool_approval_request_output;
 pub mod tool_call;
@@ -23,12 +19,13 @@ pub mod tool_error;
 pub mod tool_output;
 pub mod tool_result;
 pub mod tool_set;
+pub mod output;
 
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use collect_tool_approvals::{
     CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
 };
-pub use content_part::ContentPart;
+pub use output::Output;
 pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use generated_file::{GeneratedFile, GeneratedFileWithType};
@@ -36,15 +33,15 @@ pub use is_approval_needed::is_approval_needed;
 pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};
 pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
 pub use prepare_tools::prepare_tools_and_tool_choice;
-pub use reasoning_output::ReasoningOutput;
 pub use response_message::ResponseMessage;
 pub use retries::{RetryConfig, prepare_retries};
-pub use source_output::SourceOutput;
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     HasToolCall, StepCountIs, StopCondition, has_tool_call, is_stop_condition_met, step_count_is,
 };
-pub use text_output::TextOutput;
+pub use output::text::TextOutput;
+pub use output::reasoning::ReasoningOutput;
+pub use output::source::SourceOutput;
 pub use to_response_messages::to_response_messages;
 pub use tool_approval_request_output::ToolApprovalRequestOutput;
 pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
@@ -128,7 +125,7 @@ async fn execute_tools(
 /// Converts language model content, tool calls, and tool outputs into a unified content array.
 ///
 /// This function takes the raw content from a language model response along with parsed tool calls
-/// and executed tool outputs, and combines them into a single array of `ContentPart` items.
+/// and executed tool outputs, and combines them into a single array of `Output` items.
 ///
 /// # Arguments
 ///
@@ -138,7 +135,7 @@ async fn execute_tools(
 ///
 /// # Returns
 ///
-/// A vector of `ContentPart` items representing all content including:
+/// A vector of `Output` items representing all content including:
 /// - Text, reasoning, source, and file parts (passed through)
 /// - Tool calls (mapped from provider ToolCall to TypedToolCall)
 /// - Provider-executed tool results (converted to TypedToolResult or TypedToolError)
@@ -153,11 +150,11 @@ async fn execute_tools(
 ///     tool_outputs,
 /// );
 /// ```
-pub fn as_content(
+pub fn as_output(
     content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
     tool_calls: Vec<TypedToolCall<Value>>,
     tool_outputs: Vec<ToolOutput<Value, Value>>,
-) -> Vec<ContentPart<Value, Value>> {
+) -> Vec<Output<Value, Value>> {
     use ai_sdk_provider::language_model::content::LanguageModelContent;
 
     let mut result = Vec::new();
@@ -167,19 +164,19 @@ pub fn as_content(
         match part {
             // Convert provider Text to TextOutput
             LanguageModelContent::Text(text) => {
-                result.push(ContentPart::Text(TextOutput::new(text.text)));
+                result.push(Output::Text(TextOutput::new(text.text)));
             }
             // Convert provider Reasoning to ReasoningOutput
             LanguageModelContent::Reasoning(reasoning) => {
-                result.push(ContentPart::Reasoning(ReasoningOutput::new(reasoning.text)));
+                result.push(Output::Reasoning(ReasoningOutput::new(reasoning.text)));
             }
             // Convert provider Source to SourceOutput
             LanguageModelContent::Source(source) => {
-                result.push(ContentPart::Source(SourceOutput::new(source)));
+                result.push(Output::Source(SourceOutput::new(source)));
             }
-            // Skip File parts as they're not in the TypeScript ContentPart
+            // Skip File parts as they're not in the TypeScript Output
             LanguageModelContent::File(_) => {
-                // File parts are not included in ContentPart
+                // File parts are not included in Output
             }
 
             // Convert provider ToolCall to TypedToolCall
@@ -196,7 +193,7 @@ pub fn as_content(
                     })
                     .cloned()
                 {
-                    result.push(ContentPart::ToolCall(typed_call));
+                    result.push(Output::ToolCall(typed_call));
                 }
             }
 
@@ -242,7 +239,7 @@ pub fn as_content(
                             )
                         };
 
-                        result.push(ContentPart::ToolError(error));
+                        result.push(Output::ToolError(error));
                     } else {
                         // Create TypedToolResult
                         let tool_result = if is_dynamic {
@@ -267,7 +264,7 @@ pub fn as_content(
                             )
                         };
 
-                        result.push(ContentPart::ToolResult(tool_result));
+                        result.push(Output::ToolResult(tool_result));
                     }
                 }
             }
@@ -278,10 +275,10 @@ pub fn as_content(
     for output in tool_outputs {
         match output {
             ToolOutput::Result(tool_result) => {
-                result.push(ContentPart::ToolResult(tool_result));
+                result.push(Output::ToolResult(tool_result));
             }
             ToolOutput::Error(tool_error) => {
-                result.push(ContentPart::ToolError(tool_error));
+                result.push(Output::ToolError(tool_error));
             }
         }
     }
@@ -581,7 +578,7 @@ pub async fn generate_text(
         let client_tool_outputs_count = client_tool_outputs.len();
 
         // Create step content using as_content (clone step_tool_calls since we borrowed it above)
-        let step_content = as_content(
+        let step_content = as_output(
             response.content.clone(),
             step_tool_calls.clone(),
             client_tool_outputs,
@@ -595,7 +592,7 @@ pub async fn generate_text(
 
         // Create and push the current step result (using step_content, NOT response.content)
         let current_step_result = StepResult::new(
-            step_content.clone(), // ← Use ContentPart, not provider Content
+            step_content.clone(), // ← Use Output, not provider Content
             response.finish_reason.clone(),
             response.usage.clone(),
             if response.warnings.is_empty() {
@@ -760,12 +757,12 @@ pub async fn generate_text(
         eprintln!("  Content parts: {}", step.content.len());
         for (j, content) in step.content.iter().enumerate() {
             let content_type = match content {
-                ContentPart::Text(_) => "Text",
-                ContentPart::ToolCall(_) => "ToolCall",
-                ContentPart::ToolResult(_) => "ToolResult",
-                ContentPart::ToolError(_) => "ToolError",
-                ContentPart::Reasoning(_) => "Reasoning",
-                ContentPart::Source(_) => "Source",
+                Output::Text(_) => "Text",
+                Output::ToolCall(_) => "ToolCall",
+                Output::ToolResult(_) => "ToolResult",
+                Output::ToolError(_) => "ToolError",
+                Output::Reasoning(_) => "Reasoning",
+                Output::Source(_) => "Source",
             };
             eprintln!("    [{}] {}", j, content_type);
         }

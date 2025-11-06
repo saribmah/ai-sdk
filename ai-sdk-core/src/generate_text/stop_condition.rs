@@ -201,16 +201,16 @@ mod tests {
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
-        use super::super::content_part::ContentPart;
-        use super::super::text_output::TextOutput;
+        use super::super::output::Output;
+        use super::super::output::text::TextOutput;
         use super::super::tool_call::{DynamicToolCall, TypedToolCall};
         use serde_json::json;
 
-        let mut content: Vec<ContentPart> =
-            vec![ContentPart::Text(TextOutput::new("Test".to_string()))];
+        let mut content: Vec<Output> =
+            vec![Output::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
-            content.push(ContentPart::ToolCall(TypedToolCall::Dynamic(
+            content.push(Output::ToolCall(TypedToolCall::Dynamic(
                 DynamicToolCall::new(id.to_string(), name.to_string(), json!({})),
             )));
         }

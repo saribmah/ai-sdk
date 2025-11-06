@@ -17,6 +17,7 @@ use ai_sdk_core::{ToolSet, generate_text};
 use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
 use serde_json::{Value, json};
 use std::env;
+use ai_sdk_core::generate_text::Output;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -148,8 +149,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check the last step for tool calls
     if let Some(last_step) = result.steps.last() {
         for content in &last_step.content {
-            use ai_sdk_core::{ContentPart, TypedToolCall};
-            if let ContentPart::ToolCall(tool_call) = content {
+            use ai_sdk_core::{TypedToolCall};
+            if let Output::ToolCall(tool_call) = content {
                 found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 println!("Tool Call Detected!");

@@ -198,8 +198,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::content_part::ContentPart;
-    use crate::generate_text::text_output::TextOutput;
+    use crate::generate_text::output::Output;
+    use crate::generate_text::output::text::TextOutput;
     use crate::generate_text::tool_call::{DynamicToolCall, TypedToolCall};
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
@@ -208,7 +208,7 @@ mod tests {
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {
         StepResult::new(
-            vec![ContentPart::Text(TextOutput::new(
+            vec![Output::Text(TextOutput::new(
                 "Test response".to_string(),
             ))],
             LanguageModelFinishReason::Stop,
@@ -286,8 +286,8 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_with_tool_calls() {
         let content = vec![
-            ContentPart::Text(TextOutput::new("Calling tool".to_string())),
-            ContentPart::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+            Output::Text(TextOutput::new("Calling tool".to_string())),
+            Output::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
                 "call_1".to_string(),
                 "get_weather".to_string(),
                 json!({}),
@@ -342,7 +342,7 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_with_reasoning_tokens() {
         let step = StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
+            vec![Output::Text(TextOutput::new("Test".to_string()))],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage {
                 input_tokens: 10,
@@ -372,7 +372,7 @@ mod tests {
     #[tokio::test]
     async fn test_finish_event_aggregates_all_usage_fields() {
         let step1 = StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Step 1".to_string()))],
+            vec![Output::Text(TextOutput::new("Step 1".to_string()))],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage {
                 input_tokens: 10,
@@ -393,7 +393,7 @@ mod tests {
         );
 
         let step2 = StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Step 2".to_string()))],
+            vec![Output::Text(TextOutput::new("Step 2".to_string()))],
             LanguageModelFinishReason::Stop,
             LanguageModelUsage {
                 input_tokens: 15,

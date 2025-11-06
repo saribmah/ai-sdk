@@ -299,7 +299,7 @@ pub type StreamTextOnAbortCallback<INPUT = Value, OUTPUT = Value> = Box<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate_text::{ContentPart, StaticToolCall, TypedToolCall};
+    use crate::generate_text::{StaticToolCall, TypedToolCall};
 
     #[test]
     fn test_chunk_from_text_delta() {
