@@ -42,6 +42,8 @@ use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::mpsc;
+use crate::prompt::message::Message;
+use crate::ResponseMessage;
 use crate::tool::ToolSet;
 
 /// Result of streaming a single step.
@@ -499,11 +501,20 @@ pub async fn stream_text(
         let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
         let mut total_usage = LanguageModelUsage::default();
 
+        let mut response_messages: Vec<ResponseMessage> = Vec::new();
+
         // Start with the initial prompt messages
         let mut step_input_messages = standardized_prompt_arc.messages.clone();
 
         // Multi-step loop
         loop {
+            for response_msg in &response_messages {
+                let model_msg = match response_msg {
+                    ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
+                    ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
+                };
+                step_input_messages.push(model_msg);
+            }
             // Apply prepare_step if provided
             let prepare_step_result = if let Some(ref prepare_fn) = prepare_step_arc {
                 let step_number = all_steps.len();
@@ -745,7 +756,7 @@ pub async fn stream_text(
                 tools_for_task.as_ref().map(|arc| arc.as_ref()),
             );
             for msg in step_response_messages {
-                step_input_messages.push(msg);
+                response_messages.push(msg);
             }
 
             // Check loop termination conditions

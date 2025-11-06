@@ -1,11 +1,10 @@
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
-use crate::prompt::message::Message;
 use crate::prompt::message::assistant::AssistantContentPart;
 use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
 use serde_json::Value;
-
+use crate::ResponseMessage;
 use super::output::Output;
 use crate::tool::tool_set::ToolSet;
 
@@ -35,8 +34,8 @@ use crate::tool::tool_set::ToolSet;
 pub fn to_response_messages(
     content: Vec<Output<Value, Value>>,
     tools: Option<&ToolSet>,
-) -> Vec<Message> {
-    let mut response_messages: Vec<Message> = Vec::new();
+) -> Vec<ResponseMessage> {
+    let mut response_messages: Vec<ResponseMessage> = Vec::new();
 
     // Filter and map content for assistant message
     let assistant_content: Vec<AssistantContentPart> = content
@@ -170,7 +169,7 @@ pub fn to_response_messages(
 
     // Add assistant message if there's content
     if !assistant_content.is_empty() {
-        response_messages.push(Message::Assistant(AssistantMessage::with_parts(
+        response_messages.push(ResponseMessage::Assistant(AssistantMessage::with_parts(
             assistant_content,
         )));
     }
@@ -258,7 +257,7 @@ pub fn to_response_messages(
             .map(|part| ToolContentPart::ToolResult(part))
             .collect();
 
-        response_messages.push(Message::Tool(ToolMessage::new(tool_content_parts)));
+        response_messages.push(ResponseMessage::Tool(ToolMessage::new(tool_content_parts)));
     }
 
     response_messages
@@ -287,7 +286,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Assistant(msg) => {
+            ResponseMessage::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -315,7 +314,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Assistant(msg) => {
+            ResponseMessage::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -330,7 +329,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Assistant(msg) => {
+            ResponseMessage::Assistant(msg) => {
                 assert_eq!(msg.role, "assistant");
             }
             _ => panic!("Expected assistant message"),
@@ -354,7 +353,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Assistant(_) => {
+            ResponseMessage::Assistant(_) => {
                 // Provider-executed results go in assistant message
             }
             _ => panic!("Expected assistant message"),
@@ -378,7 +377,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Tool(_) => {
+            ResponseMessage::Tool(_) => {
                 // Client-executed results go in tool message
             }
             _ => panic!("Expected tool message"),
@@ -399,7 +398,7 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Tool(_) => {
+            ResponseMessage::Tool(_) => {
                 // Client-executed errors go in tool message
             }
             _ => panic!("Expected tool message"),
@@ -425,13 +424,13 @@ mod tests {
 
         assert_eq!(messages.len(), 2);
         match &messages[0] {
-            Message::Assistant(_) => {
+            ResponseMessage::Assistant(_) => {
                 // Text and tool call in assistant message
             }
             _ => panic!("Expected assistant message first"),
         }
         match &messages[1] {
-            Message::Tool(_) => {
+            ResponseMessage::Tool(_) => {
                 // Client-executed result in tool message
             }
             _ => panic!("Expected tool message second"),
