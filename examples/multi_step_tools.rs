@@ -16,6 +16,7 @@ use ai_sdk_core::{ToolSet, generate_text, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+use std::sync::Arc;
 
 /// Simulates getting the current weather for a city
 fn get_weather(city: &str) -> Value {
@@ -106,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .api_key(api_key)
         .build();
 
-    let model = provider.model("openai/gpt-4o");
+    let model = provider.chat_model("openai/gpt-4o");
     println!("✓ Model loaded: {}\n", model.model_id());
 
     // Define tools
@@ -206,7 +207,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Starting multi-step generation (max 10 steps)...\n");
 
     let result = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt,
         settings,
         Some(tools),

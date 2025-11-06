@@ -41,6 +41,7 @@ use ai_sdk_provider::{
     shared::provider_options::SharedProviderOptions,
 };
 use serde_json::Value;
+use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
 /// Executes tool calls and returns the outputs.
@@ -226,8 +227,9 @@ pub fn as_output(
 /// ```ignore
 /// use ai_sdk_core::{GenerateTextBuilder, step_count_is};
 /// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
 ///
-/// let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
 ///     .temperature(0.7)
 ///     .max_output_tokens(100)
 ///     .tools(my_tools)
@@ -235,8 +237,8 @@ pub fn as_output(
 ///     .execute()
 ///     .await?;
 /// ```
-pub struct GenerateTextBuilder<'a> {
-    model: &'a dyn LanguageModel,
+pub struct GenerateTextBuilder {
+    model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
     tools: Option<ToolSet>,
@@ -248,9 +250,9 @@ pub struct GenerateTextBuilder<'a> {
     on_finish: Option<Box<dyn OnFinish>>,
 }
 
-impl<'a> GenerateTextBuilder<'a> {
+impl GenerateTextBuilder {
     /// Creates a new builder with the required model and prompt.
-    pub fn new(model: &'a dyn LanguageModel, prompt: Prompt) -> Self {
+    pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
         Self {
             model,
             prompt,
@@ -409,8 +411,9 @@ impl<'a> GenerateTextBuilder<'a> {
 /// ```ignore
 /// use ai_sdk_core::GenerateTextBuilder;
 /// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
 ///
-/// let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
 ///     .temperature(0.7)
 ///     .max_output_tokens(100)
 ///     .execute()
@@ -419,7 +422,7 @@ impl<'a> GenerateTextBuilder<'a> {
 ///
 /// # Arguments
 ///
-/// * `model` - The language model to use for generation
+/// * `model` - The language model to use for generation (wrapped in Arc)
 /// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
 /// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
 /// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
@@ -439,7 +442,7 @@ impl<'a> GenerateTextBuilder<'a> {
 ///
 /// Returns `AISDKError::InvalidArgument` if any settings are invalid (e.g., non-finite temperature).
 pub async fn generate_text(
-    model: &dyn LanguageModel,
+    model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
     tools: Option<ToolSet>,
@@ -605,21 +608,26 @@ pub async fn generate_text(
         }
 
         // Step 8: Call model.do_generate with retry logic
+        let model_clone = Arc::clone(&model);
         let response = retry_config
             .execute(|| {
                 let call_options_clone = call_options.clone();
+                let model_clone = Arc::clone(&model_clone);
                 async move {
-                    model.do_generate(call_options_clone).await.map_err(|e| {
-                        let error_string = e.to_string();
-                        // Check if error contains retry hint and create appropriate error type
-                        if let Some(retry_after) =
-                            retries::extract_retry_delay_from_error(&error_string)
-                        {
-                            AISDKError::retryable_error_with_delay(error_string, retry_after)
-                        } else {
-                            AISDKError::model_error(error_string)
-                        }
-                    })
+                    model_clone
+                        .do_generate(call_options_clone)
+                        .await
+                        .map_err(|e| {
+                            let error_string = e.to_string();
+                            // Check if error contains retry hint and create appropriate error type
+                            if let Some(retry_after) =
+                                retries::extract_retry_delay_from_error(&error_string)
+                            {
+                                AISDKError::retryable_error_with_delay(error_string, retry_after)
+                            } else {
+                                AISDKError::model_error(error_string)
+                            }
+                        })
                 }
             })
             .await?;
@@ -812,14 +820,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_basic() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Tell me a joke");
         let settings = CallSettings::default();
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -832,11 +840,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_builder_basic() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Tell me a joke");
 
         // Test the builder pattern
-        let result = GenerateTextBuilder::new(&model, prompt).execute().await;
+        let result = GenerateTextBuilder::new(model, prompt).execute().await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -846,7 +854,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_settings() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt =
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
         let settings = CallSettings::default()
@@ -856,7 +864,7 @@ mod tests {
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -868,12 +876,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_builder_with_settings() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt =
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
 
         // Test the builder pattern with chained settings
-        let result = GenerateTextBuilder::new(&model, prompt)
+        let result = GenerateTextBuilder::new(model, prompt)
             .temperature(0.7)
             .max_output_tokens(100)
             .execute()
@@ -887,7 +895,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_tool_choice() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Use a tool to check the weather");
         let settings = CallSettings::default();
         let tool_choice = Some(LanguageModelToolChoice::Auto);
@@ -895,7 +903,7 @@ mod tests {
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model,
+            model,
             prompt,
             settings,
             None,
@@ -916,7 +924,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_provider_options() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello, world!");
         let settings = CallSettings::default();
         let mut provider_options = SharedProviderOptions::new();
@@ -931,7 +939,7 @@ mod tests {
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model,
+            model,
             prompt,
             settings,
             None,
@@ -952,13 +960,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_invalid_temperature() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -972,13 +980,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_invalid_max_tokens() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -992,13 +1000,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_empty_messages() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::messages(vec![]);
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());

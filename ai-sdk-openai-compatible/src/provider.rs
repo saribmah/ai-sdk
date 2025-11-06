@@ -2,6 +2,7 @@ use ai_sdk_provider::error::ProviderError;
 use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::provider::Provider;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::chat::{OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel};
 use crate::completion::{
@@ -23,24 +24,24 @@ impl OpenAICompatibleProvider {
     }
 
     /// Creates a language model with the given model ID.
-    pub fn model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         self.chat_model(model_id)
     }
 
     /// Creates a chat language model with the given model ID.
-    pub fn chat_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn chat_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         let model_id = model_id.into();
         let config = self.create_chat_config();
 
-        Box::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
+        Arc::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
     }
 
     /// Creates a completion language model with the given model ID.
-    pub fn completion_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn completion_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         let model_id = model_id.into();
         let config = self.create_completion_config();
 
-        Box::new(OpenAICompatibleCompletionLanguageModel::new(
+        Arc::new(OpenAICompatibleCompletionLanguageModel::new(
             model_id, config,
         ))
     }
@@ -170,7 +171,7 @@ impl OpenAICompatibleProvider {
 
 // Implement the Provider trait for compatibility with the provider interface
 impl Provider for OpenAICompatibleProvider {
-    fn language_model(&self, model_id: &str) -> Result<Box<dyn LanguageModel>, ProviderError> {
+    fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
         Ok(self.chat_model(model_id))
     }
 }
@@ -394,7 +395,7 @@ mod tests {
         // Call generate_text - this will make an actual HTTP request and fail
         // because we're using a test API key, but it tests the integration
         let result = generate_text(
-            &*model,
+            model,
             prompt,
             call_settings,
             None,

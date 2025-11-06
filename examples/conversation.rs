@@ -14,6 +14,7 @@ use ai_sdk_core::generate_text;
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,7 +53,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("⏳ Generating response...\n");
     let result = generate_text(
-        &*model, prompt, settings, None, None, None, None, None, None, None,
+        Arc::clone(&model),
+        prompt,
+        settings,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
@@ -82,7 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_output_tokens(100);
 
     let focused_result = generate_text(
-        &*model,
+        Arc::clone(&model),
         focused_prompt,
         focused_settings,
         None,
@@ -109,7 +119,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_output_tokens(100);
 
     let creative_result = generate_text(
-        &*model,
+        model,
         creative_prompt,
         creative_settings,
         None,

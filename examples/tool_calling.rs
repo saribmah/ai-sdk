@@ -18,6 +18,7 @@ use ai_sdk_core::{ToolSet, generate_text};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -112,7 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate text with the tool
     println!("⏳ Generating response...\n");
     let result = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt,
         settings,
         Some(tools),

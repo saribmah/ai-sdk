@@ -20,6 +20,7 @@ use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::sync::Arc;
 
 // Define typed input/output structures for weather tool
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -222,7 +223,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Generating response...");
 
     let result = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt,
         settings.clone(),
         Some(tools),
@@ -291,7 +292,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Generating response with multi-step tool execution...");
 
     let result2 = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt2,
         settings.clone(),
         Some(tools2),

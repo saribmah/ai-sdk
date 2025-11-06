@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
 
-    // Get a language model
+    // Get a language model (returns Arc<dyn LanguageModel>)
     let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate text using the builder pattern
     println!("⏳ Generating response...\n");
-    let result = GenerateTextBuilder::new(&*model, prompt)
+    let result = GenerateTextBuilder::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(10)
         .execute()
