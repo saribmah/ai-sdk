@@ -7,7 +7,7 @@ use crate::prompt::message::{AssistantMessage, ToolMessage};
 use serde_json::Value;
 
 use super::output::Output;
-use super::tool_set::ToolSet;
+use crate::tool::tool_set::ToolSet;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///

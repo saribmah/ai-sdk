@@ -12,7 +12,7 @@ pub use generate_text::{
     ReasoningOutput, RequestMetadata, ResponseMessage, ResponseMetadata, SourceOutput,
     StaticToolCall, StaticToolError, StaticToolResult, StepCountIs, StepResponseMetadata,
     StepResult, StopCondition, TextOutput, ToolApprovalRequestOutput, ToolCallRepairFunction,
-    ToolCallRepairOptions, ToolOutput, ToolSet, TypedToolCall, TypedToolError, TypedToolResult,
+    ToolCallRepairOptions, ToolOutput, TypedToolCall, TypedToolError, TypedToolResult,
     as_output, collect_tool_approvals, execute_tool_call, generate_text, has_tool_call,
     is_approval_needed, is_stop_condition_met, no_repair,
     parse_provider_executed_dynamic_tool_call, parse_tool_call, prepare_tools_and_tool_choice,
@@ -27,5 +27,5 @@ pub use stream_text::{
 pub use tool::{
     Tool, ToolApprovalRequest, ToolApprovalResponse, ToolExecuteOptions,
     ToolExecuteFunction, ToolExecutionEvent, ToolExecutionOutput,
-    ToolNeedsApprovalFunction, ToolType, execute_tool,
+    ToolNeedsApprovalFunction, ToolType, execute_tool, ToolSet,
 };

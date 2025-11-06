@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::generate_text::tool_set::ToolSet;
+use crate::tool::tool_set::ToolSet;
 use crate::prompt::message::Message;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use std::future::Future;

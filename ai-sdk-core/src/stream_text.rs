@@ -23,7 +23,7 @@ pub use transform::{
 
 use crate::error::AISDKError;
 use crate::generate_text::{
-    Output, PrepareStep, PrepareStepOptions, StepResult, StopCondition, ToolSet,
+    Output, PrepareStep, PrepareStepOptions, StepResult, StopCondition,
     TypedToolCall, execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
     to_response_messages,
 };
@@ -42,6 +42,7 @@ use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::mpsc;
+use crate::tool::ToolSet;
 
 /// Result of streaming a single step.
 ///

@@ -18,7 +18,6 @@ pub mod tool_call_repair_function;
 pub mod tool_error;
 pub mod tool_output;
 pub mod tool_result;
-pub mod tool_set;
 pub mod output;
 
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
@@ -49,7 +48,6 @@ pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOption
 pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
 pub use tool_output::ToolOutput;
 pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-pub use tool_set::ToolSet;
 
 use crate::error::AISDKError;
 use crate::prompt::message::Message;
@@ -68,6 +66,7 @@ use ai_sdk_provider::{
 };
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
+use crate::tool::ToolSet;
 
 /// Executes tool calls and returns the outputs.
 ///
