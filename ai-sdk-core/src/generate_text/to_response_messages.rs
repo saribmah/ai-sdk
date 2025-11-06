@@ -6,7 +6,6 @@ use crate::prompt::message::content_parts::tool_result::ToolResultPart;
 use crate::prompt::message::tool::ToolContentPart;
 use crate::prompt::message::{AssistantMessage, ToolMessage};
 use crate::tool::{ToolError, ToolResult, ToolSet};
-use serde_json::Value;
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///

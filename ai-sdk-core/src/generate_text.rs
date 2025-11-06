@@ -119,7 +119,7 @@ async fn execute_tools(
 /// # Example
 ///
 /// ```ignore
-/// let content_parts = as_content(
+/// let content_parts = as_output(
 ///     response.content,
 ///     tool_calls,
 ///     tool_outputs,
@@ -149,9 +149,20 @@ pub fn as_output(
             LanguageModelContent::Source(source) => {
                 result.push(Output::Source(SourceOutput::new(source)));
             }
-            // Skip File parts as they're not in the TypeScript Output
-            LanguageModelContent::File(_) => {
-                // File parts are not included in Output
+            // Convert provider File to GeneratedFile
+            LanguageModelContent::File(file) => {
+                use ai_sdk_provider::language_model::content::file::FileData;
+                
+                let generated_file = match &file.data {
+                    FileData::Base64(base64) => {
+                        GeneratedFile::from_base64(base64.clone(), file.media_type.clone())
+                    }
+                    FileData::Binary(bytes) => {
+                        GeneratedFile::from_bytes(bytes.clone(), file.media_type.clone())
+                    }
+                };
+                
+                result.push(Output::File(generated_file));
             }
 
             // Convert provider ToolCall to TypedToolCall
@@ -681,7 +692,7 @@ pub async fn generate_text(
         // Store the count before moving client_tool_outputs
         let client_tool_outputs_count = client_tool_outputs.len();
 
-        // Create step content using as_content (clone step_tool_calls since we borrowed it above)
+        // Create step content using as_output(clone step_tool_calls since we borrowed it above)
         let step_content = as_output(
             response.content.clone(),
             step_tool_calls.clone(),
@@ -1014,6 +1025,53 @@ mod tests {
                 assert_eq!(message, "messages must not be empty");
             }
             _ => panic!("Expected InvalidPrompt error for empty messages"),
+        }
+    }
+
+    #[test]
+    fn test_as_output_converts_file() {
+        use ai_sdk_provider::language_model::content::file::{FileData, LanguageModelFile};
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
+
+        // Create a provider File content
+        let provider_file = LanguageModelFile::from_base64("text/plain", "SGVsbG8gV29ybGQh");
+        let content = vec![LanguageModelContent::File(provider_file)];
+
+        // Convert to Output
+        let output = as_output(content, vec![], vec![]);
+
+        // Verify the conversion
+        assert_eq!(output.len(), 1);
+        match &output[0] {
+            Output::File(file) => {
+                assert_eq!(file.media_type, "text/plain");
+                assert_eq!(file.base64(), "SGVsbG8gV29ybGQh");
+                assert_eq!(file.bytes(), b"Hello World!");
+            }
+            _ => panic!("Expected Output::File variant"),
+        }
+    }
+
+    #[test]
+    fn test_as_output_converts_file_from_bytes() {
+        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
+
+        // Create a provider File content from bytes
+        let provider_file = LanguageModelFile::from_binary("image/png", vec![0x89, 0x50, 0x4E, 0x47]);
+        let content = vec![LanguageModelContent::File(provider_file)];
+
+        // Convert to Output
+        let output = as_output(content, vec![], vec![]);
+
+        // Verify the conversion
+        assert_eq!(output.len(), 1);
+        match &output[0] {
+            Output::File(file) => {
+                assert_eq!(file.media_type, "image/png");
+                assert_eq!(file.bytes(), &[0x89, 0x50, 0x4E, 0x47]);
+            }
+            _ => panic!("Expected Output::File variant"),
         }
     }
 }

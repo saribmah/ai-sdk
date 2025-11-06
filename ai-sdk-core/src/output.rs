@@ -6,13 +6,14 @@ pub use reasoning::ReasoningOutput;
 pub use source::SourceOutput;
 pub use text::TextOutput;
 
+use crate::generate_text::GeneratedFile;
 use crate::tool::{ToolCall, ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
 
 /// An output part that can appear in an assistant message.
 ///
 /// This represents all possible outputs that can be included in a response,
-/// including text, reasoning, sources, tool calls, tool results, and tool errors.
+/// including text, reasoning, sources, files, tool calls, tool results, and tool errors.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Output {
@@ -24,6 +25,9 @@ pub enum Output {
 
     /// A source content part with optional provider metadata.
     Source(SourceOutput),
+
+    /// A file content part.
+    File(GeneratedFile),
 
     /// A tool call that was made.
     ToolCall(ToolCall),
@@ -49,6 +53,11 @@ impl Output {
     /// Returns true if this is a source content part.
     pub fn is_source(&self) -> bool {
         matches!(self, Output::Source(_))
+    }
+
+    /// Returns true if this is a file content part.
+    pub fn is_file(&self) -> bool {
+        matches!(self, Output::File(_))
     }
 
     /// Returns true if this is a tool call.
@@ -120,6 +129,19 @@ mod tests {
 
         assert!(part.is_tool_error());
         assert!(!part.is_tool_result());
+        assert!(!part.is_tool_call());
+    }
+
+    #[test]
+    fn test_output_file() {
+        use crate::generate_text::GeneratedFile;
+        
+        let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain");
+        let part = Output::File(file);
+
+        assert!(part.is_file());
+        assert!(!part.is_text());
+        assert!(!part.is_reasoning());
         assert!(!part.is_tool_call());
     }
 }
