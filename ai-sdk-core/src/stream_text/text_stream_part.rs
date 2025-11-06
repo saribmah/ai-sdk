@@ -1,7 +1,5 @@
-use crate::generate_text::{
-    RequestMetadata, SourceOutput, ToolApprovalRequestOutput, 
-};
-use crate::tool::{TypedToolCall, TypedToolError, TypedToolResult};
+use crate::generate_text::{RequestMetadata, SourceOutput};
+use crate::tool::{TypedToolCall, TypedToolError, TypedToolResult, ToolApprovalRequestOutput};
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;

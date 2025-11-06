@@ -1,28 +1,18 @@
 mod callbacks;
-pub mod execute_tool_call;
 pub mod generate_text_result;
 pub mod generated_file;
-pub mod is_approval_needed;
-mod parse_tool_call;
 mod prepare_step;
-mod prepare_tools;
 mod response_message;
 mod retries;
 mod step_result;
 mod stop_condition;
 pub mod to_response_messages;
-pub mod tool_approval_request_output;
-pub mod tool_call_repair_function;
 
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
 pub use crate::output::Output;
-pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use generated_file::{GeneratedFile, GeneratedFileWithType};
-pub use is_approval_needed::is_approval_needed;
-pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};
 pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
-pub use prepare_tools::prepare_tools_and_tool_choice;
 pub use response_message::ResponseMessage;
 pub use retries::{RetryConfig, prepare_retries};
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
@@ -33,8 +23,6 @@ pub use crate::output::text::TextOutput;
 pub use crate::output::reasoning::ReasoningOutput;
 pub use crate::output::source::SourceOutput;
 pub use to_response_messages::to_response_messages;
-pub use tool_approval_request_output::ToolApprovalRequestOutput;
-pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
 
 use crate::error::AISDKError;
 use crate::prompt::message::Message;
@@ -56,7 +44,8 @@ use tokio_util::sync::CancellationToken;
 use crate::tool::{
     ToolSet, TypedToolCall, ToolOutput,
     DynamicToolResult, StaticToolResult, TypedToolResult,
-    DynamicToolError, StaticToolError, TypedToolError
+    DynamicToolError, StaticToolError, TypedToolError, execute_tool_call,
+    parse_tool_call, prepare_tools_and_tool_choice
 };
 
 /// Executes tool calls and returns the outputs.

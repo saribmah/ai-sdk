@@ -24,8 +24,7 @@ pub use transform::{
 use crate::error::AISDKError;
 use crate::generate_text::{
     Output, PrepareStep, PrepareStepOptions, StepResult, StopCondition,
-    execute_tool_call, is_stop_condition_met, prepare_tools_and_tool_choice,
-    to_response_messages,
+    is_stop_condition_met, to_response_messages,
 };
 use crate::prompt::{
     Prompt, call_settings::CallSettings, call_settings::prepare_call_settings,
@@ -44,7 +43,10 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use crate::prompt::message::Message;
 use crate::ResponseMessage;
-use crate::tool::{ToolSet, TypedToolCall};
+use crate::tool::{
+    ToolSet, TypedToolCall, execute_tool_call,
+    parse_tool_call, parse_provider_executed_dynamic_tool_call, prepare_tools_and_tool_choice
+};
 
 /// Result of streaming a single step.
 ///
@@ -277,13 +279,11 @@ async fn stream_single_step(
             }
             LanguageModelStreamPart::ToolCall(provider_tool_call) => {
                 // Parse the tool call using parse_tool_call
-                use crate::generate_text::parse_tool_call;
 
                 let typed_tool_call = if let Some(tool_set) = tools {
                     parse_tool_call(&provider_tool_call, tool_set)
                 } else {
                     // No tools provided, treat as dynamic
-                    use crate::generate_text::parse_provider_executed_dynamic_tool_call;
                     parse_provider_executed_dynamic_tool_call(&provider_tool_call)
                 };
 

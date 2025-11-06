@@ -1,5 +1,5 @@
 use crate::prompt::message::Message;
-use crate::tool::{
+use super::{
     Tool, execute_tool, ToolExecuteOptions,
     ToolExecutionEvent, ToolSet, ToolOutput, TypedToolCall,
     DynamicToolResult, StaticToolResult, TypedToolResult,
@@ -180,8 +180,8 @@ pub async fn execute_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::StaticToolCall;
-    use crate::tool::definition::ToolExecutionOutput;
+    use super::super::StaticToolCall;
+    use super::super::ToolExecutionOutput;
     use serde_json::json;
     use std::pin::Pin;
     use std::sync::Mutex;

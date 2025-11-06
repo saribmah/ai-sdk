@@ -115,7 +115,7 @@ impl<INPUT, OUTPUT> ToolOutput<INPUT, OUTPUT> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::{StaticToolError, StaticToolResult};
+    use super::super::{StaticToolError, StaticToolResult};
     use serde_json::json;
 
     #[test]

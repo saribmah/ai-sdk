@@ -1,6 +1,5 @@
 use crate::prompt::message::Message;
-use crate::tool::definition::{NeedsApproval, Tool};
-use crate::tool::options::ToolExecuteOptions;
+use super::{ToolExecuteOptions, NeedsApproval, Tool};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;

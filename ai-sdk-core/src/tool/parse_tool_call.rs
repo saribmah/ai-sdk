@@ -24,8 +24,7 @@
 //! When validation fails, detailed error messages indicate which constraints were violated.
 
 use crate::error::AISDKError;
-use crate::tool::{DynamicToolCall, StaticToolCall, TypedToolCall};
-use crate::tool::definition::Tool;
+use super::{Tool, DynamicToolCall, StaticToolCall, TypedToolCall};
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -230,7 +229,7 @@ pub fn parse_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::definition::Tool;
+    use super::super::Tool;
     use serde_json::json;
 
     #[test]

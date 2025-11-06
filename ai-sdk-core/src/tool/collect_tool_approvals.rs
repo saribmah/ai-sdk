@@ -1,4 +1,4 @@
-use crate::tool::{StaticToolCall, TypedToolCall, ToolApprovalRequest, ToolApprovalResponse};
+use super::{StaticToolCall, TypedToolCall, ToolApprovalRequest, ToolApprovalResponse};
 use crate::prompt::message::{Message, AssistantContent, ToolContentPart};
 use serde_json::Value;
 use std::collections::HashMap;

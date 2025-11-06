@@ -1,5 +1,5 @@
 use crate::error::AISDKError;
-use crate::tool::tool_set::ToolSet;
+use super::tool_set::ToolSet;
 use crate::prompt::message::Message;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 use std::future::Future;
@@ -111,7 +111,7 @@ pub fn no_repair() -> ToolCallRepairFunction {
 mod tests {
     use super::*;
     use crate::prompt::message::UserMessage;
-    use crate::tool::definition::Tool;
+    use super::super::Tool;
     use serde_json::json;
 
     fn create_test_toolset() -> ToolSet {
