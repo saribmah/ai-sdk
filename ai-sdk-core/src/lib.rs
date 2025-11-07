@@ -1,3 +1,4 @@
+pub mod embed;
 pub mod error;
 pub mod generate_text;
 pub mod output;
@@ -5,6 +6,9 @@ pub mod prompt;
 pub mod stream_text;
 pub mod tool;
 
+pub use embed::{
+    EmbedManyResult, EmbedManyResultResponseData, EmbedResult, EmbedResultResponseData,
+};
 pub use error::AISDKError;
 pub use generate_text::{
     FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
