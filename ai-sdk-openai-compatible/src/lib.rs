@@ -90,17 +90,17 @@ mod utils;
 
 // Re-export main types from chat
 pub use chat::{
-    OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
+    MetadataExtractor, OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
     OpenAICompatibleChatModelId, OpenAICompatibleProviderOptions as ChatProviderOptions,
-    convert_to_openai_compatible_chat_messages, prepare_tools, MetadataExtractor,
+    convert_to_openai_compatible_chat_messages, prepare_tools,
 };
 
 // Re-export main types from completion
 pub use completion::{
     OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
-    OpenAICompatibleCompletionModelId,
+    OpenAICompatibleCompletionModelId, OpenAICompatibleCompletionPrompt,
     OpenAICompatibleCompletionProviderOptions as CompletionProviderOptions,
-    convert_to_openai_compatible_completion_prompt, OpenAICompatibleCompletionPrompt,
+    convert_to_openai_compatible_completion_prompt,
 };
 
 pub use client::OpenAICompatibleClient;

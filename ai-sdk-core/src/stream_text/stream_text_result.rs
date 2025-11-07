@@ -32,13 +32,11 @@ pub type ErrorHandler = Arc<dyn Fn(AISDKError) + Send + Sync>;
 ///     })),
 /// };
 /// ```
-#[derive(Clone)]
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct ConsumeStreamOptions {
     /// Optional error handler that will be called if an error occurs during stream consumption.
     pub on_error: Option<ErrorHandler>,
 }
-
 
 impl ConsumeStreamOptions {
     /// Creates a new `ConsumeStreamOptions` with no error handler.
@@ -218,8 +216,7 @@ impl StreamTextResult {
         let state = self.consume_stream_internal(stream).await?;
 
         // Store the state
-        self
-            .state
+        self.state
             .set(state)
             .map_err(|_| AISDKError::model_error("Failed to store stream state"))?;
 
@@ -622,9 +619,10 @@ impl StreamTextResult {
 
         if let Err(e) = result {
             if let Some(opts) = options
-                && let Some(handler) = opts.on_error {
-                    handler(e.clone());
-                }
+                && let Some(handler) = opts.on_error
+            {
+                handler(e.clone());
+            }
             return Err(e);
         }
 

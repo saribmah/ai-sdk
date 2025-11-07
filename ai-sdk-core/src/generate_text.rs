@@ -151,7 +151,7 @@ pub fn as_output(
             // Convert provider File to GeneratedFile
             LanguageModelContent::File(file) => {
                 use ai_sdk_provider::language_model::content::file::FileData;
-                
+
                 let generated_file = match &file.data {
                     FileData::Base64(base64) => {
                         GeneratedFile::from_base64(base64.clone(), file.media_type.clone())
@@ -160,7 +160,7 @@ pub fn as_output(
                         GeneratedFile::from_bytes(bytes.clone(), file.media_type.clone())
                     }
                 };
-                
+
                 result.push(Output::File(generated_file));
             }
 
@@ -1030,8 +1030,8 @@ mod tests {
 
     #[test]
     fn test_as_output_converts_file() {
-        use ai_sdk_provider::language_model::content::file::{FileData, LanguageModelFile};
         use ai_sdk_provider::language_model::content::LanguageModelContent;
+        use ai_sdk_provider::language_model::content::file::{FileData, LanguageModelFile};
 
         // Create a provider File content
         let provider_file = LanguageModelFile::from_base64("text/plain", "SGVsbG8gV29ybGQh");
@@ -1054,11 +1054,12 @@ mod tests {
 
     #[test]
     fn test_as_output_converts_file_from_bytes() {
-        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
         use ai_sdk_provider::language_model::content::LanguageModelContent;
+        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
 
         // Create a provider File content from bytes
-        let provider_file = LanguageModelFile::from_binary("image/png", vec![0x89, 0x50, 0x4E, 0x47]);
+        let provider_file =
+            LanguageModelFile::from_binary("image/png", vec![0x89, 0x50, 0x4E, 0x47]);
         let content = vec![LanguageModelContent::File(provider_file)];
 
         // Convert to Output

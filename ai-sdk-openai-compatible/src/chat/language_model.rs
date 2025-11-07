@@ -216,25 +216,27 @@ impl OpenAICompatibleChatLanguageModel {
 
                 // Get or create tool call state
                 if !state.tool_calls.contains_key(&index)
-                    && let Some(id) = &tool_call.id {
-                        state.tool_calls.insert(
-                            index,
-                            ToolCallState {
-                                id: id.clone(),
-                                name: String::new(),
-                                arguments: String::new(),
-                                started: false,
-                            },
-                        );
-                    }
+                    && let Some(id) = &tool_call.id
+                {
+                    state.tool_calls.insert(
+                        index,
+                        ToolCallState {
+                            id: id.clone(),
+                            name: String::new(),
+                            arguments: String::new(),
+                            started: false,
+                        },
+                    );
+                }
 
                 if let Some(tool_state) = state.tool_calls.get_mut(&index) {
                     // Update tool name if present
                     if let Some(function) = &tool_call.function {
                         if let Some(name) = &function.name
-                            && !name.is_empty() {
-                                tool_state.name = name.clone();
-                            }
+                            && !name.is_empty()
+                        {
+                            tool_state.name = name.clone();
+                        }
 
                         // Emit start event if we have both ID and name
                         if !tool_state.started
@@ -250,15 +252,16 @@ impl OpenAICompatibleChatLanguageModel {
 
                         // Handle arguments delta
                         if let Some(args) = &function.arguments
-                            && !args.is_empty() {
-                                tool_state.arguments.push_str(args);
-                                if tool_state.started {
-                                    parts.push(LanguageModelStreamPart::tool_input_delta(
-                                        &tool_state.id,
-                                        args,
-                                    ));
-                                }
+                            && !args.is_empty()
+                        {
+                            tool_state.arguments.push_str(args);
+                            if tool_state.started {
+                                parts.push(LanguageModelStreamPart::tool_input_delta(
+                                    &tool_state.id,
+                                    args,
+                                ));
                             }
+                        }
                     }
                 }
             }
@@ -589,11 +592,12 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
 
         // Add text content
         if let Some(text) = &choice.message.content
-            && !text.is_empty() {
-                content.push(LanguageModelContent::Text(LanguageModelText::new(
-                    text.clone(),
-                )));
-            }
+            && !text.is_empty()
+        {
+            content.push(LanguageModelContent::Text(LanguageModelText::new(
+                text.clone(),
+            )));
+        }
 
         // Add reasoning content
         let reasoning = choice
@@ -602,11 +606,12 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             .as_ref()
             .or(choice.message.reasoning.as_ref());
         if let Some(reasoning_text) = reasoning
-            && !reasoning_text.is_empty() {
-                content.push(LanguageModelContent::Reasoning(
-                    LanguageModelReasoning::init(reasoning_text.clone()),
-                ));
-            }
+            && !reasoning_text.is_empty()
+        {
+            content.push(LanguageModelContent::Reasoning(
+                LanguageModelReasoning::init(reasoning_text.clone()),
+            ));
+        }
 
         // Add tool calls
         if let Some(tool_calls) = &choice.message.tool_calls {

@@ -353,10 +353,11 @@ async fn stream_single_step(
 
         // Call on_chunk callback if this is a chunk type
         if let Some(callback) = on_chunk
-            && let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
-                let event = callbacks::StreamTextChunkEvent { chunk };
-                callback(event).await;
-            }
+            && let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part)
+        {
+            let event = callbacks::StreamTextChunkEvent { chunk };
+            callback(event).await;
+        }
 
         // Send the part to the channel
         if tx.send(text_stream_part).is_err() {
@@ -974,14 +975,15 @@ pub async fn stream_text(
 
         // Call on_finish callback if provided
         if let Some(ref callback) = on_finish_arc
-            && let Some(last_step) = all_steps.last() {
-                let event = callbacks::StreamTextFinishEvent {
-                    step_result: last_step.clone(),
-                    steps: all_steps,
-                    total_usage,
-                };
-                callback(event).await;
-            }
+            && let Some(last_step) = all_steps.last()
+        {
+            let event = callbacks::StreamTextFinishEvent {
+                step_result: last_step.clone(),
+                steps: all_steps,
+                total_usage,
+            };
+            callback(event).await;
+        }
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver
