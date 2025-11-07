@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get a language model
     let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
-        Arc::from(provider.chat_model("gpt-4o-mini"));
+        provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 

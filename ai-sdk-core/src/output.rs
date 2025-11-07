@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_output_file() {
         use crate::generate_text::GeneratedFile;
-        
+
         let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain");
         let part = Output::File(file);
 

@@ -50,9 +50,10 @@ impl RetryConfig {
         loop {
             // Check if we should abort
             if let Some(ref token) = self.abort_signal
-                && token.is_cancelled() {
-                    return Err(AISDKError::model_error("Operation cancelled".to_string()));
-                }
+                && token.is_cancelled()
+            {
+                return Err(AISDKError::model_error("Operation cancelled".to_string()));
+            }
 
             // Try the operation
             match operation().await {
@@ -111,9 +112,10 @@ impl RetryConfig {
         loop {
             // Check if we should abort
             if let Some(ref token) = self.abort_signal
-                && token.is_cancelled() {
-                    return Err(AISDKError::model_error("Operation cancelled".to_string()));
-                }
+                && token.is_cancelled()
+            {
+                return Err(AISDKError::model_error("Operation cancelled".to_string()));
+            }
 
             // Try the operation
             match operation().await {

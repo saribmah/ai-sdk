@@ -1,7 +1,7 @@
 use super::options::ToolExecuteOptions;
 use super::{ToolCall, ToolError, ToolOutput, ToolResult, ToolSet};
-use crate::prompt::message::content_parts::ToolResultOutput;
 use crate::prompt::message::Message;
+use crate::prompt::message::content_parts::ToolResultOutput;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};
@@ -327,12 +327,14 @@ impl Tool {
                         if output.is_err() {
                             return Some(output);
                         }
-                        
+
                         // Call the preliminary output callback if provided
-                        if let (Some(callback), Ok(value)) = (on_preliminary_output.as_ref(), &output) {
+                        if let (Some(callback), Ok(value)) =
+                            (on_preliminary_output.as_ref(), &output)
+                        {
                             callback(value.clone());
                         }
-                        
+
                         last_output = Some(output);
                     }
                     last_output
@@ -421,7 +423,7 @@ pub async fn execute_tool_call(
         let tool_call_id_clone = tool_call_id.clone();
         let tool_name_clone = tool_name.clone();
         let input_clone = input.clone();
-        
+
         let preliminary_callback = move |output: Value| {
             let result = ToolResult::new(
                 tool_call_id_clone.clone(),
@@ -433,7 +435,7 @@ pub async fn execute_tool_call(
 
             callback(result);
         };
-        
+
         tool.execute_tool(input.clone(), options, Some(preliminary_callback))
             .await
     } else {
@@ -458,9 +460,9 @@ pub async fn execute_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tool::ToolSet;
     use serde_json::json;
     use std::sync::Arc;
-    use crate::tool::ToolSet;
 
     #[test]
     fn test_tool_function() {
@@ -586,7 +588,9 @@ mod tests {
         }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({"city": "SF"}), options, None::<fn(Value)>).await;
+        let result = tool
+            .execute_tool(json!({"city": "SF"}), options, None::<fn(Value)>)
+            .await;
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -600,7 +604,9 @@ mod tests {
         let tool: Tool = Tool::function(schema);
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
+        let result = tool
+            .execute_tool(json!({}), options, None::<fn(Value)>)
+            .await;
 
         assert!(result.is_none());
     }
@@ -654,7 +660,9 @@ mod tests {
             }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
+        let result = tool
+            .execute_tool(json!({}), options, None::<fn(Value)>)
+            .await;
 
         // Should return an error
         assert!(result.is_some());
@@ -680,7 +688,9 @@ mod tests {
             }));
 
         let options = ToolExecuteOptions::new("call_123", vec![]);
-        let result = tool.execute_tool(json!({}), options, None::<fn(Value)>).await;
+        let result = tool
+            .execute_tool(json!({}), options, None::<fn(Value)>)
+            .await;
 
         // Should return the error immediately
         assert!(result.is_some());

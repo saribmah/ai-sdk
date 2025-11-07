@@ -94,13 +94,14 @@ impl OpenAICompatibleUserMessage {
 
         // Check if it's a simple text message
         if content.len() == 1
-            && let LanguageModelUserMessagePart::Text(text_part) = &content[0] {
-                let mut user_msg = Self::new_text(text_part.text.clone());
-                if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
-                    user_msg.additional_properties = Some(metadata);
-                }
-                return Ok(user_msg);
+            && let LanguageModelUserMessagePart::Text(text_part) = &content[0]
+        {
+            let mut user_msg = Self::new_text(text_part.text.clone());
+            if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
+                user_msg.additional_properties = Some(metadata);
             }
+            return Ok(user_msg);
+        }
 
         // Multi-part message
         let mut parts: Vec<OpenAICompatibleContentPart> = Vec::new();

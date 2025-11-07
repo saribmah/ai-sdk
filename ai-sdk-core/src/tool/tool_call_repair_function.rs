@@ -224,19 +224,15 @@ mod tests {
         let repair_fn: ToolCallRepairFunction = Box::new(|options: ToolCallRepairOptions| {
             Box::pin(async move {
                 // Check if it's a NoSuchTool error
-                match &options.error {
-                    AISDKError::NoSuchTool { tool_name, .. } => {
-                        // Try to find a similar tool name and repair
-                        if tool_name == "get_wheather" && options.tools.contains_key("get_weather")
-                        {
-                            return Some(LanguageModelToolCall::new(
-                                options.tool_call.tool_call_id,
-                                "get_weather", // Corrected tool name
-                                options.tool_call.input,
-                            ));
-                        }
+                if let AISDKError::NoSuchTool { tool_name, .. } = &options.error {
+                    // Try to find a similar tool name and repair
+                    if tool_name == "get_wheather" && options.tools.contains_key("get_weather") {
+                        return Some(LanguageModelToolCall::new(
+                            options.tool_call.tool_call_id,
+                            "get_weather", // Corrected tool name
+                            options.tool_call.input,
+                        ));
                     }
-                    _ => {}
                 }
                 None
             })
@@ -274,24 +270,22 @@ mod tests {
         let repair_fn: ToolCallRepairFunction = Box::new(|options: ToolCallRepairOptions| {
             Box::pin(async move {
                 // Check if it's an InvalidToolInput error
-                match &options.error {
-                    AISDKError::InvalidToolInput {
-                        tool_name,
-                        tool_input,
-                        ..
-                    } => {
-                        // Try to repair invalid JSON
-                        if tool_input.contains("city") && !tool_input.starts_with("{") {
-                            // Add missing braces
-                            let repaired_input = format!("{{{}}}", tool_input);
-                            return Some(LanguageModelToolCall::new(
-                                options.tool_call.tool_call_id,
-                                tool_name.clone(),
-                                repaired_input,
-                            ));
-                        }
+                if let AISDKError::InvalidToolInput {
+                    tool_name,
+                    tool_input,
+                    ..
+                } = &options.error
+                {
+                    // Try to repair invalid JSON
+                    if tool_input.contains("city") && !tool_input.starts_with("{") {
+                        // Add missing braces
+                        let repaired_input = format!("{{{}}}", tool_input);
+                        return Some(LanguageModelToolCall::new(
+                            options.tool_call.tool_call_id,
+                            tool_name.clone(),
+                            repaired_input,
+                        ));
                     }
-                    _ => {}
                 }
                 None
             })

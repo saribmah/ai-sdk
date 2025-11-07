@@ -3,7 +3,7 @@ use std::collections::HashMap;
 /// Configuration options for creating an OpenAI-compatible provider.
 #[derive(Debug, Clone)]
 pub struct OpenAICompatibleProviderSettings {
-    /// Base URL for the API calls (e.g., "https://api.openai.com/v1")
+    /// Base URL for the API calls (e.g., "<https://api.openai.com/v1>")
     pub base_url: String,
 
     /// Provider name (e.g., "openai", "azure-openai", "custom")

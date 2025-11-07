@@ -552,8 +552,10 @@ mod tests {
 
     #[test]
     fn test_provider_options_name() {
-        let mut config = OpenAICompatibleCompletionConfig::default();
-        config.provider = "openai.azure".to_string();
+        let config = OpenAICompatibleCompletionConfig {
+            provider: "openai.azure".to_string(),
+            ..Default::default()
+        };
         let model = OpenAICompatibleCompletionLanguageModel::new(
             "gpt-3.5-turbo-instruct".to_string(),
             config,
@@ -564,8 +566,10 @@ mod tests {
 
     #[test]
     fn test_provider_options_name_no_dot() {
-        let mut config = OpenAICompatibleCompletionConfig::default();
-        config.provider = "custom".to_string();
+        let config = OpenAICompatibleCompletionConfig {
+            provider: "custom".to_string(),
+            ..Default::default()
+        };
         let model =
             OpenAICompatibleCompletionLanguageModel::new("custom-model".to_string(), config);
 
@@ -594,8 +598,10 @@ mod tests {
 
     #[test]
     fn test_config_custom_provider() {
-        let mut config = OpenAICompatibleCompletionConfig::default();
-        config.provider = "azure".to_string();
+        let config = OpenAICompatibleCompletionConfig {
+            provider: "azure".to_string(),
+            ..Default::default()
+        };
 
         assert_eq!(config.provider, "azure");
     }

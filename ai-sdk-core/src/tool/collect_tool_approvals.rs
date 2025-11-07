@@ -140,41 +140,43 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
     let mut tool_calls_by_id: HashMap<String, ToolCall> = HashMap::new();
     for message in messages {
         if let Message::Assistant(assistant_msg) = message
-            && let AssistantContent::Parts(parts) = &assistant_msg.content {
-                for part in parts {
-                    if let crate::prompt::message::assistant::AssistantContentPart::ToolCall(
-                        tool_call,
-                    ) = part
-                    {
-                        // Convert ToolCallPart to ToolCall
-                        let call = ToolCall::new(
-                            tool_call.tool_call_id.clone(),
-                            tool_call.tool_name.clone(),
-                            tool_call.input.clone(),
-                        )
-                        .with_provider_executed(tool_call.provider_executed.unwrap_or(false));
+            && let AssistantContent::Parts(parts) = &assistant_msg.content
+        {
+            for part in parts {
+                if let crate::prompt::message::assistant::AssistantContentPart::ToolCall(
+                    tool_call,
+                ) = part
+                {
+                    // Convert ToolCallPart to ToolCall
+                    let call = ToolCall::new(
+                        tool_call.tool_call_id.clone(),
+                        tool_call.tool_name.clone(),
+                        tool_call.input.clone(),
+                    )
+                    .with_provider_executed(tool_call.provider_executed.unwrap_or(false));
 
-                        tool_calls_by_id.insert(tool_call.tool_call_id.clone(), call);
-                    }
+                    tool_calls_by_id.insert(tool_call.tool_call_id.clone(), call);
                 }
             }
+        }
     }
 
     // Gather approval requests from assistant messages and create lookup by approval_id
     let mut approval_requests_by_id: HashMap<String, ToolApprovalRequest> = HashMap::new();
     for message in messages {
         if let Message::Assistant(assistant_msg) = message
-            && let AssistantContent::Parts(parts) = &assistant_msg.content {
-                for part in parts {
-                    if let crate::prompt::message::assistant::AssistantContentPart::ToolApprovalRequest(
+            && let AssistantContent::Parts(parts) = &assistant_msg.content
+        {
+            for part in parts {
+                if let crate::prompt::message::assistant::AssistantContentPart::ToolApprovalRequest(
                         approval_req,
                     ) = part
                     {
                         approval_requests_by_id
                             .insert(approval_req.approval_id.clone(), approval_req.clone());
                     }
-                }
             }
+        }
     }
 
     // Gather tool results from the last tool message and create a set of tool_call_ids
@@ -283,7 +285,7 @@ mod tests {
 
         let approval = &result.approved_tool_approvals[0];
         assert_eq!(approval.approval_request.approval_id, "approval_456");
-        assert_eq!(approval.approval_response.approved, true);
+        assert!(approval.approval_response.approved);
 
         // Verify the tool call
         assert_eq!(approval.tool_call.tool_call_id, "call_123");
@@ -316,7 +318,7 @@ mod tests {
 
         let denial = &result.denied_tool_approvals[0];
         assert_eq!(denial.approval_request.approval_id, "approval_456");
-        assert_eq!(denial.approval_response.approved, false);
+        assert!(!denial.approval_response.approved);
 
         // Verify the tool call
         assert_eq!(denial.tool_call.tool_call_id, "call_123");

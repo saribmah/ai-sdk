@@ -290,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_model_message_conversation() {
-        let messages = vec![
+        let messages = [
             Message::from(SystemMessage::new("You are helpful.")),
             Message::from(UserMessage::new("Hello!")),
             Message::from(AssistantMessage::new("Hi! How can I help?")),

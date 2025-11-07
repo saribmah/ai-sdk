@@ -493,7 +493,7 @@ mod tests {
         assert!(result.is_some());
 
         // Incomplete JSON - should try to repair
-        let result = output.parse_partial(r#"{"key": "val"#).unwrap();
+        let _result = output.parse_partial(r#"{"key": "val"#).unwrap();
         // May or may not parse depending on repair logic
 
         // Complete parsing

@@ -379,7 +379,6 @@ mod tests {
     use super::*;
     use crate::stream_text::TextStreamPart;
     use futures_util::StreamExt;
-    use serde_json::Value;
 
     #[tokio::test]
     async fn test_filter_transform() {
