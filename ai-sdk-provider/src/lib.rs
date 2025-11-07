@@ -3,6 +3,7 @@ pub mod error;
 pub mod image_model;
 pub mod language_model;
 pub mod provider;
+pub mod reranking_model;
 pub mod shared;
 
 // Re-export commonly used types
@@ -16,6 +17,10 @@ pub use language_model::{
     LanguageModelStreamResponse,
 };
 pub use provider::Provider;
+pub use reranking_model::{
+    RankedDocument, RerankingModel, RerankingModelResponse, RerankingModelResponseMetadata,
+};
+pub use shared::warning::SharedWarning;
 
 #[cfg(test)]
 mod tests {
