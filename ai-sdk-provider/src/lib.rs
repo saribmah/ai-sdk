@@ -6,6 +6,7 @@ pub mod provider;
 pub mod reranking_model;
 pub mod shared;
 pub mod speech_model;
+pub mod transcription_model;
 
 // Re-export commonly used types
 pub use embedding_model::{
@@ -23,6 +24,10 @@ pub use reranking_model::{
 };
 pub use shared::warning::SharedWarning;
 pub use speech_model::{AudioData, SpeechModel, SpeechModelResponse, SpeechModelResponseMetadata};
+pub use transcription_model::{
+    TranscriptSegment, TranscriptionModel, TranscriptionModelResponse,
+    TranscriptionModelResponseMetadata,
+};
 
 #[cfg(test)]
 mod tests {
