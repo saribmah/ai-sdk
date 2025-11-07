@@ -1,5 +1,6 @@
 pub mod embedding_model;
 pub mod error;
+pub mod image_model;
 pub mod language_model;
 pub mod provider;
 pub mod shared;
@@ -9,6 +10,7 @@ pub use embedding_model::{
     EmbeddingModel, EmbeddingModelResponse, EmbeddingModelResponseMetadata, EmbeddingModelUsage,
 };
 pub use error::ProviderError;
+pub use image_model::{ImageData, ImageModel, ImageModelResponse, ImageModelResponseMetadata};
 pub use language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
     LanguageModelStreamResponse,
