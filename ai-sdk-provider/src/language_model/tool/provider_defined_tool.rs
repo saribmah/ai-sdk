@@ -1,4 +1,3 @@
-use serde::de::Unexpected::Seq;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -16,16 +15,11 @@ pub struct LanguageModelProviderDefinedTool {
     pub args: HashMap<String, Value>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum ProviderDefinedToolType {
+    #[default]
     ProviderDefined,
-}
-
-impl Default for ProviderDefinedToolType {
-    fn default() -> Self {
-        Self::ProviderDefined
-    }
 }
 
 impl LanguageModelProviderDefinedTool {

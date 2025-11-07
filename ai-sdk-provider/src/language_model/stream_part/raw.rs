@@ -14,7 +14,7 @@ pub struct LanguageModelStreamRaw {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "raw")]
-pub(crate) struct RawType;
+pub struct RawType;
 
 impl LanguageModelStreamRaw {
     pub fn new(raw_value: Value) -> Self {

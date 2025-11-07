@@ -7,7 +7,6 @@ use ai_sdk_provider::{
     },
     language_model::tool_choice::LanguageModelToolChoice,
 };
-use serde_json::Value;
 
 /// Prepares tools and tool choice for the language model.
 ///

@@ -195,6 +195,7 @@ struct OpenAICompletionChunk {
 struct OpenAICompletionStreamChoice {
     text: String,
     finish_reason: Option<String>,
+    #[allow(dead_code)]
     index: u64,
 }
 
@@ -221,7 +222,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
         // Prepare request body
-        let (body, mut warnings) = self.prepare_request_body(&options)?;
+        let (body, warnings) = self.prepare_request_body(&options)?;
         let body_string = serde_json::to_string(&body)?;
 
         // Build URL

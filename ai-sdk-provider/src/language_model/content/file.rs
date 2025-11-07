@@ -11,16 +11,11 @@ pub struct LanguageModelFile {
     pub data: FileData,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum FileType {
+    #[default]
     File,
-}
-
-impl Default for FileType {
-    fn default() -> Self {
-        Self::File
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -43,7 +38,7 @@ impl LanguageModelFile {
         Self {
             file_type: FileType::File,
             media_type: media_type.into(),
-            data: FileData::Binary(data.into()),
+            data: FileData::Binary(data),
         }
     }
 }

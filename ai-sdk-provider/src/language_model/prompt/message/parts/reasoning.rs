@@ -17,7 +17,7 @@ pub struct LanguageModelReasoningPart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "reasoning")]
-pub(crate) struct ReasoningPartType;
+pub struct ReasoningPartType;
 
 impl LanguageModelReasoningPart {
     pub fn new(text: impl Into<String>) -> Self {

@@ -17,7 +17,7 @@ pub struct LanguageModelStreamReasoningEnd {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "reasoning-end")]
-pub(crate) struct ReasoningEndType;
+pub struct ReasoningEndType;
 
 impl LanguageModelStreamReasoningEnd {
     pub fn new(id: impl Into<String>) -> Self {

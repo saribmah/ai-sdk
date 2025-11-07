@@ -13,7 +13,7 @@ pub struct LanguageModelStreamStart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "stream-start")]
-pub(crate) struct StreamStartType;
+pub struct StreamStartType;
 
 impl LanguageModelStreamStart {
     pub fn new(warnings: Vec<LanguageModelCallWarning>) -> Self {

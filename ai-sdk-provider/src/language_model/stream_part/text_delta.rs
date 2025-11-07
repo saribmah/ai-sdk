@@ -20,7 +20,7 @@ pub struct LanguageModelStreamTextDelta {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text-delta")]
-pub(crate) struct TextDeltaType;
+pub struct TextDeltaType;
 
 impl LanguageModelStreamTextDelta {
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {

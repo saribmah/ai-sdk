@@ -17,7 +17,7 @@ pub struct LanguageModelStreamTextEnd {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text-end")]
-pub(crate) struct TextEndType;
+pub struct TextEndType;
 
 impl LanguageModelStreamTextEnd {
     pub fn new(id: impl Into<String>) -> Self {

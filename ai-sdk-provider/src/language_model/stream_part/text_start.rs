@@ -17,7 +17,7 @@ pub struct LanguageModelStreamTextStart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text-start")]
-pub(crate) struct TextStartType;
+pub struct TextStartType;
 
 impl LanguageModelStreamTextStart {
     pub fn new(id: impl Into<String>) -> Self {

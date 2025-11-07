@@ -317,7 +317,7 @@ async fn stream_single_step(
                     .find(|tc| tc.tool_call_id == provider_tool_result.tool_call_id);
 
                 // Check if this is a dynamic tool based on whether we have it in our tool set
-                let is_dynamic = if let Some(tool_set) = tools {
+                let _is_dynamic = if let Some(tool_set) = tools {
                     !tool_set.contains_key(&provider_tool_result.tool_name)
                 } else {
                     true // No tools provided, treat as dynamic

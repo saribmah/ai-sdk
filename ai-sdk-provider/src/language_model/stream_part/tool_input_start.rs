@@ -24,7 +24,7 @@ pub struct LanguageModelStreamToolInputStart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-input-start")]
-pub(crate) struct ToolInputStartType;
+pub struct ToolInputStartType;
 
 impl LanguageModelStreamToolInputStart {
     pub fn new(id: impl Into<String>, tool_name: impl Into<String>) -> Self {

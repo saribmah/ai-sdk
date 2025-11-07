@@ -20,7 +20,7 @@ pub struct LanguageModelStreamReasoningDelta {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "reasoning-delta")]
-pub(crate) struct ReasoningDeltaType;
+pub struct ReasoningDeltaType;
 
 impl LanguageModelStreamReasoningDelta {
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {

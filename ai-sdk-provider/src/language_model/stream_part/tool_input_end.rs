@@ -17,7 +17,7 @@ pub struct LanguageModelStreamToolInputEnd {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-input-end")]
-pub(crate) struct ToolInputEndType;
+pub struct ToolInputEndType;
 
 impl LanguageModelStreamToolInputEnd {
     pub fn new(id: impl Into<String>) -> Self {

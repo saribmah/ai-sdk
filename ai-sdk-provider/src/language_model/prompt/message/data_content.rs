@@ -40,10 +40,10 @@ impl<'de> Deserialize<'de> for LanguageModelDataContent {
         let s = String::deserialize(deserializer)?;
 
         // Try to parse as URL first
-        if let Ok(url) = url::Url::parse(&s) {
-            if url.scheme() == "http" || url.scheme() == "https" || url.scheme() == "data" {
-                return Ok(Self::Url(url));
-            }
+        if let Ok(url) = url::Url::parse(&s)
+            && (url.scheme() == "http" || url.scheme() == "https" || url.scheme() == "data")
+        {
+            return Ok(Self::Url(url));
         }
 
         // Otherwise treat as base64

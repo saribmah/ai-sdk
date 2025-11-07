@@ -88,9 +88,22 @@ mod provider;
 pub mod settings;
 mod utils;
 
-pub use chat::*;
+// Re-export main types from chat
+pub use chat::{
+    OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
+    OpenAICompatibleChatModelId, OpenAICompatibleProviderOptions as ChatProviderOptions,
+    convert_to_openai_compatible_chat_messages, prepare_tools, MetadataExtractor,
+};
+
+// Re-export main types from completion
+pub use completion::{
+    OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
+    OpenAICompatibleCompletionModelId,
+    OpenAICompatibleCompletionProviderOptions as CompletionProviderOptions,
+    convert_to_openai_compatible_completion_prompt, OpenAICompatibleCompletionPrompt,
+};
+
 pub use client::OpenAICompatibleClient;
-pub use completion::*;
 pub use error::*;
 pub use provider::{OpenAICompatibleProvider, create_openai_compatible};
 pub use settings::OpenAICompatibleProviderSettings;

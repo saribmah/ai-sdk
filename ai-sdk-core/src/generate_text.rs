@@ -40,7 +40,6 @@ use ai_sdk_provider::{
     },
     shared::provider_options::SharedProviderOptions,
 };
-use serde_json::Value;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -462,7 +461,7 @@ pub async fn generate_text(
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     on_step_finish: Option<Box<dyn OnStepFinish>>,
-    on_finish: Option<Box<dyn OnFinish>>,
+    _on_finish: Option<Box<dyn OnFinish>>,
 ) -> Result<GenerateTextResult, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);

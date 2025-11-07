@@ -26,7 +26,7 @@ pub struct LanguageModelToolResult {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-result")]
-struct ToolResultType;
+pub struct ToolResultType;
 
 impl LanguageModelToolResult {
     pub fn new(

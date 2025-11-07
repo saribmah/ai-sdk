@@ -14,7 +14,7 @@ pub struct LanguageModelText {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text")]
-struct TextType;
+pub struct TextType;
 
 impl LanguageModelText {
     pub fn new(text: impl Into<String>) -> Self {

@@ -25,7 +25,7 @@ pub struct LanguageModelFilePart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "file")]
-pub(crate) struct FilePartType;
+pub struct FilePartType;
 
 impl LanguageModelFilePart {
     pub fn new(data: LanguageModelDataContent, media_type: impl Into<String>) -> Self {

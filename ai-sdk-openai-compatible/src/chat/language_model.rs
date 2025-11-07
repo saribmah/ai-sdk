@@ -14,11 +14,9 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 
-use crate::chat::MetadataExtractor;
 use crate::chat::{
     OpenAICompatibleChatModelId, convert_to_openai_compatible_chat_messages, prepare_tools,
 };
-use crate::error::{DefaultOpenAICompatibleErrorStructure, ProviderErrorStructure};
 use crate::utils::finish_reason::map_openai_compatible_finish_reason;
 use crate::utils::response_metadata::get_response_metadata;
 
@@ -50,7 +48,7 @@ impl Default for OpenAICompatibleChatConfig {
     fn default() -> Self {
         Self {
             provider: "openai-compatible".to_string(),
-            headers: Box::new(|| HashMap::new()),
+            headers: Box::new(HashMap::new),
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
             fetch: None,
             include_usage: false,
@@ -172,17 +170,17 @@ impl OpenAICompatibleChatLanguageModel {
         let delta = &choice.delta;
 
         // Handle text content
-        if let Some(content) = &delta.content {
-            if !content.is_empty() {
-                if state.text_id.is_none() {
-                    let id = format!("text-{}", uuid::Uuid::new_v4());
-                    parts.push(LanguageModelStreamPart::text_start(&id));
-                    state.text_id = Some(id.clone());
-                }
+        if let Some(content) = &delta.content
+            && !content.is_empty()
+        {
+            if state.text_id.is_none() {
+                let id = format!("text-{}", uuid::Uuid::new_v4());
+                parts.push(LanguageModelStreamPart::text_start(&id));
+                state.text_id = Some(id.clone());
+            }
 
-                if let Some(id) = &state.text_id {
-                    parts.push(LanguageModelStreamPart::text_delta(id, content));
-                }
+            if let Some(id) = &state.text_id {
+                parts.push(LanguageModelStreamPart::text_delta(id, content));
             }
         }
 
@@ -191,17 +189,17 @@ impl OpenAICompatibleChatLanguageModel {
             .reasoning_content
             .as_ref()
             .or(delta.reasoning.as_ref());
-        if let Some(reasoning_text) = reasoning {
-            if !reasoning_text.is_empty() {
-                if state.reasoning_id.is_none() {
-                    let id = format!("reasoning-{}", uuid::Uuid::new_v4());
-                    parts.push(LanguageModelStreamPart::reasoning_start(&id));
-                    state.reasoning_id = Some(id.clone());
-                }
+        if let Some(reasoning_text) = reasoning
+            && !reasoning_text.is_empty()
+        {
+            if state.reasoning_id.is_none() {
+                let id = format!("reasoning-{}", uuid::Uuid::new_v4());
+                parts.push(LanguageModelStreamPart::reasoning_start(&id));
+                state.reasoning_id = Some(id.clone());
+            }
 
-                if let Some(id) = &state.reasoning_id {
-                    parts.push(LanguageModelStreamPart::reasoning_delta(id, reasoning_text));
-                }
+            if let Some(id) = &state.reasoning_id {
+                parts.push(LanguageModelStreamPart::reasoning_delta(id, reasoning_text));
             }
         }
 
@@ -394,6 +392,7 @@ struct OpenAIChoice {
 
 #[derive(Debug, Deserialize)]
 struct OpenAIMessage {
+    #[allow(dead_code)]
     role: Option<String>,
     content: Option<String>,
     reasoning_content: Option<String>,
@@ -405,6 +404,7 @@ struct OpenAIMessage {
 struct OpenAIToolCall {
     id: Option<String>,
     #[serde(rename = "type")]
+    #[allow(dead_code)]
     tool_type: Option<String>,
     function: OpenAIFunction,
 }
@@ -437,8 +437,11 @@ struct OpenAIPromptTokensDetails {
 /// OpenAI streaming response chunk
 #[derive(Debug, Deserialize)]
 struct OpenAIStreamChunk {
+    #[allow(dead_code)]
     id: Option<String>,
+    #[allow(dead_code)]
     created: Option<i64>,
+    #[allow(dead_code)]
     model: Option<String>,
     choices: Vec<OpenAIStreamChoice>,
     usage: Option<OpenAIUsage>,
@@ -446,6 +449,7 @@ struct OpenAIStreamChunk {
 
 #[derive(Debug, Deserialize)]
 struct OpenAIStreamChoice {
+    #[allow(dead_code)]
     index: Option<u64>,
     delta: OpenAIStreamDelta,
     finish_reason: Option<String>,
@@ -453,6 +457,7 @@ struct OpenAIStreamChoice {
 
 #[derive(Debug, Deserialize)]
 struct OpenAIStreamDelta {
+    #[allow(dead_code)]
     role: Option<String>,
     content: Option<String>,
     reasoning_content: Option<String>,
@@ -465,6 +470,7 @@ struct OpenAIStreamToolCall {
     index: Option<u64>,
     id: Option<String>,
     #[serde(rename = "type")]
+    #[allow(dead_code)]
     tool_type: Option<String>,
     function: Option<OpenAIStreamFunction>,
 }
@@ -516,7 +522,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
         // Prepare request body
-        let (body, mut warnings) = self.prepare_request_body(&options)?;
+        let (body, warnings) = self.prepare_request_body(&options)?;
         let body_string = serde_json::to_string(&body)?;
 
         // Build URL

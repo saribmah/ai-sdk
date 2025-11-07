@@ -82,7 +82,7 @@ impl OpenAICompatibleProvider {
 
                 headers
             }),
-            url: Box::new(move |model_id: &str, path: &str| {
+            url: Box::new(move |_model_id: &str, path: &str| {
                 let mut url = format!("{}{}", base_url, path);
 
                 // Add query parameters if present
@@ -139,7 +139,7 @@ impl OpenAICompatibleProvider {
 
                 headers
             }),
-            url: Box::new(move |model_id: &str, path: &str| {
+            url: Box::new(move |_model_id: &str, path: &str| {
                 let mut url = format!("{}{}", base_url, path);
 
                 // Add query parameters if present

@@ -10,7 +10,6 @@ use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
-use serde_json::Value;
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;

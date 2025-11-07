@@ -20,7 +20,7 @@ pub struct LanguageModelStreamToolInputDelta {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-input-delta")]
-pub(crate) struct ToolInputDeltaType;
+pub struct ToolInputDeltaType;
 
 impl LanguageModelStreamToolInputDelta {
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {

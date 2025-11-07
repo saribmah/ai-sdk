@@ -28,7 +28,7 @@ pub struct LanguageModelToolCallPart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-call")]
-pub(crate) struct ToolCallPartType;
+pub struct ToolCallPartType;
 
 impl LanguageModelToolCallPart {
     pub fn new(

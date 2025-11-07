@@ -5,6 +5,8 @@ use serde_json::Value;
 use std::sync::Arc;
 
 use super::definition::{Tool, ToolExecuteFunction, ToolExecutionOutput};
+
+#[cfg(test)]
 use super::options::ToolExecuteOptions;
 
 /// A trait for defining type-safe tools with compile-time checked input and output types.

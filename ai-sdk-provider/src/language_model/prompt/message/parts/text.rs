@@ -17,7 +17,7 @@ pub struct LanguageModelTextPart {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text")]
-pub(crate) struct TextPartType;
+pub struct TextPartType;
 
 impl LanguageModelTextPart {
     pub fn new(text: impl Into<String>) -> Self {

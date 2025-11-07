@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Usage information for a language model call.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelUsage {
     /// The number of input (prompt) tokens used.
@@ -45,18 +45,6 @@ impl LanguageModelUsage {
             self.total_tokens
         } else {
             self.input_tokens + self.output_tokens
-        }
-    }
-}
-
-impl Default for LanguageModelUsage {
-    fn default() -> Self {
-        Self {
-            input_tokens: 0,
-            output_tokens: 0,
-            total_tokens: 0,
-            reasoning_tokens: 0,
-            cached_input_tokens: 0,
         }
     }
 }

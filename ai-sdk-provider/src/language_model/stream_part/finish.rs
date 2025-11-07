@@ -22,7 +22,7 @@ pub struct LanguageModelStreamFinish {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "finish")]
-pub(crate) struct FinishType;
+pub struct FinishType;
 
 impl LanguageModelStreamFinish {
     pub fn new(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {

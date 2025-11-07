@@ -5,9 +5,9 @@ pub mod options;
 pub mod prepare_tools;
 pub mod prompt;
 
-pub use convert_prompt::*;
-pub use language_model::*;
-pub use metadata_extractor::*;
-pub use options::*;
-pub use prepare_tools::*;
+pub use convert_prompt::convert_to_openai_compatible_chat_messages;
+pub use language_model::{OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel};
+pub use metadata_extractor::MetadataExtractor;
+pub use options::{OpenAICompatibleChatModelId, OpenAICompatibleProviderOptions};
+pub use prepare_tools::prepare_tools;
 pub use prompt::message::*;

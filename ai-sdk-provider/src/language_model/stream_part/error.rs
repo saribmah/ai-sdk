@@ -13,7 +13,7 @@ pub struct LanguageModelStreamError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "error")]
-pub(crate) struct ErrorType;
+pub struct ErrorType;
 
 impl LanguageModelStreamError {
     pub fn new(error: Value) -> Self {

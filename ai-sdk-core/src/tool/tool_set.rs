@@ -1,5 +1,4 @@
 use super::Tool;
-use serde_json::Value;
 use std::collections::HashMap;
 
 /// A set of tools indexed by their names.
