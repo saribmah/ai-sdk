@@ -1,15 +1,20 @@
 pub mod embed;
 pub mod error;
+pub mod generate_image;
+pub mod generate_speech;
 pub mod generate_text;
 pub mod output;
 pub mod prompt;
+pub mod rerank;
 pub mod stream_text;
 pub mod tool;
+pub mod transcribe;
 
 pub use embed::{
     EmbedManyResult, EmbedManyResultResponseData, EmbedResult, EmbedResultResponseData,
 };
 pub use error::AISDKError;
+pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata};
 pub use generate_text::{
     FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
     OnStepFinish, PrepareStep, PrepareStepOptions, PrepareStepResult, RequestMetadata,
