@@ -285,7 +285,7 @@ mod tests {
 
         let approval = &result.approved_tool_approvals[0];
         assert_eq!(approval.approval_request.approval_id, "approval_456");
-        assert_eq!(approval.approval_response.approved, true);
+        assert!(approval.approval_response.approved);
 
         // Verify the tool call
         assert_eq!(approval.tool_call.tool_call_id, "call_123");
@@ -318,7 +318,7 @@ mod tests {
 
         let denial = &result.denied_tool_approvals[0];
         assert_eq!(denial.approval_request.approval_id, "approval_456");
-        assert_eq!(denial.approval_response.approved, false);
+        assert!(!denial.approval_response.approved);
 
         // Verify the tool call
         assert_eq!(denial.tool_call.tool_call_id, "call_123");

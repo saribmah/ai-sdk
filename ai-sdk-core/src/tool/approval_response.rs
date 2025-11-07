@@ -53,7 +53,7 @@ mod tests {
         let response = ToolApprovalResponse::new("approval_123", true);
 
         assert_eq!(response.approval_id, "approval_123");
-        assert_eq!(response.approved, true);
+        assert!(response.approved);
         assert!(response.reason.is_none());
     }
 
@@ -62,7 +62,7 @@ mod tests {
         let response = ToolApprovalResponse::granted("approval_123");
 
         assert_eq!(response.approval_id, "approval_123");
-        assert_eq!(response.approved, true);
+        assert!(response.approved);
     }
 
     #[test]
@@ -70,7 +70,7 @@ mod tests {
         let response = ToolApprovalResponse::denied("approval_123");
 
         assert_eq!(response.approval_id, "approval_123");
-        assert_eq!(response.approved, false);
+        assert!(!response.approved);
     }
 
     #[test]
@@ -86,7 +86,7 @@ mod tests {
         let response =
             ToolApprovalResponse::denied("approval_123").with_reason("Insufficient permissions");
 
-        assert_eq!(response.approved, false);
+        assert!(!response.approved);
         assert_eq!(
             response.reason,
             Some("Insufficient permissions".to_string())

@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let metadata = Arc::new(Mutex::new(None));
     let metadata_clone = metadata.clone();
 
-    let result = StreamTextBuilder::new(Arc::from(model), prompt)
+    let result = StreamTextBuilder::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(200)
         .on_finish(Box::new(move |event| {
@@ -68,8 +68,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mut meta = metadata.lock().await;
                 *meta = Some((
                     event.step_result.finish_reason.clone(),
-                    event.step_result.usage.clone(),
-                    event.total_usage.clone(),
+                    event.step_result.usage,
+                    event.total_usage,
                 ));
             })
         }))

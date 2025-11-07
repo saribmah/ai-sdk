@@ -796,8 +796,10 @@ mod tests {
 
     #[test]
     fn test_provider_options_name() {
-        let mut config = OpenAICompatibleChatConfig::default();
-        config.provider = "openai.azure".to_string();
+        let config = OpenAICompatibleChatConfig {
+            provider: "openai.azure".to_string(),
+            ..Default::default()
+        };
         let model = OpenAICompatibleChatLanguageModel::new("gpt-4".to_string(), config);
 
         assert_eq!(model.provider_options_name(), "openai");
@@ -805,8 +807,10 @@ mod tests {
 
     #[test]
     fn test_provider_options_name_no_dot() {
-        let mut config = OpenAICompatibleChatConfig::default();
-        config.provider = "custom".to_string();
+        let config = OpenAICompatibleChatConfig {
+            provider: "custom".to_string(),
+            ..Default::default()
+        };
         let model = OpenAICompatibleChatLanguageModel::new("gpt-4".to_string(), config);
 
         assert_eq!(model.provider_options_name(), "custom");
@@ -823,12 +827,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_supported_urls_custom() {
-        let mut config = OpenAICompatibleChatConfig::default();
-        config.supported_urls = Some(|| {
-            let mut map = HashMap::new();
-            map.insert("test".to_string(), vec![]);
-            map
-        });
+        let config = OpenAICompatibleChatConfig {
+            supported_urls: Some(|| {
+                let mut map = HashMap::new();
+                map.insert("test".to_string(), vec![]);
+                map
+            }),
+            ..Default::default()
+        };
         let model = OpenAICompatibleChatLanguageModel::new("gpt-4".to_string(), config);
 
         let urls = model.supported_urls().await;
@@ -848,16 +854,20 @@ mod tests {
 
     #[test]
     fn test_config_custom_provider() {
-        let mut config = OpenAICompatibleChatConfig::default();
-        config.provider = "azure".to_string();
+        let config = OpenAICompatibleChatConfig {
+            provider: "azure".to_string(),
+            ..Default::default()
+        };
 
         assert_eq!(config.provider, "azure");
     }
 
     #[test]
     fn test_config_structured_outputs() {
-        let mut config = OpenAICompatibleChatConfig::default();
-        config.supports_structured_outputs = true;
+        let config = OpenAICompatibleChatConfig {
+            supports_structured_outputs: true,
+            ..Default::default()
+        };
 
         assert!(config.supports_structured_outputs);
     }

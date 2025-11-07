@@ -49,7 +49,7 @@ mod tests {
 
     #[test]
     fn test_toolset_creation() {
-        let mut tools = ToolSet::new();
+        let tools = ToolSet::new();
         assert_eq!(tools.len(), 0);
         assert!(tools.is_empty());
     }
@@ -69,7 +69,7 @@ mod tests {
 
         assert_eq!(tools.len(), 1);
         assert!(tools.contains_key("get_weather"));
-        assert!(tools.get("get_weather").is_some());
+        assert!(tools.contains_key("get_weather"));
     }
 
     #[test]
@@ -135,7 +135,7 @@ mod tests {
         tools.insert("b".to_string(), Tool::function(json!({"type": "object"})));
 
         let mut count = 0;
-        for (name, _tool) in &tools {
+        for name in tools.keys() {
             count += 1;
             assert!(name == "a" || name == "b");
         }

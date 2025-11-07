@@ -120,7 +120,7 @@ mod tests {
         match &message.content[0] {
             ToolContentPart::ApprovalResponse(resp) => {
                 assert_eq!(resp.approval_id, "approval_123");
-                assert_eq!(resp.approved, true);
+                assert!(resp.approved);
             }
             _ => panic!("Expected ApprovalResponse variant"),
         }

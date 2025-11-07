@@ -20,7 +20,7 @@ use ai_sdk_provider::language_model::prompt::{
     LanguageModelToolResultOutput, LanguageModelToolResultPart, LanguageModelUserMessagePart,
 };
 
-/// Convert a `StandardizedPrompt` to a provider `Prompt` (Vec<Message>).
+/// Convert a `StandardizedPrompt` to a provider `Prompt` (`Vec<Message>`).
 ///
 /// This function converts the user-facing message types to the provider-level message format.
 /// It also combines consecutive tool messages into a single tool message as an optimization.
@@ -431,7 +431,7 @@ fn combine_consecutive_tool_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemMessage, UserMessage};
+    use crate::prompt::message::UserMessage;
 
     #[test]
     fn test_convert_text_prompt() {

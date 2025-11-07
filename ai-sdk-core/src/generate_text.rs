@@ -1031,7 +1031,7 @@ mod tests {
     #[test]
     fn test_as_output_converts_file() {
         use ai_sdk_provider::language_model::content::LanguageModelContent;
-        use ai_sdk_provider::language_model::content::file::{FileData, LanguageModelFile};
+        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
 
         // Create a provider File content
         let provider_file = LanguageModelFile::from_base64("text/plain", "SGVsbG8gV29ybGQh");

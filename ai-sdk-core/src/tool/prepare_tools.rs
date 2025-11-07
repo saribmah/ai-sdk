@@ -20,7 +20,7 @@ use ai_sdk_provider::{
 ///
 /// # Returns
 ///
-/// A tuple of (Option<Vec<LanguageModelTool>>, Option<ToolChoice>)
+/// A tuple of (`Option<Vec<LanguageModelTool>>`, `Option<ToolChoice>`)
 ///
 /// # Example
 ///

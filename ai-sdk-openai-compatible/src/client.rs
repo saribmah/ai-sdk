@@ -76,7 +76,7 @@ impl OpenAICompatibleClient {
     ///
     /// # Arguments
     ///
-    /// * `base_url` - The base URL (e.g., "https://api.openai.com/v1")
+    /// * `base_url` - The base URL (e.g., "<https://api.openai.com/v1>")
     pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
         self.base_url = Some(base_url.into());
         self
