@@ -83,8 +83,9 @@
 pub mod chat;
 pub mod client;
 pub mod completion;
+pub mod embedding;
 pub mod error;
-mod provider;
+pub mod provider;
 pub mod settings;
 mod utils;
 
@@ -101,6 +102,13 @@ pub use completion::{
     OpenAICompatibleCompletionModelId, OpenAICompatibleCompletionPrompt,
     OpenAICompatibleCompletionProviderOptions as CompletionProviderOptions,
     convert_to_openai_compatible_completion_prompt,
+};
+
+// Re-export main types from embedding
+pub use embedding::{
+    OpenAICompatibleEmbeddingConfig, OpenAICompatibleEmbeddingModel,
+    OpenAICompatibleEmbeddingModelId,
+    OpenAICompatibleEmbeddingProviderOptions as EmbeddingProviderOptions,
 };
 
 pub use client::OpenAICompatibleClient;
