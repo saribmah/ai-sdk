@@ -391,6 +391,48 @@ The examples demonstrate:
 
 ## Development
 
+### Prerequisites
+
+This project uses [just](https://github.com/casey/just) as a command runner. Install it with:
+
+```bash
+cargo install just
+```
+
+### Pre-Commit Hooks
+
+We use pre-commit hooks to ensure code quality. Install them with:
+
+```bash
+just install-hooks
+```
+
+This will automatically:
+- ✅ Format your code with `rustfmt` (auto-fixes)
+- ✅ Run `clippy` to catch common mistakes (blocks commit if issues found)
+- ✅ Verify code compiles with `cargo check`
+
+### Available Just Commands
+
+We use [just](https://github.com/casey/just) as a command runner. Install it with `cargo install just`.
+
+```bash
+just                # List all available commands
+just install-hooks  # Install git pre-commit hooks
+just fmt            # Format code (auto-fix)
+just clippy         # Run clippy linter
+just check          # Quick compile check
+just test           # Run all tests
+just build          # Build all crates
+just doc            # Build documentation
+just pre-commit     # Run all pre-commit checks
+just ci             # Run all CI checks locally
+```
+
+Run `just --list` to see all available commands.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
+
 ### Running Tests
 
 ```bash
