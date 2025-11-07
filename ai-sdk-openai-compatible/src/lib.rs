@@ -85,6 +85,7 @@ pub mod client;
 pub mod completion;
 pub mod embedding;
 pub mod error;
+pub mod image;
 pub mod provider;
 pub mod settings;
 mod utils;
@@ -109,6 +110,11 @@ pub use embedding::{
     OpenAICompatibleEmbeddingConfig, OpenAICompatibleEmbeddingModel,
     OpenAICompatibleEmbeddingModelId,
     OpenAICompatibleEmbeddingProviderOptions as EmbeddingProviderOptions,
+};
+
+// Re-export main types from image
+pub use image::{
+    OpenAICompatibleImageModel, OpenAICompatibleImageModelConfig, OpenAICompatibleImageModelId,
 };
 
 pub use client::OpenAICompatibleClient;
