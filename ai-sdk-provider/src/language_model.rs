@@ -1,12 +1,12 @@
-use crate::language_model::call_options::CallOptions;
-use crate::language_model::call_warning::CallWarning;
-use crate::language_model::content::Content;
-use crate::language_model::finish_reason::FinishReason;
-use crate::language_model::response_metadata::ResponseMetadata;
-use crate::language_model::stream_part::StreamPart;
-use crate::language_model::usage::Usage;
-use crate::shared::headers::Headers;
-use crate::shared::provider_metadata::ProviderMetadata;
+use crate::language_model::call_options::LanguageModelCallOptions;
+use crate::language_model::call_warning::LanguageModelCallWarning;
+use crate::language_model::content::LanguageModelContent;
+use crate::language_model::finish_reason::LanguageModelFinishReason;
+use crate::language_model::response_metadata::LanguageModelResponseMetadata;
+use crate::language_model::stream_part::LanguageModelStreamPart;
+use crate::language_model::usage::LanguageModelUsage;
+use crate::shared::headers::SharedHeaders;
+use crate::shared::provider_metadata::SharedProviderMetadata;
 use async_trait::async_trait;
 use futures::Stream;
 use regex::Regex;
@@ -17,19 +17,12 @@ pub mod call_options;
 pub mod call_warning;
 pub mod content;
 mod data_content;
-pub mod file;
 pub mod finish_reason;
-pub mod function_tool;
 pub mod prompt;
-pub mod provider_defined_tool;
-pub mod reasoning;
 pub mod response_metadata;
-pub mod source;
 pub mod stream_part;
-pub mod text;
-pub mod tool_call;
+pub mod tool;
 pub mod tool_choice;
-pub mod tool_result;
 pub mod usage;
 
 #[async_trait]
@@ -48,37 +41,37 @@ pub trait LanguageModel: Send + Sync {
 
     async fn do_generate(
         &self,
-        options: CallOptions,
+        options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>>;
 
     async fn do_stream(
         &self,
-        options: CallOptions,
+        options: LanguageModelCallOptions,
     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>>;
 }
 
 #[derive(Debug)]
 pub struct LanguageModelGenerateResponse {
-    pub content: Vec<Content>,
-    pub finish_reason: FinishReason,
-    pub usage: Usage,
-    pub provider_metadata: Option<ProviderMetadata>,
-    pub request: Option<RequestMetadata>,
-    pub response: Option<ResponseMetadata>,
-    pub warnings: Vec<CallWarning>,
+    pub content: Vec<LanguageModelContent>,
+    pub finish_reason: LanguageModelFinishReason,
+    pub usage: LanguageModelUsage,
+    pub provider_metadata: Option<SharedProviderMetadata>,
+    pub request: Option<LanguageModelRequestMetadata>,
+    pub response: Option<LanguageModelResponseMetadata>,
+    pub warnings: Vec<LanguageModelCallWarning>,
 }
 
 pub struct LanguageModelStreamResponse {
-    pub stream: Box<dyn Stream<Item = StreamPart> + Unpin + Send>,
-    pub request: Option<RequestMetadata>,
+    pub stream: Box<dyn Stream<Item = LanguageModelStreamPart> + Unpin + Send>,
+    pub request: Option<LanguageModelRequestMetadata>,
     pub response: Option<StreamResponseMetadata>,
 }
 
 #[derive(Debug)]
-pub struct RequestMetadata {
+pub struct LanguageModelRequestMetadata {
     pub body: Option<Value>,
 }
 
 pub struct StreamResponseMetadata {
-    pub headers: Option<Headers>,
+    pub headers: Option<SharedHeaders>,
 }

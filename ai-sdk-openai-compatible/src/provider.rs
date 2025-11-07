@@ -2,44 +2,13 @@ use ai_sdk_provider::error::ProviderError;
 use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::provider::Provider;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::chat::{OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel};
 use crate::completion::{
     OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
 };
-
-/// Configuration options for creating an OpenAI-compatible provider.
-#[derive(Debug, Clone)]
-pub struct OpenAICompatibleProviderSettings {
-    /// Base URL for the API calls (e.g., "https://api.openai.com/v1")
-    pub base_url: String,
-
-    /// Provider name (e.g., "openai", "azure-openai", "custom")
-    pub name: String,
-
-    /// API key for authenticating requests. If specified, adds an `Authorization`
-    /// header with the value `Bearer <apiKey>`.
-    pub api_key: Option<String>,
-
-    /// Optional organization ID
-    pub organization: Option<String>,
-
-    /// Optional project ID
-    pub project: Option<String>,
-
-    /// Optional custom headers to include in requests. These will be added to request headers
-    /// after any headers potentially added by use of the `api_key` option.
-    pub headers: Option<HashMap<String, String>>,
-
-    /// Optional custom URL query parameters to include in request URLs.
-    pub query_params: Option<HashMap<String, String>>,
-
-    /// Include usage information in streaming responses.
-    pub include_usage: bool,
-
-    /// Whether the provider supports structured outputs in chat models.
-    pub supports_structured_outputs: bool,
-}
+use crate::settings::OpenAICompatibleProviderSettings;
 
 /// OpenAI-compatible provider implementation.
 ///
@@ -50,30 +19,29 @@ pub struct OpenAICompatibleProvider {
 
 impl OpenAICompatibleProvider {
     /// Creates a new OpenAI-compatible provider.
-    fn new(settings: OpenAICompatibleProviderSettings) -> Self {
+    pub fn new(settings: OpenAICompatibleProviderSettings) -> Self {
         Self { settings }
     }
 
     /// Creates a language model with the given model ID.
-    /// This is an alias for `chat_model`.
-    pub fn language_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         self.chat_model(model_id)
     }
 
     /// Creates a chat language model with the given model ID.
-    pub fn chat_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn chat_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         let model_id = model_id.into();
         let config = self.create_chat_config();
 
-        Box::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
+        Arc::new(OpenAICompatibleChatLanguageModel::new(model_id, config))
     }
 
     /// Creates a completion language model with the given model ID.
-    pub fn completion_model(&self, model_id: impl Into<String>) -> Box<dyn LanguageModel> {
+    pub fn completion_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         let model_id = model_id.into();
         let config = self.create_completion_config();
 
-        Box::new(OpenAICompatibleCompletionLanguageModel::new(
+        Arc::new(OpenAICompatibleCompletionLanguageModel::new(
             model_id, config,
         ))
     }
@@ -114,7 +82,7 @@ impl OpenAICompatibleProvider {
 
                 headers
             }),
-            url: Box::new(move |model_id: &str, path: &str| {
+            url: Box::new(move |_model_id: &str, path: &str| {
                 let mut url = format!("{}{}", base_url, path);
 
                 // Add query parameters if present
@@ -171,7 +139,7 @@ impl OpenAICompatibleProvider {
 
                 headers
             }),
-            url: Box::new(move |model_id: &str, path: &str| {
+            url: Box::new(move |_model_id: &str, path: &str| {
                 let mut url = format!("{}{}", base_url, path);
 
                 // Add query parameters if present
@@ -203,99 +171,8 @@ impl OpenAICompatibleProvider {
 
 // Implement the Provider trait for compatibility with the provider interface
 impl Provider for OpenAICompatibleProvider {
-    fn language_model(&self, model_id: &str) -> Result<Box<dyn LanguageModel>, ProviderError> {
+    fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
         Ok(self.chat_model(model_id))
-    }
-}
-
-impl Default for OpenAICompatibleProviderSettings {
-    fn default() -> Self {
-        Self {
-            base_url: "https://api.openai.com/v1".to_string(),
-            name: "openai".to_string(),
-            api_key: None,
-            organization: None,
-            project: None,
-            headers: None,
-            query_params: None,
-            include_usage: false,
-            supports_structured_outputs: false,
-        }
-    }
-}
-
-impl OpenAICompatibleProviderSettings {
-    /// Creates a new configuration with the given base URL and name.
-    pub fn new(base_url: impl Into<String>, name: impl Into<String>) -> Self {
-        Self {
-            base_url: base_url.into(),
-            name: name.into(),
-            api_key: None,
-            organization: None,
-            project: None,
-            headers: None,
-            query_params: None,
-            include_usage: false,
-            supports_structured_outputs: false,
-        }
-    }
-
-    /// Sets the API key.
-    pub fn with_api_key(mut self, api_key: impl Into<String>) -> Self {
-        self.api_key = Some(api_key.into());
-        self
-    }
-
-    /// Sets the organization ID.
-    pub fn with_organization(mut self, organization: impl Into<String>) -> Self {
-        self.organization = Some(organization.into());
-        self
-    }
-
-    /// Sets the project ID.
-    pub fn with_project(mut self, project: impl Into<String>) -> Self {
-        self.project = Some(project.into());
-        self
-    }
-
-    /// Sets additional headers.
-    pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
-        self.headers = Some(headers);
-        self
-    }
-
-    /// Adds a single header.
-    pub fn with_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        let mut headers = self.headers.unwrap_or_default();
-        headers.insert(key.into(), value.into());
-        self.headers = Some(headers);
-        self
-    }
-
-    /// Sets query parameters.
-    pub fn with_query_params(mut self, query_params: HashMap<String, String>) -> Self {
-        self.query_params = Some(query_params);
-        self
-    }
-
-    /// Adds a single query parameter.
-    pub fn with_query_param(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        let mut query_params = self.query_params.unwrap_or_default();
-        query_params.insert(key.into(), value.into());
-        self.query_params = Some(query_params);
-        self
-    }
-
-    /// Sets whether to include usage information in streaming responses.
-    pub fn with_include_usage(mut self, include_usage: bool) -> Self {
-        self.include_usage = include_usage;
-        self
-    }
-
-    /// Sets whether the provider supports structured outputs.
-    pub fn with_supports_structured_outputs(mut self, supports: bool) -> Self {
-        self.supports_structured_outputs = supports;
-        self
     }
 }
 
@@ -397,7 +274,8 @@ mod tests {
             .with_api_key("test-key");
 
         let provider = create_openai_compatible(settings);
-        let model = provider.language_model("gpt-4");
+        let model_result = provider.language_model("gpt-4");
+        let model = model_result.unwrap();
 
         assert_eq!(model.provider(), "openai.chat");
         assert_eq!(model.model_id(), "gpt-4");
@@ -492,7 +370,8 @@ mod tests {
         assert_eq!(model3.model_id(), "model-3");
 
         // Test language_model as struct method (alias for chat_model)
-        let model4 = provider.language_model("model-4");
+        let model4_result = provider.language_model("model-4");
+        let model4 = model4_result.unwrap();
         assert_eq!(model4.provider(), "example.chat");
         assert_eq!(model4.model_id(), "model-4");
     }
@@ -516,7 +395,7 @@ mod tests {
         // Call generate_text - this will make an actual HTTP request and fail
         // because we're using a test API key, but it tests the integration
         let result = generate_text(
-            &*model,
+            model,
             prompt,
             call_settings,
             None,

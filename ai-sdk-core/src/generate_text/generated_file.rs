@@ -1,21 +1,24 @@
-use crate::message::data_content::DataContent;
-use std::cell::OnceCell;
+use crate::prompt::message::data_content::DataContent;
+use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 
 /// A generated file.
 ///
 /// This represents a file with its content and metadata. The file content
 /// can be provided as either base64-encoded string or raw bytes, and will
 /// be lazily converted between formats as needed.
-#[derive(Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GeneratedFile {
     /// Internal storage for the file data (either base64 or bytes).
     data: DataContent,
 
     /// Cached base64 representation (lazily computed).
-    cached_base64: OnceCell<String>,
+    #[serde(skip)]
+    cached_base64: OnceLock<String>,
 
     /// Cached bytes representation (lazily computed).
-    cached_bytes: OnceCell<Vec<u8>>,
+    #[serde(skip)]
+    cached_bytes: OnceLock<Vec<u8>>,
 
     /// The IANA media type of the file.
     ///
@@ -44,10 +47,12 @@ impl GeneratedFile {
     /// ```
     pub fn from_base64(base64: impl Into<String>, media_type: impl Into<String>) -> Self {
         let base64_str = base64.into();
+        let cached_base64 = OnceLock::new();
+        let _ = cached_base64.set(base64_str.clone());
         Self {
             data: DataContent::base64(&base64_str),
-            cached_base64: OnceCell::from(base64_str),
-            cached_bytes: OnceCell::new(),
+            cached_base64,
+            cached_bytes: OnceLock::new(),
             media_type: media_type.into(),
             name: None,
         }
@@ -70,10 +75,12 @@ impl GeneratedFile {
     /// ```
     pub fn from_bytes(bytes: impl Into<Vec<u8>>, media_type: impl Into<String>) -> Self {
         let bytes_vec = bytes.into();
+        let cached_bytes = OnceLock::new();
+        let _ = cached_bytes.set(bytes_vec.clone());
         Self {
-            data: DataContent::bytes(bytes_vec.clone()),
-            cached_base64: OnceCell::new(),
-            cached_bytes: OnceCell::from(bytes_vec),
+            data: DataContent::bytes(bytes_vec),
+            cached_base64: OnceLock::new(),
+            cached_bytes,
             media_type: media_type.into(),
             name: None,
         }
@@ -147,6 +154,18 @@ impl GeneratedFile {
     /// ```
     pub fn to_vec(&self) -> Vec<u8> {
         self.bytes().to_vec()
+    }
+}
+
+impl Clone for GeneratedFile {
+    fn clone(&self) -> Self {
+        Self {
+            data: self.data.clone(),
+            cached_base64: OnceLock::new(),
+            cached_bytes: OnceLock::new(),
+            media_type: self.media_type.clone(),
+            name: self.name.clone(),
+        }
     }
 }
 

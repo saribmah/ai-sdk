@@ -1,4 +1,4 @@
-use crate::message::{AssistantModelMessage, ModelMessage, ToolModelMessage};
+use crate::prompt::message::{AssistantMessage, Message, ToolMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -8,23 +8,23 @@ use crate::message::{AssistantModelMessage, ModelMessage, ToolModelMessage};
 ///
 /// ```
 /// use ai_sdk_core::ResponseMessage;
-/// use ai_sdk_core::message::AssistantModelMessage;
+/// use ai_sdk_core::prompt::message::AssistantMessage;
 ///
 /// // Create an assistant response message
-/// let assistant_msg = AssistantModelMessage::new("Hello, how can I help you?");
+/// let assistant_msg = AssistantMessage::new("Hello, how can I help you?");
 /// let response_msg = ResponseMessage::Assistant(assistant_msg);
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub enum ResponseMessage {
     /// An assistant model message.
-    Assistant(AssistantModelMessage),
+    Assistant(AssistantMessage),
 
     /// A tool model message.
-    Tool(ToolModelMessage),
+    Tool(ToolMessage),
 }
 
 impl ResponseMessage {
-    /// Creates a new `ResponseMessage` from an `AssistantModelMessage`.
+    /// Creates a new `ResponseMessage` from an `AssistantMessage`.
     ///
     /// # Arguments
     ///
@@ -33,19 +33,19 @@ impl ResponseMessage {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, AssistantModelMessage};
+    /// use ai_sdk_core::{ResponseMessage, AssistantMessage};
     ///
-    /// let assistant_msg = AssistantModelMessage {
+    /// let assistant_msg = AssistantMessage {
     ///     role: "assistant".to_string(),
     ///     content: vec![],
     /// };
     /// let response = ResponseMessage::from_assistant(assistant_msg);
     /// ```
-    pub fn from_assistant(message: AssistantModelMessage) -> Self {
+    pub fn from_assistant(message: AssistantMessage) -> Self {
         ResponseMessage::Assistant(message)
     }
 
-    /// Creates a new `ResponseMessage` from a `ToolModelMessage`.
+    /// Creates a new `ResponseMessage` from a `ToolMessage`.
     ///
     /// # Arguments
     ///
@@ -54,15 +54,15 @@ impl ResponseMessage {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, ToolModelMessage};
+    /// use ai_sdk_core::{ResponseMessage, ToolMessage};
     ///
-    /// let tool_msg = ToolModelMessage {
+    /// let tool_msg = ToolMessage {
     ///     role: "tool".to_string(),
     ///     content: vec![],
     /// };
     /// let response = ResponseMessage::from_tool(tool_msg);
     /// ```
-    pub fn from_tool(message: ToolModelMessage) -> Self {
+    pub fn from_tool(message: ToolMessage) -> Self {
         ResponseMessage::Tool(message)
     }
 
@@ -77,7 +77,7 @@ impl ResponseMessage {
     }
 
     /// Returns a reference to the assistant message if this is an assistant message.
-    pub fn as_assistant(&self) -> Option<&AssistantModelMessage> {
+    pub fn as_assistant(&self) -> Option<&AssistantMessage> {
         match self {
             ResponseMessage::Assistant(msg) => Some(msg),
             _ => None,
@@ -85,7 +85,7 @@ impl ResponseMessage {
     }
 
     /// Returns a reference to the tool message if this is a tool message.
-    pub fn as_tool(&self) -> Option<&ToolModelMessage> {
+    pub fn as_tool(&self) -> Option<&ToolMessage> {
         match self {
             ResponseMessage::Tool(msg) => Some(msg),
             _ => None,
@@ -93,12 +93,12 @@ impl ResponseMessage {
     }
 }
 
-impl From<ModelMessage> for ResponseMessage {
-    fn from(message: ModelMessage) -> Self {
+impl From<Message> for ResponseMessage {
+    fn from(message: Message) -> Self {
         match message {
-            ModelMessage::Assistant(msg) => ResponseMessage::Assistant(msg),
-            ModelMessage::Tool(msg) => ResponseMessage::Tool(msg),
-            ModelMessage::System(_) | ModelMessage::User(_) => {
+            Message::Assistant(msg) => ResponseMessage::Assistant(msg),
+            Message::Tool(msg) => ResponseMessage::Tool(msg),
+            Message::System(_) | Message::User(_) => {
                 panic!("Cannot convert System or User messages to ResponseMessage")
             }
         }
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_response_message_from_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hello");
+        let assistant_msg = AssistantMessage::new("Hello");
         let response = ResponseMessage::from_assistant(assistant_msg.clone());
 
         assert!(response.is_assistant());
@@ -122,15 +122,14 @@ mod tests {
 
     #[test]
     fn test_response_message_from_tool() {
-        use crate::message::content_parts::{ToolResultOutput, ToolResultPart};
-        use crate::message::model::tool::ToolContentPart;
+        use crate::prompt::message::content_parts::{ToolResultOutput, ToolResultPart};
+        use crate::prompt::message::tool::ToolContentPart;
 
-        let tool_msg =
-            ToolModelMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
-                "call_123",
-                "tool_name",
-                ToolResultOutput::text("Tool result"),
-            ))]);
+        let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
+            "call_123",
+            "tool_name",
+            ToolResultOutput::text("Tool result"),
+        ))]);
         let response = ResponseMessage::from_tool(tool_msg.clone());
 
         assert!(response.is_tool());
@@ -141,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_response_message_assistant_variant() {
-        let assistant_msg = AssistantModelMessage::new("Test message");
+        let assistant_msg = AssistantMessage::new("Test message");
         let response = ResponseMessage::Assistant(assistant_msg.clone());
 
         match response {
@@ -152,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_response_message_tool_variant() {
-        let tool_msg = ToolModelMessage::new(vec![]);
+        let tool_msg = ToolMessage::new(vec![]);
         let response = ResponseMessage::Tool(tool_msg.clone());
 
         match response {
@@ -163,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_response_message_clone() {
-        let assistant_msg = AssistantModelMessage::new("Test");
+        let assistant_msg = AssistantMessage::new("Test");
         let response = ResponseMessage::from_assistant(assistant_msg);
         let cloned = response.clone();
 
@@ -172,8 +171,8 @@ mod tests {
 
     #[test]
     fn test_from_model_message_assistant() {
-        let assistant_msg = AssistantModelMessage::new("Hello");
-        let model_msg = ModelMessage::Assistant(assistant_msg.clone());
+        let assistant_msg = AssistantMessage::new("Hello");
+        let model_msg = Message::Assistant(assistant_msg.clone());
         let response = ResponseMessage::from(model_msg);
 
         assert!(response.is_assistant());
@@ -182,8 +181,8 @@ mod tests {
 
     #[test]
     fn test_from_model_message_tool() {
-        let tool_msg = ToolModelMessage::new(vec![]);
-        let model_msg = ModelMessage::Tool(tool_msg.clone());
+        let tool_msg = ToolMessage::new(vec![]);
+        let model_msg = Message::Tool(tool_msg.clone());
         let response = ResponseMessage::from(model_msg);
 
         assert!(response.is_tool());

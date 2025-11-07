@@ -13,7 +13,7 @@
 /// ```
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 use ai_sdk_core::stream_text;
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use std::env;
 use std::sync::Arc;
@@ -43,17 +43,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
 
     // Get a language model
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> = 
+    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
         Arc::from(provider.chat_model("gpt-4o-mini"));
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
@@ -66,16 +66,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text(
         "Generate a JSON object describing a person with name, age, and occupation. \
          Return ONLY valid JSON, no explanations. \
-         Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}"
+         Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}",
     );
     let settings = CallSettings::default()
         .with_temperature(0.7)
         .with_max_output_tokens(200);
 
-    let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
+    let result = stream_text(
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,  // tools
         None,  // tool_choice
         None,  // stop_when
@@ -87,16 +87,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,  // on_error
         None,  // on_step_finish
         None,  // on_finish
-        None,  // on_abort
     )
     .await?;
 
     println!("📝 Streaming partial JSON (will parse to Person):\n");
-    
+
     // Stream partial outputs as JSON values
-    let mut partial_stream = result.partial_output_stream();
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut last_value: Option<serde_json::Value> = None;
-    
+
     while let Some(value) = partial_stream.next().await {
         // Only print if different from last
         if last_value.as_ref() != Some(&value) {
@@ -109,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             last_value = Some(value);
         }
     }
-    
+
     println!("\n");
 
     // Example 2: Streaming a recipe with arrays
@@ -122,29 +121,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Return ONLY valid JSON. Example: \
          {\"name\": \"Chocolate Chip Cookies\", \
          \"ingredients\": [\"flour\", \"sugar\", \"chocolate chips\"], \
-         \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}"
+         \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}",
     );
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
-        None, None, None, None, None, false, None,
-        None, None, None, None, None,
+        prompt,
+        settings.clone(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        false,
+        None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
     println!("📝 Streaming partial JSON (will parse to Recipe):\n");
-    
-    let mut partial_stream = result.partial_output_stream();
+
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut last_value: Option<serde_json::Value> = None;
-    
+
     while let Some(value) = partial_stream.next().await {
         if last_value.as_ref() != Some(&value) {
             // Try to parse as Recipe
             if let Ok(recipe) = serde_json::from_value::<Recipe>(value.clone()) {
                 println!("  → Name: {}", recipe.name);
-                println!("    Ingredients ({} so far): {}", recipe.ingredients.len(), recipe.ingredients.join(", "));
+                println!(
+                    "    Ingredients ({} so far): {}",
+                    recipe.ingredients.len(),
+                    recipe.ingredients.join(", ")
+                );
                 println!("    Steps ({} so far):", recipe.steps.len());
                 for (i, step) in recipe.steps.iter().enumerate() {
                     println!("      {}. {}", i + 1, step);
@@ -164,26 +176,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let prompt = Prompt::text(
         "Generate a JSON object describing a car with make, model, year, and features array. \
-         Return ONLY valid JSON."
+         Return ONLY valid JSON.",
     );
 
     let result = stream_text::stream_text(
-        settings,
-        prompt,
         Arc::clone(&model),
-        None, None, None, None, None, false, None,
-        None, None, None, None, None,
+        prompt,
+        settings,
+        None,
+        None,
+        None,
+        None,
+        None,
+        false,
+        None,
+        None,
+        None,
+        None,
+        None,
     )
     .await?;
 
     println!("📝 Streaming partial JSON values:\n");
-    
-    let mut partial_stream = result.partial_output_stream();
+
+    let mut partial_stream = result.partial_output_stream::<serde_json::Value>();
     let mut update_count = 0;
-    
+
     while let Some(value) = partial_stream.next().await {
         update_count += 1;
-        println!("  Update #{}: {}", update_count, serde_json::to_string_pretty(&value)?);
+        println!(
+            "  Update #{}: {}",
+            update_count,
+            serde_json::to_string_pretty(&value)?
+        );
         println!();
     }
 

@@ -6,7 +6,8 @@ pub mod shared;
 // Re-export commonly used types
 pub use error::ProviderError;
 pub use language_model::{
-    LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse, RequestMetadata,
+    LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
+    LanguageModelStreamResponse,
 };
 pub use provider::Provider;
 

@@ -1,8 +1,9 @@
+use ai_sdk_core::GenerateTextBuilder;
 /// Basic chat example demonstrating text generation with OpenAI-compatible providers.
 ///
 /// This example shows how to:
 /// - Create a provider from environment variables
-/// - Use generate_text to get responses
+/// - Use GenerateTextBuilder with fluent API to get responses
 /// - Handle the response properly
 ///
 /// Run with:
@@ -10,9 +11,8 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_chat
 /// ```
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_core::prompt::Prompt;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
 #[tokio::main]
@@ -26,16 +26,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
 
-    // Get a language model
+    // Get a language model (returns Arc<dyn LanguageModel>)
     let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
@@ -44,17 +44,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text("What is the capital of France? Answer in one sentence.");
     println!("📤 Sending prompt: \"What is the capital of France? Answer in one sentence.\"\n");
 
-    // Configure settings
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(100);
-
-    // Generate text
+    // Generate text using the builder pattern
     println!("⏳ Generating response...\n");
-    let result = generate_text(
-        &*model, prompt, settings, None, None, None, None, None, None, None,
-    )
-    .await?;
+    let result = GenerateTextBuilder::new(model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(10)
+        .execute()
+        .await?;
 
     // Display the response
     println!("✅ Response received!\n");

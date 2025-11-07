@@ -1,5 +1,6 @@
 use crate::error::ProviderError;
 use crate::language_model::LanguageModel;
+use std::sync::Arc;
 
 /// Provider for language models, text embedding, and image generation models.
 ///
@@ -16,9 +17,9 @@ use crate::language_model::LanguageModel;
 /// }
 ///
 /// impl Provider for MyProvider {
-///     fn language_model(&self, model_id: &str) -> Result<Box<dyn LanguageModel>, ProviderError> {
+///     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
 ///         match model_id {
-///             "my-model-1" => Ok(Box::new(MyModel::new(model_id))),
+///             "my-model-1" => Ok(Arc::new(MyModel::new(model_id))),
 ///             _ => Err(ProviderError::no_such_model(model_id, &self.provider_id)),
 ///         }
 ///     }
@@ -36,7 +37,7 @@ pub trait Provider: Send + Sync {
     ///
     /// # Returns
     ///
-    /// * `Ok(Box<dyn LanguageModel>)` - The language model instance
+    /// * `Ok(Arc<dyn LanguageModel>)` - The language model instance wrapped in Arc
     /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
     ///
     /// # Errors
@@ -50,7 +51,7 @@ pub trait Provider: Send + Sync {
     /// let provider = MyProvider::new();
     /// let model = provider.language_model("gpt-4")?;
     /// ```
-    fn language_model(&self, model_id: &str) -> Result<Box<dyn LanguageModel>, ProviderError>;
+    fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError>;
 
     /*
     /// Returns the text embedding model with the given id.

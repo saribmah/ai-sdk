@@ -1,5 +1,3 @@
-use ai_sdk_core::message::tool::definition::Tool;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Tool calling example demonstrating function calling with a weather tool.
 ///
 /// This example shows how to:
@@ -13,10 +11,14 @@ use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example tool_calling
 /// ```
+use ai_sdk_core::output::Output;
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{ToolSet, generate_text};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -42,11 +44,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     let model = provider.chat_model("gpt-4o-mini");
 
@@ -57,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tool");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::tool::definition::ToolExecutionOutput;
 
     let weather_tool = Tool::function(json!({
         "type": "object",
@@ -111,7 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate text with the tool
     println!("⏳ Generating response...\n");
     let result = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt,
         settings,
         Some(tools),
@@ -148,30 +150,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check the last step for tool calls
     if let Some(last_step) = result.steps.last() {
         for content in &last_step.content {
-            use ai_sdk_core::{ContentPart, TypedToolCall};
-            if let ContentPart::ToolCall(tool_call) = content {
+            if let Output::ToolCall(tool_call) = content {
                 found_tool_call = true;
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 println!("Tool Call Detected!");
                 println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-                // Extract tool call details based on the variant
-                let (tool_call_id, tool_name, input_str) = match tool_call {
-                    TypedToolCall::Static(call) => (
-                        &call.tool_call_id,
-                        &call.tool_name,
-                        serde_json::to_string(&call.input)?,
-                    ),
-                    TypedToolCall::Dynamic(call) => (
-                        &call.tool_call_id,
-                        &call.tool_name,
-                        serde_json::to_string(&call.input)?,
-                    ),
-                };
+                // Extract tool call details
+                let input_str = serde_json::to_string(&tool_call.input)?;
 
                 println!("🔧 Tool Call Details:");
-                println!("  • Tool ID: {}", tool_call_id);
-                println!("  • Tool Name: {}", tool_name);
+                println!("  • Tool ID: {}", tool_call.tool_call_id);
+                println!("  • Tool Name: {}", tool_call.tool_name);
                 println!("  • Arguments: {}\n", input_str);
 
                 // Parse the arguments

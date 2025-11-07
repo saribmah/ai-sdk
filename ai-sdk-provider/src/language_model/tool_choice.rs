@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ToolChoice {
+pub enum LanguageModelToolChoice {
     Auto,
     None,
     Required,

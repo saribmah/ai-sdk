@@ -13,8 +13,10 @@
 /// cargo run --example stream_transforms
 /// ```
 use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_core::stream_text::{self, TextStreamPart, filter_transform, map_transform, batch_text_transform, throttle_transform};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_core::stream_text::{
+    self, TextStreamPart, batch_text_transform, filter_transform, map_transform, throttle_transform,
+};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use std::env;
 use std::sync::Arc;
@@ -31,17 +33,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
 
     // Get a language model and wrap in Arc
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> = Arc::from(provider.chat_model("gpt-4o-mini"));
+    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
+        Arc::from(provider.chat_model("gpt-4o-mini"));
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 
@@ -54,26 +57,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = CallSettings::default().with_temperature(0.7);
 
     // Create a filter transform that only passes text deltas
-    let text_filter = filter_transform(|part| {
-        matches!(part, TextStreamPart::TextDelta { .. })
-    });
+    let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
-        None,  // tools
-        None,  // tool_choice
-        None,  // stop_when
-        None,  // provider_options
-        None,  // prepare_step
-        false, // include_raw_chunks
+        prompt,
+        settings.clone(),
+        None,                              // tools
+        None,                              // tool_choice
+        None,                              // stop_when
+        None,                              // provider_options
+        None,                              // prepare_step
+        false,                             // include_raw_chunks
         Some(vec![Box::new(text_filter)]), // transforms
-        None,  // on_chunk
-        None,  // on_error
-        None,  // on_step_finish
-        None,  // on_finish
-        None,  // on_abort
+        None,                              // on_chunk
+        None,                              // on_error
+        None,                              // on_step_finish
+        None,                              // on_finish
     )
     .await?;
 
@@ -107,9 +107,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -117,7 +117,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         false,
         Some(vec![Box::new(uppercase_mapper)]),
-        None,
         None,
         None,
         None,
@@ -144,9 +143,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let batcher = batch_text_transform(50, Duration::from_millis(100));
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -154,7 +153,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         false,
         Some(vec![Box::new(batcher)]),
-        None,
         None,
         None,
         None,
@@ -170,7 +168,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         chunk_count += 1;
         std::io::Write::flush(&mut std::io::stdout())?;
     }
-    println!("\n  ℹ️  Received {} chunks (would be more without batching)\n", chunk_count);
+    println!(
+        "\n  ℹ️  Received {} chunks (would be more without batching)\n",
+        chunk_count
+    );
 
     // Example 4: Throttle transform - slow down output
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -183,9 +184,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let throttler = throttle_transform(Duration::from_millis(50));
 
     let result = stream_text::stream_text(
-        settings.clone(),
-        prompt,
         Arc::clone(&model),
+        prompt,
+        settings.clone(),
         None,
         None,
         None,
@@ -193,7 +194,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
         false,
         Some(vec![Box::new(throttler)]),
-        None,
         None,
         None,
         None,
@@ -209,7 +209,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::io::Write::flush(&mut std::io::stdout())?;
     }
     let elapsed = start.elapsed();
-    println!("\n  ℹ️  Streaming took {:?} (delayed by throttling)\n", elapsed);
+    println!(
+        "\n  ℹ️  Streaming took {:?} (delayed by throttling)\n",
+        elapsed
+    );
 
     // Example 5: Chained transforms
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -219,9 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text("Write a haiku about programming");
 
     // Chain multiple transforms together
-    let text_filter = filter_transform(|part| {
-        matches!(part, TextStreamPart::TextDelta { .. })
-    });
+    let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
     let replacer = map_transform(|part| match part {
         TextStreamPart::TextDelta {
             id,
@@ -237,9 +238,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let batcher = batch_text_transform(30, Duration::from_millis(50));
 
     let result = stream_text::stream_text(
-        settings,
-        prompt,
         Arc::from(model),
+        prompt,
+        settings,
         None,
         None,
         None,
@@ -251,7 +252,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Box::new(replacer),
             Box::new(batcher),
         ]),
-        None,
         None,
         None,
         None,

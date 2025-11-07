@@ -16,29 +16,37 @@ pub use stream_text_result::{
 };
 pub use text_stream_part::{StreamGeneratedFile, TextStreamPart};
 pub use transform::{
-    StreamTransform, TransformOptions, StopStreamHandle,
-    FilterTransform, MapTransform, ThrottleTransform, BatchTextTransform,
-    filter_transform, map_transform, throttle_transform, batch_text_transform,
-};
-pub use output::{
-    Output, OutputParseError, OutputParseErrorKind,
-    TextOutput, JsonOutput, ObjectOutput, ArrayOutput, ChoiceOutput,
+    BatchTextTransform, FilterTransform, MapTransform, StopStreamHandle, StreamTransform,
+    ThrottleTransform, TransformOptions, batch_text_transform, filter_transform, map_transform,
+    throttle_transform,
 };
 
+use crate::ResponseMessage;
 use crate::error::AISDKError;
 use crate::generate_text::{
-    ContentPart, StepResult, ToolSet, TypedToolCall, execute_tool_call,
-    to_response_messages, is_stop_condition_met,
+    PrepareStep, PrepareStepOptions, StepResult, StopCondition, is_stop_condition_met,
+    to_response_messages,
 };
-use crate::prompt::{Prompt, call_settings::CallSettings, standardize::StandardizedPrompt};
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::tool_choice::ToolChoice;
-use ai_sdk_provider::language_model::usage::Usage;
-use ai_sdk_provider::shared::provider_options::ProviderOptions;
+use crate::output::{Output, ReasoningOutput, SourceOutput, TextOutput};
+use crate::prompt::message::Message;
+use crate::prompt::{
+    Prompt, call_settings::CallSettings, call_settings::prepare_call_settings,
+    convert_to_language_model_prompt::convert_to_language_model_prompt,
+    standardize::StandardizedPrompt, standardize::validate_and_standardize,
+};
+use crate::tool::{
+    ToolCall, ToolSet, execute_tool_call, parse_provider_executed_dynamic_tool_call,
+    parse_tool_call, prepare_tools_and_tool_choice,
+};
+use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+use ai_sdk_provider::language_model::{
+    LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::LanguageModelToolChoice,
+    usage::LanguageModelUsage,
+};
+use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
-use std::sync::Arc;
 use std::pin::Pin;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 /// Result of streaming a single step.
@@ -46,28 +54,28 @@ use tokio::sync::mpsc;
 /// This contains all the accumulated data from processing one streaming call to the model.
 struct SingleStepStreamResult {
     /// The content parts accumulated during the step
-    content: Vec<ContentPart<Value, Value>>,
-    
+    content: Vec<Output>,
+
     /// Tool calls made during the step
-    tool_calls: Vec<TypedToolCall<Value>>,
-    
+    tool_calls: Vec<ToolCall>,
+
     /// Finish reason for the step
-    finish_reason: FinishReason,
-    
+    finish_reason: LanguageModelFinishReason,
+
     /// Usage for this step
-    usage: Usage,
-    
+    usage: LanguageModelUsage,
+
     /// Request metadata
     request: crate::generate_text::RequestMetadata,
-    
+
     /// Response metadata
     response: crate::generate_text::StepResponseMetadata,
-    
+
     /// Provider metadata
-    provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::ProviderMetadata>,
-    
+    provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+
     /// Warnings from the provider
-    warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::CallWarning>>,
+    warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
 }
 
 /// Streams a single step and accumulates the results.
@@ -77,17 +85,16 @@ struct SingleStepStreamResult {
 /// as they arrive.
 async fn stream_single_step(
     model: Arc<dyn LanguageModel>,
-    call_options: ai_sdk_provider::language_model::call_options::CallOptions,
+    call_options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
     tools: Option<&ToolSet>,
     include_raw_chunks: bool,
-    tx: &mpsc::UnboundedSender<TextStreamPart<Value, Value>>,
+    tx: &mpsc::UnboundedSender<TextStreamPart>,
     on_chunk: Option<&Arc<OnChunkCallback>>,
     on_error: Option<&Arc<OnErrorCallback>>,
 ) -> Result<SingleStepStreamResult, AISDKError> {
-    use ai_sdk_provider::language_model::stream_part::StreamPart;
+    use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
     use futures_util::StreamExt;
-    use crate::generate_text::{TextOutput, ReasoningOutput, SourceOutput};
-    
+
     // Call model.do_stream
     let stream_response = model
         .do_stream(call_options)
@@ -99,12 +106,12 @@ async fn stream_single_step(
         .request
         .as_ref()
         .and_then(|r| r.body.clone());
-        
+
     let mut provider_stream = stream_response.stream;
-    
+
     // Accumulate step data
-    let mut step_content: Vec<ContentPart<Value, Value>> = Vec::new();
-    let mut step_tool_calls: Vec<TypedToolCall<Value>> = Vec::new();
+    let mut step_content: Vec<Output> = Vec::new();
+    let mut step_tool_calls: Vec<ToolCall> = Vec::new();
     let mut current_text = String::new();
     let mut current_reasoning = String::new();
     let step_request = crate::generate_text::RequestMetadata {
@@ -112,119 +119,87 @@ async fn stream_single_step(
     };
     let step_response = crate::generate_text::StepResponseMetadata::default();
     let mut step_warnings = None;
-    let mut step_finish_reason = FinishReason::Unknown;
-    let mut step_usage = Usage::default();
+    let mut step_finish_reason = LanguageModelFinishReason::Unknown;
+    let mut step_usage = LanguageModelUsage::default();
     let mut step_provider_metadata = None;
 
     while let Some(part) = provider_stream.next().await {
-        // Convert StreamPart to TextStreamPart  
+        // Convert StreamPart to TextStreamPart
         let text_stream_part = match part {
-            StreamPart::TextStart {
-                id,
-                provider_metadata,
-            } => TextStreamPart::TextStart {
-                id,
-                provider_metadata,
+            LanguageModelStreamPart::TextStart(ts) => TextStreamPart::TextStart {
+                id: ts.id,
+                provider_metadata: ts.provider_metadata,
             },
-            StreamPart::TextDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => {
-                current_text.push_str(&delta);
+            LanguageModelStreamPart::TextDelta(td) => {
+                current_text.push_str(&td.delta);
                 TextStreamPart::TextDelta {
-                    id,
-                    provider_metadata,
-                    text: delta,
+                    id: td.id,
+                    provider_metadata: td.provider_metadata,
+                    text: td.delta,
                 }
             }
-            StreamPart::TextEnd {
-                id,
-                provider_metadata,
-            } => {
+            LanguageModelStreamPart::TextEnd(te) => {
                 // Add accumulated text to content
                 if !current_text.is_empty() {
-                    step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                    step_content.push(Output::Text(TextOutput::new(current_text.clone())));
                     current_text.clear();
                 }
                 TextStreamPart::TextEnd {
-                    id,
-                    provider_metadata,
+                    id: te.id,
+                    provider_metadata: te.provider_metadata,
                 }
             }
-            StreamPart::ReasoningStart {
-                id,
-                provider_metadata,
-            } => TextStreamPart::ReasoningStart {
-                id,
-                provider_metadata,
+            LanguageModelStreamPart::ReasoningStart(rs) => TextStreamPart::ReasoningStart {
+                id: rs.id,
+                provider_metadata: rs.provider_metadata,
             },
-            StreamPart::ReasoningDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => {
-                current_reasoning.push_str(&delta);
+            LanguageModelStreamPart::ReasoningDelta(rd) => {
+                current_reasoning.push_str(&rd.delta);
                 TextStreamPart::ReasoningDelta {
-                    id,
-                    provider_metadata,
-                    text: delta,
+                    id: rd.id,
+                    provider_metadata: rd.provider_metadata,
+                    text: rd.delta,
                 }
             }
-            StreamPart::ReasoningEnd {
-                id,
-                provider_metadata,
-            } => {
+            LanguageModelStreamPart::ReasoningEnd(re) => {
                 // Add accumulated reasoning to content
                 if !current_reasoning.is_empty() {
-                    step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                    step_content.push(Output::Reasoning(ReasoningOutput::new(
                         current_reasoning.clone(),
                     )));
                     current_reasoning.clear();
                 }
                 TextStreamPart::ReasoningEnd {
-                    id,
-                    provider_metadata,
+                    id: re.id,
+                    provider_metadata: re.provider_metadata,
                 }
             }
-            StreamPart::ToolInputStart {
-                id,
-                tool_name,
-                provider_metadata,
-                provider_executed,
-            } => TextStreamPart::ToolInputStart {
-                id,
-                tool_name,
-                provider_metadata,
-                provider_executed,
+            LanguageModelStreamPart::ToolInputStart(tis) => TextStreamPart::ToolInputStart {
+                id: tis.id,
+                tool_name: tis.tool_name,
+                provider_metadata: tis.provider_metadata,
+                provider_executed: tis.provider_executed,
                 dynamic: None,
                 title: None,
             },
-            StreamPart::ToolInputDelta {
-                id,
-                delta,
-                provider_metadata,
-            } => TextStreamPart::ToolInputDelta {
-                id,
-                delta,
-                provider_metadata,
+            LanguageModelStreamPart::ToolInputDelta(tid) => TextStreamPart::ToolInputDelta {
+                id: tid.id,
+                delta: tid.delta,
+                provider_metadata: tid.provider_metadata,
             },
-            StreamPart::ToolInputEnd {
-                id,
-                provider_metadata,
-            } => TextStreamPart::ToolInputEnd {
-                id,
-                provider_metadata,
+            LanguageModelStreamPart::ToolInputEnd(tie) => TextStreamPart::ToolInputEnd {
+                id: tie.id,
+                provider_metadata: tie.provider_metadata,
             },
-            StreamPart::Source(source) => {
+            LanguageModelStreamPart::Source(source) => {
                 let source_output = SourceOutput::new(source.clone());
-                step_content.push(ContentPart::Source(source_output.clone()));
+                step_content.push(Output::Source(source_output.clone()));
                 TextStreamPart::Source {
                     source: source_output,
                 }
             }
-            StreamPart::File(file) => {
-                use ai_sdk_provider::language_model::file::FileData;
+            LanguageModelStreamPart::File(file) => {
+                use ai_sdk_provider::language_model::content::file::FileData;
 
                 // Convert FileData to base64
                 let base64 = match file.data {
@@ -243,82 +218,81 @@ async fn stream_single_step(
                     },
                 }
             }
-            StreamPart::StreamStart { warnings } => {
-                step_warnings = if warnings.is_empty() {
+            LanguageModelStreamPart::StreamStart(ss) => {
+                step_warnings = if ss.warnings.is_empty() {
                     None
                 } else {
-                    Some(warnings.clone())
+                    Some(ss.warnings.clone())
                 };
                 TextStreamPart::StartStep {
                     request: crate::generate_text::RequestMetadata {
                         body: request_body.clone(),
                     },
-                    warnings,
+                    warnings: ss.warnings,
                 }
             }
-            StreamPart::Finish {
-                usage,
-                finish_reason,
-                provider_metadata,
-            } => {
+            LanguageModelStreamPart::Finish(f) => {
                 // Flush any remaining text/reasoning
                 if !current_text.is_empty() {
-                    step_content.push(ContentPart::Text(TextOutput::new(current_text.clone())));
+                    step_content.push(Output::Text(TextOutput::new(current_text.clone())));
                     current_text.clear();
                 }
                 if !current_reasoning.is_empty() {
-                    step_content.push(ContentPart::Reasoning(ReasoningOutput::new(
+                    step_content.push(Output::Reasoning(ReasoningOutput::new(
                         current_reasoning.clone(),
                     )));
                     current_reasoning.clear();
                 }
 
-                step_usage = usage.clone();
-                step_finish_reason = finish_reason.clone();
-                step_provider_metadata = provider_metadata.clone();
+                step_usage = f.usage;
+                step_finish_reason = f.finish_reason.clone();
+                step_provider_metadata = f.provider_metadata.clone();
 
                 TextStreamPart::FinishStep {
-                    response: ai_sdk_provider::language_model::response_metadata::ResponseMetadata::default(),
-                    usage: usage.clone(),
-                    finish_reason: finish_reason.clone(),
-                    provider_metadata: provider_metadata.clone(),
+                    response: ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata::default(),
+                    usage: f.usage,
+                    finish_reason: f.finish_reason.clone(),
+                    provider_metadata: f.provider_metadata.clone(),
                 }
             }
-            StreamPart::Raw { raw_value } => {
+            LanguageModelStreamPart::Raw(r) => {
                 if include_raw_chunks {
-                    TextStreamPart::Raw { raw_value }
+                    TextStreamPart::Raw {
+                        raw_value: r.raw_value,
+                    }
                 } else {
                     continue;
                 }
             }
-            StreamPart::Error { error } => {
+            LanguageModelStreamPart::Error(e) => {
                 // Call on_error callback if provided
                 if let Some(callback) = on_error {
                     let event = callbacks::StreamTextErrorEvent {
-                        error: error.clone(),
+                        error: e.error.clone(),
                     };
                     callback(event).await;
                 }
-                return Err(AISDKError::model_error(format!("Stream error: {}", error)));
+                return Err(AISDKError::model_error(format!(
+                    "Stream error: {}",
+                    e.error
+                )));
             }
-            StreamPart::ToolCall(provider_tool_call) => {
+            LanguageModelStreamPart::ToolCall(provider_tool_call) => {
                 // Parse the tool call using parse_tool_call
-                use crate::generate_text::parse_tool_call;
-                
+
                 let typed_tool_call = if let Some(tool_set) = tools {
                     parse_tool_call(&provider_tool_call, tool_set)
                 } else {
                     // No tools provided, treat as dynamic
-                    use crate::generate_text::parse_provider_executed_dynamic_tool_call;
                     parse_provider_executed_dynamic_tool_call(&provider_tool_call)
                 };
 
                 match typed_tool_call {
                     Ok(tool_call) => {
                         // Add to step content and tool_calls list
-                        step_content.push(ContentPart::ToolCall(tool_call.clone()));
+                        step_content.push(Output::ToolCall(tool_call.clone()));
                         step_tool_calls.push(tool_call.clone());
-                        
+
                         TextStreamPart::ToolCall { tool_call }
                     }
                     Err(e) => {
@@ -333,70 +307,63 @@ async fn stream_single_step(
                     }
                 }
             }
-            StreamPart::ToolResult(provider_tool_result) => {
+            LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use crate::generate_text::{StaticToolResult, DynamicToolResult, TypedToolResult};
-                
+                use crate::tool::ToolResult;
+
+                // Find the matching tool call to get the input
+                let matching_call = step_tool_calls
+                    .iter()
+                    .find(|tc| tc.tool_call_id == provider_tool_result.tool_call_id);
+
                 // Check if this is a dynamic tool based on whether we have it in our tool set
-                let is_dynamic = if let Some(tool_set) = tools {
+                let _is_dynamic = if let Some(tool_set) = tools {
                     !tool_set.contains_key(&provider_tool_result.tool_name)
                 } else {
                     true // No tools provided, treat as dynamic
                 };
 
-                let typed_result = if is_dynamic {
-                    let mut dynamic_result = DynamicToolResult::new(
-                        &provider_tool_result.tool_call_id,
-                        &provider_tool_result.tool_name,
-                        serde_json::Value::Null, // input - we don't have it in tool result
-                        provider_tool_result.result.clone(),
-                    );
-                    if let Some(provider_executed) = provider_tool_result.provider_executed {
-                        dynamic_result = dynamic_result.with_provider_executed(provider_executed);
-                    }
-                    TypedToolResult::Dynamic(dynamic_result)
-                } else {
-                    let mut static_result = StaticToolResult::new(
-                        &provider_tool_result.tool_call_id,
-                        &provider_tool_result.tool_name,
-                        serde_json::Value::Null, // input - we don't have it in tool result
-                        provider_tool_result.result.clone(),
-                    );
-                    if let Some(provider_executed) = provider_tool_result.provider_executed {
-                        static_result = static_result.with_provider_executed(provider_executed);
-                    }
-                    TypedToolResult::Static(static_result)
-                };
+                let input = matching_call
+                    .map(|tc| tc.input.clone())
+                    .unwrap_or(Value::Null);
+
+                let mut typed_result = ToolResult::new(
+                    provider_tool_result.tool_call_id.clone(),
+                    provider_tool_result.tool_name.clone(),
+                    input,
+                    provider_tool_result.result.clone(),
+                );
+                if let Some(provider_executed) = provider_tool_result.provider_executed {
+                    typed_result = typed_result.with_provider_executed(provider_executed);
+                }
 
                 // Add to step content
-                step_content.push(ContentPart::ToolResult(typed_result.clone()));
+                step_content.push(Output::ToolResult(typed_result.clone()));
 
                 TextStreamPart::ToolResult {
                     tool_result: typed_result,
                 }
             }
             // Handle response metadata
-            StreamPart::ResponseMetadata(_) => {
+            LanguageModelStreamPart::ResponseMetadata(_) => {
                 // Skip response metadata in stream parts
                 continue;
             }
         };
 
         // Call on_chunk callback if this is a chunk type
-        if let Some(callback) = on_chunk {
-            if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part)
-            {
+        if let Some(callback) = on_chunk
+            && let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
                 let event = callbacks::StreamTextChunkEvent { chunk };
                 callback(event).await;
             }
-        }
 
         // Send the part to the channel
         if tx.send(text_stream_part).is_err() {
             break;
         }
     }
-    
+
     Ok(SingleStepStreamResult {
         content: step_content,
         tool_calls: step_tool_calls,
@@ -409,59 +376,23 @@ async fn stream_single_step(
     })
 }
 
-/// Stream text using a language model with multi-step tool execution support.
+/// Builder for streaming text using a language model with fluent API.
 ///
-/// This is the main user-facing function for streaming text generation in the AI SDK.
-/// It supports multi-step generation where the model can call tools, receive results,
-/// and continue generating text based on those results.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
-/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
-/// * `model` - The language model to use for generation
-/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
-/// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
-/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
-///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
-/// * `provider_options` - Optional provider-specific options.
-/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
-/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
-/// * `transforms` - Optional list of stream transformations to apply to the output stream.
-/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
-/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
-/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
-/// * `on_finish` - Optional callback that is called when the LLM response and all tool executions are finished.
-/// * `on_abort` - Optional callback that is called when the generation is aborted.
-///
-/// # Returns
-///
-/// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
-/// ways to access the streamed data, or a validation error.
+/// This builder provides a chainable interface for configuring text streaming.
 ///
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::stream_text;
-/// use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
 ///
-/// let result = stream_text(
-///     settings,
-///     prompt,
-///     model,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-///     false,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-///     None,
-/// ).await?;
+/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+///     .temperature(0.8)
+///     .max_output_tokens(500)
+///     .include_raw_chunks(true)
+///     .execute()
+///     .await?;
 ///
 /// // Stream text deltas in real-time
 /// let mut stream = result.text_stream();
@@ -469,55 +400,289 @@ async fn stream_single_step(
 ///     print!("{}", delta);
 /// }
 /// ```
-pub async fn stream_text(
-    settings: CallSettings,
-    prompt: Prompt,
+pub struct StreamTextBuilder {
     model: Arc<dyn LanguageModel>,
+    prompt: Prompt,
+    settings: CallSettings,
     tools: Option<ToolSet>,
-    tool_choice: Option<ToolChoice>,
-    stop_when: Option<Vec<Box<dyn crate::generate_text::StopCondition>>>,
-    provider_options: Option<ProviderOptions>,
-    prepare_step: Option<Box<dyn crate::generate_text::PrepareStep>>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
     include_raw_chunks: bool,
-    transforms: Option<Vec<Box<dyn StreamTransform<Value, Value>>>>,
+    transforms: Option<Vec<Box<dyn StreamTransform>>>,
     on_chunk: Option<OnChunkCallback>,
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
-    _on_abort: Option<OnAbortCallback>,
-) -> Result<StreamTextResult<Value, Value>, AISDKError> {
-    use crate::generate_text::prepare_tools_and_tool_choice;
-    use crate::prompt::{
-        call_settings::prepare_call_settings,
-        convert_to_language_model_prompt::convert_to_language_model_prompt,
-        standardize::validate_and_standardize,
-    };
-    use ai_sdk_provider::language_model::call_options::CallOptions;
+}
 
-    // Step 1: Prepare and validate call settings
+impl StreamTextBuilder {
+    /// Creates a new builder with the required model and prompt.
+    pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
+        Self {
+            model,
+            prompt,
+            settings: CallSettings::default(),
+            tools: None,
+            tool_choice: None,
+            provider_options: None,
+            stop_when: None,
+            prepare_step: None,
+            include_raw_chunks: false,
+            transforms: None,
+            on_chunk: None,
+            on_error: None,
+            on_step_finish: None,
+            on_finish: None,
+        }
+    }
+
+    /// Sets the complete call settings.
+    pub fn settings(mut self, settings: CallSettings) -> Self {
+        self.settings = settings;
+        self
+    }
+
+    /// Sets the temperature for generation.
+    pub fn temperature(mut self, temperature: f64) -> Self {
+        self.settings = self.settings.with_temperature(temperature);
+        self
+    }
+
+    /// Sets the maximum output tokens.
+    pub fn max_output_tokens(mut self, max_tokens: u32) -> Self {
+        self.settings = self.settings.with_max_output_tokens(max_tokens);
+        self
+    }
+
+    /// Sets the top_p sampling parameter.
+    pub fn top_p(mut self, top_p: f64) -> Self {
+        self.settings = self.settings.with_top_p(top_p);
+        self
+    }
+
+    /// Sets the top_k sampling parameter.
+    pub fn top_k(mut self, top_k: u32) -> Self {
+        self.settings = self.settings.with_top_k(top_k);
+        self
+    }
+
+    /// Sets the presence penalty.
+    pub fn presence_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_presence_penalty(penalty);
+        self
+    }
+
+    /// Sets the frequency penalty.
+    pub fn frequency_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_frequency_penalty(penalty);
+        self
+    }
+
+    /// Sets the random seed for deterministic generation.
+    pub fn seed(mut self, seed: u32) -> Self {
+        self.settings = self.settings.with_seed(seed);
+        self
+    }
+
+    /// Sets the stop sequences.
+    pub fn stop_sequences(mut self, sequences: Vec<String>) -> Self {
+        self.settings = self.settings.with_stop_sequences(sequences);
+        self
+    }
+
+    /// Sets the maximum number of retries.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.settings = self.settings.with_max_retries(max_retries);
+        self
+    }
+
+    /// Sets custom headers for the request.
+    pub fn headers(mut self, headers: std::collections::HashMap<String, String>) -> Self {
+        self.settings = self.settings.with_headers(headers);
+        self
+    }
+
+    /// Sets the abort signal for cancellation.
+    pub fn abort_signal(mut self, signal: tokio_util::sync::CancellationToken) -> Self {
+        self.settings = self.settings.with_abort_signal(signal);
+        self
+    }
+
+    /// Sets the tools available for the model to use.
+    pub fn tools(mut self, tools: ToolSet) -> Self {
+        self.tools = Some(tools);
+        self
+    }
+
+    /// Sets the tool choice strategy.
+    pub fn tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
+        self.tool_choice = Some(choice);
+        self
+    }
+
+    /// Sets provider-specific options.
+    pub fn provider_options(mut self, options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(options);
+        self
+    }
+
+    /// Sets stop conditions for multi-step generation.
+    pub fn stop_when(mut self, conditions: Vec<Box<dyn StopCondition>>) -> Self {
+        self.stop_when = Some(conditions);
+        self
+    }
+
+    /// Sets the prepare step callback.
+    pub fn prepare_step(mut self, callback: Box<dyn PrepareStep>) -> Self {
+        self.prepare_step = Some(callback);
+        self
+    }
+
+    /// Enables or disables inclusion of raw chunks from the provider.
+    pub fn include_raw_chunks(mut self, include: bool) -> Self {
+        self.include_raw_chunks = include;
+        self
+    }
+
+    /// Sets stream transformations to apply to the output.
+    pub fn transforms(mut self, transforms: Vec<Box<dyn StreamTransform>>) -> Self {
+        self.transforms = Some(transforms);
+        self
+    }
+
+    /// Sets the on_chunk callback.
+    pub fn on_chunk(mut self, callback: OnChunkCallback) -> Self {
+        self.on_chunk = Some(callback);
+        self
+    }
+
+    /// Sets the on_error callback.
+    pub fn on_error(mut self, callback: OnErrorCallback) -> Self {
+        self.on_error = Some(callback);
+        self
+    }
+
+    /// Sets the on_step_finish callback.
+    pub fn on_step_finish(mut self, callback: OnStepFinishCallback) -> Self {
+        self.on_step_finish = Some(callback);
+        self
+    }
+
+    /// Sets the on_finish callback.
+    pub fn on_finish(mut self, callback: OnFinishCallback) -> Self {
+        self.on_finish = Some(callback);
+        self
+    }
+
+    /// Executes the text streaming with the configured settings.
+    pub async fn execute(self) -> Result<StreamTextResult, AISDKError> {
+        stream_text(
+            self.model,
+            self.prompt,
+            self.settings,
+            self.tools,
+            self.tool_choice,
+            self.provider_options,
+            self.stop_when,
+            self.prepare_step,
+            self.include_raw_chunks,
+            self.transforms,
+            self.on_chunk,
+            self.on_error,
+            self.on_step_finish,
+            self.on_finish,
+        )
+        .await
+    }
+}
+
+/// Stream text using a language model with multi-step tool execution support.
+///
+/// This is the main user-facing function for streaming text generation in the AI SDK.
+/// It supports multi-step generation where the model can call tools, receive results,
+/// and continue generating text based on those results.
+///
+/// # Note
+///
+/// Consider using `StreamTextBuilder` for a more ergonomic fluent API:
+///
+/// ```ignore
+/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
+///
+/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+///     .temperature(0.8)
+///     .max_output_tokens(500)
+///     .execute()
+///     .await?;
+/// ```
+///
+/// # Arguments
+///
+/// * `model` - The language model to use for generation
+/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
+/// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
+/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
+/// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
+/// * `provider_options` - Optional provider-specific options.
+/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
+///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
+/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
+/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
+/// * `transforms` - Optional list of stream transformations to apply to the output stream.
+/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
+/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
+/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
+/// * `on_finish` - Optional callback that is called when the LLM response and all tool executions are finished.
+///
+/// # Returns
+///
+/// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
+/// ways to access the streamed data, or a validation error.
+#[allow(clippy::too_many_arguments)]
+pub async fn stream_text(
+    model: Arc<dyn LanguageModel>,
+    prompt: Prompt,
+    settings: CallSettings,
+    tools: Option<ToolSet>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    include_raw_chunks: bool,
+    transforms: Option<Vec<Box<dyn StreamTransform>>>,
+    on_chunk: Option<OnChunkCallback>,
+    on_error: Option<OnErrorCallback>,
+    on_step_finish: Option<OnStepFinishCallback>,
+    on_finish: Option<OnFinishCallback>,
+) -> Result<StreamTextResult, AISDKError> {
+    // Initialize stop conditions with default if not provided
+    let stop_conditions = Arc::new(
+        stop_when.unwrap_or_else(|| vec![Box::new(crate::generate_text::step_count_is(1))]),
+    );
+
+    // Prepare and validate call settings
     let prepared_settings = prepare_call_settings(&settings)?;
 
-    // Step 2: Validate and standardize the prompt
+    // Validate and standardize the prompt
     let standardized_prompt = validate_and_standardize(prompt)?;
 
-    // Step 3: Prepare tools and tool choice
+    // Prepare tools and tool choice
     let (provider_tools, prepared_tool_choice) =
         prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
 
-    // Step 4: Initialize stop conditions with default if not provided
-    let stop_conditions = Arc::new(stop_when.unwrap_or_else(|| {
-        vec![Box::new(crate::generate_text::step_count_is(1))]
-    }));
+    // Create a channel to emit TextStreamPart events
+    let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart>();
 
-    // Step 5: Create a channel to emit TextStreamPart events
-    let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart<Value, Value>>();
-
-    // Step 6: Wrap callbacks in Arc for sharing in the spawned task
+    // Wrap callbacks in Arc for sharing in the spawned task
     let on_chunk_arc = on_chunk.map(Arc::new);
     let on_error_arc = on_error.map(Arc::new);
     let on_step_finish_arc = on_step_finish.map(Arc::new);
     let on_finish_arc = on_finish.map(Arc::new);
-    
+
     // Wrap data in Arc for sharing in the spawned task
     let tools_for_task = tools.map(Arc::new);
     let settings_arc = Arc::new(settings);
@@ -526,36 +691,45 @@ pub async fn stream_text(
     let prepare_step_arc = prepare_step.map(Arc::new);
     let model_arc = model; // model is already Arc<dyn LanguageModel>
     let stop_conditions_arc = stop_conditions;
-    
+
     // Spawn a task to handle the multi-step streaming
     let tx_clone = tx.clone();
     tokio::spawn(async move {
         // Emit Start event
         let _ = tx_clone.send(TextStreamPart::Start);
-        
+
         // Accumulate all steps
-        let mut all_steps: Vec<StepResult<Value, Value>> = Vec::new();
-        let mut total_usage = Usage::default();
-        
+        let mut all_steps: Vec<StepResult> = Vec::new();
+        let mut total_usage = LanguageModelUsage::default();
+
+        let mut response_messages: Vec<ResponseMessage> = Vec::new();
+
         // Start with the initial prompt messages
         let mut step_input_messages = standardized_prompt_arc.messages.clone();
-        
+
         // Multi-step loop
         loop {
+            for response_msg in &response_messages {
+                let model_msg = match response_msg {
+                    ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
+                    ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
+                };
+                step_input_messages.push(model_msg);
+            }
             // Apply prepare_step if provided
             let prepare_step_result = if let Some(ref prepare_fn) = prepare_step_arc {
                 let step_number = all_steps.len();
                 prepare_fn
-                    .prepare(&crate::generate_text::PrepareStepOptions {
-                        step_number,
+                    .prepare(&PrepareStepOptions {
                         steps: &all_steps,
+                        step_number,
                         messages: &step_input_messages,
                     })
                     .await
             } else {
                 None
             };
-            
+
             // Apply prepare_step overrides
             let step_system = prepare_step_result
                 .as_ref()
@@ -575,7 +749,7 @@ pub async fn stream_text(
             let step_active_tools = prepare_step_result
                 .as_ref()
                 .and_then(|r| r.active_tools.clone());
-            
+
             // Convert current messages to language model format
             let messages = match convert_to_language_model_prompt(StandardizedPrompt {
                 messages: step_messages.clone(),
@@ -591,7 +765,7 @@ pub async fn stream_text(
             };
 
             // Build CallOptions
-            let mut call_options = CallOptions::new(messages);
+            let mut call_options = LanguageModelCallOptions::new(messages);
 
             // Add prepared settings
             if let Some(max_tokens) = prepared_settings.max_output_tokens {
@@ -625,14 +799,12 @@ pub async fn stream_text(
                     tools_vec
                         .iter()
                         .filter(|tool| {
-                            active_tool_names.iter().any(|name| {
-                                match tool {
-                                    ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
-                                        f.name == *name
-                                    }
-                                    ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
-                                        p.name == *name
-                                    }
+                            active_tool_names.iter().any(|name| match tool {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
+                                    f.name == *name
+                                }
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
+                                    p.name == *name
                                 }
                             })
                         })
@@ -642,7 +814,7 @@ pub async fn stream_text(
             } else {
                 provider_tools.clone()
             };
-            
+
             if let Some(ref tools_vec) = step_provider_tools {
                 call_options = call_options.with_tools(tools_vec.clone());
             }
@@ -673,7 +845,9 @@ pub async fn stream_text(
                 &tx_clone,
                 on_chunk_arc.as_ref(),
                 on_error_arc.as_ref(),
-            ).await {
+            )
+            .await
+            {
                 Ok(r) => r,
                 Err(e) => {
                     if let Some(callback) = on_error_arc.as_ref() {
@@ -688,26 +862,22 @@ pub async fn stream_text(
                     break;
                 }
             };
-            
+
             // Update total usage
-            total_usage = Usage {
+            total_usage = LanguageModelUsage {
                 input_tokens: total_usage.input_tokens + step_result.usage.input_tokens,
                 output_tokens: total_usage.output_tokens + step_result.usage.output_tokens,
                 total_tokens: total_usage.total_tokens + step_result.usage.total_tokens,
                 reasoning_tokens: total_usage.reasoning_tokens + step_result.usage.reasoning_tokens,
-                cached_input_tokens: total_usage.cached_input_tokens + step_result.usage.cached_input_tokens,
+                cached_input_tokens: total_usage.cached_input_tokens
+                    + step_result.usage.cached_input_tokens,
             };
-            
+
             // Filter client tool calls (those not executed by the provider)
-            let client_tool_calls: Vec<&TypedToolCall<Value>> = step_result.tool_calls
+            let client_tool_calls: Vec<&ToolCall> = step_result
+                .tool_calls
                 .iter()
-                .filter(|tool_call| {
-                    let provider_executed = match tool_call {
-                        TypedToolCall::Static(c) => c.provider_executed,
-                        TypedToolCall::Dynamic(c) => c.provider_executed,
-                    };
-                    provider_executed != Some(true)
-                })
+                .filter(|tool_call| tool_call.provider_executed != Some(true))
                 .collect();
 
             // Execute client tool calls
@@ -721,15 +891,17 @@ pub async fn stream_text(
                         abort_signal_for_tools.clone(),
                         None, // experimental_context
                         None, // on_preliminary_tool_result
-                    ).await {
+                    )
+                    .await
+                    {
                         // Emit tool result to the stream
                         match &output {
-                            crate::generate_text::ToolOutput::Result(result) => {
+                            crate::tool::ToolOutput::Result(result) => {
                                 let _ = tx_clone.send(TextStreamPart::ToolResult {
                                     tool_result: result.clone(),
                                 });
                             }
-                            crate::generate_text::ToolOutput::Error(error) => {
+                            crate::tool::ToolOutput::Error(error) => {
                                 let _ = tx_clone.send(TextStreamPart::ToolError {
                                     tool_error: error.clone(),
                                 });
@@ -739,67 +911,70 @@ pub async fn stream_text(
                     }
                 }
             }
-            
+
             let client_tool_outputs_count = client_tool_outputs.len();
-            
+
             // Create step content by combining provider content with client tool outputs
             let mut step_content = step_result.content.clone();
             for output in client_tool_outputs {
                 match output {
-                    crate::generate_text::ToolOutput::Result(tool_result) => {
-                        step_content.push(ContentPart::ToolResult(tool_result));
+                    crate::tool::ToolOutput::Result(tool_result) => {
+                        step_content.push(Output::ToolResult(tool_result));
                     }
-                    crate::generate_text::ToolOutput::Error(tool_error) => {
-                        step_content.push(ContentPart::ToolError(tool_error));
+                    crate::tool::ToolOutput::Error(tool_error) => {
+                        step_content.push(Output::ToolError(tool_error));
                     }
                 }
             }
-            
+
             // Create StepResult
             let current_step_result = StepResult::new(
                 step_content.clone(),
                 step_result.finish_reason.clone(),
-                step_result.usage.clone(),
+                step_result.usage,
                 step_result.warnings.clone(),
                 step_result.request.clone(),
                 step_result.response.clone(),
                 step_result.provider_metadata.clone(),
             );
-            
+
             all_steps.push(current_step_result.clone());
-            
+
             // Call on_step_finish callback
             if let Some(ref callback) = on_step_finish_arc {
                 callback(current_step_result).await;
             }
-            
+
             // Append to messages for potential next step
-            let step_response_messages = to_response_messages(step_content, tools_for_task.as_ref().map(|arc| arc.as_ref()));
+            let step_response_messages = to_response_messages(
+                step_content,
+                tools_for_task.as_ref().map(|arc| arc.as_ref()),
+            );
             for msg in step_response_messages {
-                step_input_messages.push(msg);
+                response_messages.push(msg);
             }
-            
+
             // Check loop termination conditions
             let should_continue = !client_tool_calls.is_empty()
                 && client_tool_outputs_count == client_tool_calls.len()
-                && !is_stop_condition_met(&*stop_conditions_arc, &all_steps).await;
+                && !is_stop_condition_met(&stop_conditions_arc, &all_steps).await;
 
             if !should_continue {
                 break;
             }
         }
-        
+
         // Emit final Finish event
         if let Some(last_step) = all_steps.last() {
             let _ = tx_clone.send(TextStreamPart::Finish {
                 finish_reason: last_step.finish_reason.clone(),
-                total_usage: total_usage.clone(),
+                total_usage,
             });
         }
-        
+
         // Call on_finish callback if provided
-        if let Some(ref callback) = on_finish_arc {
-            if let Some(last_step) = all_steps.last() {
+        if let Some(ref callback) = on_finish_arc
+            && let Some(last_step) = all_steps.last() {
                 let event = callbacks::StreamTextFinishEvent {
                     step_result: last_step.clone(),
                     steps: all_steps,
@@ -807,11 +982,10 @@ pub async fn stream_text(
                 };
                 callback(event).await;
             }
-        }
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver
-    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart<Value, Value>> + Send>> = 
+    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart> + Send>> =
         Box::pin(async_stream::stream! {
             let mut rx = rx;
             while let Some(part) = rx.recv().await {

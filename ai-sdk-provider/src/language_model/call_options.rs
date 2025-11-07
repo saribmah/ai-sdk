@@ -1,8 +1,7 @@
-use crate::language_model::function_tool::FunctionTool;
-use crate::language_model::prompt::Prompt;
-use crate::language_model::provider_defined_tool::ProviderDefinedTool;
-use crate::language_model::tool_choice::ToolChoice;
-use crate::shared::provider_options::ProviderOptions;
+use crate::language_model::prompt::LanguageModelPrompt;
+use crate::language_model::tool::LanguageModelTool;
+use crate::language_model::tool_choice::LanguageModelToolChoice;
+use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -11,14 +10,14 @@ use tokio_util::sync;
 /// Language model call options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CallOptions {
+pub struct LanguageModelCallOptions {
     /// A language mode prompt is a standardized prompt type.
     ///
     /// Note: This is **not** the user-facing prompt. The AI SDK methods will map the
     /// user-facing prompt types such as chat or instruction prompts to this format.
     /// That approach allows us to evolve the user facing prompts without breaking
     /// the language model interface.
-    pub prompt: Prompt,
+    pub prompt: LanguageModelPrompt,
 
     /// Maximum number of tokens to generate.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +56,7 @@ pub struct CallOptions {
 
     /// Response format. The output can either be text or JSON. Default is text.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_format: Option<ResponseFormat>,
+    pub response_format: Option<LanguageModelResponseFormat>,
 
     /// The seed (integer) to use for random sampling. If set and supported
     /// by the model, calls will generate deterministic results.
@@ -66,11 +65,11 @@ pub struct CallOptions {
 
     /// The tools that are available for the model.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
+    pub tools: Option<Vec<LanguageModelTool>>,
 
     /// Specifies how the tool should be selected. Defaults to 'auto'.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_choice: Option<ToolChoice>,
+    pub tool_choice: Option<LanguageModelToolChoice>,
 
     /// Include raw chunks in the stream. Only applicable for streaming calls.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -85,7 +84,7 @@ pub struct CallOptions {
     /// to the provider from the AI SDK and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider_options: Option<ProviderOptions>,
+    pub provider_options: Option<SharedProviderOptions>,
 
     /// Abort/cancellation signal (not serialized, used for runtime control).
     #[serde(skip)]
@@ -95,7 +94,7 @@ pub struct CallOptions {
 /// Response format specification.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-pub enum ResponseFormat {
+pub enum LanguageModelResponseFormat {
     /// Text output format
     Text,
 
@@ -118,17 +117,9 @@ pub enum ResponseFormat {
     },
 }
 
-/// Tool types available for the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum Tool {
-    Function(FunctionTool),
-    ProviderDefined(ProviderDefinedTool),
-}
-
-impl CallOptions {
+impl LanguageModelCallOptions {
     /// Create new call options with just a prompt
-    pub fn new(prompt: Prompt) -> Self {
+    pub fn new(prompt: LanguageModelPrompt) -> Self {
         Self {
             prompt,
             max_output_tokens: None,
@@ -185,7 +176,7 @@ impl CallOptions {
         self
     }
 
-    pub fn with_response_format(mut self, format: ResponseFormat) -> Self {
+    pub fn with_response_format(mut self, format: LanguageModelResponseFormat) -> Self {
         self.response_format = Some(format);
         self
     }
@@ -195,12 +186,12 @@ impl CallOptions {
         self
     }
 
-    pub fn with_tools(mut self, tools: Vec<Tool>) -> Self {
+    pub fn with_tools(mut self, tools: Vec<LanguageModelTool>) -> Self {
         self.tools = Some(tools);
         self
     }
 
-    pub fn with_tool_choice(mut self, choice: ToolChoice) -> Self {
+    pub fn with_tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
         self.tool_choice = Some(choice);
         self
     }
@@ -215,7 +206,7 @@ impl CallOptions {
         self
     }
 
-    pub fn with_provider_options(mut self, options: ProviderOptions) -> Self {
+    pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
@@ -226,7 +217,7 @@ impl CallOptions {
     }
 }
 
-impl ResponseFormat {
+impl LanguageModelResponseFormat {
     /// Create a text response format
     pub fn text() -> Self {
         Self::Text

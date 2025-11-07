@@ -1,17 +1,16 @@
-use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::source::Source;
-use ai_sdk_provider::language_model::usage::Usage;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
+use ai_sdk_provider::language_model::content::source::LanguageModelSource;
+use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
-use super::content_part::ContentPart;
 use super::generated_file::GeneratedFile;
-use super::reasoning_output::ReasoningOutput;
 use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
-use super::tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
-use super::tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
+use crate::output::Output;
+use crate::output::reasoning::ReasoningOutput;
+use crate::tool::{ToolCall, ToolResult};
 
 /// Metadata for the response, including messages and optional body.
 #[derive(Debug, Clone, PartialEq)]
@@ -55,9 +54,9 @@ pub struct ResponseMetadata {
 /// println!("Generated text: {}", result.text);
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
+pub struct GenerateTextResult {
     /// The content that was generated in the last step.
-    pub content: Vec<ContentPart<INPUT, OUTPUT>>,
+    pub content: Vec<Output>,
 
     /// The text that was generated in the last step.
     pub text: String,
@@ -76,39 +75,27 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     pub files: Vec<GeneratedFile>,
 
     /// Sources that have been used as references in the last step.
-    pub sources: Vec<Source>,
+    pub sources: Vec<LanguageModelSource>,
 
     /// The tool calls that were made in the last step.
-    pub tool_calls: Vec<TypedToolCall<INPUT>>,
-
-    /// The static tool calls that were made in the last step.
-    pub static_tool_calls: Vec<StaticToolCall<INPUT>>,
-
-    /// The dynamic tool calls that were made in the last step.
-    pub dynamic_tool_calls: Vec<DynamicToolCall>,
+    pub tool_calls: Vec<ToolCall>,
 
     /// The results of the tool calls from the last step.
-    pub tool_results: Vec<TypedToolResult<INPUT, OUTPUT>>,
-
-    /// The static tool results that were made in the last step.
-    pub static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>>,
-
-    /// The dynamic tool results that were made in the last step.
-    pub dynamic_tool_results: Vec<DynamicToolResult>,
+    pub tool_results: Vec<ToolResult>,
 
     /// The reason why the generation finished.
-    pub finish_reason: FinishReason,
+    pub finish_reason: LanguageModelFinishReason,
 
     /// The token usage of the last step.
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// The total token usage of all steps.
     ///
     /// When there are multiple steps, the usage is the sum of all step usages.
-    pub total_usage: Usage,
+    pub total_usage: LanguageModelUsage,
 
     /// Warnings from the model provider (e.g. unsupported settings).
-    pub warnings: Option<Vec<CallWarning>>,
+    pub warnings: Option<Vec<LanguageModelCallWarning>>,
 
     /// Additional request information.
     pub request: RequestMetadata,
@@ -120,155 +107,50 @@ pub struct GenerateTextResult<INPUT = Value, OUTPUT = Value> {
     ///
     /// They are passed through from the provider to the AI SDK and enable
     /// provider-specific results that can be fully encapsulated in the provider.
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 
     /// Details for all steps.
     ///
     /// You can use this to get information about intermediate steps,
     /// such as the tool calls or the response headers.
-    pub steps: Vec<StepResult<INPUT, OUTPUT>>,
-
-    /// The generated structured output. It uses the `output` specification.
-    pub output: OUTPUT,
+    pub steps: Vec<StepResult>,
 }
 
-impl<INPUT, OUTPUT> GenerateTextResult<INPUT, OUTPUT>
-where
-    INPUT: Clone,
-    OUTPUT: Clone,
-{
-    /// Creates a new `GenerateTextResult` from steps and output.
+impl GenerateTextResult {
+    /// Creates a new `GenerateTextResult` from steps.
     ///
-    /// This is the primary constructor that follows the TypeScript `DefaultGenerateTextResult` pattern.
-    /// It computes most fields from the final step.
+    /// This is the primary constructor that computes most fields from the final step.
     ///
     /// # Arguments
     ///
     /// * `steps` - All generation steps
     /// * `total_usage` - Total token usage across all steps
-    /// * `output` - The resolved output value
     ///
     /// # Panics
     ///
     /// Panics if `steps` is empty.
-    pub fn from_steps(
-        steps: Vec<StepResult<INPUT, OUTPUT>>,
-        total_usage: Usage,
-        output: OUTPUT,
-    ) -> Self
-    where
-        Self: Sized,
-    {
+    pub fn from_steps(steps: Vec<StepResult>, total_usage: LanguageModelUsage) -> Self {
         let final_step = steps.last().expect("steps cannot be empty");
 
-        // Content is already ContentPart, just clone it
-        let content: Vec<ContentPart<INPUT, OUTPUT>> = final_step.content.clone();
+        // Content is already Output, just clone it
+        let content: Vec<Output> = final_step.content.clone();
 
         let text = final_step.text();
         let reasoning: Vec<ReasoningOutput> =
             final_step.reasoning().iter().cloned().cloned().collect();
         let reasoning_text = final_step.reasoning_text();
 
-        // Files are extracted directly from ContentPart (though currently empty)
+        // Files are extracted directly from Output (though currently empty)
         let files: Vec<GeneratedFile> = final_step.files().iter().cloned().cloned().collect();
 
-        let sources: Vec<Source> = final_step.sources().iter().cloned().cloned().collect();
+        let sources: Vec<LanguageModelSource> =
+            final_step.sources().iter().cloned().cloned().collect();
 
-        // Tool calls are already TypedToolCall in StepResult
-        let all_tool_calls: Vec<TypedToolCall<INPUT>> =
-            final_step.tool_calls().iter().cloned().cloned().collect();
-
-        // Split into static and dynamic
-        let static_tool_calls: Vec<StaticToolCall<INPUT>> = all_tool_calls
-            .iter()
-            .filter_map(|tc| match tc {
-                TypedToolCall::Static(call) => Some(call.clone()),
-                _ => None,
-            })
-            .collect();
-
-        let dynamic_tool_calls: Vec<DynamicToolCall> = all_tool_calls
-            .iter()
-            .filter_map(|tc| match tc {
-                TypedToolCall::Dynamic(call) => Some(call.clone()),
-                _ => None,
-            })
-            .collect();
-
-        // Tool results are already TypedToolResult in StepResult
-        let all_tool_results: Vec<TypedToolResult<INPUT, OUTPUT>> =
+        // Tool calls and results are already the correct types in StepResult
+        let tool_calls: Vec<ToolCall> = final_step.tool_calls().iter().cloned().cloned().collect();
+        let tool_results: Vec<ToolResult> =
             final_step.tool_results().iter().cloned().cloned().collect();
 
-        // Split into static and dynamic
-        let static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>> = all_tool_results
-            .iter()
-            .filter_map(|tr| match tr {
-                TypedToolResult::Static(result) => Some(result.clone()),
-                _ => None,
-            })
-            .collect();
-
-        let dynamic_tool_results: Vec<DynamicToolResult> = all_tool_results
-            .iter()
-            .filter_map(|tr| match tr {
-                TypedToolResult::Dynamic(result) => Some(result.clone()),
-                _ => None,
-            })
-            .collect();
-
-        Self {
-            content,
-            text,
-            reasoning,
-            reasoning_text,
-            files,
-            sources,
-            tool_calls: all_tool_calls,
-            static_tool_calls,
-            dynamic_tool_calls,
-            tool_results: all_tool_results,
-            static_tool_results,
-            dynamic_tool_results,
-            finish_reason: final_step.finish_reason.clone(),
-            usage: final_step.usage.clone(),
-            total_usage,
-            warnings: final_step.warnings.clone(),
-            request: final_step.request.clone(),
-            response: ResponseMetadata::from_step_metadata(vec![], final_step.response.clone()),
-            provider_metadata: final_step.provider_metadata.clone(),
-            steps,
-            output,
-        }
-    }
-
-    /// Creates a new `GenerateTextResult` with the given parameters.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        content: Vec<ContentPart<INPUT, OUTPUT>>,
-        text: String,
-        reasoning: Vec<ReasoningOutput>,
-        reasoning_text: Option<String>,
-        files: Vec<GeneratedFile>,
-        sources: Vec<Source>,
-        tool_calls: Vec<TypedToolCall<INPUT>>,
-        static_tool_calls: Vec<StaticToolCall<INPUT>>,
-        dynamic_tool_calls: Vec<DynamicToolCall>,
-        tool_results: Vec<TypedToolResult<INPUT, OUTPUT>>,
-        static_tool_results: Vec<StaticToolResult<INPUT, OUTPUT>>,
-        dynamic_tool_results: Vec<DynamicToolResult>,
-        finish_reason: FinishReason,
-        usage: Usage,
-        total_usage: Usage,
-        warnings: Option<Vec<CallWarning>>,
-        request: RequestMetadata,
-        response: ResponseMetadata,
-        provider_metadata: Option<ProviderMetadata>,
-        steps: Vec<StepResult<INPUT, OUTPUT>>,
-        output: OUTPUT,
-    ) -> Self
-    where
-        OUTPUT: Clone,
-    {
         Self {
             content,
             text,
@@ -277,11 +159,47 @@ where
             files,
             sources,
             tool_calls,
-            static_tool_calls,
-            dynamic_tool_calls,
             tool_results,
-            static_tool_results,
-            dynamic_tool_results,
+            finish_reason: final_step.finish_reason.clone(),
+            usage: final_step.usage,
+            total_usage,
+            warnings: final_step.warnings.clone(),
+            request: final_step.request.clone(),
+            response: ResponseMetadata::from_step_metadata(vec![], final_step.response.clone()),
+            provider_metadata: final_step.provider_metadata.clone(),
+            steps,
+        }
+    }
+
+    /// Creates a new `GenerateTextResult` with the given parameters.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        content: Vec<Output>,
+        text: String,
+        reasoning: Vec<ReasoningOutput>,
+        reasoning_text: Option<String>,
+        files: Vec<GeneratedFile>,
+        sources: Vec<LanguageModelSource>,
+        tool_calls: Vec<ToolCall>,
+        tool_results: Vec<ToolResult>,
+        finish_reason: LanguageModelFinishReason,
+        usage: LanguageModelUsage,
+        total_usage: LanguageModelUsage,
+        warnings: Option<Vec<LanguageModelCallWarning>>,
+        request: RequestMetadata,
+        response: ResponseMetadata,
+        provider_metadata: Option<SharedProviderMetadata>,
+        steps: Vec<StepResult>,
+    ) -> Self {
+        Self {
+            content,
+            text,
+            reasoning,
+            reasoning_text,
+            files,
+            sources,
+            tool_calls,
+            tool_results,
             finish_reason,
             usage,
             total_usage,
@@ -290,7 +208,6 @@ where
             response,
             provider_metadata,
             steps,
-            output,
         }
     }
 }
@@ -349,6 +266,7 @@ impl ResponseMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::TextOutput;
     use serde_json::json;
 
     #[test]
@@ -413,38 +331,32 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_new() {
-        let result: GenerateTextResult<Value, String> = GenerateTextResult::new(
-            vec![],                        // content
-            "Hello".to_string(),           // text
-            vec![],                        // reasoning
-            None,                          // reasoning_text
-            vec![],                        // files
-            vec![],                        // sources
-            vec![],                        // tool_calls
-            vec![],                        // static_tool_calls
-            vec![],                        // dynamic_tool_calls
-            vec![],                        // tool_results
-            vec![],                        // static_tool_results
-            vec![],                        // dynamic_tool_results
-            FinishReason::Stop,            // finish_reason
-            Usage::default(),              // usage
-            Usage::default(),              // total_usage
-            None,                          // warnings
-            RequestMetadata::default(),    // request
-            ResponseMetadata::new(vec![]), // response
-            None,                          // provider_metadata
-            vec![],                        // steps
-            "output".to_string(),          // output
+        let result = GenerateTextResult::new(
+            vec![],                          // content
+            "Hello".to_string(),             // text
+            vec![],                          // reasoning
+            None,                            // reasoning_text
+            vec![],                          // files
+            vec![],                          // sources
+            vec![],                          // tool_calls
+            vec![],                          // tool_results
+            LanguageModelFinishReason::Stop, // finish_reason
+            LanguageModelUsage::default(),   // usage
+            LanguageModelUsage::default(),   // total_usage
+            None,                            // warnings
+            RequestMetadata::default(),      // request
+            ResponseMetadata::new(vec![]),   // response
+            None,                            // provider_metadata
+            vec![],                          // steps
         );
 
         assert_eq!(result.text, "Hello");
-        assert_eq!(result.finish_reason, FinishReason::Stop);
-        assert_eq!(result.output, "output");
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Stop);
     }
 
     #[test]
     fn test_generate_text_result_fields() {
-        let result: GenerateTextResult<Value, Value> = GenerateTextResult::new(
+        let result = GenerateTextResult::new(
             vec![],
             "Generated text".to_string(),
             vec![],
@@ -453,56 +365,45 @@ mod tests {
             vec![],
             vec![],
             vec![],
-            vec![],
-            vec![],
-            vec![],
-            vec![],
-            FinishReason::Length,
-            Usage::default(),
-            Usage::default(),
+            LanguageModelFinishReason::Length,
+            LanguageModelUsage::default(),
+            LanguageModelUsage::default(),
             None,
             RequestMetadata::default(),
             ResponseMetadata::new(vec![]),
             None,
             vec![],
-            json!({"key": "value"}),
         );
 
         assert_eq!(result.text, "Generated text");
         assert_eq!(result.reasoning_text, Some("Reasoning text".to_string()));
-        assert_eq!(result.finish_reason, FinishReason::Length);
-        assert_eq!(result.output, json!({"key": "value"}));
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Length);
     }
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use super::super::{
-            DynamicToolCall, DynamicToolResult, TextOutput, TypedToolCall, TypedToolResult,
-        };
+        use crate::tool::{ToolCall, ToolResult};
 
-        // Create a step with tool calls and tool results using ContentPart
+        // Create a step with tool calls and tool results using Output
         let content = vec![
-            ContentPart::Text(TextOutput::new("Hello".to_string())),
-            ContentPart::ToolCall(TypedToolCall::Dynamic(DynamicToolCall::new(
+            Output::Text(TextOutput::new("Hello".to_string())),
+            Output::ToolCall(ToolCall::new(
                 "call_1".to_string(),
                 "get_weather".to_string(),
                 json!({"city": "SF"}),
-            ))),
-            ContentPart::ToolResult(TypedToolResult::Dynamic(
-                DynamicToolResult::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({"city": "SF"}),
-                    json!({"temp": 72}),
-                )
-                .with_provider_executed(true),
+            )),
+            Output::ToolResult(ToolResult::new(
+                "call_1".to_string(),
+                "get_weather".to_string(),
+                json!({"city": "SF"}),
+                json!({"temp": 72}),
             )),
         ];
 
         let step = StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -514,39 +415,24 @@ mod tests {
             None,
         );
 
-        let result: GenerateTextResult<Value, Value> =
-            GenerateTextResult::from_steps(vec![step], Usage::new(10, 20), json!(null));
+        let result = GenerateTextResult::from_steps(vec![step], LanguageModelUsage::new(10, 20));
 
         // Verify tool calls are populated
         assert_eq!(result.tool_calls.len(), 1);
-        assert_eq!(result.dynamic_tool_calls.len(), 1);
-        assert_eq!(result.static_tool_calls.len(), 0);
 
         // Verify tool call details
-        match &result.tool_calls[0] {
-            TypedToolCall::Dynamic(call) => {
-                assert_eq!(call.tool_call_id, "call_1");
-                assert_eq!(call.tool_name, "get_weather");
-                assert_eq!(call.input, json!({"city": "SF"}));
-            }
-            _ => panic!("Expected dynamic tool call"),
-        }
+        let call = &result.tool_calls[0];
+        assert_eq!(call.tool_call_id, "call_1");
+        assert_eq!(call.tool_name, "get_weather");
+        assert_eq!(call.input, json!({"city": "SF"}));
 
         // Verify tool results are populated
         assert_eq!(result.tool_results.len(), 1);
-        assert_eq!(result.dynamic_tool_results.len(), 1);
-        assert_eq!(result.static_tool_results.len(), 0);
 
         // Verify tool result details
-        match &result.tool_results[0] {
-            TypedToolResult::Dynamic(res) => {
-                assert_eq!(res.tool_call_id, "call_1");
-                assert_eq!(res.tool_name, "get_weather");
-                assert_eq!(res.input, json!({"city": "SF"}));
-                assert_eq!(res.output, json!({"temp": 72}));
-                assert_eq!(res.provider_executed, Some(true));
-            }
-            _ => panic!("Expected dynamic tool result"),
-        }
+        let res = &result.tool_results[0];
+        assert_eq!(res.tool_call_id, "call_1");
+        assert_eq!(res.tool_name, "get_weather");
+        assert_eq!(res.output, json!({"temp": 72}));
     }
 }

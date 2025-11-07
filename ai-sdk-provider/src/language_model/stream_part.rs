@@ -1,205 +1,101 @@
-use crate::language_model::call_warning::CallWarning;
-use crate::language_model::file::File;
-use crate::language_model::finish_reason::FinishReason;
-use crate::language_model::response_metadata::ResponseMetadata;
-use crate::language_model::source::Source;
-use crate::language_model::tool_call::ToolCall;
-use crate::language_model::tool_result::ToolResult;
-use crate::language_model::usage::Usage;
-use crate::shared::provider_metadata::ProviderMetadata;
+pub mod error;
+pub mod finish;
+pub mod raw;
+pub mod reasoning_delta;
+pub mod reasoning_end;
+pub mod reasoning_start;
+pub mod stream_start;
+pub mod text_delta;
+pub mod text_end;
+pub mod text_start;
+pub mod tool_input_delta;
+pub mod tool_input_end;
+pub mod tool_input_start;
+
+use crate::language_model::call_warning::LanguageModelCallWarning;
+use crate::language_model::content::file::LanguageModelFile;
+use crate::language_model::content::source::LanguageModelSource;
+use crate::language_model::content::tool_call::LanguageModelToolCall;
+use crate::language_model::content::tool_result::LanguageModelToolResult;
+use crate::language_model::finish_reason::LanguageModelFinishReason;
+use crate::language_model::response_metadata::LanguageModelResponseMetadata;
+use crate::language_model::usage::LanguageModelUsage;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// Stream parts that can be emitted during model generation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
-pub enum StreamPart {
+#[serde(untagged)]
+pub enum LanguageModelStreamPart {
     // Text blocks
     /// Start of a text block
-    #[serde(rename_all = "camelCase")]
-    TextStart {
-        /// Unique identifier for this text block
-        id: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    TextStart(text_start::LanguageModelStreamTextStart),
 
     /// Text delta (incremental text content)
-    #[serde(rename_all = "camelCase")]
-    TextDelta {
-        /// ID of the text block
-        id: String,
-
-        /// The text delta/chunk
-        delta: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    TextDelta(text_delta::LanguageModelStreamTextDelta),
 
     /// End of a text block
-    #[serde(rename_all = "camelCase")]
-    TextEnd {
-        /// ID of the text block
-        id: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    TextEnd(text_end::LanguageModelStreamTextEnd),
 
     // Reasoning blocks
     /// Start of a reasoning block
-    #[serde(rename_all = "camelCase")]
-    ReasoningStart {
-        /// Unique identifier for this reasoning block
-        id: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    ReasoningStart(reasoning_start::LanguageModelStreamReasoningStart),
 
     /// Reasoning delta (incremental reasoning content)
-    #[serde(rename_all = "camelCase")]
-    ReasoningDelta {
-        /// ID of the reasoning block
-        id: String,
-
-        /// The reasoning delta/chunk
-        delta: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta),
 
     /// End of a reasoning block
-    #[serde(rename_all = "camelCase")]
-    ReasoningEnd {
-        /// ID of the reasoning block
-        id: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    ReasoningEnd(reasoning_end::LanguageModelStreamReasoningEnd),
 
     // Tool input blocks
     /// Start of tool input
-    #[serde(rename_all = "camelCase")]
-    ToolInputStart {
-        /// Unique identifier for this tool call
-        id: String,
-
-        /// Name of the tool being called
-        tool_name: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-
-        /// Whether the tool will be executed by the provider
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_executed: Option<bool>,
-    },
+    ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart),
 
     /// Tool input delta (incremental tool arguments)
-    #[serde(rename_all = "camelCase")]
-    ToolInputDelta {
-        /// ID of the tool call
-        id: String,
-
-        /// The input delta/chunk (JSON string)
-        delta: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta),
 
     /// End of tool input
-    #[serde(rename_all = "camelCase")]
-    ToolInputEnd {
-        /// ID of the tool call
-        id: String,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    ToolInputEnd(tool_input_end::LanguageModelStreamToolInputEnd),
 
     // Complete tool call and result
     /// Complete tool call
-    #[serde(rename = "tool-call")]
-    ToolCall(ToolCall),
+    ToolCall(LanguageModelToolCall),
 
     /// Tool result
-    #[serde(rename = "tool-result")]
-    ToolResult(ToolResult),
+    ToolResult(LanguageModelToolResult),
 
     // Files and sources
     /// File content
-    #[serde(rename = "file")]
-    File(File),
+    File(LanguageModelFile),
 
     /// Source content
-    #[serde(rename = "source")]
-    Source(Source),
+    Source(LanguageModelSource),
 
     // Stream metadata events
     /// Stream start event with warnings
-    #[serde(rename = "stream-start")]
-    StreamStart {
-        /// Warnings for the call (e.g., unsupported settings)
-        warnings: Vec<CallWarning>,
-    },
+    StreamStart(stream_start::LanguageModelStreamStart),
 
     /// Response metadata
-    #[serde(rename = "response-metadata")]
-    ResponseMetadata(ResponseMetadata),
+    ResponseMetadata(LanguageModelResponseMetadata),
 
     /// Stream finish event
-    #[serde(rename_all = "camelCase")]
-    Finish {
-        /// Usage information
-        usage: Usage,
-
-        /// Reason for finishing
-        finish_reason: FinishReason,
-
-        /// Provider-specific metadata
-        #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
-    },
+    Finish(finish::LanguageModelStreamFinish),
 
     // Raw chunks and errors
     /// Raw chunk from provider (if enabled)
-    #[serde(rename = "raw")]
-    Raw {
-        /// The raw value from the provider
-        #[serde(rename = "rawValue")]
-        raw_value: Value,
-    },
+    Raw(raw::LanguageModelStreamRaw),
 
     /// Error event
-    #[serde(rename = "error")]
-    Error {
-        /// The error value
-        error: Value,
-    },
+    Error(error::LanguageModelStreamError),
 }
 
 // Helper implementations
-impl StreamPart {
+impl LanguageModelStreamPart {
     /// Check if this is a text-related part
     pub fn is_text(&self) -> bool {
         matches!(
             self,
-            Self::TextStart { .. } | Self::TextDelta { .. } | Self::TextEnd { .. }
+            Self::TextStart(_) | Self::TextDelta(_) | Self::TextEnd(_)
         )
     }
 
@@ -207,7 +103,7 @@ impl StreamPart {
     pub fn is_reasoning(&self) -> bool {
         matches!(
             self,
-            Self::ReasoningStart { .. } | Self::ReasoningDelta { .. } | Self::ReasoningEnd { .. }
+            Self::ReasoningStart(_) | Self::ReasoningDelta(_) | Self::ReasoningEnd(_)
         )
     }
 
@@ -215,9 +111,9 @@ impl StreamPart {
     pub fn is_tool(&self) -> bool {
         matches!(
             self,
-            Self::ToolInputStart { .. }
-                | Self::ToolInputDelta { .. }
-                | Self::ToolInputEnd { .. }
+            Self::ToolInputStart(_)
+                | Self::ToolInputDelta(_)
+                | Self::ToolInputEnd(_)
                 | Self::ToolCall(_)
                 | Self::ToolResult(_)
         )
@@ -227,147 +123,117 @@ impl StreamPart {
     pub fn is_delta(&self) -> bool {
         matches!(
             self,
-            Self::TextDelta { .. } | Self::ReasoningDelta { .. } | Self::ToolInputDelta { .. }
+            Self::TextDelta(_) | Self::ReasoningDelta(_) | Self::ToolInputDelta(_)
         )
     }
 
     /// Get the delta content if this is a delta part
     pub fn delta(&self) -> Option<&str> {
         match self {
-            Self::TextDelta { delta, .. }
-            | Self::ReasoningDelta { delta, .. }
-            | Self::ToolInputDelta { delta, .. } => Some(delta),
+            Self::TextDelta(d) => Some(&d.delta),
+            Self::ReasoningDelta(d) => Some(&d.delta),
+            Self::ToolInputDelta(d) => Some(&d.delta),
             _ => None,
         }
     }
 
     /// Check if this is a finish event
     pub fn is_finish(&self) -> bool {
-        matches!(self, Self::Finish { .. })
+        matches!(self, Self::Finish(_))
     }
 
     /// Check if this is an error event
     pub fn is_error(&self) -> bool {
-        matches!(self, Self::Error { .. })
+        matches!(self, Self::Error(_))
     }
 
     /// Get the ID if this part has one
     pub fn id(&self) -> Option<&str> {
         match self {
-            Self::TextStart { id, .. }
-            | Self::TextDelta { id, .. }
-            | Self::TextEnd { id, .. }
-            | Self::ReasoningStart { id, .. }
-            | Self::ReasoningDelta { id, .. }
-            | Self::ReasoningEnd { id, .. }
-            | Self::ToolInputStart { id, .. }
-            | Self::ToolInputDelta { id, .. }
-            | Self::ToolInputEnd { id, .. } => Some(id),
+            Self::TextStart(t) => Some(&t.id),
+            Self::TextDelta(t) => Some(&t.id),
+            Self::TextEnd(t) => Some(&t.id),
+            Self::ReasoningStart(r) => Some(&r.id),
+            Self::ReasoningDelta(r) => Some(&r.id),
+            Self::ReasoningEnd(r) => Some(&r.id),
+            Self::ToolInputStart(t) => Some(&t.id),
+            Self::ToolInputDelta(t) => Some(&t.id),
+            Self::ToolInputEnd(t) => Some(&t.id),
             _ => None,
         }
     }
 }
 
 // Constructors for common cases
-impl StreamPart {
+impl LanguageModelStreamPart {
     /// Create a text start event
     pub fn text_start(id: impl Into<String>) -> Self {
-        Self::TextStart {
-            id: id.into(),
-            provider_metadata: None,
-        }
+        Self::TextStart(text_start::LanguageModelStreamTextStart::new(id))
     }
 
     /// Create a text delta event
     pub fn text_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::TextDelta {
-            id: id.into(),
-            delta: delta.into(),
-            provider_metadata: None,
-        }
+        Self::TextDelta(text_delta::LanguageModelStreamTextDelta::new(id, delta))
     }
 
     /// Create a text end event
     pub fn text_end(id: impl Into<String>) -> Self {
-        Self::TextEnd {
-            id: id.into(),
-            provider_metadata: None,
-        }
+        Self::TextEnd(text_end::LanguageModelStreamTextEnd::new(id))
     }
 
     /// Create a reasoning start event
     pub fn reasoning_start(id: impl Into<String>) -> Self {
-        Self::ReasoningStart {
-            id: id.into(),
-            provider_metadata: None,
-        }
+        Self::ReasoningStart(reasoning_start::LanguageModelStreamReasoningStart::new(id))
     }
 
     /// Create a reasoning delta event
     pub fn reasoning_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ReasoningDelta {
-            id: id.into(),
-            delta: delta.into(),
-            provider_metadata: None,
-        }
+        Self::ReasoningDelta(reasoning_delta::LanguageModelStreamReasoningDelta::new(
+            id, delta,
+        ))
     }
 
     /// Create a reasoning end event
     pub fn reasoning_end(id: impl Into<String>) -> Self {
-        Self::ReasoningEnd {
-            id: id.into(),
-            provider_metadata: None,
-        }
+        Self::ReasoningEnd(reasoning_end::LanguageModelStreamReasoningEnd::new(id))
     }
 
     /// Create a tool input start event
     pub fn tool_input_start(id: impl Into<String>, tool_name: impl Into<String>) -> Self {
-        Self::ToolInputStart {
-            id: id.into(),
-            tool_name: tool_name.into(),
-            provider_metadata: None,
-            provider_executed: None,
-        }
+        Self::ToolInputStart(tool_input_start::LanguageModelStreamToolInputStart::new(
+            id, tool_name,
+        ))
     }
 
     /// Create a tool input delta event
     pub fn tool_input_delta(id: impl Into<String>, delta: impl Into<String>) -> Self {
-        Self::ToolInputDelta {
-            id: id.into(),
-            delta: delta.into(),
-            provider_metadata: None,
-        }
+        Self::ToolInputDelta(tool_input_delta::LanguageModelStreamToolInputDelta::new(
+            id, delta,
+        ))
     }
 
     /// Create a tool input end event
     pub fn tool_input_end(id: impl Into<String>) -> Self {
-        Self::ToolInputEnd {
-            id: id.into(),
-            provider_metadata: None,
-        }
+        Self::ToolInputEnd(tool_input_end::LanguageModelStreamToolInputEnd::new(id))
     }
 
     /// Create a stream start event
-    pub fn stream_start(warnings: Vec<CallWarning>) -> Self {
-        Self::StreamStart { warnings }
+    pub fn stream_start(warnings: Vec<LanguageModelCallWarning>) -> Self {
+        Self::StreamStart(stream_start::LanguageModelStreamStart::new(warnings))
     }
 
     /// Create a finish event
-    pub fn finish(usage: Usage, finish_reason: FinishReason) -> Self {
-        Self::Finish {
-            usage,
-            finish_reason,
-            provider_metadata: None,
-        }
+    pub fn finish(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
+        Self::Finish(finish::LanguageModelStreamFinish::new(usage, finish_reason))
     }
 
     /// Create a raw chunk event
     pub fn raw(raw_value: Value) -> Self {
-        Self::Raw { raw_value }
+        Self::Raw(raw::LanguageModelStreamRaw::new(raw_value))
     }
 
     /// Create an error event
     pub fn error(error: Value) -> Self {
-        Self::Error { error }
+        Self::Error(error::LanguageModelStreamError::new(error))
     }
 }

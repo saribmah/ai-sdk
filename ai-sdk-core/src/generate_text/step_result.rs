@@ -1,14 +1,15 @@
 use ai_sdk_provider::language_model::{
-    call_warning::CallWarning, finish_reason::FinishReason, response_metadata::ResponseMetadata,
-    source::Source, usage::Usage,
+    call_warning::LanguageModelCallWarning, content::source::LanguageModelSource,
+    finish_reason::LanguageModelFinishReason, response_metadata::LanguageModelResponseMetadata,
+    usage::LanguageModelUsage,
 };
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::content_part::ContentPart;
 use super::generated_file::GeneratedFile;
-use super::reasoning_output::ReasoningOutput;
+use crate::output::Output;
+use crate::output::reasoning::ReasoningOutput;
 
 /// Metadata about the request sent to the language model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -38,8 +39,8 @@ pub struct StepResponseMetadata {
     pub body: Option<Value>,
 }
 
-impl From<ResponseMetadata> for StepResponseMetadata {
-    fn from(metadata: ResponseMetadata) -> Self {
+impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
+    fn from(metadata: LanguageModelResponseMetadata) -> Self {
         Self {
             id: metadata.id,
             timestamp: metadata.timestamp,
@@ -54,12 +55,6 @@ impl From<ResponseMetadata> for StepResponseMetadata {
 /// This struct contains all the information about a generation step, including
 /// the generated content, token usage, finish reason, and metadata.
 ///
-/// # Type Parameters
-///
-/// * `INPUT` - The input type for tool calls/results
-/// * `OUTPUT` - The output type for tool calls/results
-///
-/// # Example
 ///
 /// ```ignore
 /// use ai_sdk_core::StepResult;
@@ -79,18 +74,18 @@ impl From<ResponseMetadata> for StepResponseMetadata {
 /// let tool_calls = result.tool_calls();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct StepResult<INPUT = Value, OUTPUT = Value> {
-    /// The content that was generated in the step (user-facing ContentPart types).
-    pub content: Vec<ContentPart<INPUT, OUTPUT>>,
+pub struct StepResult {
+    /// The content that was generated in the step (user-facing Output types).
+    pub content: Vec<Output>,
 
     /// The reason why the generation finished.
-    pub finish_reason: FinishReason,
+    pub finish_reason: LanguageModelFinishReason,
 
     /// The token usage of the generated text.
-    pub usage: Usage,
+    pub usage: LanguageModelUsage,
 
     /// Warnings from the model provider (e.g. unsupported settings).
-    pub warnings: Option<Vec<CallWarning>>,
+    pub warnings: Option<Vec<LanguageModelCallWarning>>,
 
     /// Additional request information.
     pub request: RequestMetadata,
@@ -99,15 +94,15 @@ pub struct StepResult<INPUT = Value, OUTPUT = Value> {
     pub response: StepResponseMetadata,
 
     /// Additional provider-specific metadata.
-    pub provider_metadata: Option<ProviderMetadata>,
+    pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
-impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
+impl StepResult {
     /// Creates a new StepResult.
     ///
     /// # Arguments
     ///
-    /// * `content` - The generated content parts (user-facing ContentPart types)
+    /// * `content` - The generated content parts (user-facing Output types)
     /// * `finish_reason` - Why the generation finished
     /// * `usage` - Token usage information
     /// * `warnings` - Optional warnings from the provider
@@ -115,13 +110,13 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// * `response` - Response metadata
     /// * `provider_metadata` - Optional provider-specific metadata
     pub fn new(
-        content: Vec<ContentPart<INPUT, OUTPUT>>,
-        finish_reason: FinishReason,
-        usage: Usage,
-        warnings: Option<Vec<CallWarning>>,
+        content: Vec<Output>,
+        finish_reason: LanguageModelFinishReason,
+        usage: LanguageModelUsage,
+        warnings: Option<Vec<LanguageModelCallWarning>>,
         request: RequestMetadata,
         response: StepResponseMetadata,
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     ) -> Self {
         Self {
             content,
@@ -150,7 +145,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Text(text_output) = part {
+                if let Output::Text(text_output) = part {
                     Some(text_output.text.as_str())
                 } else {
                     None
@@ -169,7 +164,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Reasoning(reasoning) = part {
+                if let Output::Reasoning(reasoning) = part {
                     Some(reasoning)
                 } else {
                     None
@@ -204,7 +199,7 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     ///
     /// A vector of references to files.
     pub fn files(&self) -> Vec<&GeneratedFile> {
-        // ContentPart doesn't have File variant in the user-facing API
+        // Output doesn't have File variant in the user-facing API
         // Files are extracted separately in GenerateTextResult
         vec![]
     }
@@ -214,11 +209,11 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to sources.
-    pub fn sources(&self) -> Vec<&Source> {
+    pub fn sources(&self) -> Vec<&LanguageModelSource> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::Source(source_output) = part {
+                if let Output::Source(source_output) = part {
                     Some(&source_output.source)
                 } else {
                     None
@@ -232,11 +227,11 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool calls.
-    pub fn tool_calls(&self) -> Vec<&super::tool_call::TypedToolCall<INPUT>> {
+    pub fn tool_calls(&self) -> Vec<&crate::tool::ToolCall> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::ToolCall(tool_call) = part {
+                if let Output::ToolCall(tool_call) = part {
                     Some(tool_call)
                 } else {
                     None
@@ -250,11 +245,11 @@ impl<INPUT, OUTPUT> StepResult<INPUT, OUTPUT> {
     /// # Returns
     ///
     /// A vector of references to tool results.
-    pub fn tool_results(&self) -> Vec<&super::tool_result::TypedToolResult<INPUT, OUTPUT>> {
+    pub fn tool_results(&self) -> Vec<&crate::tool::ToolResult> {
         self.content
             .iter()
             .filter_map(|part| {
-                if let ContentPart::ToolResult(tool_result) = part {
+                if let Output::ToolResult(tool_result) = part {
                     Some(tool_result)
                 } else {
                     None
@@ -271,31 +266,21 @@ mod tests {
 
     fn create_test_step_result() -> StepResult {
         let content = vec![
-            ContentPart::Text(super::super::text_output::TextOutput::new(
-                "Hello ".to_string(),
-            )),
-            ContentPart::Text(super::super::text_output::TextOutput::new(
-                "world!".to_string(),
-            )),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
-                "Thinking step 1. ".to_string(),
-            )),
-            ContentPart::Reasoning(super::super::reasoning_output::ReasoningOutput::new(
-                "Thinking step 2.".to_string(),
-            )),
-            ContentPart::ToolCall(super::super::tool_call::TypedToolCall::Dynamic(
-                super::super::tool_call::DynamicToolCall::new(
-                    "call_1".to_string(),
-                    "get_weather".to_string(),
-                    json!({"city": "SF"}),
-                ),
+            Output::Text(crate::output::text::TextOutput::new("Hello ".to_string())),
+            Output::Text(crate::output::text::TextOutput::new("world!".to_string())),
+            Output::Reasoning(ReasoningOutput::new("Thinking step 1. ".to_string())),
+            Output::Reasoning(ReasoningOutput::new("Thinking step 2.".to_string())),
+            Output::ToolCall(crate::tool::ToolCall::new(
+                "call_1",
+                "get_weather",
+                json!({"city": "SF"}),
             )),
         ];
 
         StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -313,7 +298,7 @@ mod tests {
         let result = create_test_step_result();
 
         assert_eq!(result.content.len(), 5);
-        assert_eq!(result.finish_reason, FinishReason::Stop);
+        assert_eq!(result.finish_reason, LanguageModelFinishReason::Stop);
         assert_eq!(result.usage.input_tokens, 10);
         assert_eq!(result.usage.output_tokens, 20);
         assert_eq!(result.usage.total_tokens, 30);
@@ -345,12 +330,12 @@ mod tests {
 
     #[test]
     fn test_step_result_reasoning_text_empty() {
-        let result: StepResult<Value, Value> = StepResult::new(
-            vec![ContentPart::Text(
-                super::super::text_output::TextOutput::new("Hello".to_string()),
-            )],
-            FinishReason::Stop,
-            Usage::new(5, 5),
+        let result = StepResult::new(
+            vec![Output::Text(crate::output::text::TextOutput::new(
+                "Hello".to_string(),
+            ))],
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(5, 5),
             None,
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -370,13 +355,8 @@ mod tests {
         let result = create_test_step_result();
         let tool_calls = result.tool_calls();
         assert_eq!(tool_calls.len(), 1);
-        match &tool_calls[0] {
-            super::super::tool_call::TypedToolCall::Dynamic(call) => {
-                assert_eq!(call.tool_name, "get_weather");
-                assert_eq!(call.tool_call_id, "call_1");
-            }
-            _ => panic!("Expected dynamic tool call"),
-        }
+        assert_eq!(tool_calls[0].tool_name, "get_weather");
+        assert_eq!(tool_calls[0].tool_call_id, "call_1");
     }
 
     #[test]
@@ -395,15 +375,15 @@ mod tests {
 
     #[test]
     fn test_step_result_with_warnings() {
-        let warnings = vec![CallWarning::unsupported_setting_with_details(
+        let warnings = vec![LanguageModelCallWarning::unsupported_setting_with_details(
             "temperature",
             "Temperature not supported",
         )];
 
-        let result: StepResult<Value, Value> = StepResult::new(
+        let result = StepResult::new(
             vec![],
-            FinishReason::Stop,
-            Usage::new(0, 0),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(0, 0),
             Some(warnings.clone()),
             RequestMetadata { body: None },
             StepResponseMetadata {
@@ -418,7 +398,7 @@ mod tests {
         assert!(result.warnings.is_some());
         assert_eq!(result.warnings.as_ref().unwrap().len(), 1);
         match &result.warnings.as_ref().unwrap()[0] {
-            CallWarning::UnsupportedSetting { setting, details } => {
+            LanguageModelCallWarning::UnsupportedSetting { setting, details } => {
                 assert_eq!(setting, "temperature");
                 assert_eq!(details.as_ref().unwrap(), "Temperature not supported");
             }
@@ -428,7 +408,7 @@ mod tests {
 
     #[test]
     fn test_step_response_metadata_from_response_metadata() {
-        let response_metadata = ResponseMetadata {
+        let response_metadata = LanguageModelResponseMetadata {
             id: Some("resp_456".to_string()),
             timestamp: Some(1234567890),
             model_id: Some("gpt-3.5".to_string()),

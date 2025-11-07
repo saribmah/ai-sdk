@@ -1,9 +1,9 @@
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::StreamTextBuilder;
 /// Basic streaming example demonstrating real-time text generation.
 ///
 /// This example shows how to:
 /// - Create a provider from environment variables
-/// - Use stream_text to get streaming responses
+/// - Use StreamTextBuilder with fluent API to get streaming responses
 /// - Consume text deltas in real-time
 /// - Access final results after streaming completes
 ///
@@ -12,8 +12,8 @@ use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_stream
 /// ```
-use ai_sdk_core::stream_text;
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_core::prompt::Prompt;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use std::env;
 use std::sync::Arc;
@@ -30,11 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
@@ -50,11 +50,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "📤 Sending prompt: \"Write a short poem about Rust programming. Make it 4 lines.\"\n"
     );
 
-    // Configure settings
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(200);
-
     // Stream text with callbacks to capture metadata
     println!("⏳ Streaming response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -64,21 +59,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let metadata = Arc::new(Mutex::new(None));
     let metadata_clone = metadata.clone();
 
-    let result = stream_text(
-        settings,
-        prompt,
-        Arc::from(model),
-        None,  // tools
-        None,  // tool_choice
-        None,  // stop_when
-        None,  // provider_options
-        None,  // prepare_step
-        false, // include_raw_chunks
-        None,  // transforms
-        None,  // on_chunk
-        None,  // on_error
-        None,  // on_step_finish
-        Some(Box::new(move |event| {
+    let result = StreamTextBuilder::new(Arc::from(model), prompt)
+        .temperature(0.7)
+        .max_output_tokens(200)
+        .on_finish(Box::new(move |event| {
             let metadata = metadata_clone.clone();
             Box::pin(async move {
                 let mut meta = metadata.lock().await;
@@ -88,10 +72,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     event.total_usage.clone(),
                 ));
             })
-        })),
-        None, // on_abort
-    )
-    .await?;
+        }))
+        .execute()
+        .await?;
 
     // Stream text deltas
     let mut text_stream = result.text_stream();

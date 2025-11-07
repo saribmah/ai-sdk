@@ -194,15 +194,14 @@ impl CallSettings {
 /// - `frequency_penalty` is not finite or not in the range [-2, 2]
 pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSettings, AISDKError> {
     // Validate max_output_tokens
-    if let Some(max_tokens) = settings.max_output_tokens {
-        if max_tokens < 1 {
+    if let Some(max_tokens) = settings.max_output_tokens
+        && max_tokens < 1 {
             return Err(AISDKError::invalid_argument(
                 "maxOutputTokens",
                 max_tokens,
                 "maxOutputTokens must be >= 1",
             ));
         }
-    }
 
     // Validate temperature (must be finite and >= 0)
     if let Some(temp) = settings.temperature {
@@ -241,15 +240,14 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
     }
 
     // Validate top_k (must be > 0)
-    if let Some(top_k) = settings.top_k {
-        if top_k == 0 {
+    if let Some(top_k) = settings.top_k
+        && top_k == 0 {
             return Err(AISDKError::invalid_argument(
                 "topK",
                 top_k,
                 "topK must be > 0",
             ));
         }
-    }
 
     // Validate presence_penalty (must be finite and in range [-2, 2])
     if let Some(penalty) = settings.presence_penalty {
@@ -260,7 +258,7 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "presencePenalty must be a finite number",
             ));
         }
-        if penalty < -2.0 || penalty > 2.0 {
+        if !(-2.0..=2.0).contains(&penalty) {
             return Err(AISDKError::invalid_argument(
                 "presencePenalty",
                 penalty,
@@ -278,7 +276,7 @@ pub fn prepare_call_settings(settings: &CallSettings) -> Result<PreparedCallSett
                 "frequencyPenalty must be a finite number",
             ));
         }
-        if penalty < -2.0 || penalty > 2.0 {
+        if !(-2.0..=2.0).contains(&penalty) {
             return Err(AISDKError::invalid_argument(
                 "frequencyPenalty",
                 penalty,

@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 use std::future::Future;
 use std::pin::Pin;
@@ -20,7 +20,7 @@ pub trait MetadataExtractor: Send + Sync {
     fn extract_metadata(
         &self,
         parsed_body: Value,
-    ) -> Pin<Box<dyn Future<Output = Option<ProviderMetadata>> + Send + '_>>;
+    ) -> Pin<Box<dyn Future<Output = Option<SharedProviderMetadata>> + Send + '_>>;
 
     /// Creates an extractor for handling streaming responses. The returned object provides
     /// methods to process individual chunks and build the final metadata from the accumulated
@@ -49,7 +49,7 @@ pub trait StreamMetadataExtractor: Send {
     ///
     /// Provider-specific metadata or None if no metadata is available.
     /// The metadata should be under a key indicating the provider id.
-    fn build_metadata(&self) -> Option<ProviderMetadata>;
+    fn build_metadata(&self) -> Option<SharedProviderMetadata>;
 }
 
 #[cfg(test)]
@@ -65,7 +65,7 @@ mod tests {
         fn extract_metadata(
             &self,
             parsed_body: Value,
-        ) -> Pin<Box<dyn Future<Output = Option<ProviderMetadata>> + Send + '_>> {
+        ) -> Pin<Box<dyn Future<Output = Option<SharedProviderMetadata>> + Send + '_>> {
             Box::pin(async move {
                 if let Some(id) = parsed_body.get("id").and_then(|v| v.as_str()) {
                     let mut metadata = HashMap::new();
@@ -102,7 +102,7 @@ mod tests {
             }
         }
 
-        fn build_metadata(&self) -> Option<ProviderMetadata> {
+        fn build_metadata(&self) -> Option<SharedProviderMetadata> {
             if self.ids.is_empty() {
                 None
             } else {

@@ -8,9 +8,10 @@ A unified Rust SDK for building AI-powered applications with multiple model prov
 
 - **Provider-agnostic API**: Write once, switch providers easily
 - **Type-safe**: Leverages Rust's type system for compile-time safety
+- **Type-safe Tools**: Define tools with compile-time checked inputs/outputs using the `TypeSafeTool` trait
 - **Async/await**: Built on Tokio for efficient async operations
-- **Streaming support**: Stream responses from language models (in progress)
-- **Tool calling**: Support for function/tool calling with LLMs
+- **Streaming support**: Stream responses from language models with real-time processing
+- **Tool calling**: Support for function/tool calling with LLMs, both dynamic and type-safe
 - **Multiple providers**: OpenAI-compatible APIs (OpenAI, Azure OpenAI, and others)
 
 ## Project Structure
@@ -34,9 +35,11 @@ tokio = { version = "1.41", features = ["full"] }
 
 ### Basic Text Generation
 
+The SDK provides a fluent builder API for ergonomic text generation:
+
 ```rust
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::{GenerateTextBuilder};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 
 #[tokio::main]
@@ -53,17 +56,85 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get a language model
     let model = provider.chat_model("gpt-4");
 
-    // Create a prompt
-    let prompt = Prompt::text("What is the capital of France?");
-    let settings = CallSettings::default();
-
-    // Generate text
-    let result = generate_text(&*model, prompt, settings, None, None, None).await?;
+    // Generate text using the builder pattern
+    let result = GenerateTextBuilder::new(&*model, Prompt::text("What is the capital of France?"))
+        .temperature(0.7)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
 
     println!("Response: {:?}", result);
     Ok(())
 }
 ```
+
+Alternatively, you can use the function-based API:
+
+```rust
+use ai_sdk_core::generate_text;
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+
+let prompt = Prompt::text("What is the capital of France?");
+let settings = CallSettings::default()
+    .with_temperature(0.7)
+    .with_max_output_tokens(100);
+
+let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
+```
+
+### Type-Safe Tools
+
+The SDK provides a `TypeSafeTool` trait for defining tools with compile-time type checking:
+
+```rust
+use ai_sdk_core::tool::TypeSafeTool;
+use async_trait::async_trait;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+// Define typed input/output structures
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+struct WeatherInput {
+    city: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct WeatherOutput {
+    temperature: f64,
+    conditions: String,
+}
+
+// Implement the type-safe tool
+struct WeatherTool;
+
+#[async_trait]
+impl TypeSafeTool for WeatherTool {
+    type Input = WeatherInput;
+    type Output = WeatherOutput;
+
+    fn name(&self) -> &str { "get_weather" }
+    fn description(&self) -> &str { "Get weather for a city" }
+
+    async fn execute(&self, input: Self::Input) -> Result<Self::Output, String> {
+        Ok(WeatherOutput {
+            temperature: 72.0,
+            conditions: format!("Sunny in {}", input.city),
+        })
+    }
+}
+
+// Convert to untyped Tool for use with LLMs
+let weather_tool = WeatherTool.into_tool();
+```
+
+**Benefits:**
+- ✅ Compile-time type checking - catch errors before runtime
+- ✅ Automatic JSON schema generation from Rust types
+- ✅ IDE support - autocomplete, go-to-definition, refactoring
+- ✅ Can be used with LLMs or called directly in your code
+- ✅ Impossible to pass wrong types or forget required fields
+
+See the `type_safe_tools` example for a complete demonstration.
 
 ### Using Different Providers
 
@@ -99,6 +170,97 @@ let custom = create_openai_compatible(
     .with_query_param("version", "2024-01")
 );
 ```
+
+### Builder Pattern API
+
+Both `GenerateTextBuilder` and `StreamTextBuilder` provide fluent, chainable APIs for configuring text generation and streaming:
+
+#### Text Generation
+
+```rust
+use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::prompt::Prompt;
+
+let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+    .temperature(0.7)            // Creativity control
+    .max_output_tokens(100)      // Response length limit
+    .top_p(0.9)                  // Nucleus sampling
+    .presence_penalty(0.6)       // Discourage repetition
+    .frequency_penalty(0.5)      // Vary word choice
+    .seed(42)                    // Deterministic generation
+    .max_retries(3)              // Retry on failures
+    .execute()
+    .await?;
+```
+
+#### Available Builder Methods
+
+- **Sampling Parameters:**
+  - `.temperature(f64)` - Controls randomness (0.0 to 2.0)
+  - `.top_p(f64)` - Nucleus sampling threshold
+  - `.top_k(u32)` - Top-K sampling parameter
+  - `.presence_penalty(f64)` - Penalizes token presence
+  - `.frequency_penalty(f64)` - Penalizes token frequency
+
+- **Output Control:**
+  - `.max_output_tokens(u32)` - Maximum tokens to generate
+  - `.stop_sequences(Vec<String>)` - Stop generation at sequences
+  - `.seed(u32)` - Seed for deterministic output
+
+- **Tools and Advanced:**
+  - `.tools(ToolSet)` - Add function calling tools
+  - `.tool_choice(LanguageModelToolChoice)` - Control tool selection
+  - `.stop_when(Vec<Box<dyn StopCondition>>)` - Multi-step stop conditions
+  - `.prepare_step(Box<dyn PrepareStep>)` - Customize each generation step
+  - `.on_step_finish(Box<dyn OnStepFinish>)` - Callback after each step
+  - `.on_finish(Box<dyn OnFinish>)` - Callback when complete
+
+- **Configuration:**
+  - `.max_retries(u32)` - Maximum retry attempts
+  - `.headers(HashMap<String, String>)` - Custom HTTP headers
+  - `.abort_signal(CancellationToken)` - Cancellation support
+  - `.provider_options(SharedProviderOptions)` - Provider-specific options
+  - `.settings(CallSettings)` - Set all settings at once
+
+#### Text Streaming
+
+The `StreamTextBuilder` provides similar functionality for streaming responses:
+
+```rust
+use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::prompt::Prompt;
+use futures_util::StreamExt;
+use std::sync::Arc;
+
+let result = StreamTextBuilder::new(Arc::from(model), Prompt::text("Tell me a story"))
+    .temperature(0.8)
+    .max_output_tokens(500)
+    .include_raw_chunks(true)
+    .on_chunk(Box::new(|event| {
+        Box::pin(async move {
+            // Process each chunk as it arrives
+        })
+    }))
+    .on_finish(Box::new(|event| {
+        Box::pin(async move {
+            println!("Total tokens: {}", event.total_usage.total_tokens);
+        })
+    }))
+    .execute()
+    .await?;
+
+// Stream text deltas in real-time
+let mut text_stream = result.text_stream();
+while let Some(delta) = text_stream.next().await {
+    print!("{}", delta);
+}
+```
+
+**Additional StreamTextBuilder Methods:**
+- `.include_raw_chunks(bool)` - Include raw provider chunks
+- `.transforms(Vec<Box<dyn StreamTransform>>)` - Apply stream transformations
+- `.on_chunk(OnChunkCallback)` - Callback for each chunk
+- `.on_error(OnErrorCallback)` - Error handling callback
 
 ### Vercel-Style Chaining
 
@@ -198,6 +360,21 @@ cargo run --example conversation
 # Tool calling example - function calling with a weather tool
 export OPENAI_API_KEY="your-api-key"
 cargo run --example tool_calling
+
+# Type-safe tools example - compile-time type checking for tools
+export OPENAI_API_KEY="your-api-key"
+cargo run --example type_safe_tools
+
+# Multi-step tools example - iterative tool calling
+export OPENAI_API_KEY="your-api-key"
+cargo run --example multi_step_tools
+
+# Streaming examples
+export OPENAI_API_KEY="your-api-key"
+cargo run --example basic_stream
+cargo run --example stream_tool_calling
+cargo run --example stream_transforms
+cargo run --example partial_output
 ```
 
 The examples demonstrate:
@@ -207,6 +384,10 @@ The examples demonstrate:
 - System messages and temperature settings
 - Token usage tracking
 - Tool/function calling and handling tool call responses
+- **Type-safe tools** with compile-time type checking (see `type_safe_tools.rs`)
+- Multi-step tool execution with iterative calls
+- Streaming responses in real-time
+- Partial output parsing for structured data
 
 ## Development
 

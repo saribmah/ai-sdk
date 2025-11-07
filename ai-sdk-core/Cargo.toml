@@ -14,6 +14,7 @@ base64 = "0.22.1"      # For base64 encoding/decoding
 serde = { version = "1.0.228", features = ["derive"] }  # For serialization
 serde_json = "1.0.145" # For JSON values
 serde_bytes = "0.11"   # For efficient byte array serialization
+schemars = "0.8"       # For JSON schema generation from Rust types
 url = "2.5.7"          # For URL parsing
 ai-sdk-provider = { path = "../ai-sdk-provider" }  # Provider types and traits
 async-stream = "0.3"   # For async generators

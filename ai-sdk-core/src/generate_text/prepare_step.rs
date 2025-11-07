@@ -1,6 +1,6 @@
 use super::step_result::StepResult;
-use crate::message::ModelMessage;
-use ai_sdk_provider::language_model::tool_choice::ToolChoice;
+use crate::prompt::message::Message;
+use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 use async_trait::async_trait;
 use std::future::Future;
 
@@ -34,7 +34,7 @@ pub struct PrepareStepOptions<'a> {
     pub step_number: usize,
 
     /// The messages being sent to the model for this step.
-    pub messages: &'a [ModelMessage],
+    pub messages: &'a [Message],
 }
 
 /// Result returned by a prepare step function.
@@ -46,11 +46,11 @@ pub struct PrepareStepOptions<'a> {
 ///
 /// ```
 /// use ai_sdk_core::PrepareStepResult;
-/// use ai_sdk_provider::language_model::tool_choice::ToolChoice;
+/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 ///
 /// // Force tool usage on step 3
 /// let result = PrepareStepResult {
-///     tool_choice: Some(ToolChoice::Required),
+///     tool_choice: Some(LanguageModelToolChoice::Required),
 ///     active_tools: Some(vec!["get_weather".to_string()]),
 ///     system: Some("Be concise".to_string()),
 ///     messages: None,
@@ -61,7 +61,7 @@ pub struct PrepareStepResult {
     /// Optional tool choice override for this step.
     ///
     /// If provided, this will override the tool choice setting for this specific step.
-    pub tool_choice: Option<ToolChoice>,
+    pub tool_choice: Option<LanguageModelToolChoice>,
 
     /// Optional subset of tools to make available for this step.
     ///
@@ -87,7 +87,7 @@ pub struct PrepareStepResult {
     /// Optional messages override for this step.
     ///
     /// If provided, this will replace the messages for this specific step.
-    pub messages: Option<Vec<ModelMessage>>,
+    pub messages: Option<Vec<Message>>,
 }
 
 /// A trait for implementing step preparation logic.
@@ -151,16 +151,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::super::content_part::ContentPart;
-    use super::super::text_output::TextOutput;
     use super::*;
-    use ai_sdk_provider::language_model::{finish_reason::FinishReason, usage::Usage};
+    use crate::output::Output;
+    use crate::output::text::TextOutput;
+    use ai_sdk_provider::language_model::{
+        finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
+    };
 
     fn create_test_step() -> StepResult {
         StepResult::new(
-            vec![ContentPart::Text(TextOutput::new("Test".to_string()))],
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            vec![Output::Text(TextOutput::new("Test".to_string()))],
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {
@@ -176,7 +178,7 @@ mod tests {
     #[tokio::test]
     async fn test_prepare_step_options() {
         let steps = vec![create_test_step()];
-        let messages: Vec<ModelMessage> = vec![];
+        let messages: Vec<Message> = vec![];
 
         let options = PrepareStepOptions {
             steps: &steps,
@@ -201,13 +203,16 @@ mod tests {
     #[tokio::test]
     async fn test_prepare_step_result_with_values() {
         let result = PrepareStepResult {
-            tool_choice: Some(ToolChoice::Required),
+            tool_choice: Some(LanguageModelToolChoice::Required),
             active_tools: Some(vec!["tool1".to_string(), "tool2".to_string()]),
             system: Some("Test system".to_string()),
             messages: None,
         };
 
-        assert!(matches!(result.tool_choice, Some(ToolChoice::Required)));
+        assert!(matches!(
+            result.tool_choice,
+            Some(LanguageModelToolChoice::Required)
+        ));
         assert_eq!(result.active_tools.as_ref().unwrap().len(), 2);
         assert_eq!(result.system.as_ref().unwrap(), "Test system");
         assert!(result.messages.is_none());
@@ -222,7 +227,7 @@ mod tests {
             async fn prepare(&self, options: &PrepareStepOptions<'_>) -> Option<PrepareStepResult> {
                 if options.step_number > 5 {
                     Some(PrepareStepResult {
-                        tool_choice: Some(ToolChoice::Required),
+                        tool_choice: Some(LanguageModelToolChoice::Required),
                         ..Default::default()
                     })
                 } else {
@@ -254,7 +259,7 @@ mod tests {
         assert!(result_later.is_some());
         assert!(matches!(
             result_later.unwrap().tool_choice,
-            Some(ToolChoice::Required)
+            Some(LanguageModelToolChoice::Required)
         ));
     }
 

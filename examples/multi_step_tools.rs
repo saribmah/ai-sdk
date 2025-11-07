@@ -1,5 +1,3 @@
-use ai_sdk_core::message::tool::definition::Tool;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// Multi-step tool execution example demonstrating iterative tool calling.
 ///
 /// This example shows how to:
@@ -12,10 +10,13 @@ use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example multi_step_tools
 /// ```
+use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{ToolSet, generate_text, step_count_is};
-use ai_sdk_openai_compatible::{OpenAICompatibleProviderSettings, create_openai_compatible};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+use std::sync::Arc;
 
 /// Simulates getting the current weather for a city
 fn get_weather(city: &str) -> Value {
@@ -100,11 +101,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment");
 
-    // Create OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new("https://openrouter.ai/api/v1", "openai")
-            .with_api_key(api_key),
-    );
+    // Create OpenAI provider using the client builder
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
 
     let model = provider.chat_model("openai/gpt-4o");
     println!("✓ Model loaded: {}\n", model.model_id());
@@ -114,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::message::tool::definition::ToolExecutionOutput;
+    use ai_sdk_core::tool::definition::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({
@@ -206,7 +207,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Starting multi-step generation (max 10 steps)...\n");
 
     let result = generate_text(
-        &*model,
+        Arc::clone(&model),
         prompt,
         settings,
         Some(tools),
@@ -256,15 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !tool_calls.is_empty() {
             println!("    Tool calls made: {}", tool_calls.len());
             for tc in tool_calls {
-                use ai_sdk_core::TypedToolCall;
-                match tc {
-                    TypedToolCall::Static(call) => {
-                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
-                    }
-                    TypedToolCall::Dynamic(call) => {
-                        println!("      → {} ({})", call.tool_name, call.tool_call_id);
-                    }
-                }
+                println!("      → {} ({})", tc.tool_name, tc.tool_call_id);
             }
         }
 

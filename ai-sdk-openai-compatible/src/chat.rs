@@ -1,17 +1,13 @@
-pub mod api_types;
-pub mod chat_language_model;
-pub mod chat_options;
-pub mod convert_to_chat_messages;
-pub mod get_response_metadata;
-pub mod map_finish_reason;
+pub mod convert_prompt;
+pub mod language_model;
 pub mod metadata_extractor;
+pub mod options;
 pub mod prepare_tools;
+pub mod prompt;
 
-pub use api_types::*;
-pub use chat_language_model::*;
-pub use chat_options::*;
-pub use convert_to_chat_messages::*;
-pub use get_response_metadata::*;
-pub use map_finish_reason::*;
-pub use metadata_extractor::*;
-pub use prepare_tools::*;
+pub use convert_prompt::convert_to_openai_compatible_chat_messages;
+pub use language_model::{OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel};
+pub use metadata_extractor::MetadataExtractor;
+pub use options::{OpenAICompatibleChatModelId, OpenAICompatibleProviderOptions};
+pub use prepare_tools::prepare_tools;
+pub use prompt::message::*;

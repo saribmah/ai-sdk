@@ -1,12 +1,11 @@
-use crate::generate_text::{
-    RequestMetadata, SourceOutput, ToolApprovalRequestOutput, TypedToolCall, TypedToolError,
-    TypedToolResult,
-};
-use ai_sdk_provider::language_model::call_warning::CallWarning;
-use ai_sdk_provider::language_model::finish_reason::FinishReason;
-use ai_sdk_provider::language_model::response_metadata::ResponseMetadata;
-use ai_sdk_provider::language_model::usage::Usage;
-use ai_sdk_provider::shared::provider_metadata::ProviderMetadata;
+use crate::generate_text::RequestMetadata;
+use crate::output::SourceOutput;
+use crate::tool::{ToolApprovalRequestOutput, ToolCall, ToolError, ToolResult};
+use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
+use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -33,11 +32,6 @@ pub struct StreamGeneratedFile {
 /// produced during a streaming text generation operation. It closely mirrors
 /// the TypeScript implementation from Vercel's AI SDK.
 ///
-/// # Type Parameters
-///
-/// * `INPUT` - The input type for tools (defaults to `Value`)
-/// * `OUTPUT` - The output type from tools (defaults to `Value`)
-///
 /// # Example
 ///
 /// ```
@@ -45,7 +39,7 @@ pub struct StreamGeneratedFile {
 /// use serde_json::Value;
 ///
 /// // A text delta part
-/// let part = TextStreamPart::<Value, Value>::TextDelta {
+/// let part = TextStreamPart::TextDelta {
 ///     id: "text_123".to_string(),
 ///     provider_metadata: None,
 ///     text: "Hello ".to_string(),
@@ -53,7 +47,7 @@ pub struct StreamGeneratedFile {
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
-pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
+pub enum TextStreamPart {
     /// Indicates the start of a text segment.
     #[serde(rename_all = "camelCase")]
     TextStart {
@@ -62,7 +56,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the end of a text segment.
@@ -73,7 +67,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A text delta (incremental update).
@@ -84,7 +78,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// The text content.
         text: String,
@@ -98,7 +92,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the end of a reasoning segment.
@@ -109,7 +103,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A reasoning delta (incremental update).
@@ -120,7 +114,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// The reasoning text content.
         text: String,
@@ -137,7 +131,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
 
         /// Whether the provider executed this tool.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -160,7 +154,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A tool input delta (incremental update).
@@ -174,7 +168,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// A source/reference in the generation.
@@ -194,21 +188,21 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
     ToolCall {
         /// The tool call data.
         #[serde(flatten)]
-        tool_call: TypedToolCall<INPUT>,
+        tool_call: ToolCall,
     },
 
     /// A tool result.
     ToolResult {
         /// The tool result data.
         #[serde(flatten)]
-        tool_result: TypedToolResult<INPUT, OUTPUT>,
+        tool_result: ToolResult,
     },
 
     /// A tool error.
     ToolError {
         /// The tool error data.
         #[serde(flatten)]
-        tool_error: TypedToolError<INPUT>,
+        tool_error: ToolError,
     },
 
     /// A tool output that was denied.
@@ -221,7 +215,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
         tool_name: String,
 
         /// The input that was provided to the tool.
-        input: INPUT,
+        input: Value,
 
         /// Optional reason for denial.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -240,7 +234,7 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
     ToolApprovalRequest {
         /// The approval request data.
         #[serde(flatten)]
-        approval_request: ToolApprovalRequestOutput<INPUT>,
+        approval_request: ToolApprovalRequestOutput,
     },
 
     /// Indicates the start of a generation step.
@@ -250,24 +244,24 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
         request: RequestMetadata,
 
         /// Warnings from the provider.
-        warnings: Vec<CallWarning>,
+        warnings: Vec<LanguageModelCallWarning>,
     },
 
     /// Indicates the completion of a generation step.
     #[serde(rename_all = "camelCase")]
     FinishStep {
         /// Response metadata for this step.
-        response: ResponseMetadata,
+        response: LanguageModelResponseMetadata,
 
         /// Token usage for this step.
-        usage: Usage,
+        usage: LanguageModelUsage,
 
         /// The reason why generation finished.
-        finish_reason: FinishReason,
+        finish_reason: LanguageModelFinishReason,
 
         /// Provider-specific metadata.
         #[serde(skip_serializing_if = "Option::is_none")]
-        provider_metadata: Option<ProviderMetadata>,
+        provider_metadata: Option<SharedProviderMetadata>,
     },
 
     /// Indicates the start of the entire generation.
@@ -277,10 +271,10 @@ pub enum TextStreamPart<INPUT = Value, OUTPUT = Value> {
     #[serde(rename_all = "camelCase")]
     Finish {
         /// The reason why generation finished.
-        finish_reason: FinishReason,
+        finish_reason: LanguageModelFinishReason,
 
         /// Total token usage across all steps.
-        total_usage: Usage,
+        total_usage: LanguageModelUsage,
     },
 
     /// Indicates the generation was aborted.
@@ -306,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_text_delta_serialization() {
-        let part = TextStreamPart::<Value, Value>::TextDelta {
+        let part = TextStreamPart::TextDelta {
             id: "text_123".to_string(),
             provider_metadata: None,
             text: "Hello".to_string(),
@@ -320,7 +314,7 @@ mod tests {
 
     #[test]
     fn test_start_step_serialization() {
-        let part = TextStreamPart::<Value, Value>::StartStep {
+        let part = TextStreamPart::StartStep {
             request: RequestMetadata::default(),
             warnings: vec![],
         };
@@ -331,9 +325,9 @@ mod tests {
 
     #[test]
     fn test_finish_serialization() {
-        let part = TextStreamPart::<Value, Value>::Finish {
-            finish_reason: FinishReason::Stop,
-            total_usage: Usage::new(100, 50),
+        let part = TextStreamPart::Finish {
+            finish_reason: LanguageModelFinishReason::Stop,
+            total_usage: LanguageModelUsage::new(100, 50),
         };
 
         let json = serde_json::to_value(&part).unwrap();

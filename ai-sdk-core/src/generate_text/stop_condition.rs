@@ -99,13 +99,10 @@ pub struct HasToolCall {
 impl StopCondition for HasToolCall {
     async fn check(&self, steps: &[StepResult]) -> bool {
         if let Some(last_step) = steps.last() {
-            last_step.tool_calls().iter().any(|tc| {
-                use super::TypedToolCall;
-                match tc {
-                    TypedToolCall::Static(call) => call.tool_name == self.tool_name,
-                    TypedToolCall::Dynamic(call) => call.tool_name == self.tool_name,
-                }
-            })
+            last_step
+                .tool_calls()
+                .iter()
+                .any(|tc| tc.tool_name == self.tool_name)
         } else {
             false
         }
@@ -195,29 +192,31 @@ where
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        content::Content, finish_reason::FinishReason, text::Text, tool_call::ToolCall,
-        usage::Usage,
+        content::LanguageModelContent, content::text::LanguageModelText,
+        content::tool_call::LanguageModelToolCall, finish_reason::LanguageModelFinishReason,
+        usage::LanguageModelUsage,
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
-        use super::super::content_part::ContentPart;
-        use super::super::text_output::TextOutput;
-        use super::super::tool_call::{DynamicToolCall, TypedToolCall};
+        use crate::output::Output;
+        use crate::output::text::TextOutput;
+        use crate::tool::ToolCall;
         use serde_json::json;
 
-        let mut content: Vec<ContentPart> =
-            vec![ContentPart::Text(TextOutput::new("Test".to_string()))];
+        let mut content: Vec<Output> = vec![Output::Text(TextOutput::new("Test".to_string()))];
 
         for (id, name) in tool_calls {
-            content.push(ContentPart::ToolCall(TypedToolCall::Dynamic(
-                DynamicToolCall::new(id.to_string(), name.to_string(), json!({})),
+            content.push(Output::ToolCall(ToolCall::new(
+                id.to_string(),
+                name.to_string(),
+                json!({}),
             )));
         }
 
         StepResult::new(
             content,
-            FinishReason::Stop,
-            Usage::new(10, 20),
+            LanguageModelFinishReason::Stop,
+            LanguageModelUsage::new(10, 20),
             None,
             super::super::step_result::RequestMetadata { body: None },
             super::super::step_result::StepResponseMetadata {

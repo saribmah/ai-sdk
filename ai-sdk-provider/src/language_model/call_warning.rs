@@ -1,11 +1,11 @@
-use crate::language_model::call_options::Tool;
+use crate::language_model::tool::LanguageModelTool;
 use serde::{Deserialize, Serialize};
 
 /// Warning from the model provider for this call. The call will proceed, but e.g.
 /// some settings might not be supported, which can lead to suboptimal results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
-pub enum CallWarning {
+pub enum LanguageModelCallWarning {
     /// A setting is not supported by the provider
     #[serde(rename_all = "camelCase")]
     UnsupportedSetting {
@@ -21,7 +21,7 @@ pub enum CallWarning {
     #[serde(rename_all = "camelCase")]
     UnsupportedTool {
         /// The unsupported tool
-        tool: Tool,
+        tool: LanguageModelTool,
 
         /// Additional details about why the tool is unsupported
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ pub enum CallWarning {
     },
 }
 
-impl CallWarning {
+impl LanguageModelCallWarning {
     /// Create an unsupported setting warning
     pub fn unsupported_setting(setting: impl Into<String>) -> Self {
         Self::UnsupportedSetting {
@@ -56,7 +56,7 @@ impl CallWarning {
     }
 
     /// Create an unsupported tool warning
-    pub fn unsupported_tool(tool: Tool) -> Self {
+    pub fn unsupported_tool(tool: LanguageModelTool) -> Self {
         Self::UnsupportedTool {
             tool,
             details: None,
@@ -64,7 +64,10 @@ impl CallWarning {
     }
 
     /// Create an unsupported tool warning with details
-    pub fn unsupported_tool_with_details(tool: Tool, details: impl Into<String>) -> Self {
+    pub fn unsupported_tool_with_details(
+        tool: LanguageModelTool,
+        details: impl Into<String>,
+    ) -> Self {
         Self::UnsupportedTool {
             tool,
             details: Some(details.into()),

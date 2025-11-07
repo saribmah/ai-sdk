@@ -1,9 +1,10 @@
 pub mod call_settings;
 pub mod convert_to_language_model_prompt;
 pub mod create_tool_model_output;
+pub mod message;
 pub mod standardize;
 
-use crate::message::ModelMessage;
+use message::Message;
 use serde::{Deserialize, Serialize};
 
 /// Prompt part of the AI function options.
@@ -31,7 +32,7 @@ pub enum PromptContent {
     /// A list of messages
     Messages {
         #[serde(rename = "messages")]
-        messages: Vec<ModelMessage>,
+        messages: Vec<Message>,
     },
 }
 
@@ -58,14 +59,14 @@ impl Prompt {
     ///
     /// ```
     /// use ai_sdk_core::prompt::Prompt;
-    /// use ai_sdk_core::message::{ModelMessage, UserModelMessage};
+    /// use ai_sdk_core::prompt::message::{Message, UserMessage};
     ///
     /// let messages = vec![
-    ///     ModelMessage::User(UserModelMessage::new("Hello")),
+    ///     Message::User(UserMessage::new("Hello")),
     /// ];
     /// let prompt = Prompt::messages(messages);
     /// ```
-    pub fn messages(messages: Vec<ModelMessage>) -> Self {
+    pub fn messages(messages: Vec<Message>) -> Self {
         Self {
             system: None,
             content: PromptContent::Messages { messages },
@@ -89,7 +90,7 @@ impl Prompt {
 
     /// Gets a reference to the messages in this prompt.
     /// Returns None if the prompt is text-based.
-    pub fn get_messages(&self) -> Option<&Vec<ModelMessage>> {
+    pub fn get_messages(&self) -> Option<&Vec<Message>> {
         match &self.content {
             PromptContent::Messages { messages } => Some(messages),
             PromptContent::Text { .. } => None,
@@ -98,7 +99,7 @@ impl Prompt {
 
     /// Gets a mutable reference to the messages in this prompt.
     /// Returns None if the prompt is text-based.
-    pub fn get_messages_mut(&mut self) -> Option<&mut Vec<ModelMessage>> {
+    pub fn get_messages_mut(&mut self) -> Option<&mut Vec<Message>> {
         match &mut self.content {
             PromptContent::Messages { messages } => Some(messages),
             PromptContent::Text { .. } => None,
@@ -132,8 +133,8 @@ impl From<&str> for Prompt {
     }
 }
 
-impl From<Vec<ModelMessage>> for Prompt {
-    fn from(messages: Vec<ModelMessage>) -> Self {
+impl From<Vec<Message>> for Prompt {
+    fn from(messages: Vec<Message>) -> Self {
         Self::messages(messages)
     }
 }
@@ -153,7 +154,7 @@ impl PromptContent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::{UserContent, UserModelMessage};
+    use message::{UserContent, UserMessage};
 
     #[test]
     fn test_text_prompt() {
@@ -172,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -184,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_messages_prompt_with_system() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -208,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_from_messages() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,
@@ -256,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_serialize_messages_prompt() {
-        let messages = vec![ModelMessage::User(UserModelMessage {
+        let messages = vec![Message::User(UserMessage {
             role: "user".to_string(),
             content: UserContent::Text("Hello".to_string()),
             provider_options: None,

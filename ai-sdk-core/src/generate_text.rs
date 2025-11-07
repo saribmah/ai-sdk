@@ -1,73 +1,46 @@
 mod callbacks;
-pub mod collect_tool_approvals;
-pub mod content_part;
-pub mod execute_tool_call;
 pub mod generate_text_result;
 pub mod generated_file;
-pub mod is_approval_needed;
-mod parse_tool_call;
 mod prepare_step;
-mod prepare_tools;
-pub mod reasoning_output;
 mod response_message;
 mod retries;
-pub mod source_output;
 mod step_result;
 mod stop_condition;
-pub mod text_output;
 pub mod to_response_messages;
-pub mod tool_approval_request_output;
-pub mod tool_call;
-pub mod tool_call_repair_function;
-pub mod tool_error;
-pub mod tool_output;
-pub mod tool_result;
-pub mod tool_set;
 
+use crate::output::{Output, ReasoningOutput, SourceOutput, TextOutput};
 pub use callbacks::{FinishEvent, OnFinish, OnStepFinish};
-pub use collect_tool_approvals::{
-    CollectedToolApproval, CollectedToolApprovals, collect_tool_approvals,
-};
-pub use content_part::ContentPart;
-pub use execute_tool_call::{OnPreliminaryToolResult, execute_tool_call};
 pub use generate_text_result::{GenerateTextResult, ResponseMetadata};
 pub use generated_file::{GeneratedFile, GeneratedFileWithType};
-pub use is_approval_needed::is_approval_needed;
-pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};
 pub use prepare_step::{PrepareStep, PrepareStepOptions, PrepareStepResult};
-pub use prepare_tools::prepare_tools_and_tool_choice;
-pub use reasoning_output::ReasoningOutput;
 pub use response_message::ResponseMessage;
 pub use retries::{RetryConfig, prepare_retries};
-pub use source_output::SourceOutput;
 pub use step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 pub use stop_condition::{
     HasToolCall, StepCountIs, StopCondition, has_tool_call, is_stop_condition_met, step_count_is,
 };
-pub use text_output::TextOutput;
 pub use to_response_messages::to_response_messages;
-pub use tool_approval_request_output::ToolApprovalRequestOutput;
-pub use tool_call::{DynamicToolCall, StaticToolCall, TypedToolCall};
-pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
-pub use tool_error::{DynamicToolError, StaticToolError, TypedToolError};
-pub use tool_output::ToolOutput;
-pub use tool_result::{DynamicToolResult, StaticToolResult, TypedToolResult};
-pub use tool_set::ToolSet;
 
 use crate::error::AISDKError;
-use crate::message::ModelMessage;
+use crate::prompt::message::Message;
 use crate::prompt::{
     Prompt,
     call_settings::{CallSettings, prepare_call_settings},
     convert_to_language_model_prompt::convert_to_language_model_prompt,
     standardize::{StandardizedPrompt, validate_and_standardize},
 };
-use ai_sdk_provider::{
-    language_model::tool_choice::ToolChoice,
-    language_model::{LanguageModel, call_options::CallOptions, usage::Usage},
-    shared::provider_options::ProviderOptions,
+use crate::tool::{
+    ToolCall, ToolError, ToolOutput, ToolResult, ToolSet, execute_tool_call, parse_tool_call,
+    prepare_tools_and_tool_choice,
 };
-use serde_json::Value;
+use ai_sdk_provider::{
+    language_model::tool_choice::LanguageModelToolChoice,
+    language_model::{
+        LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage,
+    },
+    shared::provider_options::SharedProviderOptions,
+};
+use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
 /// Executes tool calls and returns the outputs.
@@ -97,11 +70,11 @@ use tokio_util::sync::CancellationToken;
 /// ).await;
 /// ```
 async fn execute_tools(
-    tool_calls: &[&TypedToolCall<Value>],
+    tool_calls: &[&ToolCall],
     tools: &ToolSet,
-    messages: &[ModelMessage],
+    messages: &[Message],
     abort_signal: Option<CancellationToken>,
-) -> Vec<ToolOutput<Value, Value>> {
+) -> Vec<ToolOutput> {
     let mut outputs = Vec::new();
 
     for &tool_call in tool_calls {
@@ -126,7 +99,7 @@ async fn execute_tools(
 /// Converts language model content, tool calls, and tool outputs into a unified content array.
 ///
 /// This function takes the raw content from a language model response along with parsed tool calls
-/// and executed tool outputs, and combines them into a single array of `ContentPart` items.
+/// and executed tool outputs, and combines them into a single array of `Output` items.
 ///
 /// # Arguments
 ///
@@ -136,7 +109,7 @@ async fn execute_tools(
 ///
 /// # Returns
 ///
-/// A vector of `ContentPart` items representing all content including:
+/// A vector of `Output` items representing all content including:
 /// - Text, reasoning, source, and file parts (passed through)
 /// - Tool calls (mapped from provider ToolCall to TypedToolCall)
 /// - Provider-executed tool results (converted to TypedToolResult or TypedToolError)
@@ -145,18 +118,18 @@ async fn execute_tools(
 /// # Example
 ///
 /// ```ignore
-/// let content_parts = as_content(
+/// let content_parts = as_output(
 ///     response.content,
 ///     tool_calls,
 ///     tool_outputs,
 /// );
 /// ```
-pub fn as_content(
-    content: Vec<ai_sdk_provider::language_model::content::Content>,
-    tool_calls: Vec<TypedToolCall<Value>>,
-    tool_outputs: Vec<ToolOutput<Value, Value>>,
-) -> Vec<ContentPart<Value, Value>> {
-    use ai_sdk_provider::language_model::content::Content;
+pub fn as_output(
+    content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
+    tool_calls: Vec<ToolCall>,
+    tool_outputs: Vec<ToolOutput>,
+) -> Vec<Output> {
+    use ai_sdk_provider::language_model::content::LanguageModelContent;
 
     let mut result = Vec::new();
 
@@ -164,108 +137,76 @@ pub fn as_content(
     for part in content {
         match part {
             // Convert provider Text to TextOutput
-            Content::Text(text) => {
-                result.push(ContentPart::Text(TextOutput::new(text.text)));
+            LanguageModelContent::Text(text) => {
+                result.push(Output::Text(TextOutput::new(text.text)));
             }
             // Convert provider Reasoning to ReasoningOutput
-            Content::Reasoning(reasoning) => {
-                result.push(ContentPart::Reasoning(ReasoningOutput::new(reasoning.text)));
+            LanguageModelContent::Reasoning(reasoning) => {
+                result.push(Output::Reasoning(ReasoningOutput::new(reasoning.text)));
             }
             // Convert provider Source to SourceOutput
-            Content::Source(source) => {
-                result.push(ContentPart::Source(SourceOutput::new(source)));
+            LanguageModelContent::Source(source) => {
+                result.push(Output::Source(SourceOutput::new(source)));
             }
-            // Skip File parts as they're not in the TypeScript ContentPart
-            Content::File(_) => {
-                // File parts are not included in ContentPart
+            // Convert provider File to GeneratedFile
+            LanguageModelContent::File(file) => {
+                use ai_sdk_provider::language_model::content::file::FileData;
+                
+                let generated_file = match &file.data {
+                    FileData::Base64(base64) => {
+                        GeneratedFile::from_base64(base64.clone(), file.media_type.clone())
+                    }
+                    FileData::Binary(bytes) => {
+                        GeneratedFile::from_bytes(bytes.clone(), file.media_type.clone())
+                    }
+                };
+                
+                result.push(Output::File(generated_file));
             }
 
             // Convert provider ToolCall to TypedToolCall
-            Content::ToolCall(provider_tool_call) => {
+            LanguageModelContent::ToolCall(provider_tool_call) => {
                 // Find the matching TypedToolCall
                 if let Some(typed_call) = tool_calls
                     .iter()
-                    .find(|tc| {
-                        let tc_id = match tc {
-                            TypedToolCall::Static(c) => &c.tool_call_id,
-                            TypedToolCall::Dynamic(c) => &c.tool_call_id,
-                        };
-                        tc_id == &provider_tool_call.tool_call_id
-                    })
+                    .find(|tc| tc.tool_call_id == provider_tool_call.tool_call_id)
                     .cloned()
                 {
-                    result.push(ContentPart::ToolCall(typed_call));
+                    result.push(Output::ToolCall(typed_call));
                 }
             }
 
             // Convert provider ToolResult to TypedToolResult or TypedToolError
-            Content::ToolResult(provider_result) => {
+            LanguageModelContent::ToolResult(provider_result) => {
                 // Find the matching tool call to get the input
-                let matching_call = tool_calls.iter().find(|tc| {
-                    let tc_id = match tc {
-                        TypedToolCall::Static(c) => &c.tool_call_id,
-                        TypedToolCall::Dynamic(c) => &c.tool_call_id,
-                    };
-                    tc_id == &provider_result.tool_call_id
-                });
+                let matching_call = tool_calls
+                    .iter()
+                    .find(|tc| tc.tool_call_id == provider_result.tool_call_id);
 
                 if let Some(tool_call) = matching_call {
-                    let (input, is_dynamic) = match tool_call {
-                        TypedToolCall::Static(c) => (c.input.clone(), false),
-                        TypedToolCall::Dynamic(c) => (c.input.clone(), true),
-                    };
-
                     // Check if this is an error result
                     if provider_result.is_error == Some(true) {
-                        // Create TypedToolError
-                        let error = if is_dynamic {
-                            TypedToolError::Dynamic(
-                                DynamicToolError::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        } else {
-                            TypedToolError::Static(
-                                StaticToolError::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        };
+                        // Create ToolError
+                        let error = ToolError::new(
+                            provider_result.tool_call_id.clone(),
+                            provider_result.tool_name.clone(),
+                            tool_call.input.clone(),
+                            provider_result.result.clone(),
+                        )
+                        .with_provider_executed(true);
 
-                        result.push(ContentPart::ToolError(error));
+                        result.push(Output::ToolError(error));
                     } else {
-                        // Create TypedToolResult
-                        let tool_result = if is_dynamic {
-                            TypedToolResult::Dynamic(
-                                DynamicToolResult::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        } else {
-                            TypedToolResult::Static(
-                                StaticToolResult::new(
-                                    provider_result.tool_call_id.clone(),
-                                    provider_result.tool_name.clone(),
-                                    input,
-                                    provider_result.result.clone(),
-                                )
-                                .with_provider_executed(true),
-                            )
-                        };
+                        // Create ToolResult
+                        let tool_result = ToolResult::new(
+                            provider_result.tool_call_id.clone(),
+                            provider_result.tool_name.clone(),
+                            tool_call.input.clone(),
+                            provider_result.result.clone(),
+                        )
+                        .with_provider_executed(true);
 
-                        result.push(ContentPart::ToolResult(tool_result));
+                        result.push(Output::ToolResult(tool_result));
                     }
                 }
             }
@@ -276,10 +217,10 @@ pub fn as_content(
     for output in tool_outputs {
         match output {
             ToolOutput::Result(tool_result) => {
-                result.push(ContentPart::ToolResult(tool_result));
+                result.push(Output::ToolResult(tool_result));
             }
             ToolOutput::Error(tool_error) => {
-                result.push(ContentPart::ToolError(tool_error));
+                result.push(Output::ToolError(tool_error));
             }
         }
     }
@@ -287,14 +228,211 @@ pub fn as_content(
     result
 }
 
+/// Builder for generating text using a language model with fluent API.
+///
+/// This builder provides a chainable interface for configuring text generation.
+///
+/// # Examples
+///
+/// ```ignore
+/// use ai_sdk_core::{GenerateTextBuilder, step_count_is};
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
+///
+/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
+///     .temperature(0.7)
+///     .max_output_tokens(100)
+///     .tools(my_tools)
+///     .stop_when(vec![Box::new(step_count_is(1))])
+///     .execute()
+///     .await?;
+/// ```
+pub struct GenerateTextBuilder {
+    model: Arc<dyn LanguageModel>,
+    prompt: Prompt,
+    settings: CallSettings,
+    tools: Option<ToolSet>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
+    stop_when: Option<Vec<Box<dyn StopCondition>>>,
+    prepare_step: Option<Box<dyn PrepareStep>>,
+    on_step_finish: Option<Box<dyn OnStepFinish>>,
+    on_finish: Option<Box<dyn OnFinish>>,
+}
+
+impl GenerateTextBuilder {
+    /// Creates a new builder with the required model and prompt.
+    pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
+        Self {
+            model,
+            prompt,
+            settings: CallSettings::default(),
+            tools: None,
+            tool_choice: None,
+            provider_options: None,
+            stop_when: None,
+            prepare_step: None,
+            on_step_finish: None,
+            on_finish: None,
+        }
+    }
+
+    /// Sets the complete call settings.
+    pub fn settings(mut self, settings: CallSettings) -> Self {
+        self.settings = settings;
+        self
+    }
+
+    /// Sets the temperature for generation.
+    pub fn temperature(mut self, temperature: f64) -> Self {
+        self.settings = self.settings.with_temperature(temperature);
+        self
+    }
+
+    /// Sets the maximum output tokens.
+    pub fn max_output_tokens(mut self, max_tokens: u32) -> Self {
+        self.settings = self.settings.with_max_output_tokens(max_tokens);
+        self
+    }
+
+    /// Sets the top_p sampling parameter.
+    pub fn top_p(mut self, top_p: f64) -> Self {
+        self.settings = self.settings.with_top_p(top_p);
+        self
+    }
+
+    /// Sets the top_k sampling parameter.
+    pub fn top_k(mut self, top_k: u32) -> Self {
+        self.settings = self.settings.with_top_k(top_k);
+        self
+    }
+
+    /// Sets the presence penalty.
+    pub fn presence_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_presence_penalty(penalty);
+        self
+    }
+
+    /// Sets the frequency penalty.
+    pub fn frequency_penalty(mut self, penalty: f64) -> Self {
+        self.settings = self.settings.with_frequency_penalty(penalty);
+        self
+    }
+
+    /// Sets the random seed for deterministic generation.
+    pub fn seed(mut self, seed: u32) -> Self {
+        self.settings = self.settings.with_seed(seed);
+        self
+    }
+
+    /// Sets the stop sequences.
+    pub fn stop_sequences(mut self, sequences: Vec<String>) -> Self {
+        self.settings = self.settings.with_stop_sequences(sequences);
+        self
+    }
+
+    /// Sets the maximum number of retries.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.settings = self.settings.with_max_retries(max_retries);
+        self
+    }
+
+    /// Sets custom headers for the request.
+    pub fn headers(mut self, headers: std::collections::HashMap<String, String>) -> Self {
+        self.settings = self.settings.with_headers(headers);
+        self
+    }
+
+    /// Sets the abort signal for cancellation.
+    pub fn abort_signal(mut self, signal: CancellationToken) -> Self {
+        self.settings = self.settings.with_abort_signal(signal);
+        self
+    }
+
+    /// Sets the tools available for the model to use.
+    pub fn tools(mut self, tools: ToolSet) -> Self {
+        self.tools = Some(tools);
+        self
+    }
+
+    /// Sets the tool choice strategy.
+    pub fn tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
+        self.tool_choice = Some(choice);
+        self
+    }
+
+    /// Sets provider-specific options.
+    pub fn provider_options(mut self, options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(options);
+        self
+    }
+
+    /// Sets stop conditions for multi-step generation.
+    pub fn stop_when(mut self, conditions: Vec<Box<dyn StopCondition>>) -> Self {
+        self.stop_when = Some(conditions);
+        self
+    }
+
+    /// Sets the prepare step callback.
+    pub fn prepare_step(mut self, callback: Box<dyn PrepareStep>) -> Self {
+        self.prepare_step = Some(callback);
+        self
+    }
+
+    /// Sets the on_step_finish callback.
+    pub fn on_step_finish(mut self, callback: Box<dyn OnStepFinish>) -> Self {
+        self.on_step_finish = Some(callback);
+        self
+    }
+
+    /// Sets the on_finish callback.
+    pub fn on_finish(mut self, callback: Box<dyn OnFinish>) -> Self {
+        self.on_finish = Some(callback);
+        self
+    }
+
+    /// Executes the text generation with the configured settings.
+    pub async fn execute(self) -> Result<GenerateTextResult, AISDKError> {
+        generate_text(
+            self.model,
+            self.prompt,
+            self.settings,
+            self.tools,
+            self.tool_choice,
+            self.provider_options,
+            self.stop_when,
+            self.prepare_step,
+            self.on_step_finish,
+            self.on_finish,
+        )
+        .await
+    }
+}
+
 /// Generate text using a language model.
 ///
 /// This is the main user-facing function for text generation in the AI SDK.
 /// It takes a prompt, model, settings, and optionally tools to generate text.
 ///
+/// # Note
+///
+/// Consider using `GenerateTextBuilder` for a more ergonomic fluent API:
+///
+/// ```ignore
+/// use ai_sdk_core::GenerateTextBuilder;
+/// use ai_sdk_core::prompt::Prompt;
+/// use std::sync::Arc;
+///
+/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
+///     .temperature(0.7)
+///     .max_output_tokens(100)
+///     .execute()
+///     .await?;
+/// ```
+///
 /// # Arguments
 ///
-/// * `model` - The language model to use for generation
+/// * `model` - The language model to use for generation (wrapped in Arc)
 /// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
 /// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
 /// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
@@ -313,41 +451,19 @@ pub fn as_content(
 /// # Errors
 ///
 /// Returns `AISDKError::InvalidArgument` if any settings are invalid (e.g., non-finite temperature).
-///
-/// # Examples
-///
-/// ```ignore
-/// use ai_sdk_core::{generate_text, step_count_is};
-/// use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-///
-/// let prompt = Prompt::text("Tell me a joke");
-/// let settings = CallSettings::default();
-/// let response = generate_text(
-///     model,
-///     prompt,
-///     settings,
-///     None,
-///     None,
-///     None,
-///     Some(vec![Box::new(step_count_is(1))]),
-///     None,
-///     None,
-///     None,
-/// ).await?;
-/// println!("Response: {:?}", response.content);
-/// ```
+#[allow(clippy::too_many_arguments)]
 pub async fn generate_text(
-    model: &dyn LanguageModel,
+    model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
     tools: Option<ToolSet>,
-    tool_choice: Option<ToolChoice>,
-    provider_options: Option<ProviderOptions>,
+    tool_choice: Option<LanguageModelToolChoice>,
+    provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     on_step_finish: Option<Box<dyn OnStepFinish>>,
-    on_finish: Option<Box<dyn OnFinish>>,
-) -> Result<GenerateTextResult<Value, Value>, AISDKError> {
+    _on_finish: Option<Box<dyn OnFinish>>,
+) -> Result<GenerateTextResult, AISDKError> {
     // Prepare stop conditions - default to step_count_is(1)
     let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
 
@@ -380,8 +496,8 @@ pub async fn generate_text(
         // Convert response messages to model messages and append to step_input_messages
         for response_msg in &response_messages {
             let model_msg = match response_msg {
-                ResponseMessage::Assistant(msg) => ModelMessage::Assistant(msg.clone()),
-                ResponseMessage::Tool(msg) => ModelMessage::Tool(msg.clone()),
+                ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
+                ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
             };
             step_input_messages.push(model_msg);
         }
@@ -426,7 +542,7 @@ pub async fn generate_text(
         })?;
 
         // Step 7: Build CallOptions
-        let mut call_options = CallOptions::new(messages);
+        let mut call_options = LanguageModelCallOptions::new(messages);
         // Add prepared settings
         if let Some(max_tokens) = prepared_settings.max_output_tokens {
             call_options = call_options.with_max_output_tokens(max_tokens);
@@ -464,10 +580,10 @@ pub async fn generate_text(
                         active_tool_names.iter().any(|name| {
                             // Match against the tool name from the provider tool
                             match tool {
-                                ai_sdk_provider::language_model::call_options::Tool::Function(f) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
                                     f.name == *name
                                 }
-                                ai_sdk_provider::language_model::call_options::Tool::ProviderDefined(p) => {
+                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
                                     p.name == *name
                                 }
                             }
@@ -506,31 +622,35 @@ pub async fn generate_text(
         let response = retry_config
             .execute(|| {
                 let call_options_clone = call_options.clone();
+                let model_clone = Arc::clone(&model);
                 async move {
-                    model.do_generate(call_options_clone).await.map_err(|e| {
-                        let error_string = e.to_string();
-                        // Check if error contains retry hint and create appropriate error type
-                        if let Some(retry_after) =
-                            retries::extract_retry_delay_from_error(&error_string)
-                        {
-                            AISDKError::retryable_error_with_delay(error_string, retry_after)
-                        } else {
-                            AISDKError::model_error(error_string)
-                        }
-                    })
+                    model_clone
+                        .do_generate(call_options_clone)
+                        .await
+                        .map_err(|e| {
+                            let error_string = e.to_string();
+                            // Check if error contains retry hint and create appropriate error type
+                            if let Some(retry_after) =
+                                retries::extract_retry_delay_from_error(&error_string)
+                            {
+                                AISDKError::retryable_error_with_delay(error_string, retry_after)
+                            } else {
+                                AISDKError::model_error(error_string)
+                            }
+                        })
                 }
             })
             .await?;
 
         // Step 9: Parse tool calls from the response
-        use ai_sdk_provider::language_model::content::Content;
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
 
-        let step_tool_calls: Vec<TypedToolCall<Value>> = if let Some(tool_set) = tools.as_ref() {
+        let step_tool_calls: Vec<ToolCall> = if let Some(tool_set) = tools.as_ref() {
             response
                 .content
                 .iter()
                 .filter_map(|part| {
-                    if let Content::ToolCall(tool_call) = part {
+                    if let LanguageModelContent::ToolCall(tool_call) = part {
                         Some(tool_call)
                     } else {
                         None
@@ -551,15 +671,9 @@ pub async fn generate_text(
         // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
 
         // Filter client tool calls (those not executed by the provider)
-        let client_tool_calls: Vec<&TypedToolCall<Value>> = step_tool_calls
+        let client_tool_calls: Vec<&ToolCall> = step_tool_calls
             .iter()
-            .filter(|tool_call| {
-                let provider_executed = match tool_call {
-                    TypedToolCall::Static(c) => c.provider_executed,
-                    TypedToolCall::Dynamic(c) => c.provider_executed,
-                };
-                provider_executed != Some(true)
-            })
+            .filter(|tool_call| tool_call.provider_executed != Some(true))
             .collect();
 
         // Execute client tool calls and collect outputs
@@ -578,8 +692,8 @@ pub async fn generate_text(
         // Store the count before moving client_tool_outputs
         let client_tool_outputs_count = client_tool_outputs.len();
 
-        // Create step content using as_content (clone step_tool_calls since we borrowed it above)
-        let step_content = as_content(
+        // Create step content using as_output(clone step_tool_calls since we borrowed it above)
+        let step_content = as_output(
             response.content.clone(),
             step_tool_calls.clone(),
             client_tool_outputs,
@@ -588,14 +702,14 @@ pub async fn generate_text(
         // Append to messages for potential next step
         let step_response_messages = to_response_messages(step_content.clone(), tools.as_ref());
         for msg in step_response_messages {
-            response_messages.push(ResponseMessage::from(msg));
+            response_messages.push(msg);
         }
 
         // Create and push the current step result (using step_content, NOT response.content)
         let current_step_result = StepResult::new(
-            step_content.clone(), // ← Use ContentPart, not provider Content
+            step_content.clone(), // ← Use Output, not provider Content
             response.finish_reason.clone(),
-            response.usage.clone(),
+            response.usage,
             if response.warnings.is_empty() {
                 None
             } else {
@@ -634,154 +748,34 @@ pub async fn generate_text(
     }
 
     // Calculate total usage by summing all steps
-    let total_usage = steps.iter().fold(Usage::default(), |acc, step| {
-        let input_tokens = acc.input_tokens + step.usage.input_tokens;
-        let output_tokens = acc.output_tokens + step.usage.output_tokens;
-        let total_tokens = acc.total_tokens + step.usage.total_tokens;
-        let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
-        let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
+    let total_usage = steps
+        .iter()
+        .fold(LanguageModelUsage::default(), |acc, step| {
+            let input_tokens = acc.input_tokens + step.usage.input_tokens;
+            let output_tokens = acc.output_tokens + step.usage.output_tokens;
+            let total_tokens = acc.total_tokens + step.usage.total_tokens;
+            let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
+            let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
 
-        Usage {
-            input_tokens,
-            output_tokens,
-            total_tokens,
-            reasoning_tokens,
-            cached_input_tokens,
-        }
-    });
-
-    // Create the resolved output (placeholder for now, as there's no output specification yet)
-    let resolved_output = Value::Null;
-
-    // Call on_finish callback before returning
-    if let Some(ref callback) = on_finish {
-        // Get the final step
-        if let Some(final_step) = steps.last() {
-            let finish_event = FinishEvent::new(final_step, steps.clone());
-            callback.call(finish_event).await;
-        }
-    }
-
-    // Debug logging: Show all steps
-    eprintln!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    eprintln!("🔍 DEBUG: Generation Steps Summary");
-    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    eprintln!("Total steps: {}", steps.len());
-    eprintln!(
-        "Total usage: {} input, {} output, {} total tokens",
-        total_usage.input_tokens, total_usage.output_tokens, total_usage.total_tokens
-    );
-
-    for (i, step) in steps.iter().enumerate() {
-        eprintln!("\n📍 Step {} of {}:", i + 1, steps.len());
-        eprintln!("  Finish reason: {:?}", step.finish_reason);
-        eprintln!(
-            "  Usage: {} in, {} out, {} total",
-            step.usage.input_tokens, step.usage.output_tokens, step.usage.total_tokens
-        );
-
-        // Show text content
-        let text = step.text();
-        if !text.is_empty() {
-            eprintln!(
-                "  Text: {}",
-                if text.len() > 100 {
-                    format!("{}...", &text[..100])
-                } else {
-                    text
-                }
-            );
-        }
-
-        // Show tool calls
-        let tool_calls = step.tool_calls();
-        if !tool_calls.is_empty() {
-            eprintln!("  Tool calls ({}):", tool_calls.len());
-            for tc in tool_calls {
-                use super::TypedToolCall;
-                match tc {
-                    TypedToolCall::Static(call) => {
-                        eprintln!("    - {} (id: {})", call.tool_name, call.tool_call_id);
-                        eprintln!("      Input: {:?}", call.input);
-                        if let Some(executed) = call.provider_executed {
-                            eprintln!("      Provider executed: {}", executed);
-                        }
-                    }
-                    TypedToolCall::Dynamic(call) => {
-                        eprintln!(
-                            "    - {} (id: {}) [dynamic]",
-                            call.tool_name, call.tool_call_id
-                        );
-                        eprintln!("      Input: {}", call.input);
-                        if let Some(executed) = call.provider_executed {
-                            eprintln!("      Provider executed: {}", executed);
-                        }
-                    }
-                }
+            LanguageModelUsage {
+                input_tokens,
+                output_tokens,
+                total_tokens,
+                reasoning_tokens,
+                cached_input_tokens,
             }
-        }
-
-        // Show tool results
-        let tool_results = step.tool_results();
-        if !tool_results.is_empty() {
-            eprintln!("  Tool results ({}):", tool_results.len());
-            for tr in tool_results {
-                use super::TypedToolResult;
-                match tr {
-                    TypedToolResult::Static(result) => {
-                        eprintln!(
-                            "    - {} (call_id: {})",
-                            result.tool_name, result.tool_call_id
-                        );
-                        eprintln!("      Output: {:?}", result.output);
-                        if let Some(executed) = result.provider_executed {
-                            eprintln!("      Provider executed: {}", executed);
-                        }
-                    }
-                    TypedToolResult::Dynamic(result) => {
-                        eprintln!(
-                            "    - {} (call_id: {}) [dynamic]",
-                            result.tool_name, result.tool_call_id
-                        );
-                        eprintln!("      Output: {}", result.output);
-                        if let Some(executed) = result.provider_executed {
-                            eprintln!("      Provider executed: {}", executed);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Show content types
-        eprintln!("  Content parts: {}", step.content.len());
-        for (j, content) in step.content.iter().enumerate() {
-            let content_type = match content {
-                ContentPart::Text(_) => "Text",
-                ContentPart::ToolCall(_) => "ToolCall",
-                ContentPart::ToolResult(_) => "ToolResult",
-                ContentPart::ToolError(_) => "ToolError",
-                ContentPart::Reasoning(_) => "Reasoning",
-                ContentPart::Source(_) => "Source",
-            };
-            eprintln!("    [{}] {}", j, content_type);
-        }
-    }
-
-    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        });
 
     // Return the GenerateTextResult
-    Ok(GenerateTextResult::from_steps(
-        steps,
-        total_usage,
-        resolved_output,
-    ))
+    Ok(GenerateTextResult::from_steps(steps, total_usage))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use ai_sdk_provider::language_model::{
-        LanguageModelGenerateResponse, LanguageModelStreamResponse, call_options::CallOptions,
+        LanguageModelGenerateResponse, LanguageModelStreamResponse,
+        call_options::LanguageModelCallOptions,
     };
     use async_trait::async_trait;
     use regex::Regex;
@@ -819,7 +813,7 @@ mod tests {
 
         async fn do_generate(
             &self,
-            _options: CallOptions,
+            _options: LanguageModelCallOptions,
         ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
             // Return a basic mock response
             // For now, we just return a mock error to indicate that this is a test mock
@@ -828,7 +822,7 @@ mod tests {
 
         async fn do_stream(
             &self,
-            _options: CallOptions,
+            _options: LanguageModelCallOptions,
         ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
             unimplemented!("Mock implementation")
         }
@@ -836,14 +830,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_basic() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Tell me a joke");
         let settings = CallSettings::default();
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -855,8 +849,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_generate_text_builder_basic() {
+        let model = Arc::new(MockLanguageModel::new());
+        let prompt = Prompt::text("Tell me a joke");
+
+        // Test the builder pattern
+        let result = GenerateTextBuilder::new(model, prompt).execute().await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
+    }
+
+    #[tokio::test]
     async fn test_generate_text_with_settings() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt =
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
         let settings = CallSettings::default()
@@ -866,7 +874,7 @@ mod tests {
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -877,16 +885,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_generate_text_builder_with_settings() {
+        let model = Arc::new(MockLanguageModel::new());
+        let prompt =
+            Prompt::text("What is the weather?").with_system("You are a helpful assistant");
+
+        // Test the builder pattern with chained settings
+        let result = GenerateTextBuilder::new(model, prompt)
+            .temperature(0.7)
+            .max_output_tokens(100)
+            .execute()
+            .await;
+        assert!(result.is_err());
+        match result {
+            Err(AISDKError::ModelError { .. }) => (), // Expected
+            _ => panic!("Expected ModelError from mock do_generate"),
+        }
+    }
+
+    #[tokio::test]
     async fn test_generate_text_with_tool_choice() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Use a tool to check the weather");
         let settings = CallSettings::default();
-        let tool_choice = Some(ToolChoice::Auto);
+        let tool_choice = Some(LanguageModelToolChoice::Auto);
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model,
+            model,
             prompt,
             settings,
             None,
@@ -907,10 +934,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_provider_options() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello, world!");
         let settings = CallSettings::default();
-        let mut provider_options = ProviderOptions::new();
+        let mut provider_options = SharedProviderOptions::new();
         provider_options.insert(
             "custom".to_string(),
             [("key".to_string(), Value::String("value".to_string()))]
@@ -922,7 +949,7 @@ mod tests {
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
         let result = generate_text(
-            &model,
+            model,
             prompt,
             settings,
             None,
@@ -943,13 +970,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_invalid_temperature() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -963,13 +990,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_invalid_max_tokens() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
         let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -983,13 +1010,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_with_empty_messages() {
-        let model = MockLanguageModel::new();
+        let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::messages(vec![]);
         let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
         let result = generate_text(
-            &model, prompt, settings, None, None, None, None, None, None, None,
+            model, prompt, settings, None, None, None, None, None, None, None,
         )
         .await;
         assert!(result.is_err());
@@ -998,6 +1025,53 @@ mod tests {
                 assert_eq!(message, "messages must not be empty");
             }
             _ => panic!("Expected InvalidPrompt error for empty messages"),
+        }
+    }
+
+    #[test]
+    fn test_as_output_converts_file() {
+        use ai_sdk_provider::language_model::content::file::{FileData, LanguageModelFile};
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
+
+        // Create a provider File content
+        let provider_file = LanguageModelFile::from_base64("text/plain", "SGVsbG8gV29ybGQh");
+        let content = vec![LanguageModelContent::File(provider_file)];
+
+        // Convert to Output
+        let output = as_output(content, vec![], vec![]);
+
+        // Verify the conversion
+        assert_eq!(output.len(), 1);
+        match &output[0] {
+            Output::File(file) => {
+                assert_eq!(file.media_type, "text/plain");
+                assert_eq!(file.base64(), "SGVsbG8gV29ybGQh");
+                assert_eq!(file.bytes(), b"Hello World!");
+            }
+            _ => panic!("Expected Output::File variant"),
+        }
+    }
+
+    #[test]
+    fn test_as_output_converts_file_from_bytes() {
+        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
+        use ai_sdk_provider::language_model::content::LanguageModelContent;
+
+        // Create a provider File content from bytes
+        let provider_file = LanguageModelFile::from_binary("image/png", vec![0x89, 0x50, 0x4E, 0x47]);
+        let content = vec![LanguageModelContent::File(provider_file)];
+
+        // Convert to Output
+        let output = as_output(content, vec![], vec![]);
+
+        // Verify the conversion
+        assert_eq!(output.len(), 1);
+        match &output[0] {
+            Output::File(file) => {
+                assert_eq!(file.media_type, "image/png");
+                assert_eq!(file.bytes(), &[0x89, 0x50, 0x4E, 0x47]);
+            }
+            _ => panic!("Expected Output::File variant"),
         }
     }
 }
