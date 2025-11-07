@@ -5,6 +5,7 @@ pub mod language_model;
 pub mod provider;
 pub mod reranking_model;
 pub mod shared;
+pub mod speech_model;
 
 // Re-export commonly used types
 pub use embedding_model::{
@@ -21,6 +22,7 @@ pub use reranking_model::{
     RankedDocument, RerankingModel, RerankingModelResponse, RerankingModelResponseMetadata,
 };
 pub use shared::warning::SharedWarning;
+pub use speech_model::{AudioData, SpeechModel, SpeechModelResponse, SpeechModelResponseMetadata};
 
 #[cfg(test)]
 mod tests {
