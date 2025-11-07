@@ -20,6 +20,12 @@ use crate::chat::{
 use crate::utils::finish_reason::map_openai_compatible_finish_reason;
 use crate::utils::response_metadata::get_response_metadata;
 
+/// Type alias for URL generation function
+pub type UrlGeneratorFn = Box<dyn Fn(&str, &str) -> String + Send + Sync>;
+
+/// Type alias for supported URLs function
+pub type SupportedUrlsFn = fn() -> HashMap<String, Vec<Regex>>;
+
 /// Configuration for an OpenAI-compatible chat language model
 pub struct OpenAICompatibleChatConfig {
     /// Provider name (e.g., "openai", "azure", "custom")
@@ -29,7 +35,7 @@ pub struct OpenAICompatibleChatConfig {
     pub headers: Box<dyn Fn() -> HashMap<String, String> + Send + Sync>,
 
     /// Function to generate the URL for API requests
-    pub url: Box<dyn Fn(&str, &str) -> String + Send + Sync>,
+    pub url: UrlGeneratorFn,
 
     /// Optional custom fetch function
     pub fetch: Option<fn()>, // TODO: proper fetch function type
@@ -41,7 +47,7 @@ pub struct OpenAICompatibleChatConfig {
     pub supports_structured_outputs: bool,
 
     /// Function to get supported URLs for the model
-    pub supported_urls: Option<fn() -> HashMap<String, Vec<Regex>>>,
+    pub supported_urls: Option<SupportedUrlsFn>,
 }
 
 impl Default for OpenAICompatibleChatConfig {
@@ -209,8 +215,8 @@ impl OpenAICompatibleChatLanguageModel {
                 let index = tool_call.index.unwrap_or(0) as usize;
 
                 // Get or create tool call state
-                if !state.tool_calls.contains_key(&index) {
-                    if let Some(id) = &tool_call.id {
+                if !state.tool_calls.contains_key(&index)
+                    && let Some(id) = &tool_call.id {
                         state.tool_calls.insert(
                             index,
                             ToolCallState {
@@ -221,16 +227,14 @@ impl OpenAICompatibleChatLanguageModel {
                             },
                         );
                     }
-                }
 
                 if let Some(tool_state) = state.tool_calls.get_mut(&index) {
                     // Update tool name if present
                     if let Some(function) = &tool_call.function {
-                        if let Some(name) = &function.name {
-                            if !name.is_empty() {
+                        if let Some(name) = &function.name
+                            && !name.is_empty() {
                                 tool_state.name = name.clone();
                             }
-                        }
 
                         // Emit start event if we have both ID and name
                         if !tool_state.started
@@ -245,8 +249,8 @@ impl OpenAICompatibleChatLanguageModel {
                         }
 
                         // Handle arguments delta
-                        if let Some(args) = &function.arguments {
-                            if !args.is_empty() {
+                        if let Some(args) = &function.arguments
+                            && !args.is_empty() {
                                 tool_state.arguments.push_str(args);
                                 if tool_state.started {
                                     parts.push(LanguageModelStreamPart::tool_input_delta(
@@ -255,7 +259,6 @@ impl OpenAICompatibleChatLanguageModel {
                                     ));
                                 }
                             }
-                        }
                     }
                 }
             }
@@ -585,13 +588,12 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         let mut content = Vec::new();
 
         // Add text content
-        if let Some(text) = &choice.message.content {
-            if !text.is_empty() {
+        if let Some(text) = &choice.message.content
+            && !text.is_empty() {
                 content.push(LanguageModelContent::Text(LanguageModelText::new(
                     text.clone(),
                 )));
             }
-        }
 
         // Add reasoning content
         let reasoning = choice
@@ -599,13 +601,12 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             .reasoning_content
             .as_ref()
             .or(choice.message.reasoning.as_ref());
-        if let Some(reasoning_text) = reasoning {
-            if !reasoning_text.is_empty() {
+        if let Some(reasoning_text) = reasoning
+            && !reasoning_text.is_empty() {
                 content.push(LanguageModelContent::Reasoning(
                     LanguageModelReasoning::init(reasoning_text.clone()),
                 ));
             }
-        }
 
         // Add tool calls
         if let Some(tool_calls) = &choice.message.tool_calls {

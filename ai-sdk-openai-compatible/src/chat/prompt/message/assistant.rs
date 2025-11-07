@@ -142,8 +142,7 @@ fn get_openai_metadata(provider_options: &Option<SharedProviderOptions>) -> Opti
     provider_options
         .as_ref()
         .and_then(|opts| opts.get("openaiCompatible"))
-        .map(|metadata| serde_json::to_value(metadata).ok())
-        .flatten()
+        .and_then(|metadata| serde_json::to_value(metadata).ok())
 }
 
 #[cfg(test)]

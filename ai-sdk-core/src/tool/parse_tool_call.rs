@@ -51,7 +51,7 @@ fn validate_tool_input(tool_name: &str, input: &Value, schema: &Value) -> Result
     let compiled_schema = jsonschema::validator_for(schema).map_err(|e| {
         AISDKError::invalid_tool_input(
             tool_name,
-            &input.to_string(),
+            input.to_string(),
             format!("Invalid tool schema: {}", e),
         )
     })?;
@@ -67,7 +67,7 @@ fn validate_tool_input(tool_name: &str, input: &Value, schema: &Value) -> Result
 
         return Err(AISDKError::invalid_tool_input(
             tool_name,
-            &input.to_string(),
+            input.to_string(),
             format!("Input does not match schema: {}", error_messages.join("; ")),
         ));
     }

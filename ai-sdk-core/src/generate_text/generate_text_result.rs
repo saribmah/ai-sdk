@@ -161,7 +161,7 @@ impl GenerateTextResult {
             tool_calls,
             tool_results,
             finish_reason: final_step.finish_reason.clone(),
-            usage: final_step.usage.clone(),
+            usage: final_step.usage,
             total_usage,
             warnings: final_step.warnings.clone(),
             request: final_step.request.clone(),

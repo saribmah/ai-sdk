@@ -93,15 +93,14 @@ impl OpenAICompatibleUserMessage {
         let provider_options = msg.provider_options;
 
         // Check if it's a simple text message
-        if content.len() == 1 {
-            if let LanguageModelUserMessagePart::Text(text_part) = &content[0] {
+        if content.len() == 1
+            && let LanguageModelUserMessagePart::Text(text_part) = &content[0] {
                 let mut user_msg = Self::new_text(text_part.text.clone());
                 if let Some(metadata) = get_openai_metadata(&text_part.provider_options) {
                     user_msg.additional_properties = Some(metadata);
                 }
                 return Ok(user_msg);
             }
-        }
 
         // Multi-part message
         let mut parts: Vec<OpenAICompatibleContentPart> = Vec::new();
@@ -173,8 +172,7 @@ fn get_openai_metadata(provider_options: &Option<SharedProviderOptions>) -> Opti
     provider_options
         .as_ref()
         .and_then(|opts| opts.get("openaiCompatible"))
-        .map(|metadata| serde_json::to_value(metadata).ok())
-        .flatten()
+        .and_then(|metadata| serde_json::to_value(metadata).ok())
 }
 
 /// Converts data content to a base64 or URL string for image URLs

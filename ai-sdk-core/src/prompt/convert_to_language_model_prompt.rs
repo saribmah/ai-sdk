@@ -139,7 +139,7 @@ fn convert_to_language_model_message(message: Message) -> Result<LanguageModelMe
                     // Filter out tool approval responses (not supported in provider)
                     _ => None,
                 })
-                .map(|tool_result| convert_tool_result_to_provider(tool_result))
+                .map(convert_tool_result_to_provider)
                 .collect::<Result<Vec<_>, _>>()?;
 
             Ok(LanguageModelMessage::Tool(
@@ -305,7 +305,7 @@ fn convert_tool_result_output(
             // Convert content items from core to provider format
             let converted_items: Vec<LanguageModelToolResultContentItem> = value
                 .into_iter()
-                .filter_map(|item| convert_tool_result_content_part(item))
+                .filter_map(convert_tool_result_content_part)
                 .collect();
 
             Ok(LanguageModelToolResultOutput::Content {

@@ -451,6 +451,7 @@ impl GenerateTextBuilder {
 /// # Errors
 ///
 /// Returns `AISDKError::InvalidArgument` if any settings are invalid (e.g., non-finite temperature).
+#[allow(clippy::too_many_arguments)]
 pub async fn generate_text(
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,
@@ -708,7 +709,7 @@ pub async fn generate_text(
         let current_step_result = StepResult::new(
             step_content.clone(), // ← Use Output, not provider Content
             response.finish_reason.clone(),
-            response.usage.clone(),
+            response.usage,
             if response.warnings.is_empty() {
                 None
             } else {

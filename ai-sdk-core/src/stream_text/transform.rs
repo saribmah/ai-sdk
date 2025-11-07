@@ -169,7 +169,7 @@ where
         use futures_util::StreamExt;
 
         let mapper = self.mapper.clone();
-        Box::pin(stream.map(move |part| mapper(part)))
+        Box::pin(stream.map(mapper))
     }
 }
 

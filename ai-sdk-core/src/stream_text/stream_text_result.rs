@@ -33,16 +33,12 @@ pub type ErrorHandler = Arc<dyn Fn(AISDKError) + Send + Sync>;
 /// };
 /// ```
 #[derive(Clone)]
+#[derive(Default)]
 pub struct ConsumeStreamOptions {
     /// Optional error handler that will be called if an error occurs during stream consumption.
     pub on_error: Option<ErrorHandler>,
 }
 
-impl Default for ConsumeStreamOptions {
-    fn default() -> Self {
-        Self { on_error: None }
-    }
-}
 
 impl ConsumeStreamOptions {
     /// Creates a new `ConsumeStreamOptions` with no error handler.
@@ -222,7 +218,7 @@ impl StreamTextResult {
         let state = self.consume_stream_internal(stream).await?;
 
         // Store the state
-        let _ = self
+        self
             .state
             .set(state)
             .map_err(|_| AISDKError::model_error("Failed to store stream state"))?;
@@ -446,7 +442,7 @@ impl StreamTextResult {
     /// Automatically consumes the stream.
     pub async fn usage(&self) -> Result<LanguageModelUsage, AISDKError> {
         self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().usage.clone())
+        Ok(self.state.get().unwrap().usage)
     }
 
     /// Gets the total token usage of the generated response.
@@ -455,7 +451,7 @@ impl StreamTextResult {
     /// Automatically consumes the stream.
     pub async fn total_usage(&self) -> Result<LanguageModelUsage, AISDKError> {
         self.ensure_consumed().await?;
-        Ok(self.state.get().unwrap().total_usage.clone())
+        Ok(self.state.get().unwrap().total_usage)
     }
 
     /// Gets warnings from the model provider (e.g. unsupported settings) for the first step.
@@ -577,12 +573,11 @@ impl StreamTextResult {
                         let repaired = repair_partial_json(&accumulated_text);
 
                         // Only emit if we haven't already emitted this exact JSON
-                        if Some(&repaired) != last_parsed.as_ref() {
-                            if let Ok(value) = serde_json::from_str::<OUTPUT>(&repaired) {
+                        if Some(&repaired) != last_parsed.as_ref()
+                            && let Ok(value) = serde_json::from_str::<OUTPUT>(&repaired) {
                                 last_parsed = Some(repaired);
                                 yield value;
                             }
-                        }
                     }
                 }
             }
@@ -626,11 +621,10 @@ impl StreamTextResult {
         let result = self.ensure_consumed().await;
 
         if let Err(e) = result {
-            if let Some(opts) = options {
-                if let Some(handler) = opts.on_error {
+            if let Some(opts) = options
+                && let Some(handler) = opts.on_error {
                     handler(e.clone());
                 }
-            }
             return Err(e);
         }
 

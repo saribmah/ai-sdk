@@ -165,7 +165,7 @@ pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Ve
         // Convert Vec<ToolResultPart> to Vec<ToolContentPart>
         let tool_content_parts: Vec<ToolContentPart> = tool_content
             .into_iter()
-            .map(|part| ToolContentPart::ToolResult(part))
+            .map(ToolContentPart::ToolResult)
             .collect();
 
         response_messages.push(ResponseMessage::Tool(ToolMessage::new(tool_content_parts)));

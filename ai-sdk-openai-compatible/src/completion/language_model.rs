@@ -18,6 +18,9 @@ use crate::completion::{
 use crate::utils::finish_reason::map_openai_compatible_finish_reason;
 use crate::utils::response_metadata::get_response_metadata;
 
+/// Type alias for URL generation function
+pub type CompletionUrlGeneratorFn = Box<dyn Fn(&str, &str) -> String + Send + Sync>;
+
 /// Configuration for an OpenAI-compatible completion language model
 pub struct OpenAICompatibleCompletionConfig {
     /// Provider name (e.g., "openai", "azure", "custom")
@@ -27,7 +30,7 @@ pub struct OpenAICompatibleCompletionConfig {
     pub headers: Box<dyn Fn() -> HashMap<String, String> + Send + Sync>,
 
     /// Function to generate the URL for API requests
-    pub url: Box<dyn Fn(&str, &str) -> String + Send + Sync>,
+    pub url: CompletionUrlGeneratorFn,
 
     /// Optional custom fetch function
     pub fetch: Option<fn()>, // TODO: proper fetch function type
@@ -40,7 +43,7 @@ impl Default for OpenAICompatibleCompletionConfig {
     fn default() -> Self {
         Self {
             provider: "openai-compatible".to_string(),
-            headers: Box::new(|| HashMap::new()),
+            headers: Box::new(HashMap::new),
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
             fetch: None,
             include_usage: false,

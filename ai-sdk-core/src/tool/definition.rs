@@ -402,9 +402,7 @@ pub async fn execute_tool_call(
     };
 
     // Check if tool has an execute function
-    if tool.execute.is_none() {
-        return None;
-    }
+    tool.execute.as_ref()?;
 
     // Create tool call options
     let mut options = ToolExecuteOptions::new(&tool_call_id, messages);

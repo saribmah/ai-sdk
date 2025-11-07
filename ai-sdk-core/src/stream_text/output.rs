@@ -426,7 +426,7 @@ pub fn repair_partial_json(json: &str) -> String {
 }
 
 /// Helper functions for creating output specifications
-pub mod output {
+pub mod helpers {
     use super::*;
 
     /// Create a text output specification (default).

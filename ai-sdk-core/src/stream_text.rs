@@ -244,13 +244,13 @@ async fn stream_single_step(
                     current_reasoning.clear();
                 }
 
-                step_usage = f.usage.clone();
+                step_usage = f.usage;
                 step_finish_reason = f.finish_reason.clone();
                 step_provider_metadata = f.provider_metadata.clone();
 
                 TextStreamPart::FinishStep {
                     response: ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata::default(),
-                    usage: f.usage.clone(),
+                    usage: f.usage,
                     finish_reason: f.finish_reason.clone(),
                     provider_metadata: f.provider_metadata.clone(),
                 }
@@ -352,12 +352,11 @@ async fn stream_single_step(
         };
 
         // Call on_chunk callback if this is a chunk type
-        if let Some(callback) = on_chunk {
-            if let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
+        if let Some(callback) = on_chunk
+            && let Some(chunk) = callbacks::ChunkStreamPart::from_stream_part(&text_stream_part) {
                 let event = callbacks::StreamTextChunkEvent { chunk };
                 callback(event).await;
             }
-        }
 
         // Send the part to the channel
         if tx.send(text_stream_part).is_err() {
@@ -643,6 +642,7 @@ impl StreamTextBuilder {
 ///
 /// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
 /// ways to access the streamed data, or a validation error.
+#[allow(clippy::too_many_arguments)]
 pub async fn stream_text(
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,
@@ -931,7 +931,7 @@ pub async fn stream_text(
             let current_step_result = StepResult::new(
                 step_content.clone(),
                 step_result.finish_reason.clone(),
-                step_result.usage.clone(),
+                step_result.usage,
                 step_result.warnings.clone(),
                 step_result.request.clone(),
                 step_result.response.clone(),
@@ -957,7 +957,7 @@ pub async fn stream_text(
             // Check loop termination conditions
             let should_continue = !client_tool_calls.is_empty()
                 && client_tool_outputs_count == client_tool_calls.len()
-                && !is_stop_condition_met(&*stop_conditions_arc, &all_steps).await;
+                && !is_stop_condition_met(&stop_conditions_arc, &all_steps).await;
 
             if !should_continue {
                 break;
@@ -968,13 +968,13 @@ pub async fn stream_text(
         if let Some(last_step) = all_steps.last() {
             let _ = tx_clone.send(TextStreamPart::Finish {
                 finish_reason: last_step.finish_reason.clone(),
-                total_usage: total_usage.clone(),
+                total_usage,
             });
         }
 
         // Call on_finish callback if provided
-        if let Some(ref callback) = on_finish_arc {
-            if let Some(last_step) = all_steps.last() {
+        if let Some(ref callback) = on_finish_arc
+            && let Some(last_step) = all_steps.last() {
                 let event = callbacks::StreamTextFinishEvent {
                     step_result: last_step.clone(),
                     steps: all_steps,
@@ -982,7 +982,6 @@ pub async fn stream_text(
                 };
                 callback(event).await;
             }
-        }
     });
 
     // Step 7: Create an AsyncIterableStream from the receiver

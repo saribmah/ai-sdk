@@ -62,14 +62,13 @@ pub fn create_tool_model_output(
         },
         ErrorMode::None => {
             // Check if tool has a to_model_output method
-            if let Some(tool_def) = tool {
-                if let Some(to_model_output_fn) = &tool_def.to_model_output {
+            if let Some(tool_def) = tool
+                && let Some(to_model_output_fn) = &tool_def.to_model_output {
                     // Since the function expects OUTPUT type, we need to deserialize from Value
                     // For now, we'll skip this and fall through to default behavior
                     // This would require proper type handling in a real implementation
                     let _ = to_model_output_fn;
                 }
-            }
 
             // Default behavior: string -> text, otherwise -> json
             if let Some(string_value) = output.as_str() {
@@ -99,16 +98,14 @@ fn get_error_message(value: &Value) -> String {
 
     // If it's an object, try to get "message" or "error" field
     if let Some(obj) = value.as_object() {
-        if let Some(msg) = obj.get("message") {
-            if let Some(msg_str) = msg.as_str() {
+        if let Some(msg) = obj.get("message")
+            && let Some(msg_str) = msg.as_str() {
                 return msg_str.to_string();
             }
-        }
-        if let Some(err) = obj.get("error") {
-            if let Some(err_str) = err.as_str() {
+        if let Some(err) = obj.get("error")
+            && let Some(err_str) = err.as_str() {
                 return err_str.to_string();
             }
-        }
     }
 
     // Otherwise, convert to JSON string

@@ -49,11 +49,10 @@ impl RetryConfig {
 
         loop {
             // Check if we should abort
-            if let Some(ref token) = self.abort_signal {
-                if token.is_cancelled() {
+            if let Some(ref token) = self.abort_signal
+                && token.is_cancelled() {
                     return Err(AISDKError::model_error("Operation cancelled".to_string()));
                 }
-            }
 
             // Try the operation
             match operation().await {
@@ -75,7 +74,7 @@ impl RetryConfig {
                     tokio::time::sleep(delay).await;
 
                     // Double the default delay for next retry (exponential backoff)
-                    default_delay = default_delay * 2;
+                    default_delay *= 2;
                     retries += 1;
                 }
             }
@@ -111,11 +110,10 @@ impl RetryConfig {
 
         loop {
             // Check if we should abort
-            if let Some(ref token) = self.abort_signal {
-                if token.is_cancelled() {
+            if let Some(ref token) = self.abort_signal
+                && token.is_cancelled() {
                     return Err(AISDKError::model_error("Operation cancelled".to_string()));
                 }
-            }
 
             // Try the operation
             match operation().await {
@@ -140,7 +138,7 @@ impl RetryConfig {
                     tokio::time::sleep(delay).await;
 
                     // Double the default delay for next retry (exponential backoff)
-                    default_delay = default_delay * 2;
+                    default_delay *= 2;
                     retries += 1;
                 }
             }
