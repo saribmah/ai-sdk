@@ -1,9 +1,13 @@
+pub mod embedding_model;
 pub mod error;
 pub mod language_model;
 pub mod provider;
 pub mod shared;
 
 // Re-export commonly used types
+pub use embedding_model::{
+    EmbeddingModel, EmbeddingModelResponse, EmbeddingModelResponseMetadata, EmbeddingModelUsage,
+};
 pub use error::ProviderError;
 pub use language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
