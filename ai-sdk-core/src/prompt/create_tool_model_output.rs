@@ -116,8 +116,6 @@ fn get_error_message(value: &Value) -> String {
 }
 
 /// Converts a value to a JSON value.
-///
-/// This matches the TypeScript behavior where undefined becomes null.
 fn to_json_value(value: Value) -> Value {
     // In Rust, we don't have undefined, so we just return the value as-is
     // Null values in serde_json::Value are already represented as Value::Null

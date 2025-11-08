@@ -537,8 +537,6 @@ impl StreamTextResult {
     /// This streams partial JSON objects as they are being constructed from the text output.
     /// It attempts to parse incomplete JSON by repairing it (closing brackets/braces).
     ///
-    /// Note: This is the Rust equivalent of `partialOutputStream` from the TypeScript SDK.
-    ///
     /// # Example
     ///
     /// ```ignore

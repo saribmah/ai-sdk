@@ -484,7 +484,7 @@ mod tests {
 
     #[test]
     fn test_chained_usage() {
-        // Test the chained usage pattern similar to Vercel AI SDK
+        // Test the chained usage pattern
         let model = create_openai_compatible(
             OpenAICompatibleProviderSettings::new("https://api.example.com/v1", "example")
                 .with_api_key("test-key"),

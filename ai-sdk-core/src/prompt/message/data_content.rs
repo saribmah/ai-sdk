@@ -24,7 +24,7 @@ pub enum DataContent {
     /// Base64-encoded string
     Base64(String),
 
-    /// Raw bytes (equivalent to Uint8Array, ArrayBuffer, or Buffer in TypeScript/Node.js)
+    /// Raw bytes
     #[serde(with = "serde_bytes")]
     Bytes(Vec<u8>),
 }

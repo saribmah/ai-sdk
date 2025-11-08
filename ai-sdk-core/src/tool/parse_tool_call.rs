@@ -1,8 +1,7 @@
 //! Tool call parsing and validation.
 //!
 //! This module provides functionality to parse and validate tool calls from LLM providers.
-//! It includes JSON Schema validation to ensure tool inputs conform to their defined schemas,
-//! providing similar error reporting to the TypeScript AI SDK.
+//! It includes JSON Schema validation to ensure tool inputs conform to their defined schemas.
 //!
 //! # Features
 //!

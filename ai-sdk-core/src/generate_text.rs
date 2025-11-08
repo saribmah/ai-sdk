@@ -604,8 +604,7 @@ impl GenerateText {
             };
 
             // Step 10: Filter and execute client tool calls
-            // Note: In the TypeScript implementation, invalid tool calls are tracked separately.
-            // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
+            // Note: We fail fast on parsing errors, so all parsed tool calls are valid.
 
             // Filter client tool calls (those not executed by the provider)
             let client_tool_calls: Vec<&ToolCall> = step_tool_calls

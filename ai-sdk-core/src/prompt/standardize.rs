@@ -63,7 +63,7 @@ pub fn standardize_prompt(prompt: Prompt) -> StandardizedPrompt {
 
 /// Validates and converts a Prompt into a StandardizedPrompt.
 ///
-/// This function performs validation similar to the TypeScript implementation:
+/// This function performs validation:
 /// - Ensures messages are not empty
 /// - Returns detailed error messages for invalid prompts
 ///

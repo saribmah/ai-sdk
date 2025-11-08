@@ -167,8 +167,6 @@ pub struct StreamTextAbortEvent {
 
 /// Callback that is called when an error occurs during streaming.
 ///
-/// Equivalent to TypeScript's `StreamTextOnErrorCallback`.
-///
 /// # Example
 ///
 /// ```rust
@@ -186,8 +184,6 @@ pub type StreamTextOnErrorCallback =
     Box<dyn Fn(StreamTextErrorEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when a step finishes during streaming.
-///
-/// Equivalent to TypeScript's `StreamTextOnStepFinishCallback<TOOLS>`.
 ///
 /// # Example
 ///
@@ -208,8 +204,6 @@ pub type StreamTextOnStepFinishCallback =
     Box<dyn Fn(StepResult) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called for each chunk during streaming.
-///
-/// Equivalent to TypeScript's `StreamTextOnChunkCallback<TOOLS>`.
 ///
 /// Only receives chunks that represent actual content being generated
 /// (text-delta, reasoning-delta, source, tool-call, tool-input-start,
@@ -234,8 +228,6 @@ pub type StreamTextOnChunkCallback =
 
 /// Callback that is called when the entire generation finishes.
 ///
-/// Equivalent to TypeScript's `StreamTextOnFinishCallback<TOOLS>`.
-///
 /// Receives the final step result along with details for all steps
 /// and the total usage across all steps.
 ///
@@ -258,8 +250,6 @@ pub type StreamTextOnFinishCallback =
     Box<dyn Fn(StreamTextFinishEvent) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when the generation is aborted.
-///
-/// Equivalent to TypeScript's `StreamTextOnAbortCallback<TOOLS>`.
 ///
 /// # Example
 ///
