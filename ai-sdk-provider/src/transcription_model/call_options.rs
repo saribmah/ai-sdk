@@ -101,7 +101,7 @@ pub struct TranscriptionModelCallOptions {
     /// - `audio/webm` - WebM
     /// - `audio/mp4` - MP4/M4A
     ///
-    /// See: https://www.iana.org/assignments/media-types/media-types.xhtml
+    /// See: <https://www.iana.org/assignments/media-types/media-types.xhtml>
     pub media_type: String,
 
     /// Additional provider-specific options that are passed through to the provider
