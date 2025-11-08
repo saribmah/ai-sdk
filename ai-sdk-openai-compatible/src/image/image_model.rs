@@ -1,3 +1,4 @@
+use ai_sdk_provider::error::ProviderError;
 use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
 use ai_sdk_provider::image_model::call_warning::ImageModelCallWarning;
 use ai_sdk_provider::image_model::{
@@ -10,7 +11,6 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::time::SystemTime;
 
-use crate::error::OpenAICompatibleError;
 use crate::image::OpenAICompatibleImageModelId;
 
 /// Type alias for URL generation function
@@ -170,11 +170,19 @@ impl ImageModel for OpenAICompatibleImageModel {
         if !response.status().is_success() {
             let status = response.status();
             let error_body: Value = response.json().await?;
+            let error_body_str = serde_json::to_string(&error_body).unwrap_or_default();
 
-            return Err(Box::new(OpenAICompatibleError::ApiError {
-                status: status.as_u16(),
-                body: error_body,
-            }));
+            return Err(Box::new(ProviderError::api_call_error_with_details(
+                format!("API request failed with status {}", status.as_u16()),
+                url.clone(),
+                serde_json::to_string(&body).unwrap_or_default(),
+                Some(status.as_u16()),
+                Some(response_headers),
+                Some(error_body_str),
+                None, // Auto-determine retryability based on status code
+                None,
+                None,
+            )));
         }
 
         // Parse response

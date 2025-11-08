@@ -5,15 +5,6 @@ use std::fmt;
 /// OpenAI-compatible error types
 #[derive(Debug)]
 pub enum OpenAICompatibleError {
-    /// API error with status code and body
-    ApiError { status: u16, body: Value },
-    /// Too many embedding values for a single call
-    TooManyEmbeddingValues {
-        provider: String,
-        model_id: String,
-        max_embeddings_per_call: usize,
-        values_count: usize,
-    },
     /// Generic error wrapper
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
@@ -21,21 +12,6 @@ pub enum OpenAICompatibleError {
 impl fmt::Display for OpenAICompatibleError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ApiError { status, body } => {
-                write!(f, "API error (status {}): {}", status, body)
-            }
-            Self::TooManyEmbeddingValues {
-                provider,
-                model_id,
-                max_embeddings_per_call,
-                values_count,
-            } => {
-                write!(
-                    f,
-                    "Too many embedding values for call. Provider: {}, Model: {}, Max: {}, Provided: {}",
-                    provider, model_id, max_embeddings_per_call, values_count
-                )
-            }
             Self::Other(err) => write!(f, "{}", err),
         }
     }

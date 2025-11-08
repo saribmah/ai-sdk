@@ -3,6 +3,7 @@ use ai_sdk_provider::embedding_model::embedding::EmbeddingModelEmbedding;
 use ai_sdk_provider::embedding_model::{
     EmbeddingModel, EmbeddingModelResponse, EmbeddingModelResponseMetadata, EmbeddingModelUsage,
 };
+use ai_sdk_provider::error::ProviderError;
 use async_trait::async_trait;
 use reqwest;
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,6 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 
 use crate::embedding::OpenAICompatibleEmbeddingModelId;
-use crate::error::OpenAICompatibleError;
 
 /// Type alias for URL generation function
 pub type UrlGeneratorFn = Box<dyn Fn(&str, &str) -> String + Send + Sync>;
@@ -114,12 +114,12 @@ impl EmbeddingModel<String> for OpenAICompatibleEmbeddingModel {
         if let Some(max) = self.config.max_embeddings_per_call
             && values.len() > max
         {
-            return Err(Box::new(OpenAICompatibleError::TooManyEmbeddingValues {
-                provider: self.config.provider.clone(),
-                model_id: self.model_id.clone(),
-                max_embeddings_per_call: max,
-                values_count: values.len(),
-            }));
+            return Err(Box::new(ProviderError::too_many_embedding_values_for_call(
+                self.config.provider.clone(),
+                self.model_id.clone(),
+                max,
+                values.len(),
+            )));
         }
 
         // Build the request body
@@ -189,11 +189,19 @@ impl EmbeddingModel<String> for OpenAICompatibleEmbeddingModel {
         if !response.status().is_success() {
             let status = response.status();
             let error_body: Value = response.json().await?;
+            let error_body_str = serde_json::to_string(&error_body).unwrap_or_default();
 
-            return Err(Box::new(OpenAICompatibleError::ApiError {
-                status: status.as_u16(),
-                body: error_body,
-            }));
+            return Err(Box::new(ProviderError::api_call_error_with_details(
+                format!("API request failed with status {}", status.as_u16()),
+                url.clone(),
+                serde_json::to_string(&body).unwrap_or_default(),
+                Some(status.as_u16()),
+                Some(response_headers),
+                Some(error_body_str),
+                None, // Auto-determine retryability based on status code
+                None,
+                None,
+            )));
         }
 
         // Parse response
