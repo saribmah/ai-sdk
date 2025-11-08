@@ -41,4 +41,4 @@ pub use tool::{
     execute_tool_call, is_approval_needed, no_repair, parse_provider_executed_dynamic_tool_call,
     parse_tool_call, prepare_tools_and_tool_choice,
 };
-pub use transcribe::TranscriptionResult;
+pub use transcribe::{AudioInput, TranscriptionResult, transcribe};
