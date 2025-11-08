@@ -16,7 +16,214 @@ use tokio_util::sync::CancellationToken;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Builder for generating transcripts using a transcription model.
+///
+/// # Example
+///
+/// ```ignore
+/// use ai_sdk_core::{Transcribe, AudioInput};
+/// use ai_sdk_core::prompt::message::DataContent;
+///
+/// let audio_data = DataContent::from(audio_bytes);
+/// let result = Transcribe::new(model, AudioInput::Data(audio_data))
+///     .max_retries(3)
+///     .execute()
+///     .await?;
+///
+/// println!("Transcript: {}", result.text);
+/// ```
+pub struct Transcribe {
+    model: Arc<dyn TranscriptionModel>,
+    audio: AudioInput,
+    provider_options: Option<SharedProviderOptions>,
+    max_retries: Option<u32>,
+    abort_signal: Option<CancellationToken>,
+    headers: Option<SharedHeaders>,
+}
+
+impl Transcribe {
+    /// Create a new Transcribe builder.
+    ///
+    /// # Arguments
+    ///
+    /// * `model` - The transcription model to use
+    /// * `audio` - The audio data to transcribe (URL, DataContent, or bytes)
+    pub fn new(model: Arc<dyn TranscriptionModel>, audio: AudioInput) -> Self {
+        Self {
+            model,
+            audio,
+            provider_options: None,
+            max_retries: None,
+            abort_signal: None,
+            headers: None,
+        }
+    }
+
+    /// Set additional provider-specific options.
+    ///
+    /// # Arguments
+    ///
+    /// * `provider_options` - Additional provider-specific options
+    pub fn provider_options(mut self, provider_options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(provider_options);
+        self
+    }
+
+    /// Set the maximum number of retries.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.max_retries = Some(max_retries);
+        self
+    }
+
+    /// Set an abort signal that can be used to cancel the call.
+    ///
+    /// # Arguments
+    ///
+    /// * `abort_signal` - An optional abort signal
+    pub fn abort_signal(mut self, abort_signal: CancellationToken) -> Self {
+        self.abort_signal = Some(abort_signal);
+        self
+    }
+
+    /// Set additional HTTP headers to be sent with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Additional HTTP headers
+    pub fn headers(mut self, headers: SharedHeaders) -> Self {
+        self.headers = Some(headers);
+        self
+    }
+
+    /// Execute the transcription operation.
+    ///
+    /// # Returns
+    ///
+    /// A result object that contains the generated transcript.
+    pub async fn execute(self) -> Result<TranscriptionResult, AISDKError> {
+        // Check specification version
+        if self.model.specification_version() != "v3" {
+            return Err(AISDKError::model_error(format!(
+                "Unsupported model version: {}. Provider: {}, Model ID: {}",
+                self.model.specification_version(),
+                self.model.provider(),
+                self.model.model_id()
+            )));
+        }
+
+        // Add user agent to headers
+        let headers_with_user_agent =
+            add_user_agent_suffix(self.headers, format!("ai/{}", VERSION));
+
+        // Prepare retry configuration
+        let retry_config = prepare_retries(self.max_retries, self.abort_signal.clone())?;
+
+        // Convert audio input to bytes
+        let audio_bytes = match self.audio {
+            AudioInput::Url(url) => {
+                // Download the audio file from URL
+                download_from_url(&url).await?
+            }
+            AudioInput::Data(data) => {
+                // Convert DataContent to bytes
+                data.to_bytes().map_err(|e| {
+                    AISDKError::invalid_argument(
+                        "audio",
+                        format!("{:?}", data),
+                        format!("Failed to decode base64 audio data: {}", e),
+                    )
+                })?
+            }
+        };
+
+        // Detect media type from audio bytes
+        let media_type = detect_media_type_from_bytes(&audio_bytes);
+
+        // Clone model for logging later
+        let provider_name = self.model.provider().to_string();
+        let model_id = self.model.model_id().to_string();
+
+        // Execute the model call with retry logic
+        let result = retry_config
+            .execute_with_boxed_error(move || {
+                let model = self.model.clone();
+                let audio_bytes = audio_bytes.clone();
+                let provider_options = self.provider_options.clone();
+                let headers_with_user_agent = headers_with_user_agent.clone();
+                let abort_signal = self.abort_signal.clone();
+                let media_type = media_type.clone();
+
+                Box::pin(async move {
+                    model
+                        .do_generate(
+                            TranscriptionModelCallOptions::new(
+                                TranscriptionAudioData::from_binary(audio_bytes),
+                                media_type,
+                            )
+                            .with_provider_options(provider_options.unwrap_or_default())
+                            .with_headers(
+                                headers_with_user_agent
+                                    .clone()
+                                    .unwrap_or_default()
+                                    .into_iter()
+                                    .collect(),
+                            )
+                            .with_abort_signal(abort_signal.unwrap_or_default()),
+                        )
+                        .await
+                })
+            })
+            .await?;
+
+        // Log warnings if any
+        if !result.warnings.is_empty() {
+            log::warn!(
+                "Transcription warnings from {} (model: {}): {} warning(s)",
+                provider_name,
+                model_id,
+                result.warnings.len()
+            );
+            for warning in &result.warnings {
+                log::warn!("  - {:?}", warning);
+            }
+        }
+
+        // Check if we got a transcript
+        if result.text.is_empty() {
+            return Err(AISDKError::no_transcript_generated(vec![
+                result.response.clone(),
+            ]));
+        }
+
+        // Build the transcription result
+        let mut transcription_result = TranscriptionResult::new(result.text, vec![result.response])
+            .with_segments(result.segments);
+
+        if let Some(language) = result.language {
+            transcription_result = transcription_result.with_language(language);
+        }
+
+        if let Some(duration) = result.duration_in_seconds {
+            transcription_result = transcription_result.with_duration(duration);
+        }
+
+        transcription_result = transcription_result.with_warnings(result.warnings);
+
+        if let Some(provider_metadata) = result.provider_metadata {
+            transcription_result = transcription_result.with_provider_metadata(provider_metadata);
+        }
+
+        Ok(transcription_result)
+    }
+}
+
 /// Generates transcripts using a transcription model.
+///
+/// **Deprecated:** Use the `Transcribe` builder instead.
 ///
 /// # Arguments
 ///
@@ -51,8 +258,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// println!("Transcript: {}", result.text);
 /// ```
+#[allow(dead_code)]
 #[allow(clippy::too_many_arguments)]
-pub async fn transcribe(
+async fn transcribe(
     model: Arc<dyn TranscriptionModel>,
     audio: AudioInput,
     provider_options: Option<SharedProviderOptions>,

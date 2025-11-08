@@ -332,8 +332,8 @@ let image_model = provider_trait.image_model("dall-e-3")?;
 The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
-- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`
-- User-facing APIs: `transcribe()`, `rerank()`
+- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`
+- User-facing APIs: `rerank()`
 - Prompt standardization and validation
 - Message type conversions
 - Tool execution and management
