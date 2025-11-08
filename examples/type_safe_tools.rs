@@ -12,15 +12,14 @@
 /// cargo run --example type_safe_tools
 /// ```
 use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::TypeSafeTool;
-use ai_sdk_core::{ToolSet, generate_text};
+use ai_sdk_core::{GenerateTextBuilder, ToolSet};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::env;
-use std::sync::Arc;
 
 // Define typed input/output structures for weather tool
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -216,25 +215,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = Prompt::text("What's the weather like in San Francisco?");
     println!("📤 Prompt: \"What's the weather like in San Francisco?\"\n");
 
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(500);
-
     println!("⏳ Generating response...");
 
-    let result = generate_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        Some(tools),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = GenerateTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .max_output_tokens(500)
+        .tools(tools)
+        .execute()
+        .await?;
 
     println!("\n✅ Response received!\n");
 
@@ -291,19 +279,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("⏳ Generating response with multi-step tool execution...");
 
-    let result2 = generate_text(
-        Arc::clone(&model),
-        prompt2,
-        settings.clone(),
-        Some(tools2),
-        None,
-        None,
-        Some(vec![Box::new(ai_sdk_core::step_count_is(5))]), // Allow multiple steps
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result2 = GenerateTextBuilder::new(model, prompt2)
+        .temperature(0.7)
+        .max_output_tokens(500)
+        .tools(tools2)
+        .execute()
+        .await?;
 
     println!("\n✅ Response received!\n");
 

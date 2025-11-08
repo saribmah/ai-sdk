@@ -10,11 +10,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example conversation
 /// ```
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
-use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -47,24 +46,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📤 System: You are a helpful teacher who explains complex topics simply.");
     println!("📤 User: Explain quantum computing\n");
 
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(150);
-
     println!("⏳ Generating response...\n");
-    let result = generate_text(
-        Arc::clone(&model),
-        prompt,
-        settings,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = GenerateTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .max_output_tokens(150)
+        .execute()
+        .await?;
 
     println!("📝 Response:");
     for content in &result.content {
@@ -87,23 +74,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🌡️  Temperature: 0.2 (focused)\n");
 
     let focused_prompt = Prompt::text(creative_question);
-    let focused_settings = CallSettings::default()
-        .with_temperature(0.2)
-        .with_max_output_tokens(100);
 
-    let focused_result = generate_text(
-        Arc::clone(&model),
-        focused_prompt,
-        focused_settings,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let focused_result = GenerateTextBuilder::new(model.clone(), focused_prompt)
+        .temperature(0.2)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
 
     println!("📝 Focused Response:");
     for content in &focused_result.content {
@@ -114,23 +90,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🌡️  Temperature: 1.2 (creative)\n");
 
     let creative_prompt = Prompt::text(creative_question);
-    let creative_settings = CallSettings::default()
-        .with_temperature(1.2)
-        .with_max_output_tokens(100);
 
-    let creative_result = generate_text(
-        model,
-        creative_prompt,
-        creative_settings,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let creative_result = GenerateTextBuilder::new(model, creative_prompt)
+        .temperature(1.2)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
 
     println!("📝 Creative Response:");
     for content in &creative_result.content {

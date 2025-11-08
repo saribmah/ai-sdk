@@ -23,7 +23,7 @@ pub use generate_text::{
     FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
     OnStepFinish, PrepareStep, PrepareStepOptions, PrepareStepResult, RequestMetadata,
     ResponseMessage, ResponseMetadata, StepCountIs, StepResponseMetadata, StepResult,
-    StopCondition, as_output, generate_text, has_tool_call, is_stop_condition_met, step_count_is,
+    StopCondition, as_output, has_tool_call, is_stop_condition_met, step_count_is,
     to_response_messages,
 };
 pub use output::{reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};

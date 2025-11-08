@@ -10,13 +10,12 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example multi_step_tools
 /// ```
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{ToolSet, generate_text, step_count_is};
+use ai_sdk_core::{GenerateTextBuilder, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
-use std::sync::Arc;
 
 /// Simulates getting the current weather for a city
 fn get_weather(city: &str) -> Value {
@@ -199,26 +198,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   \"What's the weather in San Francisco and New York?");
     println!("    Also, convert the San Francisco temperature to Celsius.\"\n");
 
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(1000);
-
     // Generate with tools - this will execute multiple steps
     println!("⏳ Starting multi-step generation (max 10 steps)...\n");
 
-    let result = generate_text(
-        Arc::clone(&model),
-        prompt,
-        settings,
-        Some(tools),
-        None,
-        None,
-        Some(vec![Box::new(step_count_is(10))]), // Allow up to 10 steps for multi-step tool execution
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = GenerateTextBuilder::new(model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(1000)
+        .tools(tools)
+        .stop_when(vec![Box::new(step_count_is(10))]) // Allow up to 10 steps for multi-step tool execution
+        .execute()
+        .await?;
 
     println!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("Generation Complete");
