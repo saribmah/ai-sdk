@@ -79,6 +79,53 @@
 //!
 //! let model = provider.chat_model("gpt-4");
 //! ```
+//!
+//! ## Text Embeddings
+//!
+//! ```ignore
+//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use ai_sdk_core::embed_many;
+//!
+//! let provider = OpenAICompatibleClient::new()
+//!     .base_url("https://api.openai.com/v1")
+//!     .api_key("your-api-key")
+//!     .build();
+//!
+//! let model = provider.text_embedding_model("text-embedding-3-small");
+//!
+//! let texts = vec![
+//!     "The capital of France is Paris.".to_string(),
+//!     "The capital of Germany is Berlin.".to_string(),
+//! ];
+//!
+//! let result = embed_many(model, texts, None, None, None, None, None).await?;
+//! println!("Embeddings: {:?}", result.embeddings);
+//! ```
+//!
+//! ## Image Generation
+//!
+//! ```ignore
+//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use ai_sdk_core::generate_image;
+//!
+//! let provider = OpenAICompatibleClient::new()
+//!     .base_url("https://api.openai.com/v1")
+//!     .api_key("your-api-key")
+//!     .build();
+//!
+//! let model = provider.image_model("dall-e-3");
+//!
+//! let result = generate_image(
+//!     model,
+//!     "A beautiful sunset over the ocean".to_string(),
+//!     None,  // image_count
+//!     None,  // abort_signal
+//!     None,  // headers
+//!     None,  // provider_options
+//! ).await?;
+//!
+//! println!("Generated {} image(s)", result.images.len());
+//! ```
 
 pub mod chat;
 pub mod client;
