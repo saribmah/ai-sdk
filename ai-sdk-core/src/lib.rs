@@ -1,3 +1,4 @@
+pub mod agent;
 pub mod embed;
 pub mod error;
 pub mod generate_image;
@@ -10,6 +11,11 @@ pub mod stream_text;
 pub mod tool;
 pub mod transcribe;
 
+pub use agent::{
+    Agent, AgentCallParameters, AgentFinishEvent, AgentInterface, AgentOnFinishCallback,
+    AgentOnStepFinishCallback, AgentPrompt, AgentSettings, PrepareCallFunction, PrepareCallInput,
+    PrepareCallOutput, noop_agent_on_finish_callback, noop_agent_on_step_finish_callback,
+};
 pub use embed::{
     Embed, EmbedMany, EmbedManyResult, EmbedManyResultResponseData, EmbedResult,
     EmbedResultResponseData,
@@ -26,7 +32,7 @@ pub use generate_text::{
     StopCondition, as_output, has_tool_call, is_stop_condition_met, step_count_is,
     to_response_messages,
 };
-pub use output::{reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};
+pub use output::{Output, reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};
 pub use rerank::{RankedDocumentWithValue, Rerank, RerankResponseMetadata, RerankResult};
 pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
@@ -37,8 +43,8 @@ pub use stream_text::{
 pub use tool::{
     OnPreliminaryToolResult, Tool, ToolApprovalRequest, ToolApprovalRequestOutput,
     ToolApprovalResponse, ToolCallRepairFunction, ToolCallRepairOptions, ToolExecuteFunction,
-    ToolExecuteOptions, ToolExecutionOutput, ToolNeedsApprovalFunction, ToolSet, ToolType,
-    execute_tool_call, is_approval_needed, no_repair, parse_provider_executed_dynamic_tool_call,
-    parse_tool_call, prepare_tools_and_tool_choice,
+    ToolExecutionOutput, ToolNeedsApprovalFunction, ToolSet, ToolType, execute_tool_call,
+    is_approval_needed, no_repair, parse_provider_executed_dynamic_tool_call, parse_tool_call,
+    prepare_tools_and_tool_choice,
 };
 pub use transcribe::{AudioInput, Transcribe, TranscriptionResult};
