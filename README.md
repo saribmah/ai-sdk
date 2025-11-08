@@ -319,7 +319,7 @@ let image_model = provider_trait.image_model("dall-e-3")?;
 The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
-- User-facing APIs: `generate_text()`, `stream_text()`, `embed_many()`, `generate_image()`
+- User-facing APIs: `embed_many()`, `generate_image()`
 - Builder pattern APIs: `GenerateTextBuilder`, `StreamTextBuilder`
 - Prompt standardization and validation
 - Message type conversions
@@ -344,8 +344,8 @@ The SDK follows a layered architecture:
 ## Current Status
 
 ✅ **Implemented:**
-- Text generation with `generate_text()` and `GenerateTextBuilder`
-- Text streaming with `stream_text()` and `StreamTextBuilder`
+- Text generation with `GenerateTextBuilder`
+- Text streaming with `StreamTextBuilder`
 - Embedding generation with `embed_many()`
 - Image generation with `generate_image()`
 - Prompt handling and standardization
@@ -409,8 +409,8 @@ cargo run --example basic_image             # Generate images from text prompts
 
 The examples demonstrate:
 - Creating providers with environment variables
-- Text generation with `generate_text()` and real API calls
-- Streaming responses with `stream_text()` in real-time
+- Text generation with `GenerateTextBuilder` and real API calls
+- Streaming responses with `StreamTextBuilder` in real-time
 - Generating embeddings with `embed_many()`
 - Image generation with `generate_image()`
 - Handling responses and metadata

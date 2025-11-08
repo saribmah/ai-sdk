@@ -1,3 +1,4 @@
+use ai_sdk_core::StreamTextBuilder;
 /// Partial output parsing example demonstrating incremental structured data extraction.
 ///
 /// This example shows how to:
@@ -11,12 +12,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example partial_output
 /// ```
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-use ai_sdk_core::stream_text;
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use std::env;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 struct Person {
@@ -53,8 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Base URL: {}\n", provider.base_url());
 
     // Get a language model
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
-        provider.chat_model("gpt-4o-mini");
+    let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 
@@ -68,27 +66,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Return ONLY valid JSON, no explanations. \
          Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}",
     );
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(200);
 
-    let result = stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,  // tools
-        None,  // tool_choice
-        None,  // stop_when
-        None,  // provider_options
-        None,  // prepare_step
-        false, // include_raw_chunks
-        None,  // transforms
-        None,  // on_chunk
-        None,  // on_error
-        None,  // on_step_finish
-        None,  // on_finish
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .max_output_tokens(200)
+        .execute()
+        .await?;
 
     println!("📝 Streaming partial JSON (will parse to Person):\n");
 
@@ -124,23 +107,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}",
     );
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .max_output_tokens(200)
+        .execute()
+        .await?;
 
     println!("📝 Streaming partial JSON (will parse to Recipe):\n");
 
@@ -179,23 +150,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Return ONLY valid JSON.",
     );
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings,
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(200)
+        .execute()
+        .await?;
 
     println!("📝 Streaming partial JSON values:\n");
 

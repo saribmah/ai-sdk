@@ -1,3 +1,4 @@
+use ai_sdk_core::StreamTextBuilder;
 /// Stream transformations example demonstrating various stream processing capabilities.
 ///
 /// This example shows how to:
@@ -12,14 +13,13 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_transforms
 /// ```
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::stream_text::{
-    self, TextStreamPart, batch_text_transform, filter_transform, map_transform, throttle_transform,
+    TextStreamPart, batch_text_transform, filter_transform, map_transform, throttle_transform,
 };
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use std::env;
-use std::sync::Arc;
 use std::time::Duration;
 
 #[tokio::main]
@@ -42,9 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Provider created: {}", provider.name());
     println!("✓ Base URL: {}\n", provider.base_url());
 
-    // Get a language model and wrap in Arc
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
-        provider.chat_model("gpt-4o-mini");
+    // Get a language model
+    let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 
@@ -54,28 +53,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     let prompt = Prompt::text("Say 'Hello from Rust!'");
-    let settings = CallSettings::default().with_temperature(0.7);
 
     // Create a filter transform that only passes text deltas
     let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,                              // tools
-        None,                              // tool_choice
-        None,                              // stop_when
-        None,                              // provider_options
-        None,                              // prepare_step
-        false,                             // include_raw_chunks
-        Some(vec![Box::new(text_filter)]), // transforms
-        None,                              // on_chunk
-        None,                              // on_error
-        None,                              // on_step_finish
-        None,                              // on_finish
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .transforms(vec![Box::new(text_filter)])
+        .execute()
+        .await?;
 
     print!("📝 Output: ");
     let mut text_stream = result.text_stream();
@@ -106,23 +92,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         other => other,
     });
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        Some(vec![Box::new(uppercase_mapper)]),
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .transforms(vec![Box::new(uppercase_mapper)])
+        .execute()
+        .await?;
 
     print!("📝 Output: ");
     let mut text_stream = result.text_stream();
@@ -142,23 +116,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a batch transform that combines up to 50 characters or 100ms delay
     let batcher = batch_text_transform(50, Duration::from_millis(100));
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        Some(vec![Box::new(batcher)]),
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .transforms(vec![Box::new(batcher)])
+        .execute()
+        .await?;
 
     print!("📝 Output (batched): ");
     let mut text_stream = result.text_stream();
@@ -183,23 +145,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a throttle transform with 50ms delay between chunks
     let throttler = throttle_transform(Duration::from_millis(50));
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        Some(vec![Box::new(throttler)]),
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = StreamTextBuilder::new(model.clone(), prompt)
+        .temperature(0.7)
+        .transforms(vec![Box::new(throttler)])
+        .execute()
+        .await?;
 
     print!("📝 Output (throttled): ");
     let start = std::time::Instant::now();
@@ -237,27 +187,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     let batcher = batch_text_transform(30, Duration::from_millis(50));
 
-    let result = stream_text::stream_text(
-        model,
-        prompt,
-        settings,
-        None,
-        None,
-        None,
-        None,
-        None,
-        false,
-        Some(vec![
+    let result = StreamTextBuilder::new(model, prompt)
+        .temperature(0.7)
+        .transforms(vec![
             Box::new(text_filter),
             Box::new(replacer),
             Box::new(batcher),
-        ]),
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+        ])
+        .execute()
+        .await?;
 
     print!("📝 Output (filtered + transformed + batched): ");
     let mut text_stream = result.text_stream();

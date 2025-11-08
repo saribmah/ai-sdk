@@ -32,7 +32,7 @@ pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
     OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamTextBuilder,
-    StreamTextResult, TextStreamPart, stream_text,
+    StreamTextResult, TextStreamPart,
 };
 pub use tool::{
     OnPreliminaryToolResult, Tool, ToolApprovalRequest, ToolApprovalRequestOutput,
