@@ -1,8 +1,6 @@
 # AI SDK Rust
 
-A unified Rust SDK for building AI-powered applications with multiple model providers.
-
-> **Note**: This project is heavily inspired by [Vercel's AI SDK](https://github.com/vercel/ai) for TypeScript, bringing similar ergonomics and patterns to the Rust ecosystem.
+A unified Rust SDK for building AI-powered applications with multiple model providers. Build with type safety, async/await, and ergonomic APIs designed for the Rust ecosystem.
 
 ## Features
 
@@ -12,15 +10,17 @@ A unified Rust SDK for building AI-powered applications with multiple model prov
 - **Async/await**: Built on Tokio for efficient async operations
 - **Streaming support**: Stream responses from language models with real-time processing
 - **Tool calling**: Support for function/tool calling with LLMs, both dynamic and type-safe
+- **Multiple capabilities**: Text generation, streaming, embeddings, and image generation
 - **Multiple providers**: OpenAI-compatible APIs (OpenAI, Azure OpenAI, and others)
 
 ## Project Structure
 
 This is a Cargo workspace with multiple crates:
 
-- **`ai-sdk-core`**: Core functionality including `generate_text`, prompt handling, and message types
+- **`ai-sdk-core`**: Core functionality including builder APIs (`GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`), prompt handling, message types, and tool system
 - **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
 - **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
+- **`ai-sdk-utils`**: Shared utilities and helper functions
 
 ## Installation
 
@@ -38,26 +38,23 @@ tokio = { version = "1.41", features = ["full"] }
 The SDK provides a fluent builder API for ergonomic text generation:
 
 ```rust
-use ai_sdk_core::{GenerateTextBuilder};
+use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
-use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create an OpenAI provider
-    let provider = create_openai_compatible(
-        OpenAICompatibleProviderSettings::new(
-            "https://api.openai.com/v1",
-            "openai"
-        )
-        .with_api_key(std::env::var("OPENAI_API_KEY")?)
-    );
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://api.openai.com/v1")
+        .api_key(std::env::var("OPENAI_API_KEY")?)
+        .build();
 
     // Get a language model
     let model = provider.chat_model("gpt-4");
 
     // Generate text using the builder pattern
-    let result = GenerateTextBuilder::new(&*model, Prompt::text("What is the capital of France?"))
+    let result = GenerateText::new(model, Prompt::text("What is the capital of France?"))
         .temperature(0.7)
         .max_output_tokens(100)
         .execute()
@@ -66,20 +63,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Response: {:?}", result);
     Ok(())
 }
-```
-
-Alternatively, you can use the function-based API:
-
-```rust
-use ai_sdk_core::generate_text;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
-
-let prompt = Prompt::text("What is the capital of France?");
-let settings = CallSettings::default()
-    .with_temperature(0.7)
-    .with_max_output_tokens(100);
-
-let result = generate_text(&*model, prompt, settings, None, None, None, None, None, None, None).await?;
 ```
 
 ### Type-Safe Tools
@@ -138,50 +121,43 @@ See the `type_safe_tools` example for a complete demonstration.
 
 ### Using Different Providers
 
-The SDK supports any OpenAI-compatible API:
+The SDK supports any OpenAI-compatible API through the flexible client builder:
 
 ```rust
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
+
 // OpenAI
-let openai = create_openai_compatible(
-    OpenAICompatibleProviderSettings::new(
-        "https://api.openai.com/v1",
-        "openai"
-    )
-    .with_api_key(api_key)
-);
+let openai = OpenAICompatibleClient::new()
+    .base_url("https://api.openai.com/v1")
+    .api_key(api_key)
+    .build();
 
 // Azure OpenAI
-let azure = create_openai_compatible(
-    OpenAICompatibleProviderSettings::new(
-        "https://my-resource.openai.azure.com/openai",
-        "azure-openai"
-    )
-    .with_api_key(api_key)
-);
+let azure = OpenAICompatibleClient::new()
+    .base_url("https://my-resource.openai.azure.com/openai")
+    .api_key(api_key)
+    .build();
 
-// Custom provider
-let custom = create_openai_compatible(
-    OpenAICompatibleProviderSettings::new(
-        "https://api.custom-provider.com/v1",
-        "custom"
-    )
-    .with_api_key(api_key)
-    .with_header("X-Custom-Header", "value")
-    .with_query_param("version", "2024-01")
-);
+// Custom provider with headers and query parameters
+let custom = OpenAICompatibleClient::new()
+    .base_url("https://api.custom-provider.com/v1")
+    .api_key(api_key)
+    .header("X-Custom-Header", "value")
+    .query_param("version", "2024-01")
+    .build();
 ```
 
 ### Builder Pattern API
 
-Both `GenerateTextBuilder` and `StreamTextBuilder` provide fluent, chainable APIs for configuring text generation and streaming:
+Both `GenerateText` and `StreamText` provide fluent, chainable APIs for configuring text generation and streaming:
 
 #### Text Generation
 
 ```rust
-use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
 
-let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+let result = GenerateText::new(&*model, Prompt::text("Tell me a joke"))
     .temperature(0.7)            // Creativity control
     .max_output_tokens(100)      // Response length limit
     .top_p(0.9)                  // Nucleus sampling
@@ -224,15 +200,15 @@ let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
 
 #### Text Streaming
 
-The `StreamTextBuilder` provides similar functionality for streaming responses:
+The `StreamText` provides similar functionality for streaming responses:
 
 ```rust
-use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::StreamText;
 use ai_sdk_core::prompt::Prompt;
 use futures_util::StreamExt;
 use std::sync::Arc;
 
-let result = StreamTextBuilder::new(Arc::from(model), Prompt::text("Tell me a story"))
+let result = StreamText::new(Arc::from(model), Prompt::text("Tell me a story"))
     .temperature(0.8)
     .max_output_tokens(500)
     .include_raw_chunks(true)
@@ -256,52 +232,117 @@ while let Some(delta) = text_stream.next().await {
 }
 ```
 
-**Additional StreamTextBuilder Methods:**
+**Additional StreamText Methods:**
 - `.include_raw_chunks(bool)` - Include raw provider chunks
 - `.transforms(Vec<Box<dyn StreamTransform>>)` - Apply stream transformations
 - `.on_chunk(OnChunkCallback)` - Callback for each chunk
 - `.on_error(OnErrorCallback)` - Error handling callback
 
-### Vercel-Style Chaining
+### Embeddings
 
-Inspired by Vercel's AI SDK, you can chain method calls:
+Generate embeddings for text using the builder pattern:
 
 ```rust
-let model = create_openai_compatible(
-    OpenAICompatibleProviderSettings::new(
-        "https://api.openai.com/v1",
-        "openai"
-    )
-    .with_api_key("your-api-key")
+use ai_sdk_core::EmbedMany;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
+
+let provider = OpenAICompatibleClient::new()
+    .base_url("https://api.openai.com/v1")
+    .api_key(api_key)
+    .build();
+
+let embedding_model = provider.text_embedding_model("text-embedding-3-small");
+
+let result = EmbedMany::new(
+    embedding_model,
+    vec!["Hello world".to_string(), "AI is awesome".to_string()],
 )
-.chat_model("gpt-4");
+    .max_retries(3)
+    .max_parallel_calls(5)
+    .execute()
+    .await?;
+
+println!("Embeddings: {:?}", result.embeddings);
+```
+
+For embedding a single value, use `Embed`:
+
+```rust
+use ai_sdk_core::Embed;
+
+let result = Embed::new(embedding_model, "Hello world".to_string())
+    .max_retries(3)
+    .execute()
+    .await?;
+
+println!("Embedding: {:?}", result.embedding);
+```
+
+### Image Generation
+
+Generate images from text prompts using the builder pattern:
+
+```rust
+use ai_sdk_core::GenerateImage;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
+
+let provider = OpenAICompatibleClient::new()
+    .base_url("https://api.openai.com/v1")
+    .api_key(api_key)
+    .build();
+
+let image_model = provider.image_model("dall-e-3");
+
+let result = GenerateImage::new(
+    image_model,
+    "A serene landscape with mountains".to_string(),
+)
+    .n(1)
+    .size("1024x1024")
+    .max_retries(3)
+    .execute()
+    .await?;
+
+println!("Generated {} images", result.images.len());
 ```
 
 ### Provider Trait API
 
-For flexibility, you can also use the Provider trait:
+For advanced use cases, you can work with the Provider trait directly:
 
 ```rust
 use ai_sdk_provider::Provider;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
-let provider = create_openai_compatible(settings);
+let provider = OpenAICompatibleClient::new()
+    .base_url("https://api.openai.com/v1")
+    .api_key(api_key)
+    .build();
+
 let provider_trait: &dyn Provider = &provider;
-let model = provider_trait.language_model("gpt-4")?;
+
+// Get different model types through the trait
+let language_model = provider_trait.language_model("gpt-4")?;
+let embedding_model = provider_trait.embedding_model("text-embedding-3-small")?;
+let image_model = provider_trait.image_model("dall-e-3")?;
 ```
 
 ## Architecture
 
-The SDK follows a layered architecture inspired by Vercel's AI SDK:
+The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
-- User-facing APIs like `generate_text`
+- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`
 - Prompt standardization and validation
 - Message type conversions
+- Tool execution and management
 - Error handling
 
 ### Provider Layer (`ai-sdk-provider`)
 - `Provider` trait for implementing new providers
-- `LanguageModel` trait for model implementations
+- `LanguageModel` trait with `do_generate()` and `do_stream()` methods
+- `EmbeddingModel` trait for embeddings
+- `ImageModel` trait for image generation
 - Standardized types: `CallOptions`, `Content`, `FinishReason`, `Usage`
 - Tool calling interfaces
 
@@ -310,25 +351,32 @@ The SDK follows a layered architecture inspired by Vercel's AI SDK:
 - API-specific request/response handling
 - HTTP client management
 - Format conversions (provider format ↔ OpenAI format)
+- Support for chat, completion, embedding, and image endpoints
 
 ## Current Status
 
 ✅ **Implemented:**
-- Core `generate_text` function
+- Text generation with `GenerateText`
+- Text streaming with `StreamText`
+- Embedding generation with `Embed` and `EmbedMany`
+- Image generation with `GenerateImage`
 - Prompt handling and standardization
-- Message type system
+- Message type system with support for text, images, tool calls, and tool results
 - Provider trait system
-- OpenAI-compatible provider with `do_generate`
-- Tool calling support (types and conversion)
+- OpenAI-compatible provider with `do_generate()` and `do_stream()`
+- Tool calling support (both dynamic and type-safe)
+- Multi-step tool execution
+- Stream transforms (filtering, throttling, batching)
 - Response format options (text/JSON)
 - Usage tracking with extended token details
 - Custom headers and query parameters
+- Cancellation support with abort signals
 
-🚧 **In Progress:**
-- Streaming support (`do_stream` implementation)
-- Additional providers
-- Embedding support
-- Image generation
+🚧 **Future Enhancements:**
+- Additional providers (Anthropic, Cohere, etc.)
+- Speech generation and transcription
+- Reranking support
+- Vision model support
 
 ## Examples
 
@@ -349,44 +397,41 @@ OPENAI_API_KEY=sk-your-actual-api-key-here
 ### Running Examples
 
 ```bash
-# Basic chat example - simple text generation
 export OPENAI_API_KEY="your-api-key"
-cargo run --example basic_chat
 
-# Conversation example - system messages and temperature settings
-export OPENAI_API_KEY="your-api-key"
-cargo run --example conversation
+# Text Generation
+cargo run --example basic_chat              # Simple text generation
+cargo run --example conversation            # System messages and temperature settings
 
-# Tool calling example - function calling with a weather tool
-export OPENAI_API_KEY="your-api-key"
-cargo run --example tool_calling
+# Tool Calling
+cargo run --example tool_calling            # Function calling with a weather tool
+cargo run --example type_safe_tools         # Compile-time type checking for tools
+cargo run --example multi_step_tools        # Iterative tool calling
 
-# Type-safe tools example - compile-time type checking for tools
-export OPENAI_API_KEY="your-api-key"
-cargo run --example type_safe_tools
+# Streaming
+cargo run --example basic_stream            # Stream responses in real-time
+cargo run --example stream_tool_calling     # Streaming with tool calls
+cargo run --example stream_transforms       # Stream filtering and transformations
+cargo run --example partial_output          # Partial JSON parsing
 
-# Multi-step tools example - iterative tool calling
-export OPENAI_API_KEY="your-api-key"
-cargo run --example multi_step_tools
-
-# Streaming examples
-export OPENAI_API_KEY="your-api-key"
-cargo run --example basic_stream
-cargo run --example stream_tool_calling
-cargo run --example stream_transforms
-cargo run --example partial_output
+# Embeddings & Images
+cargo run --example basic_embedding         # Generate text embeddings
+cargo run --example basic_image             # Generate images from text prompts
 ```
 
 The examples demonstrate:
 - Creating providers with environment variables
-- Using `generate_text` with real API calls
+- Text generation with `GenerateText` and real API calls
+- Streaming responses with `StreamText` in real-time
+- Generating embeddings with `Embed` and `EmbedMany`
+- Image generation with `GenerateImage`
 - Handling responses and metadata
 - System messages and temperature settings
 - Token usage tracking
 - Tool/function calling and handling tool call responses
 - **Type-safe tools** with compile-time type checking (see `type_safe_tools.rs`)
 - Multi-step tool execution with iterative calls
-- Streaming responses in real-time
+- Stream transforms for filtering and batching
 - Partial output parsing for structured data
 
 ## Development
@@ -466,12 +511,12 @@ cargo check --examples
 
 ## Contributing
 
-Contributions are welcome! This project aims to bring the ergonomic patterns of Vercel's AI SDK to Rust while leveraging Rust's unique strengths.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-See LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+---
 
-This project is heavily inspired by [Vercel's AI SDK](https://github.com/vercel/ai) and aims to provide similar developer experience in the Rust ecosystem.
+<sub>Inspired by [Vercel's AI SDK](https://github.com/vercel/ai)</sub>

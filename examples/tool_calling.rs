@@ -2,7 +2,7 @@
 ///
 /// This example shows how to:
 /// - Define a tool with parameters
-/// - Use generate_text with tools
+/// - Use GenerateText with tools
 /// - Handle tool calls in the response
 /// - Execute tools and process results
 ///
@@ -12,13 +12,12 @@
 /// cargo run --example tool_calling
 /// ```
 use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{ToolSet, generate_text};
+use ai_sdk_core::{GenerateText, ToolSet};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
-use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -106,25 +105,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📤 Prompt: \"What's the weather like in San Francisco?\"");
     println!("🔧 Available tools: [get_weather]\n");
 
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(500);
-
     // Generate text with the tool
     println!("⏳ Generating response...\n");
-    let result = generate_text(
-        Arc::clone(&model),
-        prompt,
-        settings,
-        Some(tools),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let result = GenerateText::new(model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(500)
+        .tools(tools)
+        .execute()
+        .await?;
 
     println!("✅ Response received!\n");
 

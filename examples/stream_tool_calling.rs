@@ -12,14 +12,13 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
-use ai_sdk_core::prompt::{Prompt, call_settings::CallSettings};
+use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{ToolSet, step_count_is, stream_text};
+use ai_sdk_core::{StreamText, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::env;
-use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -86,8 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .api_key(api_key)
         .build();
 
-    let model: Arc<dyn ai_sdk_provider::language_model::LanguageModel> =
-        provider.chat_model("gpt-4o-mini");
+    let model = provider.chat_model("gpt-4o-mini");
     println!("✓ Model loaded: {}", model.model_id());
     println!("✓ Provider: {}\n", model.provider());
 
@@ -195,30 +193,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📤 Prompt: \"What's the weather like in San Francisco?\"");
     println!("ℹ️  Note: Using step_count_is(3) to allow tool execution + response\n");
 
-    let settings = CallSettings::default()
-        .with_temperature(0.7)
-        .with_max_output_tokens(500);
-
     println!("⏳ Streaming response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        Some(tools_example1),
-        None,                                   // tool_choice - let model decide
-        None,                                   // provider_options
-        Some(vec![Box::new(step_count_is(3))]), // Allow up to 3 steps for tool execution
-        None,                                   // prepare_step
-        false,                                  // include_raw_chunks
-        None,                                   // transforms
-        None,                                   // on_chunk
-        None,                                   // on_error
-        None,                                   // on_step_finish
-        None,                                   // on_finish
-    )
-    .await?;
+    let result = StreamText::new(model.clone(), prompt)
+        .temperature(0.7)
+        .max_output_tokens(500)
+        .tools(tools_example1)
+        .stop_when(vec![Box::new(step_count_is(3))]) // Allow up to 3 steps for tool execution
+        .execute()
+        .await?;
 
     // Stream the full output showing tool calls and results
     let mut full_stream = result.full_stream();
@@ -307,23 +291,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Streaming multi-step response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    let result = stream_text::stream_text(
-        Arc::clone(&model),
-        prompt,
-        settings.clone(),
-        Some(tools_example2),
-        None,                                   // tool_choice
-        None,                                   // provider_options
-        Some(vec![Box::new(step_count_is(5))]), // Allow up to 5 steps
-        None,                                   // prepare_step
-        false,                                  // include_raw_chunks
-        None,                                   // transforms
-        None,                                   // on_chunk
-        None,                                   // on_error
-        None,                                   // on_step_finish
-        None,                                   // on_finish
-    )
-    .await?;
+    let result = StreamText::new(model, prompt)
+        .temperature(0.7)
+        .max_output_tokens(500)
+        .tools(tools_example2)
+        .stop_when(vec![Box::new(step_count_is(5))]) // Allow up to 5 steps
+        .execute()
+        .await?;
 
     let mut full_stream = result.full_stream();
     print!("📝 ");

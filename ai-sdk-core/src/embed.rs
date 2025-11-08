@@ -3,7 +3,7 @@ pub mod many_result;
 pub mod result;
 pub mod single;
 
-pub use many::embed_many;
+pub use many::EmbedMany;
 pub use many_result::{EmbedManyResult, EmbedManyResultResponseData};
 pub use result::{EmbedResult, EmbedResultResponseData};
-pub use single::embed;
+pub use single::Embed;

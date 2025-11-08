@@ -16,59 +16,35 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use tokio_util::sync::CancellationToken;
 
-/// Rerank documents using a reranking model.
+/// Builder for reranking documents using a reranking model.
 ///
 /// The documents can be either text strings or JSON objects. The function automatically
 /// detects the type from the first document.
 ///
-/// # Arguments
-///
-/// * `model` - The reranking model to use.
-/// * `documents` - The documents that should be reranked. Can be either text strings or JSON objects.
-/// * `query` - The query string to rerank the documents against.
-/// * `top_n` - Optional limit to return only the top N reranked documents.
-/// * `provider_options` - Additional provider-specific options that are passed through to the provider.
-/// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
-/// * `abort_signal` - An optional abort signal that can be used to cancel the call.
-/// * `headers` - Additional HTTP headers to be sent with the request. Only applicable for HTTP-based providers.
-///
-/// # Returns
-///
-/// A result object containing the original documents, reranked documents (sorted by relevance),
-/// ranking information with scores, and optional provider metadata.
-///
-/// # Type Parameters
-///
-/// * `V` - The value type of documents. Must be either `String` or implement `Clone + serde::Serialize + serde::Deserialize`.
-///
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::rerank;
+/// use ai_sdk_core::Rerank;
 ///
-/// // With text documents
 /// let documents = vec![
 ///     "The sky is blue".to_string(),
 ///     "Grass is green".to_string(),
 ///     "Water is wet".to_string(),
 /// ];
 ///
-/// let result = rerank(
-///     model,
-///     documents,
-///     "What color is the sky?".to_string(),
-///     Some(2), // top 2 results
-///     None,
-///     None,
-///     None,
-///     None,
-/// ).await?;
+/// let result = Rerank::new(model, documents, "What color is the sky?".to_string())
+///     .top_n(2)
+///     .max_retries(3)
+///     .execute()
+///     .await?;
 ///
 /// println!("Top result: {}", result.reranked_documents[0]);
 /// println!("Score: {}", result.ranking[0].score);
 /// ```
-#[allow(clippy::too_many_arguments)]
-pub async fn rerank<V>(
+pub struct Rerank<V>
+where
+    V: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+{
     model: Arc<dyn RerankingModel>,
     documents: Vec<V>,
     query: String,
@@ -77,126 +53,207 @@ pub async fn rerank<V>(
     max_retries: Option<u32>,
     abort_signal: Option<CancellationToken>,
     headers: Option<SharedHeaders>,
-) -> Result<RerankResult<V>, AISDKError>
+}
+
+impl<V> Rerank<V>
 where
     V: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
-    // Check specification version
-    if model.specification_version() != "v3" {
-        return Err(AISDKError::model_error(format!(
-            "Unsupported model version: {}. Provider: {}, Model ID: {}",
-            model.specification_version(),
-            model.provider(),
-            model.model_id()
-        )));
+    /// Create a new Rerank builder.
+    ///
+    /// # Arguments
+    ///
+    /// * `model` - The reranking model to use
+    /// * `documents` - The documents that should be reranked (text strings or JSON objects)
+    /// * `query` - The query string to rerank the documents against
+    pub fn new(model: Arc<dyn RerankingModel>, documents: Vec<V>, query: String) -> Self {
+        Self {
+            model,
+            documents,
+            query,
+            top_n: None,
+            provider_options: None,
+            max_retries: None,
+            abort_signal: None,
+            headers: None,
+        }
     }
 
-    // Handle empty documents case - return early
-    if documents.is_empty() {
-        return Ok(RerankResult {
-            original_documents: vec![],
-            reranked_documents: vec![],
-            ranking: vec![],
-            provider_metadata: None,
-            response: RerankResponseMetadata {
+    /// Set the limit to return only the top N reranked documents.
+    ///
+    /// # Arguments
+    ///
+    /// * `top_n` - Optional limit to return only the top N results
+    pub fn top_n(mut self, top_n: usize) -> Self {
+        self.top_n = Some(top_n);
+        self
+    }
+
+    /// Set additional provider-specific options.
+    ///
+    /// # Arguments
+    ///
+    /// * `provider_options` - Additional provider-specific options
+    pub fn provider_options(mut self, provider_options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(provider_options);
+        self
+    }
+
+    /// Set the maximum number of retries.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.max_retries = Some(max_retries);
+        self
+    }
+
+    /// Set an abort signal that can be used to cancel the call.
+    ///
+    /// # Arguments
+    ///
+    /// * `abort_signal` - An optional abort signal
+    pub fn abort_signal(mut self, abort_signal: CancellationToken) -> Self {
+        self.abort_signal = Some(abort_signal);
+        self
+    }
+
+    /// Set additional HTTP headers to be sent with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Additional HTTP headers
+    pub fn headers(mut self, headers: SharedHeaders) -> Self {
+        self.headers = Some(headers);
+        self
+    }
+
+    /// Execute the reranking operation.
+    ///
+    /// # Returns
+    ///
+    /// A result object containing the original documents, reranked documents (sorted by relevance),
+    /// ranking information with scores, and optional provider metadata.
+    pub async fn execute(self) -> Result<RerankResult<V>, AISDKError> {
+        // Check specification version
+        if self.model.specification_version() != "v3" {
+            return Err(AISDKError::model_error(format!(
+                "Unsupported model version: {}. Provider: {}, Model ID: {}",
+                self.model.specification_version(),
+                self.model.provider(),
+                self.model.model_id()
+            )));
+        }
+
+        // Handle empty documents case - return early
+        if self.documents.is_empty() {
+            return Ok(RerankResult {
+                original_documents: vec![],
+                reranked_documents: vec![],
+                ranking: vec![],
+                provider_metadata: None,
+                response: RerankResponseMetadata {
+                    id: None,
+                    timestamp: SystemTime::now(),
+                    model_id: self.model.model_id().to_string(),
+                    headers: None,
+                    body: None,
+                },
+            });
+        }
+
+        // Detect document type and convert to RerankingDocuments
+        let documents_to_send = detect_document_type(&self.documents)?;
+
+        // Prepare retry configuration
+        let retry_config = prepare_retries(self.max_retries, self.abort_signal.clone())?;
+
+        // Clone model info for logging before moving into closure
+        let provider_name = self.model.provider().to_string();
+        let model_id_str = self.model.model_id().to_string();
+
+        // Execute the model call with retry logic
+        let (ranking, response_metadata, provider_metadata, warnings) = retry_config
+            .execute_with_boxed_error(move || {
+                let model = self.model.clone();
+                let query = self.query.clone();
+                let documents_to_send = documents_to_send.clone();
+                let provider_options = self.provider_options.clone();
+                let abort_signal = self.abort_signal.clone();
+                let headers = self.headers.clone();
+                let top_n = self.top_n;
+
+                async move {
+                    // Call the model's do_rerank method
+                    let model_response = model
+                        .do_rerank(RerankingModelCallOptions {
+                            documents: documents_to_send,
+                            query,
+                            top_n,
+                            provider_options,
+                            headers,
+                            abort_signal,
+                        })
+                        .await?;
+
+                    Ok((
+                        model_response.ranking,
+                        model_response.response,
+                        model_response.provider_metadata,
+                        model_response.warnings,
+                    ))
+                }
+            })
+            .await?;
+
+        // Log warnings if present
+        if !warnings.is_empty() {
+            eprintln!(
+                "Warnings from {}/{}: {:?}",
+                provider_name, model_id_str, warnings
+            );
+        }
+
+        // Build the ranking with document values
+        let ranking_with_values: Vec<RankedDocumentWithValue<V>> = ranking
+            .iter()
+            .map(|ranked| RankedDocumentWithValue {
+                original_index: ranked.index,
+                score: ranked.relevance_score,
+                document: self.documents[ranked.index].clone(),
+            })
+            .collect();
+
+        // Build response metadata
+        let response = if let Some(resp) = response_metadata {
+            RerankResponseMetadata {
+                id: resp.id,
+                timestamp: resp.timestamp.unwrap_or_else(SystemTime::now),
+                model_id: resp.model_id.unwrap_or_else(|| model_id_str.clone()),
+                headers: resp.headers,
+                body: resp.body,
+            }
+        } else {
+            RerankResponseMetadata {
                 id: None,
                 timestamp: SystemTime::now(),
-                model_id: model.model_id().to_string(),
+                model_id: model_id_str.clone(),
                 headers: None,
                 body: None,
-            },
-        });
-    }
-
-    // Detect document type and convert to RerankingDocuments
-    let documents_to_send = detect_document_type(&documents)?;
-
-    // Prepare retry configuration
-    let retry_config = prepare_retries(max_retries, abort_signal.clone())?;
-
-    // Clone model info for logging before moving into closure
-    let provider_name = model.provider().to_string();
-    let model_id_str = model.model_id().to_string();
-
-    // Execute the model call with retry logic
-    let (ranking, response_metadata, provider_metadata, warnings) = retry_config
-        .execute_with_boxed_error(move || {
-            let model = model.clone();
-            let query = query.clone();
-            let documents_to_send = documents_to_send.clone();
-            let provider_options = provider_options.clone();
-            let abort_signal = abort_signal.clone();
-            let headers = headers.clone();
-
-            async move {
-                // Call the model's do_rerank method
-                let model_response = model
-                    .do_rerank(RerankingModelCallOptions {
-                        documents: documents_to_send,
-                        query,
-                        top_n,
-                        provider_options,
-                        headers,
-                        abort_signal,
-                    })
-                    .await?;
-
-                Ok((
-                    model_response.ranking,
-                    model_response.response,
-                    model_response.provider_metadata,
-                    model_response.warnings,
-                ))
             }
-        })
-        .await?;
+        };
 
-    // Log warnings if present
-    if !warnings.is_empty() {
-        eprintln!(
-            "Warnings from {}/{}: {:?}",
-            provider_name, model_id_str, warnings
-        );
-    }
+        // Create the result
+        let mut result = RerankResult::new(self.documents, ranking_with_values, response);
 
-    // Build the ranking with document values
-    let ranking_with_values: Vec<RankedDocumentWithValue<V>> = ranking
-        .iter()
-        .map(|ranked| RankedDocumentWithValue {
-            original_index: ranked.index,
-            score: ranked.relevance_score,
-            document: documents[ranked.index].clone(),
-        })
-        .collect();
-
-    // Build response metadata
-    let response = if let Some(resp) = response_metadata {
-        RerankResponseMetadata {
-            id: resp.id,
-            timestamp: resp.timestamp.unwrap_or_else(SystemTime::now),
-            model_id: resp.model_id.unwrap_or_else(|| model_id_str.clone()),
-            headers: resp.headers,
-            body: resp.body,
+        // Add provider metadata if present
+        if let Some(metadata) = provider_metadata {
+            result = result.with_provider_metadata(metadata);
         }
-    } else {
-        RerankResponseMetadata {
-            id: None,
-            timestamp: SystemTime::now(),
-            model_id: model_id_str.clone(),
-            headers: None,
-            body: None,
-        }
-    };
 
-    // Create the result
-    let mut result = RerankResult::new(documents, ranking_with_values, response);
-
-    // Add provider metadata if present
-    if let Some(metadata) = provider_metadata {
-        result = result.with_provider_metadata(metadata);
+        Ok(result)
     }
-
-    Ok(result)
 }
 
 /// Detects the type of documents and converts them to RerankingDocuments.
@@ -340,18 +397,10 @@ mod tests {
             "Third document".to_string(),
         ];
 
-        let result = rerank(
-            model,
-            documents.clone(),
-            "query".to_string(),
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .await
-        .unwrap();
+        let result = Rerank::new(model, documents.clone(), "query".to_string())
+            .execute()
+            .await
+            .unwrap();
 
         assert_eq!(result.original_documents, documents);
         assert_eq!(result.reranked_documents.len(), 3);
@@ -374,18 +423,10 @@ mod tests {
 
         let documents: Vec<String> = vec![];
 
-        let result = rerank(
-            model,
-            documents,
-            "query".to_string(),
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .await
-        .unwrap();
+        let result = Rerank::new(model, documents, "query".to_string())
+            .execute()
+            .await
+            .unwrap();
 
         assert_eq!(result.original_documents.len(), 0);
         assert_eq!(result.reranked_documents.len(), 0);
@@ -406,18 +447,11 @@ mod tests {
             "Third document".to_string(),
         ];
 
-        let result = rerank(
-            model,
-            documents,
-            "query".to_string(),
-            Some(2),
-            None,
-            None,
-            None,
-            None,
-        )
-        .await
-        .unwrap();
+        let result = Rerank::new(model, documents, "query".to_string())
+            .top_n(2)
+            .execute()
+            .await
+            .unwrap();
 
         // With topN=2, should only get 2 results
         assert_eq!(result.reranked_documents.len(), 2);

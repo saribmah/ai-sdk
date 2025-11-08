@@ -384,11 +384,11 @@ async fn stream_single_step(
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::StreamText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
 ///
-/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+/// let result = StreamText::new(Arc::new(model), Prompt::text("Tell me a story"))
 ///     .temperature(0.8)
 ///     .max_output_tokens(500)
 ///     .include_raw_chunks(true)
@@ -401,7 +401,7 @@ async fn stream_single_step(
 ///     print!("{}", delta);
 /// }
 /// ```
-pub struct StreamTextBuilder {
+pub struct StreamText {
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
@@ -418,7 +418,7 @@ pub struct StreamTextBuilder {
     on_finish: Option<OnFinishCallback>,
 }
 
-impl StreamTextBuilder {
+impl StreamText {
     /// Creates a new builder with the required model and prompt.
     pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
         Self {
@@ -579,430 +579,353 @@ impl StreamTextBuilder {
 
     /// Executes the text streaming with the configured settings.
     pub async fn execute(self) -> Result<StreamTextResult, AISDKError> {
-        stream_text(
-            self.model,
-            self.prompt,
-            self.settings,
-            self.tools,
-            self.tool_choice,
-            self.provider_options,
-            self.stop_when,
-            self.prepare_step,
-            self.include_raw_chunks,
-            self.transforms,
-            self.on_chunk,
-            self.on_error,
-            self.on_step_finish,
-            self.on_finish,
-        )
-        .await
-    }
-}
+        // Initialize stop conditions with default if not provided
+        let stop_conditions = Arc::new(
+            self.stop_when
+                .unwrap_or_else(|| vec![Box::new(crate::generate_text::step_count_is(1))]),
+        );
 
-/// Stream text using a language model with multi-step tool execution support.
-///
-/// This is the main user-facing function for streaming text generation in the AI SDK.
-/// It supports multi-step generation where the model can call tools, receive results,
-/// and continue generating text based on those results.
-///
-/// # Note
-///
-/// Consider using `StreamTextBuilder` for a more ergonomic fluent API:
-///
-/// ```ignore
-/// use ai_sdk_core::StreamTextBuilder;
-/// use ai_sdk_core::prompt::Prompt;
-/// use std::sync::Arc;
-///
-/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
-///     .temperature(0.8)
-///     .max_output_tokens(500)
-///     .execute()
-///     .await?;
-/// ```
-///
-/// # Arguments
-///
-/// * `model` - The language model to use for generation
-/// * `prompt` - The prompt to send to the model. Can be a simple string or structured messages.
-/// * `settings` - Configuration settings for the generation (temperature, max tokens, etc.)
-/// * `tools` - Optional tool set (HashMap of tool names to tools). The model needs to support calling tools.
-/// * `tool_choice` - Optional tool choice strategy. Default: 'auto'.
-/// * `provider_options` - Optional provider-specific options.
-/// * `stop_when` - Optional stop condition(s) for multi-step generation. Can be a single condition
-///   or multiple conditions. Any condition being met will stop generation. Default: `step_count_is(1)`.
-/// * `prepare_step` - Optional function to customize settings for each step in multi-step generation.
-/// * `include_raw_chunks` - Whether to include raw chunks from the provider in the stream.
-/// * `transforms` - Optional list of stream transformations to apply to the output stream.
-/// * `on_chunk` - Optional callback that is called for each chunk of the stream.
-/// * `on_error` - Optional callback that is invoked when an error occurs during streaming.
-/// * `on_step_finish` - Optional callback called after each step (LLM call) completes.
-/// * `on_finish` - Optional callback that is called when the LLM response and all tool executions are finished.
-///
-/// # Returns
-///
-/// Returns `Result<StreamTextResult, AISDKError>` - A stream result object that provides multiple
-/// ways to access the streamed data, or a validation error.
-#[allow(clippy::too_many_arguments)]
-pub async fn stream_text(
-    model: Arc<dyn LanguageModel>,
-    prompt: Prompt,
-    settings: CallSettings,
-    tools: Option<ToolSet>,
-    tool_choice: Option<LanguageModelToolChoice>,
-    provider_options: Option<SharedProviderOptions>,
-    stop_when: Option<Vec<Box<dyn StopCondition>>>,
-    prepare_step: Option<Box<dyn PrepareStep>>,
-    include_raw_chunks: bool,
-    transforms: Option<Vec<Box<dyn StreamTransform>>>,
-    on_chunk: Option<OnChunkCallback>,
-    on_error: Option<OnErrorCallback>,
-    on_step_finish: Option<OnStepFinishCallback>,
-    on_finish: Option<OnFinishCallback>,
-) -> Result<StreamTextResult, AISDKError> {
-    // Initialize stop conditions with default if not provided
-    let stop_conditions = Arc::new(
-        stop_when.unwrap_or_else(|| vec![Box::new(crate::generate_text::step_count_is(1))]),
-    );
+        // Prepare and validate call settings
+        let prepared_settings = prepare_call_settings(&self.settings)?;
 
-    // Prepare and validate call settings
-    let prepared_settings = prepare_call_settings(&settings)?;
+        // Validate and standardize the prompt
+        let standardized_prompt = validate_and_standardize(self.prompt)?;
 
-    // Validate and standardize the prompt
-    let standardized_prompt = validate_and_standardize(prompt)?;
+        // Prepare tools and tool choice
+        let (provider_tools, prepared_tool_choice) =
+            prepare_tools_and_tool_choice(self.tools.as_ref(), self.tool_choice);
 
-    // Prepare tools and tool choice
-    let (provider_tools, prepared_tool_choice) =
-        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
+        // Create a channel to emit TextStreamPart events
+        let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart>();
 
-    // Create a channel to emit TextStreamPart events
-    let (tx, rx) = mpsc::unbounded_channel::<TextStreamPart>();
+        // Wrap callbacks in Arc for sharing in the spawned task
+        let on_chunk_arc = self.on_chunk.map(Arc::new);
+        let on_error_arc = self.on_error.map(Arc::new);
+        let on_step_finish_arc = self.on_step_finish.map(Arc::new);
+        let on_finish_arc = self.on_finish.map(Arc::new);
 
-    // Wrap callbacks in Arc for sharing in the spawned task
-    let on_chunk_arc = on_chunk.map(Arc::new);
-    let on_error_arc = on_error.map(Arc::new);
-    let on_step_finish_arc = on_step_finish.map(Arc::new);
-    let on_finish_arc = on_finish.map(Arc::new);
+        // Wrap data in Arc for sharing in the spawned task
+        let tools_for_task = self.tools.map(Arc::new);
+        let settings_arc = Arc::new(self.settings);
+        let standardized_prompt_arc = Arc::new(standardized_prompt);
+        let provider_options_arc = self.provider_options.map(Arc::new);
+        let prepare_step_arc = self.prepare_step.map(Arc::new);
+        let model_arc = self.model; // model is already Arc<dyn LanguageModel>
+        let stop_conditions_arc = stop_conditions;
+        let include_raw_chunks = self.include_raw_chunks;
 
-    // Wrap data in Arc for sharing in the spawned task
-    let tools_for_task = tools.map(Arc::new);
-    let settings_arc = Arc::new(settings);
-    let standardized_prompt_arc = Arc::new(standardized_prompt);
-    let provider_options_arc = provider_options.map(Arc::new);
-    let prepare_step_arc = prepare_step.map(Arc::new);
-    let model_arc = model; // model is already Arc<dyn LanguageModel>
-    let stop_conditions_arc = stop_conditions;
+        // Spawn a task to handle the multi-step streaming
+        let tx_clone = tx.clone();
+        tokio::spawn(async move {
+            // Emit Start event
+            let _ = tx_clone.send(TextStreamPart::Start);
 
-    // Spawn a task to handle the multi-step streaming
-    let tx_clone = tx.clone();
-    tokio::spawn(async move {
-        // Emit Start event
-        let _ = tx_clone.send(TextStreamPart::Start);
+            // Accumulate all steps
+            let mut all_steps: Vec<StepResult> = Vec::new();
+            let mut total_usage = LanguageModelUsage::default();
 
-        // Accumulate all steps
-        let mut all_steps: Vec<StepResult> = Vec::new();
-        let mut total_usage = LanguageModelUsage::default();
+            let mut response_messages: Vec<ResponseMessage> = Vec::new();
 
-        let mut response_messages: Vec<ResponseMessage> = Vec::new();
+            // Start with the initial prompt messages
+            let mut step_input_messages = standardized_prompt_arc.messages.clone();
 
-        // Start with the initial prompt messages
-        let mut step_input_messages = standardized_prompt_arc.messages.clone();
-
-        // Multi-step loop
-        loop {
-            for response_msg in &response_messages {
-                let model_msg = match response_msg {
-                    ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
-                    ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
-                };
-                step_input_messages.push(model_msg);
-            }
-            // Apply prepare_step if provided
-            let prepare_step_result = if let Some(ref prepare_fn) = prepare_step_arc {
-                let step_number = all_steps.len();
-                prepare_fn
-                    .prepare(&PrepareStepOptions {
-                        steps: &all_steps,
-                        step_number,
-                        messages: &step_input_messages,
-                    })
-                    .await
-            } else {
-                None
-            };
-
-            // Apply prepare_step overrides
-            let step_system = prepare_step_result
-                .as_ref()
-                .and_then(|r| r.system.clone())
-                .or_else(|| standardized_prompt_arc.system.clone());
-
-            let step_messages = prepare_step_result
-                .as_ref()
-                .and_then(|r| r.messages.clone())
-                .unwrap_or_else(|| step_input_messages.clone());
-
-            let step_tool_choice = prepare_step_result
-                .as_ref()
-                .and_then(|r| r.tool_choice.clone())
-                .or(prepared_tool_choice.clone());
-
-            let step_active_tools = prepare_step_result
-                .as_ref()
-                .and_then(|r| r.active_tools.clone());
-
-            // Convert current messages to language model format
-            let messages = match convert_to_language_model_prompt(StandardizedPrompt {
-                messages: step_messages.clone(),
-                system: step_system,
-            }) {
-                Ok(m) => m,
-                Err(e) => {
-                    let _ = tx_clone.send(TextStreamPart::Error {
-                        error: serde_json::json!({ "message": e.to_string() }),
-                    });
-                    break;
+            // Multi-step loop
+            loop {
+                for response_msg in &response_messages {
+                    let model_msg = match response_msg {
+                        ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
+                        ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
+                    };
+                    step_input_messages.push(model_msg);
                 }
-            };
-
-            // Build CallOptions
-            let mut call_options = LanguageModelCallOptions::new(messages);
-
-            // Add prepared settings
-            if let Some(max_tokens) = prepared_settings.max_output_tokens {
-                call_options = call_options.with_max_output_tokens(max_tokens);
-            }
-            if let Some(temp) = prepared_settings.temperature {
-                call_options = call_options.with_temperature(temp);
-            }
-            if let Some(top_p) = prepared_settings.top_p {
-                call_options = call_options.with_top_p(top_p);
-            }
-            if let Some(top_k) = prepared_settings.top_k {
-                call_options = call_options.with_top_k(top_k);
-            }
-            if let Some(penalty) = prepared_settings.presence_penalty {
-                call_options = call_options.with_presence_penalty(penalty);
-            }
-            if let Some(penalty) = prepared_settings.frequency_penalty {
-                call_options = call_options.with_frequency_penalty(penalty);
-            }
-            if let Some(ref sequences) = prepared_settings.stop_sequences {
-                call_options = call_options.with_stop_sequences(sequences.clone());
-            }
-            if let Some(seed) = prepared_settings.seed {
-                call_options = call_options.with_seed(seed);
-            }
-
-            // Add tools and tool choice - filter by active_tools if provided
-            let step_provider_tools = if let Some(ref active_tool_names) = step_active_tools {
-                provider_tools.as_ref().map(|tools_vec| {
-                    tools_vec
-                        .iter()
-                        .filter(|tool| {
-                            active_tool_names.iter().any(|name| match tool {
-                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
-                                    f.name == *name
-                                }
-                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
-                                    p.name == *name
-                                }
-                            })
+                // Apply prepare_step if provided
+                let prepare_step_result = if let Some(ref prepare_fn) = prepare_step_arc {
+                    let step_number = all_steps.len();
+                    prepare_fn
+                        .prepare(&PrepareStepOptions {
+                            steps: &all_steps,
+                            step_number,
+                            messages: &step_input_messages,
                         })
-                        .cloned()
-                        .collect()
-                })
-            } else {
-                provider_tools.clone()
-            };
+                        .await
+                } else {
+                    None
+                };
 
-            if let Some(ref tools_vec) = step_provider_tools {
-                call_options = call_options.with_tools(tools_vec.clone());
-            }
-            if let Some(ref choice) = step_tool_choice {
-                call_options = call_options.with_tool_choice(choice.clone());
-            }
+                // Apply prepare_step overrides
+                let step_system = prepare_step_result
+                    .as_ref()
+                    .and_then(|r| r.system.clone())
+                    .or_else(|| standardized_prompt_arc.system.clone());
 
-            // Add headers and abort signal
-            if let Some(ref headers) = settings_arc.headers {
-                call_options = call_options.with_headers(headers.clone());
-            }
-            let abort_signal_for_tools = settings_arc.abort_signal.clone();
-            if let Some(signal) = settings_arc.abort_signal.clone() {
-                call_options = call_options.with_abort_signal(signal);
-            }
+                let step_messages = prepare_step_result
+                    .as_ref()
+                    .and_then(|r| r.messages.clone())
+                    .unwrap_or_else(|| step_input_messages.clone());
 
-            // Add provider options
-            if let Some(ref opts_arc) = provider_options_arc {
-                call_options = call_options.with_provider_options((**opts_arc).clone());
-            }
+                let step_tool_choice = prepare_step_result
+                    .as_ref()
+                    .and_then(|r| r.tool_choice.clone())
+                    .or(prepared_tool_choice.clone());
 
-            // Stream this single step
-            let step_result = match stream_single_step(
-                model_arc.clone(),
-                call_options,
-                tools_for_task.as_ref().map(|arc| arc.as_ref()),
-                include_raw_chunks,
-                &tx_clone,
-                on_chunk_arc.as_ref(),
-                on_error_arc.as_ref(),
-            )
-            .await
-            {
-                Ok(r) => r,
-                Err(e) => {
-                    if let Some(callback) = on_error_arc.as_ref() {
-                        let event = callbacks::StreamTextErrorEvent {
+                let step_active_tools = prepare_step_result
+                    .as_ref()
+                    .and_then(|r| r.active_tools.clone());
+
+                // Convert current messages to language model format
+                let messages = match convert_to_language_model_prompt(StandardizedPrompt {
+                    messages: step_messages.clone(),
+                    system: step_system,
+                }) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        let _ = tx_clone.send(TextStreamPart::Error {
                             error: serde_json::json!({ "message": e.to_string() }),
-                        };
-                        callback(event).await;
+                        });
+                        break;
                     }
-                    let _ = tx_clone.send(TextStreamPart::Error {
-                        error: serde_json::json!({ "message": e.to_string() }),
-                    });
+                };
+
+                // Build CallOptions
+                let mut call_options = LanguageModelCallOptions::new(messages);
+
+                // Add prepared settings
+                if let Some(max_tokens) = prepared_settings.max_output_tokens {
+                    call_options = call_options.with_max_output_tokens(max_tokens);
+                }
+                if let Some(temp) = prepared_settings.temperature {
+                    call_options = call_options.with_temperature(temp);
+                }
+                if let Some(top_p) = prepared_settings.top_p {
+                    call_options = call_options.with_top_p(top_p);
+                }
+                if let Some(top_k) = prepared_settings.top_k {
+                    call_options = call_options.with_top_k(top_k);
+                }
+                if let Some(penalty) = prepared_settings.presence_penalty {
+                    call_options = call_options.with_presence_penalty(penalty);
+                }
+                if let Some(penalty) = prepared_settings.frequency_penalty {
+                    call_options = call_options.with_frequency_penalty(penalty);
+                }
+                if let Some(ref sequences) = prepared_settings.stop_sequences {
+                    call_options = call_options.with_stop_sequences(sequences.clone());
+                }
+                if let Some(seed) = prepared_settings.seed {
+                    call_options = call_options.with_seed(seed);
+                }
+
+                // Add tools and tool choice - filter by active_tools if provided
+                let step_provider_tools = if let Some(ref active_tool_names) = step_active_tools {
+                    provider_tools.as_ref().map(|tools_vec| {
+                        tools_vec
+                            .iter()
+                            .filter(|tool| {
+                                active_tool_names.iter().any(|name| match tool {
+                                    ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
+                                        f.name == *name
+                                    }
+                                    ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
+                                        p.name == *name
+                                    }
+                                })
+                            })
+                            .cloned()
+                            .collect()
+                    })
+                } else {
+                    provider_tools.clone()
+                };
+
+                if let Some(ref tools_vec) = step_provider_tools {
+                    call_options = call_options.with_tools(tools_vec.clone());
+                }
+                if let Some(ref choice) = step_tool_choice {
+                    call_options = call_options.with_tool_choice(choice.clone());
+                }
+
+                // Add headers and abort signal
+                if let Some(ref headers) = settings_arc.headers {
+                    call_options = call_options.with_headers(headers.clone());
+                }
+                let abort_signal_for_tools = settings_arc.abort_signal.clone();
+                if let Some(signal) = settings_arc.abort_signal.clone() {
+                    call_options = call_options.with_abort_signal(signal);
+                }
+
+                // Add provider options
+                if let Some(ref opts_arc) = provider_options_arc {
+                    call_options = call_options.with_provider_options((**opts_arc).clone());
+                }
+
+                // Stream this single step
+                let step_result = match stream_single_step(
+                    model_arc.clone(),
+                    call_options,
+                    tools_for_task.as_ref().map(|arc| arc.as_ref()),
+                    include_raw_chunks,
+                    &tx_clone,
+                    on_chunk_arc.as_ref(),
+                    on_error_arc.as_ref(),
+                )
+                .await
+                {
+                    Ok(r) => r,
+                    Err(e) => {
+                        if let Some(callback) = on_error_arc.as_ref() {
+                            let event = callbacks::StreamTextErrorEvent {
+                                error: serde_json::json!({ "message": e.to_string() }),
+                            };
+                            callback(event).await;
+                        }
+                        let _ = tx_clone.send(TextStreamPart::Error {
+                            error: serde_json::json!({ "message": e.to_string() }),
+                        });
+                        break;
+                    }
+                };
+
+                // Update total usage
+                total_usage = LanguageModelUsage {
+                    input_tokens: total_usage.input_tokens + step_result.usage.input_tokens,
+                    output_tokens: total_usage.output_tokens + step_result.usage.output_tokens,
+                    total_tokens: total_usage.total_tokens + step_result.usage.total_tokens,
+                    reasoning_tokens: total_usage.reasoning_tokens
+                        + step_result.usage.reasoning_tokens,
+                    cached_input_tokens: total_usage.cached_input_tokens
+                        + step_result.usage.cached_input_tokens,
+                };
+
+                // Filter client tool calls (those not executed by the provider)
+                let client_tool_calls: Vec<&ToolCall> = step_result
+                    .tool_calls
+                    .iter()
+                    .filter(|tool_call| tool_call.provider_executed != Some(true))
+                    .collect();
+
+                // Execute client tool calls
+                let mut client_tool_outputs = Vec::new();
+                if let Some(tool_set) = tools_for_task.as_ref() {
+                    for &tool_call in &client_tool_calls {
+                        if let Some(output) = execute_tool_call(
+                            tool_call.clone(),
+                            tool_set,
+                            step_messages.clone(),
+                            abort_signal_for_tools.clone(),
+                            None, // experimental_context
+                            None, // on_preliminary_tool_result
+                        )
+                        .await
+                        {
+                            // Emit tool result to the stream
+                            match &output {
+                                crate::tool::ToolOutput::Result(result) => {
+                                    let _ = tx_clone.send(TextStreamPart::ToolResult {
+                                        tool_result: result.clone(),
+                                    });
+                                }
+                                crate::tool::ToolOutput::Error(error) => {
+                                    let _ = tx_clone.send(TextStreamPart::ToolError {
+                                        tool_error: error.clone(),
+                                    });
+                                }
+                            }
+                            client_tool_outputs.push(output);
+                        }
+                    }
+                }
+
+                let client_tool_outputs_count = client_tool_outputs.len();
+
+                // Create step content by combining provider content with client tool outputs
+                let mut step_content = step_result.content.clone();
+                for output in client_tool_outputs {
+                    match output {
+                        crate::tool::ToolOutput::Result(tool_result) => {
+                            step_content.push(Output::ToolResult(tool_result));
+                        }
+                        crate::tool::ToolOutput::Error(tool_error) => {
+                            step_content.push(Output::ToolError(tool_error));
+                        }
+                    }
+                }
+
+                // Create StepResult
+                let current_step_result = StepResult::new(
+                    step_content.clone(),
+                    step_result.finish_reason.clone(),
+                    step_result.usage,
+                    step_result.warnings.clone(),
+                    step_result.request.clone(),
+                    step_result.response.clone(),
+                    step_result.provider_metadata.clone(),
+                );
+
+                all_steps.push(current_step_result.clone());
+
+                // Call on_step_finish callback
+                if let Some(ref callback) = on_step_finish_arc {
+                    callback(current_step_result).await;
+                }
+
+                // Append to messages for potential next step
+                let step_response_messages = to_response_messages(
+                    step_content,
+                    tools_for_task.as_ref().map(|arc| arc.as_ref()),
+                );
+                for msg in step_response_messages {
+                    response_messages.push(msg);
+                }
+
+                // Check loop termination conditions
+                let should_continue = !client_tool_calls.is_empty()
+                    && client_tool_outputs_count == client_tool_calls.len()
+                    && !is_stop_condition_met(&stop_conditions_arc, &all_steps).await;
+
+                if !should_continue {
                     break;
                 }
-            };
-
-            // Update total usage
-            total_usage = LanguageModelUsage {
-                input_tokens: total_usage.input_tokens + step_result.usage.input_tokens,
-                output_tokens: total_usage.output_tokens + step_result.usage.output_tokens,
-                total_tokens: total_usage.total_tokens + step_result.usage.total_tokens,
-                reasoning_tokens: total_usage.reasoning_tokens + step_result.usage.reasoning_tokens,
-                cached_input_tokens: total_usage.cached_input_tokens
-                    + step_result.usage.cached_input_tokens,
-            };
-
-            // Filter client tool calls (those not executed by the provider)
-            let client_tool_calls: Vec<&ToolCall> = step_result
-                .tool_calls
-                .iter()
-                .filter(|tool_call| tool_call.provider_executed != Some(true))
-                .collect();
-
-            // Execute client tool calls
-            let mut client_tool_outputs = Vec::new();
-            if let Some(tool_set) = tools_for_task.as_ref() {
-                for &tool_call in &client_tool_calls {
-                    if let Some(output) = execute_tool_call(
-                        tool_call.clone(),
-                        tool_set,
-                        step_messages.clone(),
-                        abort_signal_for_tools.clone(),
-                        None, // experimental_context
-                        None, // on_preliminary_tool_result
-                    )
-                    .await
-                    {
-                        // Emit tool result to the stream
-                        match &output {
-                            crate::tool::ToolOutput::Result(result) => {
-                                let _ = tx_clone.send(TextStreamPart::ToolResult {
-                                    tool_result: result.clone(),
-                                });
-                            }
-                            crate::tool::ToolOutput::Error(error) => {
-                                let _ = tx_clone.send(TextStreamPart::ToolError {
-                                    tool_error: error.clone(),
-                                });
-                            }
-                        }
-                        client_tool_outputs.push(output);
-                    }
-                }
             }
 
-            let client_tool_outputs_count = client_tool_outputs.len();
-
-            // Create step content by combining provider content with client tool outputs
-            let mut step_content = step_result.content.clone();
-            for output in client_tool_outputs {
-                match output {
-                    crate::tool::ToolOutput::Result(tool_result) => {
-                        step_content.push(Output::ToolResult(tool_result));
-                    }
-                    crate::tool::ToolOutput::Error(tool_error) => {
-                        step_content.push(Output::ToolError(tool_error));
-                    }
-                }
+            // Emit final Finish event
+            if let Some(last_step) = all_steps.last() {
+                let _ = tx_clone.send(TextStreamPart::Finish {
+                    finish_reason: last_step.finish_reason.clone(),
+                    total_usage,
+                });
             }
 
-            // Create StepResult
-            let current_step_result = StepResult::new(
-                step_content.clone(),
-                step_result.finish_reason.clone(),
-                step_result.usage,
-                step_result.warnings.clone(),
-                step_result.request.clone(),
-                step_result.response.clone(),
-                step_result.provider_metadata.clone(),
-            );
-
-            all_steps.push(current_step_result.clone());
-
-            // Call on_step_finish callback
-            if let Some(ref callback) = on_step_finish_arc {
-                callback(current_step_result).await;
-            }
-
-            // Append to messages for potential next step
-            let step_response_messages = to_response_messages(
-                step_content,
-                tools_for_task.as_ref().map(|arc| arc.as_ref()),
-            );
-            for msg in step_response_messages {
-                response_messages.push(msg);
-            }
-
-            // Check loop termination conditions
-            let should_continue = !client_tool_calls.is_empty()
-                && client_tool_outputs_count == client_tool_calls.len()
-                && !is_stop_condition_met(&stop_conditions_arc, &all_steps).await;
-
-            if !should_continue {
-                break;
-            }
-        }
-
-        // Emit final Finish event
-        if let Some(last_step) = all_steps.last() {
-            let _ = tx_clone.send(TextStreamPart::Finish {
-                finish_reason: last_step.finish_reason.clone(),
-                total_usage,
-            });
-        }
-
-        // Call on_finish callback if provided
-        if let Some(ref callback) = on_finish_arc
-            && let Some(last_step) = all_steps.last()
-        {
-            let event = callbacks::StreamTextFinishEvent {
-                step_result: last_step.clone(),
-                steps: all_steps,
-                total_usage,
-            };
-            callback(event).await;
-        }
-    });
-
-    // Step 7: Create an AsyncIterableStream from the receiver
-    let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart> + Send>> =
-        Box::pin(async_stream::stream! {
-            let mut rx = rx;
-            while let Some(part) = rx.recv().await {
-                yield part;
+            // Call on_finish callback if provided
+            if let Some(ref callback) = on_finish_arc
+                && let Some(last_step) = all_steps.last()
+            {
+                let event = callbacks::StreamTextFinishEvent {
+                    step_result: last_step.clone(),
+                    steps: all_steps,
+                    total_usage,
+                };
+                callback(event).await;
             }
         });
 
-    // Step 8: Apply transforms if provided
-    if let Some(transform_list) = transforms {
-        let transform_options = TransformOptions::new();
-        for transform in transform_list {
-            stream = transform.transform(stream, transform_options.clone());
-        }
-    }
+        // Step 7: Create an AsyncIterableStream from the receiver
+        let mut stream: Pin<Box<dyn futures_util::Stream<Item = TextStreamPart> + Send>> =
+            Box::pin(async_stream::stream! {
+                let mut rx = rx;
+                while let Some(part) = rx.recv().await {
+                    yield part;
+                }
+            });
 
-    // Step 9: Create and return StreamTextResult
-    Ok(StreamTextResult::new(stream))
+        // Step 8: Apply transforms if provided
+        if let Some(transform_list) = self.transforms {
+            let transform_options = TransformOptions::new();
+            for transform in transform_list {
+                stream = transform.transform(stream, transform_options.clone());
+            }
+        }
+
+        // Step 9: Create and return StreamTextResult
+        Ok(StreamTextResult::new(stream))
+    }
 }

@@ -29,8 +29,7 @@ pub struct StreamGeneratedFile {
 /// A part of a text stream produced during streaming text generation.
 ///
 /// This enum represents all the different types of stream parts that can be
-/// produced during a streaming text generation operation. It closely mirrors
-/// the TypeScript implementation from Vercel's AI SDK.
+/// produced during a streaming text generation operation.
 ///
 /// # Example
 ///

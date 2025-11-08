@@ -13,45 +13,32 @@ use tokio_util::sync::CancellationToken;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Embed several values using an embedding model. The type of the value is defined
-/// by the embedding model.
+/// Builder for embedding multiple values using an embedding model.
 ///
-/// `embed_many` automatically splits large requests into smaller chunks if the model
+/// `EmbedMany` automatically splits large requests into smaller chunks if the model
 /// has a limit on how many embeddings can be generated in a single call.
-///
-/// # Arguments
-///
-/// * `model` - The embedding model to use.
-/// * `values` - The values that should be embedded.
-/// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
-/// * `abort_signal` - An optional abort signal that can be used to cancel the call.
-/// * `headers` - Additional HTTP headers to be sent with the request. Only applicable for HTTP-based providers.
-/// * `provider_options` - Additional provider-specific options.
-/// * `max_parallel_calls` - Maximum number of concurrent requests. Default: unlimited.
-///
-/// # Returns
-///
-/// A result object that contains the embeddings, the values, and additional information.
 ///
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::embed::embed_many;
+/// use ai_sdk_core::EmbedMany;
 ///
-/// let result = embed_many(
+/// let result = EmbedMany::new(
 ///     model,
 ///     vec!["Hello, world!".to_string(), "How are you?".to_string()],
-///     Some(2),
-///     None,
-///     None,
-///     None,
-///     None,
-/// ).await?;
+/// )
+///     .max_retries(3)
+///     .max_parallel_calls(5)
+///     .execute()
+///     .await?;
 ///
 /// println!("Embeddings: {:?}", result.embeddings);
 /// println!("Usage: {:?}", result.usage);
 /// ```
-pub async fn embed_many<V>(
+pub struct EmbedMany<V>
+where
+    V: Clone + Send + Sync + 'static,
+{
     model: Arc<dyn EmbeddingModel<V>>,
     values: Vec<V>,
     max_retries: Option<u32>,
@@ -59,158 +46,236 @@ pub async fn embed_many<V>(
     headers: Option<SharedHeaders>,
     provider_options: Option<SharedProviderOptions>,
     max_parallel_calls: Option<usize>,
-) -> Result<EmbedManyResult<V>, AISDKError>
+}
+
+impl<V> EmbedMany<V>
 where
     V: Clone + Send + Sync + 'static,
 {
-    // Prepare retry configuration
-    let retry_config = prepare_retries(max_retries, abort_signal.clone())?;
-
-    // Add user agent to headers
-    let headers_with_user_agent = add_user_agent_suffix(headers, format!("ai/{}", VERSION));
-
-    // Get model limits
-    let max_embeddings_per_call = model.max_embeddings_per_call().await;
-    let supports_parallel_calls = model.supports_parallel_calls().await;
-
-    // If the model has no limit on embeddings per call, process all values at once
-    if max_embeddings_per_call.is_none() || max_embeddings_per_call == Some(usize::MAX) {
-        let result = retry_config
-            .execute_with_boxed_error(|| {
-                let model = model.clone();
-                let values = values.clone();
-                let headers = headers_with_user_agent.clone();
-                let provider_options = provider_options.clone();
-                async move {
-                    let options = EmbeddingModelCallOptions {
-                        values,
-                        abort_signal: None,
-                        headers,
-                        provider_options,
-                    };
-                    model.do_embed(options).await
-                }
-            })
-            .await?;
-
-        let embeddings = result.embeddings;
-        let usage = result.usage.unwrap_or_else(|| EmbeddingModelUsage::new(0));
-        let provider_metadata = result.provider_metadata;
-        let response = result.response.map(|r| {
-            EmbedManyResultResponseData::new()
-                .with_headers(r.headers.unwrap_or_default())
-                .with_body(r.body.unwrap_or_default())
-        });
-
-        return Ok(EmbedManyResult::new(values, embeddings, usage)
-            .with_provider_metadata(provider_metadata.unwrap_or_default())
-            .with_responses(vec![response]));
+    /// Create a new EmbedMany builder.
+    ///
+    /// # Arguments
+    ///
+    /// * `model` - The embedding model to use
+    /// * `values` - The values that should be embedded
+    pub fn new(model: Arc<dyn EmbeddingModel<V>>, values: Vec<V>) -> Self {
+        Self {
+            model,
+            values,
+            max_retries: None,
+            abort_signal: None,
+            headers: None,
+            provider_options: None,
+            max_parallel_calls: None,
+        }
     }
 
-    // Split values into chunks based on model limits
-    let max_embeddings = max_embeddings_per_call.unwrap();
-    let value_chunks = split_array(values.clone(), max_embeddings);
+    /// Set the maximum number of retries.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.max_retries = Some(max_retries);
+        self
+    }
 
-    // Determine how many parallel calls we can make
-    let max_parallel = max_parallel_calls.unwrap_or(usize::MAX);
-    let parallel_limit = if supports_parallel_calls {
-        max_parallel
-    } else {
-        1
-    };
+    /// Set an abort signal that can be used to cancel the call.
+    ///
+    /// # Arguments
+    ///
+    /// * `abort_signal` - An optional abort signal
+    pub fn abort_signal(mut self, abort_signal: CancellationToken) -> Self {
+        self.abort_signal = Some(abort_signal);
+        self
+    }
 
-    // Split chunks into parallel batches
-    let parallel_chunks = split_array(value_chunks, parallel_limit);
+    /// Set additional HTTP headers to be sent with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Additional HTTP headers. Only applicable for HTTP-based providers.
+    pub fn headers(mut self, headers: SharedHeaders) -> Self {
+        self.headers = Some(headers);
+        self
+    }
 
-    // Process chunks in parallel batches
-    let mut all_embeddings: Vec<EmbeddingModelEmbedding> = Vec::new();
-    let mut all_responses: Vec<Option<EmbedManyResultResponseData>> = Vec::new();
-    let mut total_tokens = 0u32;
-    let mut combined_provider_metadata: Option<SharedProviderMetadata> = None;
+    /// Set additional provider-specific options.
+    ///
+    /// # Arguments
+    ///
+    /// * `provider_options` - Additional provider-specific options
+    pub fn provider_options(mut self, provider_options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(provider_options);
+        self
+    }
 
-    for parallel_chunk in parallel_chunks {
-        // Process chunks in this parallel batch concurrently
-        let mut futures_vec = Vec::new();
+    /// Set the maximum number of parallel calls.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_parallel_calls` - Maximum number of concurrent requests. Default: unlimited.
+    pub fn max_parallel_calls(mut self, max_parallel_calls: usize) -> Self {
+        self.max_parallel_calls = Some(max_parallel_calls);
+        self
+    }
 
-        for chunk in parallel_chunk {
-            let model = model.clone();
-            let max_retries = retry_config.max_retries;
-            let abort_signal_clone = abort_signal.clone();
-            let headers = headers_with_user_agent.clone();
-            let provider_options = provider_options.clone();
+    /// Execute the embedding operation.
+    ///
+    /// # Returns
+    ///
+    /// A result object that contains the embeddings, the values, and additional information.
+    pub async fn execute(self) -> Result<EmbedManyResult<V>, AISDKError> {
+        // Prepare retry configuration
+        let retry_config = prepare_retries(self.max_retries, self.abort_signal.clone())?;
 
-            let future = async move {
-                let retry_config = RetryConfig {
-                    max_retries,
-                    abort_signal: abort_signal_clone,
-                };
+        // Add user agent to headers
+        let headers_with_user_agent =
+            add_user_agent_suffix(self.headers, format!("ai/{}", VERSION));
 
-                retry_config
-                    .execute_with_boxed_error(move || {
-                        let model = model.clone();
-                        let chunk = chunk.clone();
-                        let headers = headers.clone();
-                        let provider_options = provider_options.clone();
-                        async move {
-                            let options = EmbeddingModelCallOptions {
-                                values: chunk,
-                                abort_signal: None,
-                                headers,
-                                provider_options,
-                            };
-                            model.do_embed(options).await
-                        }
-                    })
-                    .await
-            };
+        // Get model limits
+        let max_embeddings_per_call = self.model.max_embeddings_per_call().await;
+        let supports_parallel_calls = self.model.supports_parallel_calls().await;
 
-            futures_vec.push(future);
-        }
+        // If the model has no limit on embeddings per call, process all values at once
+        if max_embeddings_per_call.is_none() || max_embeddings_per_call == Some(usize::MAX) {
+            let result = retry_config
+                .execute_with_boxed_error(|| {
+                    let model = self.model.clone();
+                    let values = self.values.clone();
+                    let headers = headers_with_user_agent.clone();
+                    let provider_options = self.provider_options.clone();
+                    async move {
+                        let options = EmbeddingModelCallOptions {
+                            values,
+                            abort_signal: None,
+                            headers,
+                            provider_options,
+                        };
+                        model.do_embed(options).await
+                    }
+                })
+                .await?;
 
-        // Wait for all futures in this parallel batch to complete
-        let results = futures::future::try_join_all(futures_vec).await?;
-
-        // Collect results
-        for result in results {
-            all_embeddings.extend(result.embeddings);
-
-            // Add response metadata
+            let embeddings = result.embeddings;
+            let usage = result.usage.unwrap_or_else(|| EmbeddingModelUsage::new(0));
+            let provider_metadata = result.provider_metadata;
             let response = result.response.map(|r| {
                 EmbedManyResultResponseData::new()
                     .with_headers(r.headers.unwrap_or_default())
                     .with_body(r.body.unwrap_or_default())
             });
-            all_responses.push(response);
 
-            // Accumulate usage
-            if let Some(usage) = result.usage {
-                total_tokens += usage.tokens;
+            return Ok(EmbedManyResult::new(self.values, embeddings, usage)
+                .with_provider_metadata(provider_metadata.unwrap_or_default())
+                .with_responses(vec![response]));
+        }
+
+        // Split values into chunks based on model limits
+        let max_embeddings = max_embeddings_per_call.unwrap();
+        let value_chunks = split_array(self.values.clone(), max_embeddings);
+
+        // Determine how many parallel calls we can make
+        let max_parallel = self.max_parallel_calls.unwrap_or(usize::MAX);
+        let parallel_limit = if supports_parallel_calls {
+            max_parallel
+        } else {
+            1
+        };
+
+        // Split chunks into parallel batches
+        let parallel_chunks = split_array(value_chunks, parallel_limit);
+
+        // Process chunks in parallel batches
+        let mut all_embeddings: Vec<EmbeddingModelEmbedding> = Vec::new();
+        let mut all_responses: Vec<Option<EmbedManyResultResponseData>> = Vec::new();
+        let mut total_tokens = 0u32;
+        let mut combined_provider_metadata: Option<SharedProviderMetadata> = None;
+
+        for parallel_chunk in parallel_chunks {
+            // Process chunks in this parallel batch concurrently
+            let mut futures_vec = Vec::new();
+
+            for chunk in parallel_chunk {
+                let model = self.model.clone();
+                let max_retries = retry_config.max_retries;
+                let abort_signal_clone = self.abort_signal.clone();
+                let headers = headers_with_user_agent.clone();
+                let provider_options = self.provider_options.clone();
+
+                let future = async move {
+                    let retry_config = RetryConfig {
+                        max_retries,
+                        abort_signal: abort_signal_clone,
+                    };
+
+                    retry_config
+                        .execute_with_boxed_error(move || {
+                            let model = model.clone();
+                            let chunk = chunk.clone();
+                            let headers = headers.clone();
+                            let provider_options = provider_options.clone();
+                            async move {
+                                let options = EmbeddingModelCallOptions {
+                                    values: chunk,
+                                    abort_signal: None,
+                                    headers,
+                                    provider_options,
+                                };
+                                model.do_embed(options).await
+                            }
+                        })
+                        .await
+                };
+
+                futures_vec.push(future);
             }
 
-            // Merge provider metadata
-            if let Some(metadata) = result.provider_metadata {
-                if let Some(ref mut combined) = combined_provider_metadata {
-                    // Merge metadata from different provider calls
-                    for (provider_name, provider_data) in metadata {
-                        combined
-                            .entry(provider_name.clone())
-                            .or_insert_with(HashMap::new)
-                            .extend(provider_data);
+            // Wait for all futures in this parallel batch to complete
+            let results = futures::future::try_join_all(futures_vec).await?;
+
+            // Collect results
+            for result in results {
+                all_embeddings.extend(result.embeddings);
+
+                // Add response metadata
+                let response = result.response.map(|r| {
+                    EmbedManyResultResponseData::new()
+                        .with_headers(r.headers.unwrap_or_default())
+                        .with_body(r.body.unwrap_or_default())
+                });
+                all_responses.push(response);
+
+                // Accumulate usage
+                if let Some(usage) = result.usage {
+                    total_tokens += usage.tokens;
+                }
+
+                // Merge provider metadata
+                if let Some(metadata) = result.provider_metadata {
+                    if let Some(ref mut combined) = combined_provider_metadata {
+                        // Merge metadata from different provider calls
+                        for (provider_name, provider_data) in metadata {
+                            combined
+                                .entry(provider_name.clone())
+                                .or_insert_with(HashMap::new)
+                                .extend(provider_data);
+                        }
+                    } else {
+                        combined_provider_metadata = Some(metadata);
                     }
-                } else {
-                    combined_provider_metadata = Some(metadata);
                 }
             }
         }
-    }
 
-    Ok(EmbedManyResult::new(
-        values,
-        all_embeddings,
-        EmbeddingModelUsage::new(total_tokens),
-    )
-    .with_provider_metadata(combined_provider_metadata.unwrap_or_default())
-    .with_responses(all_responses))
+        Ok(EmbedManyResult::new(
+            self.values,
+            all_embeddings,
+            EmbeddingModelUsage::new(total_tokens),
+        )
+        .with_provider_metadata(combined_provider_metadata.unwrap_or_default())
+        .with_responses(all_responses))
+    }
 }
 
 /// Split an array into chunks of a specified size.

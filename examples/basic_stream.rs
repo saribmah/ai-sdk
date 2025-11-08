@@ -1,9 +1,9 @@
-use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::StreamText;
 /// Basic streaming example demonstrating real-time text generation.
 ///
 /// This example shows how to:
 /// - Create a provider from environment variables
-/// - Use StreamTextBuilder with fluent API to get streaming responses
+/// - Use StreamText with fluent API to get streaming responses
 /// - Consume text deltas in real-time
 /// - Access final results after streaming completes
 ///
@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let metadata = Arc::new(Mutex::new(None));
     let metadata_clone = metadata.clone();
 
-    let result = StreamTextBuilder::new(model, prompt)
+    let result = StreamText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(200)
         .on_finish(Box::new(move |event| {
