@@ -1,5 +1,5 @@
-pub mod embed_many_result;
-pub mod embed_result;
+pub mod many_result;
+pub mod result;
 
-pub use embed_many_result::{EmbedManyResult, EmbedManyResultResponseData};
-pub use embed_result::{EmbedResult, EmbedResultResponseData};
+pub use many_result::{EmbedManyResult, EmbedManyResultResponseData};
+pub use result::{EmbedResult, EmbedResultResponseData};

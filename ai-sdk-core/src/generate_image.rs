@@ -1,3 +1,3 @@
-pub mod image_result;
+pub mod result;
 
-pub use image_result::{GenerateImageResult, ImageModelResponseMetadata};
+pub use result::{GenerateImageResult, ImageModelResponseMetadata};
