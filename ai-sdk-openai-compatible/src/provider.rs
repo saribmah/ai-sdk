@@ -1,4 +1,5 @@
 use ai_sdk_provider::EmbeddingModel;
+use ai_sdk_provider::ImageModel;
 use ai_sdk_provider::error::ProviderError;
 use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::provider::Provider;
@@ -10,6 +11,7 @@ use crate::completion::{
     OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
 };
 use crate::embedding::{OpenAICompatibleEmbeddingConfig, OpenAICompatibleEmbeddingModel};
+use crate::image::{OpenAICompatibleImageModel, OpenAICompatibleImageModelConfig};
 use crate::settings::OpenAICompatibleProviderSettings;
 
 /// OpenAI-compatible provider implementation.
@@ -57,6 +59,14 @@ impl OpenAICompatibleProvider {
         let config = self.create_embedding_config();
 
         Arc::new(OpenAICompatibleEmbeddingModel::new(model_id, config))
+    }
+
+    /// Creates an image model with the given model ID.
+    pub fn image_model(&self, model_id: impl Into<String>) -> Arc<dyn ImageModel> {
+        let model_id = model_id.into();
+        let config = self.create_image_config();
+
+        Arc::new(OpenAICompatibleImageModel::new(model_id, config))
     }
 
     /// Creates the configuration for chat models
@@ -227,6 +237,60 @@ impl OpenAICompatibleProvider {
         }
     }
 
+    /// Creates the configuration for image models
+    fn create_image_config(&self) -> OpenAICompatibleImageModelConfig {
+        let api_key = self.settings.api_key.clone();
+        let custom_headers = self.settings.headers.clone().unwrap_or_default();
+        let organization = self.settings.organization.clone();
+        let project = self.settings.project.clone();
+        let base_url = self.settings.base_url.clone();
+        let query_params = self.settings.query_params.clone().unwrap_or_default();
+
+        OpenAICompatibleImageModelConfig {
+            provider: format!("{}.image", self.settings.name),
+            headers: Box::new(move || {
+                let mut headers = HashMap::new();
+
+                // Add Authorization header if API key is present
+                if let Some(ref key) = api_key {
+                    headers.insert("Authorization".to_string(), format!("Bearer {}", key));
+                }
+
+                // Add organization header if present
+                if let Some(ref org) = organization {
+                    headers.insert("OpenAI-Organization".to_string(), org.clone());
+                }
+
+                // Add project header if present
+                if let Some(ref proj) = project {
+                    headers.insert("OpenAI-Project".to_string(), proj.clone());
+                }
+
+                // Add custom headers
+                for (key, value) in &custom_headers {
+                    headers.insert(key.clone(), value.clone());
+                }
+
+                headers
+            }),
+            url: Box::new(move |_model_id: &str, path: &str| {
+                let mut url = format!("{}{}", base_url, path);
+
+                // Add query parameters if present
+                if !query_params.is_empty() {
+                    let params: Vec<String> = query_params
+                        .iter()
+                        .map(|(k, v)| format!("{}={}", k, v))
+                        .collect();
+                    url = format!("{}?{}", url, params.join("&"));
+                }
+
+                url
+            }),
+            fetch: None,
+        }
+    }
+
     /// Gets the provider name.
     pub fn name(&self) -> &str {
         &self.settings.name
@@ -255,10 +319,7 @@ impl Provider for OpenAICompatibleProvider {
         &self,
         model_id: &str,
     ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
-        Err(ProviderError::no_such_model(
-            model_id,
-            format!("{}.image-model-not-supported", self.settings.name),
-        ))
+        Ok(self.image_model(model_id))
     }
 
     fn transcription_model(
@@ -397,6 +458,18 @@ mod tests {
     }
 
     #[test]
+    fn test_image_model() {
+        let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
+            .with_api_key("test-key");
+
+        let provider = create_openai_compatible(settings);
+        let model = provider.image_model("dall-e-3");
+
+        assert_eq!(model.provider(), "openai.image");
+        assert_eq!(model.model_id(), "dall-e-3");
+    }
+
+    #[test]
     fn test_language_model_alias() {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
@@ -480,6 +553,11 @@ mod tests {
             .unwrap();
         assert_eq!(embedding_model.provider(), "openai.embedding");
         assert_eq!(embedding_model.model_id(), "text-embedding-3-small");
+
+        // Test image model
+        let image_model = provider_trait.image_model("dall-e-3").unwrap();
+        assert_eq!(image_model.provider(), "openai.image");
+        assert_eq!(image_model.model_id(), "dall-e-3");
     }
 
     #[test]
@@ -505,17 +583,22 @@ mod tests {
         assert_eq!(model3.provider(), "example.embedding");
         assert_eq!(model3.model_id(), "model-3");
 
-        // Test Provider trait API (via trait object)
-        let provider_trait: &dyn Provider = &provider;
-        let model4 = provider_trait.language_model("model-4").unwrap();
-        assert_eq!(model4.provider(), "example.chat");
+        // Test image model
+        let model4 = provider.image_model("model-4");
+        assert_eq!(model4.provider(), "example.image");
         assert_eq!(model4.model_id(), "model-4");
 
-        // Test language_model as struct method (alias for chat_model)
-        let model5_result = provider.language_model("model-5");
-        let model5 = model5_result.unwrap();
+        // Test Provider trait API (via trait object)
+        let provider_trait: &dyn Provider = &provider;
+        let model5 = provider_trait.language_model("model-5").unwrap();
         assert_eq!(model5.provider(), "example.chat");
         assert_eq!(model5.model_id(), "model-5");
+
+        // Test language_model as struct method (alias for chat_model)
+        let model6_result = provider.language_model("model-6");
+        let model6 = model6_result.unwrap();
+        assert_eq!(model6.provider(), "example.chat");
+        assert_eq!(model6.model_id(), "model-6");
     }
 
     #[tokio::test]
