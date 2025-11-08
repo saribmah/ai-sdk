@@ -36,7 +36,7 @@
 //! let model = provider.chat_model("gpt-4");
 //! ```
 //!
-//! ## Chained Usage (like Vercel AI SDK)
+//! ## Chained Usage
 //!
 //! ```ignore
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;

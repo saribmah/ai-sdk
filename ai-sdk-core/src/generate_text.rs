@@ -709,346 +709,6 @@ impl GenerateText {
     }
 }
 
-/// Internal function for generating text using a language model.
-///
-/// This function is kept for backward compatibility with tests and internal usage.
-/// Users should use `GenerateText` instead.
-///
-/// # Note
-///
-/// **Deprecated**: Use `GenerateText` for a more ergonomic API:
-///
-/// ```ignore
-/// use ai_sdk_core::GenerateText;
-/// use ai_sdk_core::prompt::Prompt;
-/// use std::sync::Arc;
-///
-/// let result = GenerateText::new(Arc::new(model), Prompt::text("Tell me a joke"))
-///     .temperature(0.7)
-///     .max_output_tokens(100)
-///     .execute()
-///     .await?;
-/// ```
-#[allow(clippy::too_many_arguments)]
-#[allow(dead_code)]
-async fn generate_text(
-    model: Arc<dyn LanguageModel>,
-    prompt: Prompt,
-    settings: CallSettings,
-    tools: Option<ToolSet>,
-    tool_choice: Option<LanguageModelToolChoice>,
-    provider_options: Option<SharedProviderOptions>,
-    stop_when: Option<Vec<Box<dyn StopCondition>>>,
-    prepare_step: Option<Box<dyn PrepareStep>>,
-    on_step_finish: Option<Box<dyn OnStepFinish>>,
-    _on_finish: Option<Box<dyn OnFinish>>,
-) -> Result<GenerateTextResult, AISDKError> {
-    // Prepare stop conditions - default to step_count_is(1)
-    let stop_conditions = stop_when.unwrap_or_else(|| vec![Box::new(step_count_is(1))]);
-
-    // Prepare retries
-    let retry_config = prepare_retries(settings.max_retries, settings.abort_signal.clone())?;
-
-    // Prepare and validate call settings
-    let prepared_settings = prepare_call_settings(&settings)?;
-
-    // Initialize response messages array for multi-step generation
-    let initial_prompt = validate_and_standardize(prompt)?;
-
-    // Store the initial messages before the loop
-    let initial_messages = initial_prompt.messages.clone();
-
-    // Validate and standardize the prompt
-    let mut response_messages: Vec<ResponseMessage> = Vec::new();
-
-    // Initialize steps array for tracking all generation steps
-    let mut steps: Vec<StepResult> = Vec::new();
-
-    // Prepare tools and tool choice (done once before the loop)
-    let (provider_tools, prepared_tool_choice) =
-        prepare_tools_and_tool_choice(tools.as_ref(), tool_choice);
-
-    // Do-while loop for multi-step generation
-    loop {
-        // Step 5: Create step input messages by combining initial messages with accumulated response messages
-        let mut step_input_messages = initial_messages.clone();
-        // Convert response messages to model messages and append to step_input_messages
-        for response_msg in &response_messages {
-            let model_msg = match response_msg {
-                ResponseMessage::Assistant(msg) => Message::Assistant(msg.clone()),
-                ResponseMessage::Tool(msg) => Message::Tool(msg.clone()),
-            };
-            step_input_messages.push(model_msg);
-        }
-
-        // Call prepare_step callback to allow step customization
-        let prepare_step_result = if let Some(ref prepare_fn) = prepare_step {
-            prepare_fn
-                .prepare(&PrepareStepOptions {
-                    steps: &steps,
-                    step_number: steps.len(),
-                    messages: &step_input_messages,
-                })
-                .await
-        } else {
-            None
-        };
-
-        // Apply prepare_step overrides
-        let step_system = prepare_step_result
-            .as_ref()
-            .and_then(|r| r.system.clone())
-            .or_else(|| initial_prompt.system.clone());
-
-        let step_messages = prepare_step_result
-            .as_ref()
-            .and_then(|r| r.messages.clone())
-            .unwrap_or_else(|| step_input_messages.clone());
-
-        let step_tool_choice = prepare_step_result
-            .as_ref()
-            .and_then(|r| r.tool_choice.clone())
-            .or(prepared_tool_choice.clone());
-
-        let step_active_tools = prepare_step_result
-            .as_ref()
-            .and_then(|r| r.active_tools.clone());
-
-        // Step 6: Convert to language model format (provider messages)
-        let messages = convert_to_language_model_prompt(StandardizedPrompt {
-            messages: step_messages,
-            system: step_system,
-        })?;
-
-        // Step 7: Build CallOptions
-        let mut call_options = LanguageModelCallOptions::new(messages);
-        // Add prepared settings
-        if let Some(max_tokens) = prepared_settings.max_output_tokens {
-            call_options = call_options.with_max_output_tokens(max_tokens);
-        }
-        if let Some(temp) = prepared_settings.temperature {
-            call_options = call_options.with_temperature(temp);
-        }
-        if let Some(top_p) = prepared_settings.top_p {
-            call_options = call_options.with_top_p(top_p);
-        }
-        if let Some(top_k) = prepared_settings.top_k {
-            call_options = call_options.with_top_k(top_k);
-        }
-        if let Some(penalty) = prepared_settings.presence_penalty {
-            call_options = call_options.with_presence_penalty(penalty);
-        }
-        if let Some(penalty) = prepared_settings.frequency_penalty {
-            call_options = call_options.with_frequency_penalty(penalty);
-        }
-        if let Some(ref sequences) = prepared_settings.stop_sequences {
-            call_options = call_options.with_stop_sequences(sequences.clone());
-        }
-        if let Some(seed) = prepared_settings.seed {
-            call_options = call_options.with_seed(seed);
-        }
-
-        // Add tools and tool choice
-        // Filter tools based on active_tools if provided by prepare_step
-        let step_provider_tools = if let Some(ref active_tool_names) = step_active_tools {
-            provider_tools.as_ref().map(|tools_vec| {
-                tools_vec
-                    .iter()
-                    .filter(|tool| {
-                        // Check if this tool is in the active_tools list
-                        active_tool_names.iter().any(|name| {
-                            // Match against the tool name from the provider tool
-                            match tool {
-                                ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
-                                    f.name == *name
-                                }
-                                ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
-                                    p.name == *name
-                                }
-                            }
-                        })
-                    })
-                    .cloned()
-                    .collect()
-            })
-        } else {
-            provider_tools.clone()
-        };
-
-        if let Some(ref tools_vec) = step_provider_tools {
-            call_options = call_options.with_tools(tools_vec.clone());
-        }
-        if let Some(ref choice) = step_tool_choice {
-            call_options = call_options.with_tool_choice(choice.clone());
-        }
-
-        // Add headers and abort signal from settings
-        if let Some(ref headers) = settings.headers {
-            call_options = call_options.with_headers(headers.clone());
-        }
-        // Clone abort signal so we can use it later for tool execution
-        let abort_signal_for_tools = settings.abort_signal.clone();
-        if let Some(signal) = settings.abort_signal.clone() {
-            call_options = call_options.with_abort_signal(signal);
-        }
-
-        // Add provider options
-        if let Some(ref opts) = provider_options {
-            call_options = call_options.with_provider_options(opts.clone());
-        }
-
-        // Step 8: Call model.do_generate with retry logic
-        let response = retry_config
-            .execute(|| {
-                let call_options_clone = call_options.clone();
-                let model_clone = Arc::clone(&model);
-                async move {
-                    model_clone
-                        .do_generate(call_options_clone)
-                        .await
-                        .map_err(|e| {
-                            let error_string = e.to_string();
-                            // Check if error contains retry hint and create appropriate error type
-                            if let Some(retry_after) =
-                                retries::extract_retry_delay_from_error(&error_string)
-                            {
-                                AISDKError::retryable_error_with_delay(error_string, retry_after)
-                            } else {
-                                AISDKError::model_error(error_string)
-                            }
-                        })
-                }
-            })
-            .await?;
-
-        // Step 9: Parse tool calls from the response
-        use ai_sdk_provider::language_model::content::LanguageModelContent;
-
-        let step_tool_calls: Vec<ToolCall> = if let Some(tool_set) = tools.as_ref() {
-            response
-                .content
-                .iter()
-                .filter_map(|part| {
-                    if let LanguageModelContent::ToolCall(tool_call) = part {
-                        Some(tool_call)
-                    } else {
-                        None
-                    }
-                })
-                .map(|tool_call| {
-                    // Parse each tool call against the tool set
-                    parse_tool_call(tool_call, tool_set)
-                })
-                .collect::<Result<Vec<_>, _>>()?
-        } else {
-            // No tools provided, so no tool calls to parse
-            Vec::new()
-        };
-
-        // Step 10: Filter and execute client tool calls
-        // Note: In the TypeScript implementation, invalid tool calls are tracked separately.
-        // In our Rust implementation, we fail fast on parsing errors, so all parsed tool calls are valid.
-
-        // Filter client tool calls (those not executed by the provider)
-        let client_tool_calls: Vec<&ToolCall> = step_tool_calls
-            .iter()
-            .filter(|tool_call| tool_call.provider_executed != Some(true))
-            .collect();
-
-        // Execute client tool calls and collect outputs
-        let client_tool_outputs = if let Some(tool_set) = tools.as_ref() {
-            execute_tools(
-                &client_tool_calls,
-                tool_set,
-                &step_input_messages,
-                abort_signal_for_tools,
-            )
-            .await
-        } else {
-            Vec::new()
-        };
-
-        // Store the count before moving client_tool_outputs
-        let client_tool_outputs_count = client_tool_outputs.len();
-
-        // Create step content using as_output(clone step_tool_calls since we borrowed it above)
-        let step_content = as_output(
-            response.content.clone(),
-            step_tool_calls.clone(),
-            client_tool_outputs,
-        );
-
-        // Append to messages for potential next step
-        let step_response_messages = to_response_messages(step_content.clone(), tools.as_ref());
-        for msg in step_response_messages {
-            response_messages.push(msg);
-        }
-
-        // Create and push the current step result (using step_content, NOT response.content)
-        let current_step_result = StepResult::new(
-            step_content.clone(), // ← Use Output, not provider Content
-            response.finish_reason.clone(),
-            response.usage,
-            if response.warnings.is_empty() {
-                None
-            } else {
-                Some(response.warnings.clone())
-            },
-            RequestMetadata {
-                body: response.request.as_ref().and_then(|r| r.body.clone()),
-            },
-            response
-                .response
-                .clone()
-                .map(|r| r.into())
-                .unwrap_or_default(),
-            response.provider_metadata.clone(),
-        );
-
-        steps.push(current_step_result.clone());
-
-        // Call on_step_finish callback
-        if let Some(ref callback) = on_step_finish {
-            callback.call(current_step_result).await;
-        }
-
-        // Check loop termination conditions (do-while loop pattern)
-        // Continue if:
-        // - There are client tool calls AND
-        // - All tool calls have outputs AND
-        // - Stop conditions are not met
-        let should_continue = !client_tool_calls.is_empty()
-            && client_tool_outputs_count == client_tool_calls.len()
-            && !is_stop_condition_met(&stop_conditions, &steps).await;
-
-        if !should_continue {
-            break;
-        }
-    }
-
-    // Calculate total usage by summing all steps
-    let total_usage = steps
-        .iter()
-        .fold(LanguageModelUsage::default(), |acc, step| {
-            let input_tokens = acc.input_tokens + step.usage.input_tokens;
-            let output_tokens = acc.output_tokens + step.usage.output_tokens;
-            let total_tokens = acc.total_tokens + step.usage.total_tokens;
-            let reasoning_tokens = acc.reasoning_tokens + step.usage.reasoning_tokens;
-            let cached_input_tokens = acc.cached_input_tokens + step.usage.cached_input_tokens;
-
-            LanguageModelUsage {
-                input_tokens,
-                output_tokens,
-                total_tokens,
-                reasoning_tokens,
-                cached_input_tokens,
-            }
-        });
-
-    // Return the GenerateTextResult
-    Ok(GenerateTextResult::from_steps(steps, total_usage))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1111,14 +771,10 @@ mod tests {
     async fn test_generate_text_basic() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Tell me a joke");
-        let settings = CallSettings::default();
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(
-            model, prompt, settings, None, None, None, None, None, None, None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt).execute().await;
         assert!(result.is_err());
         // Check that it's a model error (from do_generate), not a validation error
         match result {
@@ -1146,16 +802,14 @@ mod tests {
         let model = Arc::new(MockLanguageModel::new());
         let prompt =
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
-        let settings = CallSettings::default()
-            .with_temperature(0.7)
-            .with_max_output_tokens(100);
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(
-            model, prompt, settings, None, None, None, None, None, None, None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt)
+            .temperature(0.7)
+            .max_output_tokens(100)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -1186,24 +840,13 @@ mod tests {
     async fn test_generate_text_with_tool_choice() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Use a tool to check the weather");
-        let settings = CallSettings::default();
-        let tool_choice = Some(LanguageModelToolChoice::Auto);
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(
-            model,
-            prompt,
-            settings,
-            None,
-            tool_choice,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt)
+            .tool_choice(LanguageModelToolChoice::Auto)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -1215,7 +858,6 @@ mod tests {
     async fn test_generate_text_with_provider_options() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello, world!");
-        let settings = CallSettings::default();
         let mut provider_options = SharedProviderOptions::new();
         provider_options.insert(
             "custom".to_string(),
@@ -1227,19 +869,10 @@ mod tests {
 
         // This should validate settings and call do_generate
         // The mock returns an error, but that's expected
-        let result = generate_text(
-            model,
-            prompt,
-            settings,
-            None,
-            None,
-            Some(provider_options),
-            None,
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt)
+            .provider_options(provider_options)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -1251,13 +884,12 @@ mod tests {
     async fn test_generate_text_with_invalid_temperature() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
-        let settings = CallSettings::default().with_temperature(f64::NAN);
 
         // This should fail validation
-        let result = generate_text(
-            model, prompt, settings, None, None, None, None, None, None, None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt)
+            .temperature(f64::NAN)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -1271,13 +903,12 @@ mod tests {
     async fn test_generate_text_with_invalid_max_tokens() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::text("Hello");
-        let settings = CallSettings::default().with_max_output_tokens(0);
 
         // This should fail validation
-        let result = generate_text(
-            model, prompt, settings, None, None, None, None, None, None, None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt)
+            .max_output_tokens(0)
+            .execute()
+            .await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidArgument { parameter, .. }) => {
@@ -1291,13 +922,9 @@ mod tests {
     async fn test_generate_text_with_empty_messages() {
         let model = Arc::new(MockLanguageModel::new());
         let prompt = Prompt::messages(vec![]);
-        let settings = CallSettings::default();
 
         // This should fail validation (empty messages)
-        let result = generate_text(
-            model, prompt, settings, None, None, None, None, None, None, None,
-        )
-        .await;
+        let result = GenerateText::new(model, prompt).execute().await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::InvalidPrompt { message }) => {

@@ -152,99 +152,6 @@ where
     }
 }
 
-/// Embed a value using an embedding model. The type of the value is defined
-/// by the embedding model.
-///
-/// **Deprecated:** Use the `Embed` builder instead.
-///
-/// # Arguments
-///
-/// * `model` - The embedding model to use.
-/// * `value` - The value that should be embedded.
-/// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
-/// * `abort_signal` - An optional abort signal that can be used to cancel the call.
-/// * `headers` - Additional HTTP headers to be sent with the request. Only applicable for HTTP-based providers.
-/// * `provider_options` - Additional provider-specific options.
-///
-/// # Returns
-///
-/// A result object that contains the embedding, the value, and additional information.
-///
-/// # Example
-///
-/// ```ignore
-/// use ai_sdk_core::embed::embed;
-/// use std::sync::Arc;
-///
-/// let result = embed(
-///     model,
-///     "Hello, world!".to_string(),
-///     Some(2),
-///     None,
-///     None,
-///     None,
-/// ).await?;
-///
-/// println!("Embedding: {:?}", result.embedding);
-/// println!("Usage: {:?}", result.usage);
-/// ```
-#[allow(dead_code)]
-async fn embed<V>(
-    model: Arc<dyn EmbeddingModel<V>>,
-    value: V,
-    max_retries: Option<u32>,
-    abort_signal: Option<CancellationToken>,
-    headers: Option<SharedHeaders>,
-    provider_options: Option<SharedProviderOptions>,
-) -> Result<EmbedResult<V>, AISDKError>
-where
-    V: Clone + Send + Sync + 'static,
-{
-    // Prepare retry configuration
-    let retry_config = prepare_retries(max_retries, abort_signal.clone())?;
-
-    // Add user agent to headers
-    let headers_with_user_agent = add_user_agent_suffix(headers, format!("ai/{}", VERSION));
-
-    // Execute the embedding call with retry logic
-    let result = retry_config
-        .execute_with_boxed_error(|| {
-            let model = model.clone();
-            let value = value.clone();
-            let headers = headers_with_user_agent.clone();
-            let provider_options = provider_options.clone();
-            async move {
-                let options = EmbeddingModelCallOptions {
-                    values: vec![value],
-                    abort_signal: None,
-                    headers,
-                    provider_options,
-                };
-                model.do_embed(options).await
-            }
-        })
-        .await?;
-
-    // Extract the first embedding (since we only embedded one value)
-    let embedding = result
-        .embeddings
-        .into_iter()
-        .next()
-        .ok_or_else(|| AISDKError::model_error("No embedding returned from model"))?;
-
-    let usage = result.usage.unwrap_or_else(|| EmbeddingModelUsage::new(0));
-    let provider_metadata = result.provider_metadata;
-    let response = result.response.map(|r| {
-        EmbedResultResponseData::new()
-            .with_headers(r.headers.unwrap_or_default())
-            .with_body(r.body.unwrap_or_default())
-    });
-
-    Ok(EmbedResult::new(value, embedding, usage)
-        .with_provider_metadata(provider_metadata.unwrap_or_default())
-        .with_response(response.unwrap_or_default()))
-}
-
 /// Add a user agent suffix to headers.
 ///
 /// # Arguments
@@ -328,15 +235,10 @@ mod tests {
             should_fail: false,
         }) as Arc<dyn EmbeddingModel<String>>;
 
-        let result = embed(
-            model,
-            "Hello, world!".to_string(),
-            Some(2),
-            None,
-            None,
-            None,
-        )
-        .await;
+        let result = Embed::new(model, "Hello, world!".to_string())
+            .max_retries(2)
+            .execute()
+            .await;
 
         assert!(result.is_ok());
         let result = result.unwrap();
@@ -355,15 +257,11 @@ mod tests {
         let mut headers = HashMap::new();
         headers.insert("x-custom-header".to_string(), "custom-value".to_string());
 
-        let result = embed(
-            model,
-            "Test".to_string(),
-            Some(2),
-            None,
-            Some(headers),
-            None,
-        )
-        .await;
+        let result = Embed::new(model, "Test".to_string())
+            .max_retries(2)
+            .headers(headers)
+            .execute()
+            .await;
 
         assert!(result.is_ok());
         let result = result.unwrap();
@@ -377,7 +275,10 @@ mod tests {
             should_fail: false,
         }) as Arc<dyn EmbeddingModel<String>>;
 
-        let result = embed(model, "Retry test".to_string(), Some(3), None, None, None).await;
+        let result = Embed::new(model, "Retry test".to_string())
+            .max_retries(3)
+            .execute()
+            .await;
 
         assert!(result.is_ok());
     }
@@ -389,7 +290,10 @@ mod tests {
             should_fail: false,
         }) as Arc<dyn EmbeddingModel<String>>;
 
-        let result = embed(model, "No retry".to_string(), Some(0), None, None, None).await;
+        let result = Embed::new(model, "No retry".to_string())
+            .max_retries(0)
+            .execute()
+            .await;
 
         assert!(result.is_ok());
     }
