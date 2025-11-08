@@ -11,10 +11,11 @@ pub mod tool;
 pub mod transcribe;
 
 pub use embed::{
-    EmbedManyResult, EmbedManyResultResponseData, EmbedResult, EmbedResultResponseData,
+    EmbedManyResult, EmbedManyResultResponseData, EmbedResult, EmbedResultResponseData, embed,
+    embed_many,
 };
 pub use error::AISDKError;
-pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata};
+pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata, generate_image};
 pub use generate_speech::{GenerateSpeechResult, GeneratedAudioFile, GeneratedAudioFileWithType};
 pub use generate_text::{
     FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
