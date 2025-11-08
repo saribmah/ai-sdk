@@ -17,7 +17,7 @@ A unified Rust SDK for building AI-powered applications with multiple model prov
 
 This is a Cargo workspace with multiple crates:
 
-- **`ai-sdk-core`**: Core functionality including `generate_text`, `stream_text`, prompt handling, message types, and tool system
+- **`ai-sdk-core`**: Core functionality including builder APIs (`GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`), prompt handling, message types, and tool system
 - **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
 - **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
 - **`ai-sdk-utils`**: Shared utilities and helper functions
