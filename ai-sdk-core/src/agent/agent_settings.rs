@@ -1,6 +1,5 @@
 use crate::generate_text::{PrepareStep, StopCondition};
 use crate::output::Output;
-use crate::prompt::Prompt;
 use crate::prompt::call_settings::CallSettings;
 use crate::tool::{ToolCallRepairFunction, ToolSet};
 use ai_sdk_provider::LanguageModel;
@@ -8,21 +7,14 @@ use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::future::Future;
-use std::pin::Pin;
 use std::sync::Arc;
 
-use super::interface::AgentCallParameters;
 use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 
 /// Configuration options for an agent.
 ///
 /// This struct combines call settings with agent-specific configuration
 /// like the model, tools, instructions, and callbacks.
-///
-/// # Type Parameters
-///
-/// * `CallOptions` - Optional type for provider-specific call options
 ///
 /// # Examples
 ///
@@ -35,7 +27,7 @@ use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 ///     .with_tools(tools)
 ///     .with_temperature(0.7);
 /// ```
-pub struct AgentSettings<CallOptions = ()> {
+pub struct AgentSettings {
     // Core agent settings
     /// The id of the agent.
     pub id: Option<String>,
@@ -47,8 +39,8 @@ pub struct AgentSettings<CallOptions = ()> {
     pub model: Arc<dyn LanguageModel>,
 
     /// The tools that the model can call. The model needs to support calling tools.
-    /// Wrapped in Arc to allow sharing without cloning the tools.
-    pub tools: Option<Arc<ToolSet>>,
+    /// Tools can be cloned efficiently since they wrap closures in Arc.
+    pub tools: Option<ToolSet>,
 
     /// The tool choice strategy. Default: 'auto'.
     pub tool_choice: Option<LanguageModelToolChoice>,
@@ -88,14 +80,6 @@ pub struct AgentSettings<CallOptions = ()> {
     /// Experimental (can break in patch releases).
     pub experimental_context: Option<Value>,
 
-    /// The schema for the call options (stored as JSON schema).
-    pub call_options_schema: Option<Value>,
-
-    /// Prepare the parameters for the generateText or streamText call.
-    ///
-    /// You can use this to have templates based on call options.
-    pub prepare_call: Option<PrepareCallFunction<CallOptions>>,
-
     // Call settings (inherited from CallSettings)
     /// Maximum number of tokens to generate.
     pub max_output_tokens: Option<u32>,
@@ -125,126 +109,7 @@ pub struct AgentSettings<CallOptions = ()> {
     pub headers: Option<HashMap<String, String>>,
 }
 
-/// Function type for preparing call parameters.
-///
-/// This function receives the agent call parameters and current settings,
-/// and returns updated settings along with a prompt (without system message).
-pub type PrepareCallFunction<CallOptions> = Arc<
-    dyn Fn(
-            PrepareCallInput<CallOptions>,
-        ) -> Pin<
-            Box<dyn Future<Output = Result<PrepareCallOutput, crate::error::AISDKError>> + Send>,
-        > + Send
-        + Sync,
->;
-
-/// Input to the prepare call function.
-pub struct PrepareCallInput<CallOptions> {
-    /// The agent call parameters (prompt/messages + options)
-    pub call_params: AgentCallParameters<CallOptions>,
-
-    /// Current model
-    pub model: Arc<dyn LanguageModel>,
-
-    /// Current tools (read-only, cannot be modified in prepare_call output)
-    /// Use active_tools to limit which tools are available instead.
-    pub tools: Option<Arc<ToolSet>>,
-
-    /// Current max output tokens
-    pub max_output_tokens: Option<u32>,
-
-    /// Current temperature
-    pub temperature: Option<f64>,
-
-    /// Current top_p
-    pub top_p: Option<f64>,
-
-    /// Current top_k
-    pub top_k: Option<u32>,
-
-    /// Current presence penalty
-    pub presence_penalty: Option<f64>,
-
-    /// Current frequency penalty
-    pub frequency_penalty: Option<f64>,
-
-    /// Current stop sequences
-    pub stop_sequences: Option<Vec<String>>,
-
-    /// Current seed
-    pub seed: Option<u32>,
-
-    /// Current headers
-    pub headers: Option<HashMap<String, String>>,
-
-    /// Current instructions
-    pub instructions: Option<String>,
-
-    /// Current stop condition
-    pub stop_when: Option<Vec<Arc<dyn StopCondition>>>,
-
-    /// Current active tools
-    pub active_tools: Option<Vec<String>>,
-
-    /// Current provider options
-    pub provider_options: Option<SharedProviderOptions>,
-
-    /// Current experimental context
-    pub experimental_context: Option<Value>,
-}
-
-/// Output from the prepare call function.
-pub struct PrepareCallOutput {
-    /// Updated model (if changed)
-    pub model: Option<Arc<dyn LanguageModel>>,
-
-    /// Updated max output tokens (if changed)
-    pub max_output_tokens: Option<u32>,
-
-    /// Updated temperature (if changed)
-    pub temperature: Option<f64>,
-
-    /// Updated top_p (if changed)
-    pub top_p: Option<f64>,
-
-    /// Updated top_k (if changed)
-    pub top_k: Option<u32>,
-
-    /// Updated presence penalty (if changed)
-    pub presence_penalty: Option<f64>,
-
-    /// Updated frequency penalty (if changed)
-    pub frequency_penalty: Option<f64>,
-
-    /// Updated stop sequences (if changed)
-    pub stop_sequences: Option<Vec<String>>,
-
-    /// Updated seed (if changed)
-    pub seed: Option<u32>,
-
-    /// Updated headers (if changed)
-    pub headers: Option<HashMap<String, String>>,
-
-    /// Updated instructions (if changed)
-    pub instructions: Option<String>,
-
-    /// Updated stop condition (if changed)
-    pub stop_when: Option<Vec<Arc<dyn StopCondition>>>,
-
-    /// Updated active tools (if changed)
-    pub active_tools: Option<Vec<String>>,
-
-    /// Updated provider options (if changed)
-    pub provider_options: Option<SharedProviderOptions>,
-
-    /// Updated experimental context (if changed)
-    pub experimental_context: Option<Value>,
-
-    /// The prompt to use (without system message, which comes from instructions)
-    pub prompt: Prompt,
-}
-
-impl<CallOptions> AgentSettings<CallOptions> {
+impl AgentSettings {
     /// Creates new agent settings with the specified model.
     pub fn new(model: Arc<dyn LanguageModel>) -> Self {
         Self {
@@ -262,8 +127,6 @@ impl<CallOptions> AgentSettings<CallOptions> {
             on_finish: None,
             provider_options: None,
             experimental_context: None,
-            call_options_schema: None,
-            prepare_call: None,
             max_output_tokens: None,
             temperature: None,
             top_p: None,
@@ -290,7 +153,7 @@ impl<CallOptions> AgentSettings<CallOptions> {
 
     /// Sets the tools.
     pub fn with_tools(mut self, tools: ToolSet) -> Self {
-        self.tools = Some(Arc::new(tools));
+        self.tools = Some(tools);
         self
     }
 
@@ -351,12 +214,6 @@ impl<CallOptions> AgentSettings<CallOptions> {
     /// Sets the experimental context.
     pub fn with_experimental_context(mut self, context: Value) -> Self {
         self.experimental_context = Some(context);
-        self
-    }
-
-    /// Sets the prepare call function.
-    pub fn with_prepare_call(mut self, prepare_call: PrepareCallFunction<CallOptions>) -> Self {
-        self.prepare_call = Some(prepare_call);
         self
     }
 

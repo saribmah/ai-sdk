@@ -13,8 +13,8 @@ pub mod transcribe;
 
 pub use agent::{
     Agent, AgentCallParameters, AgentFinishEvent, AgentInterface, AgentOnFinishCallback,
-    AgentOnStepFinishCallback, AgentPrompt, AgentSettings, PrepareCallFunction, PrepareCallInput,
-    PrepareCallOutput, noop_agent_on_finish_callback, noop_agent_on_step_finish_callback,
+    AgentOnStepFinishCallback, AgentSettings, noop_agent_on_finish_callback,
+    noop_agent_on_step_finish_callback,
 };
 pub use embed::{
     Embed, EmbedMany, EmbedManyResult, EmbedManyResultResponseData, EmbedResult,

@@ -33,30 +33,36 @@ where
 /// Function that executes a tool with the given input and options.
 ///
 /// Returns either a Future that resolves to a single output, or a Stream of outputs.
+/// Wrapped in Arc to allow cloning.
 pub type ToolExecuteFunction<INPUT, OUTPUT> =
-    Box<dyn Fn(INPUT, ToolExecuteOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
+    Arc<dyn Fn(INPUT, ToolExecuteOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
 
 /// Function that determines if a tool needs approval before execution.
-pub type ToolNeedsApprovalFunction<INPUT> = Box<
+/// Wrapped in Arc to allow cloning.
+pub type ToolNeedsApprovalFunction<INPUT> = Arc<
     dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync,
 >;
 
 /// Callback that is called when tool input streaming starts.
+/// Wrapped in Arc to allow cloning.
 pub type OnInputStartCallback =
-    Box<dyn Fn(ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+    Arc<dyn Fn(ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Callback that is called when a tool input delta is available.
-pub type OnInputDeltaCallback = Box<
+/// Wrapped in Arc to allow cloning.
+pub type OnInputDeltaCallback = Arc<
     dyn Fn(String, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
 >;
 
 /// Callback that is called when tool input is available.
-pub type OnInputAvailableCallback<INPUT> = Box<
+/// Wrapped in Arc to allow cloning.
+pub type OnInputAvailableCallback<INPUT> = Arc<
     dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
 >;
 
 /// Function that converts tool output to model output format.
-pub type ToModelOutputFunction<OUTPUT> = Box<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;
+/// Wrapped in Arc to allow cloning.
+pub type ToModelOutputFunction<OUTPUT> = Arc<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;
 
 /// Type of tool.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -88,6 +94,9 @@ pub enum ToolType {
 /// The tool can also contain an optional execute function for the actual execution of the tool.
 ///
 /// For type-safe tools with compile-time guarantees, use the `TypeSafeTool` trait instead.
+///
+/// Tools are cloneable because all function pointers are wrapped in Arc.
+#[derive(Clone)]
 pub struct Tool {
     /// An optional description of what the tool does.
     /// Will be used by the language model to decide whether to use the tool.
@@ -126,6 +135,7 @@ pub struct Tool {
 }
 
 /// Whether a tool needs approval before execution.
+#[derive(Clone)]
 pub enum NeedsApproval {
     /// Tool does not need approval.
     No,
@@ -583,7 +593,7 @@ mod tests {
     async fn test_tool_execute_with_function() {
         let schema = json!({"type": "object"});
 
-        let tool: Tool = Tool::function(schema).with_execute(Box::new(|input: Value, _options| {
+        let tool: Tool = Tool::function(schema).with_execute(Arc::new(|input: Value, _options| {
             ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
         }));
 
@@ -616,7 +626,7 @@ mod tests {
         let schema = json!({"type": "object"});
 
         let tool: Tool =
-            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
+            Tool::function(schema).with_execute(Arc::new(|_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));
                     yield Ok(json!({"step": 2}));
@@ -653,7 +663,7 @@ mod tests {
         let schema = json!({"type": "object"});
 
         let tool: Tool =
-            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
+            Tool::function(schema).with_execute(Arc::new(|_input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move {
                     Err(json!({"error": "Something went wrong"}))
                 }))
@@ -679,7 +689,7 @@ mod tests {
         let schema = json!({"type": "object"});
 
         let tool: Tool =
-            Tool::function(schema).with_execute(Box::new(|_input: Value, _options| {
+            Tool::function(schema).with_execute(Arc::new(|_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));
                     yield Err(json!("Error in stream"));
@@ -707,7 +717,7 @@ mod tests {
 
         let tool = Tool::function(json!({"type": "object"}))
             .with_description("Test tool")
-            .with_execute(Box::new(|input: Value, _options| {
+            .with_execute(Arc::new(|input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
             }));
 
@@ -732,7 +742,7 @@ mod tests {
     async fn test_execute_tool_call_error() {
         let mut tools = ToolSet::new();
 
-        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Arc::new(
             |_input: Value, _options| {
                 ToolExecutionOutput::Single(Box::pin(async move {
                     Err(json!({"error": "Something went wrong"}))
@@ -787,7 +797,7 @@ mod tests {
     async fn test_execute_tool_call_with_streaming() {
         let mut tools = ToolSet::new();
 
-        let tool = Tool::function(json!({"type": "object"})).with_execute(Box::new(
+        let tool = Tool::function(json!({"type": "object"})).with_execute(Arc::new(
             |_input: Value, _options| {
                 ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
                     yield Ok(json!({"step": 1}));

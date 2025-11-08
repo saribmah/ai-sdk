@@ -216,7 +216,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["symbol"]
     }))
     .with_description("Get the current stock price and information for a company")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let symbol = input
             .get("symbol")
             .and_then(|v| v.as_str())
@@ -238,7 +238,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["company"]
     }))
     .with_description("Get recent news articles about a company")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let company = input
             .get("company")
             .and_then(|v| v.as_str())
@@ -260,7 +260,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["text"]
     }))
     .with_description("Analyze the sentiment of market-related text")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let text = input.get("text").and_then(|v| v.as_str()).unwrap_or("");
 
         let sentiment_data = analyze_sentiment(text);
@@ -272,8 +272,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tools.insert("get_stock_price".to_string(), stock_tool);
     tools.insert("get_company_news".to_string(), news_tool);
     tools.insert("analyze_sentiment".to_string(), sentiment_tool);
-
-    println!("📋 Registered Tools:");
+    println!("📋 Available Tools:");
     println!("   1. get_stock_price - Get current stock price information");
     println!("   2. get_company_news - Get recent news about a company");
     println!("   3. analyze_sentiment - Analyze market sentiment from text\n");
@@ -283,7 +282,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating Agent");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let settings = AgentSettings::<()>::new(model)
+    let settings = AgentSettings::new(model)
         .with_id("financial-analyst-agent")
         .with_instructions(
             "You are a knowledgeable financial analyst assistant. \
@@ -292,15 +291,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              Always mention the current price and recent news when discussing stocks. \
              Be professional and data-driven in your responses."
         )
-        .with_tools(tools)
         .with_temperature(0.5)
         .with_max_output_tokens(1500)
-        .with_stop_when(vec![Arc::new(step_count_is(10))]);
+        .with_stop_when(vec![Arc::new(step_count_is(10))])
+        .with_tools(tools);
 
     let agent = Agent::new(settings);
 
     println!("✓ Agent created with ID: {:?}", agent.settings().id);
-    println!("✓ Agent has {} tools available", agent.tools().len());
+    println!(
+        "✓ Agent has {} tools available",
+        agent.tools().map_or(0, |t| t.len())
+    );
     println!("✓ Temperature: {:?}", agent.settings().temperature);
     println!(
         "✓ Max output tokens: {:?}\n",
@@ -312,7 +314,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 1: Single Stock Analysis (Streaming)");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params1 = AgentCallParameters::with_prompt(
+    let params1 = AgentCallParameters::from_text(
         "Tell me about Apple stock (AAPL). What's the current price and what's the latest news?",
     );
 
@@ -321,7 +323,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("🤖 Agent (streaming): ");
 
-    let result1 = agent.stream(params1).await?;
+    let result1 = agent.stream(params1)?.execute().await?;
     let mut text_stream = result1.text_stream();
 
     // Stream the response in real-time
@@ -344,7 +346,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 2: Multi-Stock Comparison (Streaming)");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params2 = AgentCallParameters::with_prompt(
+    let params2 = AgentCallParameters::from_text(
         "Compare Apple (AAPL) and Microsoft (MSFT) stocks. Which one is performing better today?",
     );
 
@@ -353,7 +355,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("🤖 Agent (streaming): ");
 
-    let result2 = agent.stream(params2).await?;
+    let result2 = agent.stream(params2)?.execute().await?;
     let mut text_stream2 = result2.text_stream();
 
     // Stream the response
@@ -375,7 +377,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 3: Complex Analysis with Sentiment (Streaming)");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params3 = AgentCallParameters::with_prompt(
+    let params3 = AgentCallParameters::from_text(
         "Give me a comprehensive analysis of Tesla (TSLA). Include the stock price, recent news, \
          and analyze the overall market sentiment around the company.",
     );
@@ -385,7 +387,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("🤖 Agent (streaming): ");
 
-    let result3 = agent.stream(params3).await?;
+    let result3 = agent.stream(params3)?.execute().await?;
     let mut text_stream3 = result3.text_stream();
 
     // Stream the response
@@ -407,12 +409,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 4: Stream with Full Control (TextStreamPart)");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params4 = AgentCallParameters::with_prompt("What's the latest on Google (GOOGL)?");
+    let params4 = AgentCallParameters::from_text("What's the latest on Google (GOOGL)?");
 
     println!("📝 User: What's the latest on Google (GOOGL)?\n");
     println!("🤖 Agent (detailed streaming): ");
 
-    let result4 = agent.stream(params4).await?;
+    let result4 = agent.stream(params4)?.execute().await?;
     let mut full_stream = result4.full_stream();
 
     let mut tool_call_count = 0;

@@ -1,4 +1,3 @@
-/// Tool calling example demonstrating function calling with a weather tool.
 ///
 /// This example shows how to:
 /// - Define a tool with parameters
@@ -18,6 +17,8 @@ use ai_sdk_core::{GenerateText, ToolSet};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+/// Tool calling example demonstrating function calling with a weather tool.
+use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -71,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["city"]
     }))
     .with_description("Get the current weather for a given city")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         println!("\n🔧 TOOL EXECUTION TRIGGERED!");
         println!("🔧 Tool: get_weather");
         println!("🔧 Input: {}", input);

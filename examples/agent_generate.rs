@@ -160,6 +160,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     use ai_sdk_core::tool::definition::ToolExecutionOutput;
 
+    // Helper function to create tools (since tools can't be cloned, we recreate them for each call)
+    let mut tools = ToolSet::new();
+
     // Weather tool
     let weather_tool = Tool::function(json!({
         "type": "object",
@@ -172,7 +175,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["city"]
     }))
     .with_description("Get the current weather for a given city")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let city = input
             .get("city")
             .and_then(|v| v.as_str())
@@ -204,7 +207,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["value", "from_unit", "to_unit"]
     }))
     .with_description("Convert temperature between fahrenheit and celsius")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let value = input.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
         let from_unit = input
             .get("from_unit")
@@ -240,7 +243,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["from", "to", "mode"]
     }))
     .with_description("Get estimated travel time between two cities")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let from = input.get("from").and_then(|v| v.as_str()).unwrap_or("");
         let to = input.get("to").and_then(|v| v.as_str()).unwrap_or("");
         let mode = input
@@ -252,13 +255,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
     }));
 
-    // Create a ToolSet
-    let mut tools = ToolSet::new();
     tools.insert("get_weather".to_string(), weather_tool);
     tools.insert("convert_temperature".to_string(), convert_tool);
     tools.insert("get_travel_time".to_string(), travel_tool);
 
-    println!("📋 Registered Tools:");
+    println!("📋 Available Tools:");
     println!("   1. get_weather - Get current weather for a city");
     println!("   2. convert_temperature - Convert between °F and °C");
     println!("   3. get_travel_time - Get travel time between cities\n");
@@ -268,7 +269,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating Agent");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let settings = AgentSettings::<()>::new(model)
+    let settings = AgentSettings::new(model)
         .with_id("weather-travel-agent")
         .with_instructions(
             "You are a helpful travel and weather assistant. \
@@ -276,27 +277,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              Always provide temperature in both Fahrenheit and Celsius. \
              Be conversational and friendly in your responses."
         )
-        .with_tools(tools)
         .with_temperature(0.7)
         .with_max_output_tokens(1000)
-        .with_stop_when(vec![Arc::new(step_count_is(10))]);
+        .with_stop_when(vec![Arc::new(step_count_is(10))])
+        .with_tools(tools);
 
     let agent = Agent::new(settings);
 
     println!("✓ Agent created with ID: {:?}", agent.settings().id);
-    println!("✓ Agent has {} tools available", agent.tools().len());
     println!("✓ Temperature: {:?}", agent.settings().temperature);
     println!(
-        "✓ Max output tokens: {:?}\n",
+        "✓ Max output tokens: {:?}",
         agent.settings().max_output_tokens
     );
+    println!("✓ Tools: Passed in each call\n");
 
     // Example 1: Simple weather query
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("Example 1: Simple Weather Query");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params1 = AgentCallParameters::with_prompt(
+    let params1 = AgentCallParameters::from_text(
         "What's the weather like in San Francisco? Please tell me the temperature in both Fahrenheit and Celsius.",
     );
 
@@ -304,7 +305,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "📝 User: What's the weather like in San Francisco? Please tell me the temperature in both Fahrenheit and Celsius.\n"
     );
 
-    let result1 = agent.generate(params1).await?;
+    let result1 = agent.generate(params1)?.execute().await?;
 
     println!("\n🤖 Agent Response:");
     println!("{}", result1.text);
@@ -318,13 +319,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 2: Multi-City Weather Comparison");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params2 = AgentCallParameters::with_prompt(
+    let params2 = AgentCallParameters::from_text(
         "Compare the weather in New York and London. Which city is warmer?",
     );
 
     println!("📝 User: Compare the weather in New York and London. Which city is warmer?\n");
 
-    let result2 = agent.generate(params2).await?;
+    let result2 = agent.generate(params2)?.execute().await?;
 
     println!("\n🤖 Agent Response:");
     println!("{}", result2.text);
@@ -338,7 +339,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 3: Complex Multi-Tool Query");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let params3 = AgentCallParameters::with_prompt(
+    let params3 = AgentCallParameters::from_text(
         "I'm planning a trip from San Francisco to Tokyo. What's the weather like in both cities, \
          and how long would it take to fly there?",
     );
@@ -347,7 +348,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "📝 User: I'm planning a trip from San Francisco to Tokyo. What's the weather like in both cities, and how long would it take to fly there?\n"
     );
 
-    let result3 = agent.generate(params3).await?;
+    let result3 = agent.generate(params3)?.execute().await?;
 
     println!("\n🤖 Agent Response:");
     println!("{}", result3.text);

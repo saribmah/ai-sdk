@@ -1,13 +1,13 @@
 use crate::error::AISDKError;
-use crate::generate_text::{GenerateText, GenerateTextResult, step_count_is};
-use crate::prompt::Prompt;
-use crate::stream_text::{StreamText, StreamTextResult};
+use crate::generate_text::{GenerateText, step_count_is};
+use crate::prompt::{Prompt, PromptContent};
+use crate::stream_text::StreamText;
 use crate::tool::ToolSet;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-use super::agent_settings::{AgentSettings, PrepareCallInput};
-use super::interface::{AgentCallParameters, AgentInterface, AgentPrompt};
+use super::agent_settings::AgentSettings;
+use super::interface::{AgentCallParameters, AgentInterface};
 
 /// An agent that runs tools in a loop.
 ///
@@ -20,10 +20,6 @@ use super::interface::{AgentCallParameters, AgentInterface, AgentPrompt};
 /// - A tool call needs approval, or
 /// - A stop condition is met (default stop condition is step_count_is(20))
 ///
-/// # Type Parameters
-///
-/// * `CallOptions` - Optional type for provider-specific call options
-///
 /// # Examples
 ///
 /// ```ignore
@@ -31,19 +27,21 @@ use super::interface::{AgentCallParameters, AgentInterface, AgentPrompt};
 ///
 /// let agent = Agent::new(settings);
 ///
-/// // Generate non-streaming
-/// let result = agent.generate(AgentCallParameters::with_prompt("Hello")).await?;
+/// // Generate non-streaming - returns a builder
+/// let result = agent.generate(AgentCallParameters::with_prompt("Hello"))?
+///     .execute()
+///     .await?;
 ///
-/// // Stream
-/// let result = agent.stream(AgentCallParameters::with_prompt("Hello")).await?;
+/// // Stream - returns a builder
+/// let result = agent.stream(AgentCallParameters::with_prompt("Hello"))?
+///     .execute()
+///     .await?;
 /// ```
-pub struct Agent<CallOptions = ()> {
-    settings: AgentSettings<CallOptions>,
-    // We need to store an empty toolset Arc for the case where settings.tools is None
-    empty_tools: Arc<ToolSet>,
+pub struct Agent {
+    settings: AgentSettings,
 }
 
-impl<CallOptions> Agent<CallOptions> {
+impl Agent {
     /// Creates a new agent with the given settings.
     ///
     /// # Examples
@@ -55,142 +53,21 @@ impl<CallOptions> Agent<CallOptions> {
     ///
     /// let agent = Agent::new(settings);
     /// ```
-    pub fn new(settings: AgentSettings<CallOptions>) -> Self {
-        Self {
-            settings,
-            empty_tools: Arc::new(ToolSet::new()),
-        }
+    pub fn new(settings: AgentSettings) -> Self {
+        Self { settings }
     }
 
     /// Gets the agent settings.
-    pub fn settings(&self) -> &AgentSettings<CallOptions> {
+    pub fn settings(&self) -> &AgentSettings {
         &self.settings
     }
 
-    /// Prepares the call parameters by applying the prepare_call function if provided.
-    ///
-    /// This method:
-    /// 1. Combines base settings with call options
-    /// 2. Sets default stop condition (step_count_is(20)) if not provided
-    /// 3. Calls the optional prepare_call function to customize parameters
-    /// 4. Returns prepared settings and prompt
-    async fn prepare_call(
-        &self,
-        options: AgentCallParameters<CallOptions>,
-    ) -> Result<PreparedCall, AISDKError> {
-        // Set default stop condition if not provided
-        let stop_when = if self.settings.stop_when.is_none() {
-            Some(vec![
-                Arc::new(step_count_is(20)) as Arc<dyn crate::generate_text::StopCondition>
-            ])
-        } else {
-            self.settings.stop_when.clone()
-        };
-
-        // If there's a prepare_call function, use it
-        if let Some(prepare_call_fn) = &self.settings.prepare_call {
-            let input = PrepareCallInput {
-                call_params: options,
-                model: self.settings.model.clone(),
-                tools: self.settings.tools.clone(),
-                max_output_tokens: self.settings.max_output_tokens,
-                temperature: self.settings.temperature,
-                top_p: self.settings.top_p,
-                top_k: self.settings.top_k,
-                presence_penalty: self.settings.presence_penalty,
-                frequency_penalty: self.settings.frequency_penalty,
-                stop_sequences: self.settings.stop_sequences.clone(),
-                seed: self.settings.seed,
-                headers: self.settings.headers.clone(),
-                instructions: self.settings.instructions.clone(),
-                stop_when: stop_when.clone(),
-                active_tools: self.settings.active_tools.clone(),
-                provider_options: self.settings.provider_options.clone(),
-                experimental_context: self.settings.experimental_context.clone(),
-            };
-
-            let output = prepare_call_fn(input).await?;
-
-            // Build the final prompt from prepare_call output
-            let prompt = if let Some(ref instructions) = output.instructions {
-                output.prompt.with_system(instructions.clone())
-            } else if let Some(ref instructions) = self.settings.instructions {
-                output.prompt.with_system(instructions.clone())
-            } else {
-                output.prompt
-            };
-
-            Ok(PreparedCall {
-                model: output.model.unwrap_or_else(|| self.settings.model.clone()),
-                tools: self.settings.tools.clone(),
-                tool_choice: self.settings.tool_choice.clone(),
-                stop_when: output.stop_when.or(stop_when),
-                prepare_step: self.settings.prepare_step.clone(),
-                provider_options: output
-                    .provider_options
-                    .or_else(|| self.settings.provider_options.clone()),
-                max_output_tokens: output.max_output_tokens.or(self.settings.max_output_tokens),
-                temperature: output.temperature.or(self.settings.temperature),
-                top_p: output.top_p.or(self.settings.top_p),
-                top_k: output.top_k.or(self.settings.top_k),
-                presence_penalty: output.presence_penalty.or(self.settings.presence_penalty),
-                frequency_penalty: output.frequency_penalty.or(self.settings.frequency_penalty),
-                stop_sequences: output
-                    .stop_sequences
-                    .or_else(|| self.settings.stop_sequences.clone()),
-                seed: output.seed.or(self.settings.seed),
-                headers: output.headers.or_else(|| self.settings.headers.clone()),
-                prompt,
-            })
-        } else {
-            // No prepare_call function, use settings directly
-            let prompt = self.build_prompt_from_options(&options)?;
-
-            Ok(PreparedCall {
-                model: self.settings.model.clone(),
-                tools: self.settings.tools.clone(),
-                tool_choice: self.settings.tool_choice.clone(),
-                stop_when,
-                prepare_step: self.settings.prepare_step.clone(),
-                provider_options: self.settings.provider_options.clone(),
-                max_output_tokens: self.settings.max_output_tokens,
-                temperature: self.settings.temperature,
-                top_p: self.settings.top_p,
-                top_k: self.settings.top_k,
-                presence_penalty: self.settings.presence_penalty,
-                frequency_penalty: self.settings.frequency_penalty,
-                stop_sequences: self.settings.stop_sequences.clone(),
-                seed: self.settings.seed,
-                headers: self.settings.headers.clone(),
-                prompt,
-            })
-        }
-    }
-
     /// Builds a prompt from call parameters and agent instructions.
-    fn build_prompt_from_options(
-        &self,
-        options: &AgentCallParameters<CallOptions>,
-    ) -> Result<Prompt, AISDKError> {
-        // Validate the options
-        options.validate().map_err(|e| {
-            AISDKError::invalid_argument_builder("options")
-                .message(e)
-                .build()
-        })?;
-
-        // Convert AgentPrompt or messages to Prompt
-        let mut prompt = if let Some(ref agent_prompt) = options.prompt {
-            match agent_prompt {
-                AgentPrompt::Text(text) => Prompt::text(text.clone()),
-                AgentPrompt::Messages(msgs) => Prompt::messages(msgs.clone()),
-            }
-        } else if let Some(ref msgs) = options.messages {
-            Prompt::messages(msgs.clone())
-        } else {
-            return Err(AISDKError::invalid_argument_builder("prompt")
-                .message("Either prompt or messages must be provided")
-                .build());
+    fn build_prompt(&self, params: &AgentCallParameters) -> Result<Prompt, AISDKError> {
+        // Convert PromptContent to Prompt
+        let mut prompt = match &params.prompt {
+            PromptContent::Text { text } => Prompt::text(text.clone()),
+            PromptContent::Messages { messages } => Prompt::messages(messages.clone()),
         };
 
         // Add system instructions if provided
@@ -202,195 +79,150 @@ impl<CallOptions> Agent<CallOptions> {
     }
 }
 
-impl<CallOptions: Send + Sync> AgentInterface for Agent<CallOptions> {
-    type CallOptions = CallOptions;
+impl AgentInterface for Agent {
     type Output = ();
 
     fn id(&self) -> Option<&str> {
         self.settings.id.as_deref()
     }
 
-    fn tools(&self) -> &ToolSet {
-        self.settings
-            .tools
-            .as_ref()
-            .map(|arc| arc.as_ref())
-            .unwrap_or(&self.empty_tools)
+    fn tools(&self) -> Option<&ToolSet> {
+        self.settings.tools.as_ref()
     }
 
-    async fn generate(
-        &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<GenerateTextResult, AISDKError> {
-        let prepared = self.prepare_call(params).await?;
+    fn generate(&self, params: AgentCallParameters) -> Result<GenerateText, AISDKError> {
+        let prompt = self.build_prompt(&params)?;
+        let mut builder = GenerateText::new(self.settings.model.clone(), prompt);
 
-        let mut builder = GenerateText::new(prepared.model, prepared.prompt);
+        // Apply tools from agent settings
+        if let Some(tools) = &self.settings.tools {
+            builder = builder.tools(tools.clone());
+        }
+        if let Some(tool_choice) = &self.settings.tool_choice {
+            builder = builder.tool_choice(tool_choice.clone());
+        }
 
-        // Apply all settings to the builder
-        if let Some(tools_arc) = prepared.tools {
-            // Try to unwrap the Arc if we have the only reference
-            // Otherwise, we can't pass tools since Tool doesn't implement Clone
-            match Arc::try_unwrap(tools_arc) {
-                Ok(tools) => {
-                    builder = builder.tools(tools);
-                }
-                Err(_arc) => {
-                    // Multiple references exist - this shouldn't happen in normal usage
-                    // since PreparedCall owns its tools Arc
-                    return Err(AISDKError::invalid_argument_builder("tools")
-                        .message("Cannot use tools: Arc has multiple references")
-                        .build());
-                }
-            }
-        }
-        if let Some(tool_choice) = prepared.tool_choice {
-            builder = builder.tool_choice(tool_choice);
-        }
-        if let Some(stop_when) = prepared.stop_when {
+        // Apply stop condition (default to step_count_is(20) if not provided)
+        if let Some(stop_conditions) = &self.settings.stop_when {
             // Convert Arc<dyn StopCondition> to Box<dyn StopCondition>
-            let boxed_conditions: Vec<Box<dyn crate::generate_text::StopCondition>> = stop_when
-                .into_iter()
-                .map(|arc| {
-                    Box::new(ArcStopConditionWrapper(arc))
-                        as Box<dyn crate::generate_text::StopCondition>
-                })
-                .collect();
+            let boxed_conditions: Vec<Box<dyn crate::generate_text::StopCondition>> =
+                stop_conditions
+                    .iter()
+                    .map(|arc| {
+                        Box::new(ArcStopConditionWrapper(arc.clone()))
+                            as Box<dyn crate::generate_text::StopCondition>
+                    })
+                    .collect();
             builder = builder.stop_when(boxed_conditions);
+        } else {
+            // Default stop condition
+            builder = builder.stop_when(vec![Box::new(step_count_is(20))]);
         }
-        if let Some(prepare_step) = prepared.prepare_step {
-            // Convert Arc<dyn PrepareStep> to Box<dyn PrepareStep>
-            builder = builder.prepare_step(Box::new(ArcPrepareStepWrapper(prepare_step)));
+
+        // Apply other settings
+        if let Some(prepare_step) = &self.settings.prepare_step {
+            builder = builder.prepare_step(Box::new(ArcPrepareStepWrapper(prepare_step.clone())));
         }
-        if let Some(provider_options) = prepared.provider_options {
-            builder = builder.provider_options(provider_options);
+        if let Some(provider_options) = &self.settings.provider_options {
+            builder = builder.provider_options(provider_options.clone());
         }
-        if let Some(max_tokens) = prepared.max_output_tokens {
+        if let Some(max_tokens) = self.settings.max_output_tokens {
             builder = builder.max_output_tokens(max_tokens);
         }
-        if let Some(temperature) = prepared.temperature {
+        if let Some(temperature) = self.settings.temperature {
             builder = builder.temperature(temperature);
         }
-        if let Some(top_p) = prepared.top_p {
+        if let Some(top_p) = self.settings.top_p {
             builder = builder.top_p(top_p);
         }
-        if let Some(top_k) = prepared.top_k {
+        if let Some(top_k) = self.settings.top_k {
             builder = builder.top_k(top_k);
         }
-        if let Some(presence_penalty) = prepared.presence_penalty {
+        if let Some(presence_penalty) = self.settings.presence_penalty {
             builder = builder.presence_penalty(presence_penalty);
         }
-        if let Some(frequency_penalty) = prepared.frequency_penalty {
+        if let Some(frequency_penalty) = self.settings.frequency_penalty {
             builder = builder.frequency_penalty(frequency_penalty);
         }
-        if let Some(stop_sequences) = prepared.stop_sequences {
-            builder = builder.stop_sequences(stop_sequences);
+        if let Some(stop_sequences) = &self.settings.stop_sequences {
+            builder = builder.stop_sequences(stop_sequences.clone());
         }
-        if let Some(seed) = prepared.seed {
+        if let Some(seed) = self.settings.seed {
             builder = builder.seed(seed);
         }
-        if let Some(headers) = prepared.headers {
-            builder = builder.headers(headers);
+        if let Some(headers) = &self.settings.headers {
+            builder = builder.headers(headers.clone());
         }
 
-        builder.execute().await
+        Ok(builder)
     }
 
-    async fn stream(
-        &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<StreamTextResult, AISDKError> {
-        let prepared = self.prepare_call(params).await?;
+    fn stream(&self, params: AgentCallParameters) -> Result<StreamText, AISDKError> {
+        let prompt = self.build_prompt(&params)?;
+        let mut builder = StreamText::new(self.settings.model.clone(), prompt);
 
-        let mut builder = StreamText::new(prepared.model, prepared.prompt);
+        // Apply tools from agent settings
+        if let Some(tools) = &self.settings.tools {
+            builder = builder.tools(tools.clone());
+        }
+        if let Some(tool_choice) = &self.settings.tool_choice {
+            builder = builder.tool_choice(tool_choice.clone());
+        }
 
-        // Apply all settings to the builder
-        if let Some(tools_arc) = prepared.tools {
-            // Try to unwrap the Arc if we have the only reference
-            // Otherwise, we can't pass tools since Tool doesn't implement Clone
-            match Arc::try_unwrap(tools_arc) {
-                Ok(tools) => {
-                    builder = builder.tools(tools);
-                }
-                Err(_arc) => {
-                    // Multiple references exist - this shouldn't happen in normal usage
-                    // since PreparedCall owns its tools Arc
-                    return Err(AISDKError::invalid_argument_builder("tools")
-                        .message("Cannot use tools: Arc has multiple references")
-                        .build());
-                }
-            }
-        }
-        if let Some(tool_choice) = prepared.tool_choice {
-            builder = builder.tool_choice(tool_choice);
-        }
-        if let Some(stop_when) = prepared.stop_when {
+        // Apply stop condition (default to step_count_is(20) if not provided)
+        if let Some(stop_conditions) = &self.settings.stop_when {
             // Convert Arc<dyn StopCondition> to Box<dyn StopCondition>
-            let boxed_conditions: Vec<Box<dyn crate::generate_text::StopCondition>> = stop_when
-                .into_iter()
-                .map(|arc| {
-                    Box::new(ArcStopConditionWrapper(arc))
-                        as Box<dyn crate::generate_text::StopCondition>
-                })
-                .collect();
+            let boxed_conditions: Vec<Box<dyn crate::generate_text::StopCondition>> =
+                stop_conditions
+                    .iter()
+                    .map(|arc| {
+                        Box::new(ArcStopConditionWrapper(arc.clone()))
+                            as Box<dyn crate::generate_text::StopCondition>
+                    })
+                    .collect();
             builder = builder.stop_when(boxed_conditions);
+        } else {
+            // Default stop condition
+            builder = builder.stop_when(vec![Box::new(step_count_is(20))]);
         }
-        if let Some(prepare_step) = prepared.prepare_step {
-            // Convert Arc<dyn PrepareStep> to Box<dyn PrepareStep>
-            builder = builder.prepare_step(Box::new(ArcPrepareStepWrapper(prepare_step)));
+
+        // Apply other settings
+        if let Some(prepare_step) = &self.settings.prepare_step {
+            builder = builder.prepare_step(Box::new(ArcPrepareStepWrapper(prepare_step.clone())));
         }
-        if let Some(provider_options) = prepared.provider_options {
-            builder = builder.provider_options(provider_options);
+        if let Some(provider_options) = &self.settings.provider_options {
+            builder = builder.provider_options(provider_options.clone());
         }
-        if let Some(max_tokens) = prepared.max_output_tokens {
+        if let Some(max_tokens) = self.settings.max_output_tokens {
             builder = builder.max_output_tokens(max_tokens);
         }
-        if let Some(temperature) = prepared.temperature {
+        if let Some(temperature) = self.settings.temperature {
             builder = builder.temperature(temperature);
         }
-        if let Some(top_p) = prepared.top_p {
+        if let Some(top_p) = self.settings.top_p {
             builder = builder.top_p(top_p);
         }
-        if let Some(top_k) = prepared.top_k {
+        if let Some(top_k) = self.settings.top_k {
             builder = builder.top_k(top_k);
         }
-        if let Some(presence_penalty) = prepared.presence_penalty {
+        if let Some(presence_penalty) = self.settings.presence_penalty {
             builder = builder.presence_penalty(presence_penalty);
         }
-        if let Some(frequency_penalty) = prepared.frequency_penalty {
+        if let Some(frequency_penalty) = self.settings.frequency_penalty {
             builder = builder.frequency_penalty(frequency_penalty);
         }
-        if let Some(stop_sequences) = prepared.stop_sequences {
-            builder = builder.stop_sequences(stop_sequences);
+        if let Some(stop_sequences) = &self.settings.stop_sequences {
+            builder = builder.stop_sequences(stop_sequences.clone());
         }
-        if let Some(seed) = prepared.seed {
+        if let Some(seed) = self.settings.seed {
             builder = builder.seed(seed);
         }
-        if let Some(headers) = prepared.headers {
-            builder = builder.headers(headers);
+        if let Some(headers) = &self.settings.headers {
+            builder = builder.headers(headers.clone());
         }
 
-        builder.execute().await
+        Ok(builder)
     }
-}
-
-/// Internal struct holding prepared call parameters.
-struct PreparedCall {
-    model: Arc<dyn ai_sdk_provider::LanguageModel>,
-    tools: Option<Arc<ToolSet>>,
-    tool_choice: Option<ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice>,
-    stop_when: Option<Vec<Arc<dyn crate::generate_text::StopCondition>>>,
-    prepare_step: Option<Arc<dyn crate::generate_text::PrepareStep>>,
-    provider_options: Option<ai_sdk_provider::shared::provider_options::SharedProviderOptions>,
-    max_output_tokens: Option<u32>,
-    temperature: Option<f64>,
-    top_p: Option<f64>,
-    top_k: Option<u32>,
-    presence_penalty: Option<f64>,
-    frequency_penalty: Option<f64>,
-    stop_sequences: Option<Vec<String>>,
-    seed: Option<u32>,
-    headers: Option<std::collections::HashMap<String, String>>,
-    prompt: Prompt,
 }
 
 /// Wrapper that converts Arc<dyn StopCondition> to a type that implements StopCondition.

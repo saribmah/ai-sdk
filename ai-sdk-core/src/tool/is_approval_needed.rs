@@ -70,6 +70,7 @@ mod tests {
     use super::*;
     use crate::tool::definition::{NeedsApproval, Tool};
     use serde_json::json;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_no_approval_needed() {
@@ -112,7 +113,7 @@ mod tests {
         }));
 
         // Set up a function that requires approval for "delete" actions
-        tool.needs_approval = NeedsApproval::Function(Box::new(|input: Value, _options| {
+        tool.needs_approval = NeedsApproval::Function(Arc::new(|input: Value, _options| {
             Box::pin(async move {
                 if let Some(action) = input.get("action").and_then(|v| v.as_str()) {
                     action == "delete"
@@ -138,7 +139,7 @@ mod tests {
         }));
 
         // Set up a function that requires approval for "delete" actions
-        tool.needs_approval = NeedsApproval::Function(Box::new(|input: Value, _options| {
+        tool.needs_approval = NeedsApproval::Function(Arc::new(|input: Value, _options| {
             Box::pin(async move {
                 if let Some(action) = input.get("action").and_then(|v| v.as_str()) {
                     action == "delete"
@@ -162,7 +163,7 @@ mod tests {
         }));
 
         // Set up a function that checks experimental context
-        tool.needs_approval = NeedsApproval::Function(Box::new(|_input: Value, options| {
+        tool.needs_approval = NeedsApproval::Function(Arc::new(|_input: Value, options| {
             Box::pin(async move {
                 options
                     .experimental_context
@@ -193,7 +194,7 @@ mod tests {
         }));
 
         // Set up a function that checks if messages are present
-        tool.needs_approval = NeedsApproval::Function(Box::new(|_input: Value, options| {
+        tool.needs_approval = NeedsApproval::Function(Arc::new(|_input: Value, options| {
             Box::pin(async move { !options.messages.is_empty() })
         }));
 
