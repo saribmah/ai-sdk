@@ -14,7 +14,7 @@
 use ai_sdk_core::output::Output;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::TypeSafeTool;
-use ai_sdk_core::{GenerateTextBuilder, ToolSet};
+use ai_sdk_core::{GenerateText, ToolSet};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use async_trait::async_trait;
 use schemars::JsonSchema;
@@ -217,7 +217,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("⏳ Generating response...");
 
-    let result = GenerateTextBuilder::new(model.clone(), prompt)
+    let result = GenerateText::new(model.clone(), prompt)
         .temperature(0.7)
         .max_output_tokens(500)
         .tools(tools)
@@ -279,7 +279,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("⏳ Generating response with multi-step tool execution...");
 
-    let result2 = GenerateTextBuilder::new(model, prompt2)
+    let result2 = GenerateText::new(model, prompt2)
         .temperature(0.7)
         .max_output_tokens(500)
         .tools(tools2)

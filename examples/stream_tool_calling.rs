@@ -14,7 +14,7 @@
 /// ```
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{StreamTextBuilder, ToolSet, step_count_is};
+use ai_sdk_core::{StreamText, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
@@ -196,7 +196,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Streaming response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .max_output_tokens(500)
         .tools(tools_example1)
@@ -291,7 +291,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⏳ Streaming multi-step response...\n");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    let result = StreamTextBuilder::new(model, prompt)
+    let result = StreamText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(500)
         .tools(tools_example2)

@@ -235,11 +235,11 @@ pub fn as_output(
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::{GenerateTextBuilder, step_count_is};
+/// use ai_sdk_core::{GenerateText, step_count_is};
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
 ///
-/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
+/// let result = GenerateText::new(Arc::new(model), Prompt::text("Tell me a joke"))
 ///     .temperature(0.7)
 ///     .max_output_tokens(100)
 ///     .tools(my_tools)
@@ -247,7 +247,7 @@ pub fn as_output(
 ///     .execute()
 ///     .await?;
 /// ```
-pub struct GenerateTextBuilder {
+pub struct GenerateText {
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
@@ -260,7 +260,7 @@ pub struct GenerateTextBuilder {
     on_finish: Option<Box<dyn OnFinish>>,
 }
 
-impl GenerateTextBuilder {
+impl GenerateText {
     /// Creates a new builder with the required model and prompt.
     pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
         Self {
@@ -712,18 +712,18 @@ impl GenerateTextBuilder {
 /// Internal function for generating text using a language model.
 ///
 /// This function is kept for backward compatibility with tests and internal usage.
-/// Users should use `GenerateTextBuilder` instead.
+/// Users should use `GenerateText` instead.
 ///
 /// # Note
 ///
-/// **Deprecated**: Use `GenerateTextBuilder` for a more ergonomic API:
+/// **Deprecated**: Use `GenerateText` for a more ergonomic API:
 ///
 /// ```ignore
-/// use ai_sdk_core::GenerateTextBuilder;
+/// use ai_sdk_core::GenerateText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
 ///
-/// let result = GenerateTextBuilder::new(Arc::new(model), Prompt::text("Tell me a joke"))
+/// let result = GenerateText::new(Arc::new(model), Prompt::text("Tell me a joke"))
 ///     .temperature(0.7)
 ///     .max_output_tokens(100)
 ///     .execute()
@@ -1133,7 +1133,7 @@ mod tests {
         let prompt = Prompt::text("Tell me a joke");
 
         // Test the builder pattern
-        let result = GenerateTextBuilder::new(model, prompt).execute().await;
+        let result = GenerateText::new(model, prompt).execute().await;
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => (), // Expected
@@ -1170,7 +1170,7 @@ mod tests {
             Prompt::text("What is the weather?").with_system("You are a helpful assistant");
 
         // Test the builder pattern with chained settings
-        let result = GenerateTextBuilder::new(model, prompt)
+        let result = GenerateText::new(model, prompt)
             .temperature(0.7)
             .max_output_tokens(100)
             .execute()

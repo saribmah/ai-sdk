@@ -20,7 +20,7 @@ pub use generate_speech::{
     GenerateSpeechResult, GeneratedAudioFile, GeneratedAudioFileWithType, generate_speech,
 };
 pub use generate_text::{
-    FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
+    FinishEvent, GenerateText, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
     OnStepFinish, PrepareStep, PrepareStepOptions, PrepareStepResult, RequestMetadata,
     ResponseMessage, ResponseMetadata, StepCountIs, StepResponseMetadata, StepResult,
     StopCondition, as_output, has_tool_call, is_stop_condition_met, step_count_is,
@@ -31,8 +31,8 @@ pub use rerank::{RankedDocumentWithValue, RerankResponseMetadata, RerankResult, 
 pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
-    OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamTextBuilder,
-    StreamTextResult, TextStreamPart,
+    OnStepFinishCallback, StreamFinishEvent, StreamGeneratedFile, StreamText, StreamTextResult,
+    TextStreamPart,
 };
 pub use tool::{
     OnPreliminaryToolResult, Tool, ToolApprovalRequest, ToolApprovalRequestOutput,

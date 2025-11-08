@@ -1,4 +1,4 @@
-use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::StreamText;
 /// Partial output parsing example demonstrating incremental structured data extraction.
 ///
 /// This example shows how to:
@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Example: {\"name\": \"Alice\", \"age\": 30, \"occupation\": \"Engineer\"}",
     );
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .max_output_tokens(200)
         .execute()
@@ -107,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          \"steps\": [\"Mix ingredients\", \"Bake at 350F\"]}",
     );
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .max_output_tokens(200)
         .execute()
@@ -150,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          Return ONLY valid JSON.",
     );
 
-    let result = StreamTextBuilder::new(model, prompt)
+    let result = StreamText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(200)
         .execute()

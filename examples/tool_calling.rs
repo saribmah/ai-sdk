@@ -2,7 +2,7 @@
 ///
 /// This example shows how to:
 /// - Define a tool with parameters
-/// - Use GenerateTextBuilder with tools
+/// - Use GenerateText with tools
 /// - Handle tool calls in the response
 /// - Execute tools and process results
 ///
@@ -14,7 +14,7 @@
 use ai_sdk_core::output::Output;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{GenerateTextBuilder, ToolSet};
+use ai_sdk_core::{GenerateText, ToolSet};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
@@ -107,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate text with the tool
     println!("⏳ Generating response...\n");
-    let result = GenerateTextBuilder::new(model, prompt)
+    let result = GenerateText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(500)
         .tools(tools)

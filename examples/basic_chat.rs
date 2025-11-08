@@ -1,9 +1,9 @@
-use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::GenerateText;
 /// Basic chat example demonstrating text generation with OpenAI-compatible providers.
 ///
 /// This example shows how to:
 /// - Create a provider from environment variables
-/// - Use GenerateTextBuilder with fluent API to get responses
+/// - Use GenerateText with fluent API to get responses
 /// - Handle the response properly
 ///
 /// Run with:
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate text using the builder pattern
     println!("⏳ Generating response...\n");
-    let result = GenerateTextBuilder::new(model, prompt)
+    let result = GenerateText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(10)
         .execute()

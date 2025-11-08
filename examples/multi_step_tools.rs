@@ -12,7 +12,7 @@
 /// ```
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{GenerateTextBuilder, ToolSet, step_count_is};
+use ai_sdk_core::{GenerateText, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
@@ -201,7 +201,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate with tools - this will execute multiple steps
     println!("⏳ Starting multi-step generation (max 10 steps)...\n");
 
-    let result = GenerateTextBuilder::new(model, prompt)
+    let result = GenerateText::new(model, prompt)
         .temperature(0.7)
         .max_output_tokens(1000)
         .tools(tools)

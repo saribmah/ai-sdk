@@ -38,7 +38,7 @@ tokio = { version = "1.41", features = ["full"] }
 The SDK provides a fluent builder API for ergonomic text generation:
 
 ```rust
-use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("gpt-4");
 
     // Generate text using the builder pattern
-    let result = GenerateTextBuilder::new(model, Prompt::text("What is the capital of France?"))
+    let result = GenerateText::new(model, Prompt::text("What is the capital of France?"))
         .temperature(0.7)
         .max_output_tokens(100)
         .execute()
@@ -149,15 +149,15 @@ let custom = OpenAICompatibleClient::new()
 
 ### Builder Pattern API
 
-Both `GenerateTextBuilder` and `StreamTextBuilder` provide fluent, chainable APIs for configuring text generation and streaming:
+Both `GenerateText` and `StreamText` provide fluent, chainable APIs for configuring text generation and streaming:
 
 #### Text Generation
 
 ```rust
-use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
 
-let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
+let result = GenerateText::new(&*model, Prompt::text("Tell me a joke"))
     .temperature(0.7)            // Creativity control
     .max_output_tokens(100)      // Response length limit
     .top_p(0.9)                  // Nucleus sampling
@@ -200,15 +200,15 @@ let result = GenerateTextBuilder::new(&*model, Prompt::text("Tell me a joke"))
 
 #### Text Streaming
 
-The `StreamTextBuilder` provides similar functionality for streaming responses:
+The `StreamText` provides similar functionality for streaming responses:
 
 ```rust
-use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::StreamText;
 use ai_sdk_core::prompt::Prompt;
 use futures_util::StreamExt;
 use std::sync::Arc;
 
-let result = StreamTextBuilder::new(Arc::from(model), Prompt::text("Tell me a story"))
+let result = StreamText::new(Arc::from(model), Prompt::text("Tell me a story"))
     .temperature(0.8)
     .max_output_tokens(500)
     .include_raw_chunks(true)
@@ -232,7 +232,7 @@ while let Some(delta) = text_stream.next().await {
 }
 ```
 
-**Additional StreamTextBuilder Methods:**
+**Additional StreamText Methods:**
 - `.include_raw_chunks(bool)` - Include raw provider chunks
 - `.transforms(Vec<Box<dyn StreamTransform>>)` - Apply stream transformations
 - `.on_chunk(OnChunkCallback)` - Callback for each chunk
@@ -320,7 +320,7 @@ The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
 - User-facing APIs: `embed_many()`, `generate_image()`
-- Builder pattern APIs: `GenerateTextBuilder`, `StreamTextBuilder`
+- Builder pattern APIs: `GenerateText`, `StreamText`
 - Prompt standardization and validation
 - Message type conversions
 - Tool execution and management
@@ -344,8 +344,8 @@ The SDK follows a layered architecture:
 ## Current Status
 
 ✅ **Implemented:**
-- Text generation with `GenerateTextBuilder`
-- Text streaming with `StreamTextBuilder`
+- Text generation with `GenerateText`
+- Text streaming with `StreamText`
 - Embedding generation with `embed_many()`
 - Image generation with `generate_image()`
 - Prompt handling and standardization
@@ -409,8 +409,8 @@ cargo run --example basic_image             # Generate images from text prompts
 
 The examples demonstrate:
 - Creating providers with environment variables
-- Text generation with `GenerateTextBuilder` and real API calls
-- Streaming responses with `StreamTextBuilder` in real-time
+- Text generation with `GenerateText` and real API calls
+- Streaming responses with `StreamText` in real-time
 - Generating embeddings with `embed_many()`
 - Image generation with `generate_image()`
 - Handling responses and metadata

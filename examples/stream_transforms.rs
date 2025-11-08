@@ -1,4 +1,4 @@
-use ai_sdk_core::StreamTextBuilder;
+use ai_sdk_core::StreamText;
 /// Stream transformations example demonstrating various stream processing capabilities.
 ///
 /// This example shows how to:
@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a filter transform that only passes text deltas
     let text_filter = filter_transform(|part| matches!(part, TextStreamPart::TextDelta { .. }));
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .transforms(vec![Box::new(text_filter)])
         .execute()
@@ -92,7 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         other => other,
     });
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .transforms(vec![Box::new(uppercase_mapper)])
         .execute()
@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a batch transform that combines up to 50 characters or 100ms delay
     let batcher = batch_text_transform(50, Duration::from_millis(100));
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .transforms(vec![Box::new(batcher)])
         .execute()
@@ -145,7 +145,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a throttle transform with 50ms delay between chunks
     let throttler = throttle_transform(Duration::from_millis(50));
 
-    let result = StreamTextBuilder::new(model.clone(), prompt)
+    let result = StreamText::new(model.clone(), prompt)
         .temperature(0.7)
         .transforms(vec![Box::new(throttler)])
         .execute()
@@ -187,7 +187,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     let batcher = batch_text_transform(30, Duration::from_millis(50));
 
-    let result = StreamTextBuilder::new(model, prompt)
+    let result = StreamText::new(model, prompt)
         .temperature(0.7)
         .transforms(vec![
             Box::new(text_filter),

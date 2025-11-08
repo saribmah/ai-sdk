@@ -603,7 +603,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_text_integration() {
-        use ai_sdk_core::GenerateTextBuilder;
+        use ai_sdk_core::GenerateText;
         use ai_sdk_core::error::AISDKError;
         use ai_sdk_core::prompt::Prompt;
 
@@ -616,12 +616,12 @@ mod tests {
         // Create a simple text prompt
         let prompt = Prompt::text("Hello, how are you?");
 
-        // Call GenerateTextBuilder - this will make an actual HTTP request and fail
+        // Call GenerateText - this will make an actual HTTP request and fail
         // because we're using a test API key, but it tests the integration
-        let result = GenerateTextBuilder::new(model, prompt).execute().await;
+        let result = GenerateText::new(model, prompt).execute().await;
 
         // Expect a ModelError (either network error or API auth error)
-        // The important part is that the integration between GenerateTextBuilder and our provider works
+        // The important part is that the integration between GenerateText and our provider works
         assert!(result.is_err());
         match result {
             Err(AISDKError::ModelError { .. }) => {

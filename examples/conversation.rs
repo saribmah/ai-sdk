@@ -10,7 +10,7 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example conversation
 /// ```
-use ai_sdk_core::GenerateTextBuilder;
+use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📤 User: Explain quantum computing\n");
 
     println!("⏳ Generating response...\n");
-    let result = GenerateTextBuilder::new(model.clone(), prompt)
+    let result = GenerateText::new(model.clone(), prompt)
         .temperature(0.7)
         .max_output_tokens(150)
         .execute()
@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let focused_prompt = Prompt::text(creative_question);
 
-    let focused_result = GenerateTextBuilder::new(model.clone(), focused_prompt)
+    let focused_result = GenerateText::new(model.clone(), focused_prompt)
         .temperature(0.2)
         .max_output_tokens(100)
         .execute()
@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let creative_prompt = Prompt::text(creative_question);
 
-    let creative_result = GenerateTextBuilder::new(model, creative_prompt)
+    let creative_result = GenerateText::new(model, creative_prompt)
         .temperature(1.2)
         .max_output_tokens(100)
         .execute()

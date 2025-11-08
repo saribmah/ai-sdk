@@ -384,11 +384,11 @@ async fn stream_single_step(
 /// # Examples
 ///
 /// ```ignore
-/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::StreamText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
 ///
-/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+/// let result = StreamText::new(Arc::new(model), Prompt::text("Tell me a story"))
 ///     .temperature(0.8)
 ///     .max_output_tokens(500)
 ///     .include_raw_chunks(true)
@@ -401,7 +401,7 @@ async fn stream_single_step(
 ///     print!("{}", delta);
 /// }
 /// ```
-pub struct StreamTextBuilder {
+pub struct StreamText {
     model: Arc<dyn LanguageModel>,
     prompt: Prompt,
     settings: CallSettings,
@@ -418,7 +418,7 @@ pub struct StreamTextBuilder {
     on_finish: Option<OnFinishCallback>,
 }
 
-impl StreamTextBuilder {
+impl StreamText {
     /// Creates a new builder with the required model and prompt.
     pub fn new(model: Arc<dyn LanguageModel>, prompt: Prompt) -> Self {
         Self {
@@ -933,18 +933,18 @@ impl StreamTextBuilder {
 /// Internal function for streaming text using a language model.
 ///
 /// This function is kept for backward compatibility with tests and internal usage.
-/// Users should use `StreamTextBuilder` instead.
+/// Users should use `StreamText` instead.
 ///
 /// # Note
 ///
-/// **Deprecated**: Use `StreamTextBuilder` for a more ergonomic API:
+/// **Deprecated**: Use `StreamText` for a more ergonomic API:
 ///
 /// ```ignore
-/// use ai_sdk_core::StreamTextBuilder;
+/// use ai_sdk_core::StreamText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
 ///
-/// let result = StreamTextBuilder::new(Arc::new(model), Prompt::text("Tell me a story"))
+/// let result = StreamText::new(Arc::new(model), Prompt::text("Tell me a story"))
 ///     .temperature(0.8)
 ///     .max_output_tokens(500)
 ///     .execute()
