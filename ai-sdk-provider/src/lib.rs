@@ -1,15 +1,33 @@
+pub mod embedding_model;
 pub mod error;
+pub mod image_model;
 pub mod language_model;
 pub mod provider;
+pub mod reranking_model;
 pub mod shared;
+pub mod speech_model;
+pub mod transcription_model;
 
 // Re-export commonly used types
+pub use embedding_model::{
+    EmbeddingModel, EmbeddingModelResponse, EmbeddingModelResponseMetadata, EmbeddingModelUsage,
+};
 pub use error::ProviderError;
+pub use image_model::{ImageData, ImageModel, ImageModelResponse, ImageModelResponseMetadata};
 pub use language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
     LanguageModelStreamResponse,
 };
 pub use provider::Provider;
+pub use reranking_model::{
+    RankedDocument, RerankingModel, RerankingModelResponse, RerankingModelResponseMetadata,
+};
+pub use shared::warning::SharedWarning;
+pub use speech_model::{AudioData, SpeechModel, SpeechModelResponse, SpeechModelResponseMetadata};
+pub use transcription_model::{
+    TranscriptSegment, TranscriptionModel, TranscriptionModelResponse,
+    TranscriptionModelResponseMetadata,
+};
 
 #[cfg(test)]
 mod tests {

@@ -174,6 +174,56 @@ impl Provider for OpenAICompatibleProvider {
     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
         Ok(self.chat_model(model_id))
     }
+
+    fn text_embedding_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn ai_sdk_provider::EmbeddingModel<String>>, ProviderError> {
+        Err(ProviderError::no_such_model(
+            model_id,
+            format!("{}.text-embedding-not-supported", self.settings.name),
+        ))
+    }
+
+    fn image_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+        Err(ProviderError::no_such_model(
+            model_id,
+            format!("{}.image-model-not-supported", self.settings.name),
+        ))
+    }
+
+    fn transcription_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+        Err(ProviderError::no_such_model(
+            model_id,
+            format!("{}.transcription-model-not-supported", self.settings.name),
+        ))
+    }
+
+    fn speech_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+        Err(ProviderError::no_such_model(
+            model_id,
+            format!("{}.speech-model-not-supported", self.settings.name),
+        ))
+    }
+
+    fn reranking_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+        Err(ProviderError::no_such_model(
+            model_id,
+            format!("{}.reranking-model-not-supported", self.settings.name),
+        ))
+    }
 }
 
 /// Creates an OpenAI-compatible provider.

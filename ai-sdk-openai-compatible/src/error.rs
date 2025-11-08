@@ -1,16 +1,34 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fmt;
+
+/// OpenAI-compatible error types
+#[derive(Debug)]
+pub enum OpenAICompatibleError {
+    /// Generic error wrapper
+    Other(Box<dyn std::error::Error + Send + Sync>),
+}
+
+impl fmt::Display for OpenAICompatibleError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Other(err) => write!(f, "{}", err),
+        }
+    }
+}
+
+impl std::error::Error for OpenAICompatibleError {}
 
 /// OpenAI-compatible error response data structure
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct OpenAICompatibleErrorData {
     /// The error object
-    pub error: OpenAICompatibleError,
+    pub error: OpenAICompatibleErrorDetails,
 }
 
 /// OpenAI-compatible error details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct OpenAICompatibleError {
+pub struct OpenAICompatibleErrorDetails {
     /// The error message
     pub message: String,
 
@@ -104,7 +122,7 @@ impl OpenAICompatibleErrorData {
     /// Create a new error data structure
     pub fn new(message: String) -> Self {
         Self {
-            error: OpenAICompatibleError {
+            error: OpenAICompatibleErrorDetails {
                 message,
                 error_type: None,
                 param: None,
@@ -121,7 +139,7 @@ impl OpenAICompatibleErrorData {
         code: Option<ErrorCode>,
     ) -> Self {
         Self {
-            error: OpenAICompatibleError {
+            error: OpenAICompatibleErrorDetails {
                 message,
                 error_type,
                 param,
@@ -131,7 +149,7 @@ impl OpenAICompatibleErrorData {
     }
 }
 
-impl OpenAICompatibleError {
+impl OpenAICompatibleErrorDetails {
     /// Create a new error
     pub fn new(message: String) -> Self {
         Self {

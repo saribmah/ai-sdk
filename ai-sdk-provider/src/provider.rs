@@ -1,8 +1,14 @@
+use crate::embedding_model::EmbeddingModel;
 use crate::error::ProviderError;
+use crate::image_model::ImageModel;
 use crate::language_model::LanguageModel;
+use crate::reranking_model::RerankingModel;
+use crate::speech_model::SpeechModel;
+use crate::transcription_model::TranscriptionModel;
 use std::sync::Arc;
 
-/// Provider for language models, text embedding, and image generation models.
+/// Provider for language, text embedding, image generation, speech, transcription,
+/// and reranking models.
 ///
 /// This trait defines the interface that all AI providers must implement to integrate
 /// with the AI SDK. Providers are responsible for creating and managing model instances.
@@ -11,21 +17,38 @@ use std::sync::Arc;
 ///
 /// ```ignore
 /// use ai_sdk_provider::{Provider, LanguageModel, ProviderError};
+/// use std::sync::Arc;
 ///
 /// struct MyProvider {
 ///     provider_id: String,
 /// }
 ///
 /// impl Provider for MyProvider {
+///     fn specification_version(&self) -> &str {
+///         "v3"
+///     }
+///
 ///     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
 ///         match model_id {
 ///             "my-model-1" => Ok(Arc::new(MyModel::new(model_id))),
 ///             _ => Err(ProviderError::no_such_model(model_id, &self.provider_id)),
 ///         }
 ///     }
+///
+///     // Optional: implement other model types as needed
+///     fn text_embedding_model(&self, model_id: &str) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError> {
+///         Err(ProviderError::no_such_model(model_id, "embedding-not-supported"))
+///     }
 /// }
 /// ```
+#[allow(clippy::result_large_err)]
 pub trait Provider: Send + Sync {
+    /// The provider must specify which provider interface version it implements.
+    /// This will allow us to evolve the provider interface and retain backwards compatibility.
+    fn specification_version(&self) -> &str {
+        "v3"
+    }
+
     /// Returns the language model with the given id.
     ///
     /// The model id is provider-specific and is used to identify which model
@@ -53,7 +76,6 @@ pub trait Provider: Send + Sync {
     /// ```
     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError>;
 
-    /*
     /// Returns the text embedding model with the given id.
     ///
     /// The model id is provider-specific and is used to identify which embedding
@@ -65,23 +87,98 @@ pub trait Provider: Send + Sync {
     ///
     /// # Returns
     ///
-    /// * `Ok(Box<dyn TextEmbeddingModel>)` - The text embedding model instance
+    /// * `Ok(Arc<dyn EmbeddingModel<String>>)` - The text embedding model instance
     /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
     ///
     /// # Errors
     ///
     /// Returns `ProviderError::NoSuchModel` if no embedding model with the given ID
     /// exists in this provider.
+    fn text_embedding_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError>;
+
+    /// Returns the image model with the given id.
     ///
-    /// # Note
+    /// The model id is provider-specific and is used to identify which image
+    /// generation model to instantiate and return.
     ///
-    /// This method has a default implementation that returns an error, as not all
-    /// providers support text embedding models. Override this method to provide
-    /// text embedding model support.
-    // fn text_embedding_model(&self, model_id: &str) -> Result<Box<dyn std::any::Any>, ProviderError> {
-    //     Err(ProviderError::no_such_model(
-    //         model_id,
-    //         "text-embedding-not-supported",
-    //     ))
-    // } */
+    /// # Arguments
+    ///
+    /// * `model_id` - The provider-specific identifier for the image model
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Arc<dyn ImageModel>)` - The image model instance
+    /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
+    ///
+    /// # Errors
+    ///
+    /// Returns `ProviderError::NoSuchModel` if no image model with the given ID
+    /// exists in this provider.
+    fn image_model(&self, model_id: &str) -> Result<Arc<dyn ImageModel>, ProviderError>;
+
+    /// Returns the transcription model with the given id.
+    ///
+    /// The model id is provider-specific and is used to identify which
+    /// transcription model to instantiate and return.
+    ///
+    /// # Arguments
+    ///
+    /// * `model_id` - The provider-specific identifier for the transcription model
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Arc<dyn TranscriptionModel>)` - The transcription model instance
+    /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
+    ///
+    /// # Errors
+    ///
+    /// Returns `ProviderError::NoSuchModel` if no transcription model with the given ID
+    /// exists in this provider.
+    fn transcription_model(
+        &self,
+        model_id: &str,
+    ) -> Result<Arc<dyn TranscriptionModel>, ProviderError>;
+
+    /// Returns the speech model with the given id.
+    ///
+    /// The model id is provider-specific and is used to identify which
+    /// speech synthesis model to instantiate and return.
+    ///
+    /// # Arguments
+    ///
+    /// * `model_id` - The provider-specific identifier for the speech model
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Arc<dyn SpeechModel>)` - The speech model instance
+    /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
+    ///
+    /// # Errors
+    ///
+    /// Returns `ProviderError::NoSuchModel` if no speech model with the given ID
+    /// exists in this provider.
+    fn speech_model(&self, model_id: &str) -> Result<Arc<dyn SpeechModel>, ProviderError>;
+
+    /// Returns the reranking model with the given id.
+    ///
+    /// The model id is provider-specific and is used to identify which
+    /// reranking model to instantiate and return.
+    ///
+    /// # Arguments
+    ///
+    /// * `model_id` - The provider-specific identifier for the reranking model
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Arc<dyn RerankingModel>)` - The reranking model instance
+    /// * `Err(ProviderError::NoSuchModel)` - If the model ID is not recognized
+    ///
+    /// # Errors
+    ///
+    /// Returns `ProviderError::NoSuchModel` if no reranking model with the given ID
+    /// exists in this provider.
+    fn reranking_model(&self, model_id: &str) -> Result<Arc<dyn RerankingModel>, ProviderError>;
 }
