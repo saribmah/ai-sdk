@@ -27,7 +27,7 @@ pub use generate_text::{
     to_response_messages,
 };
 pub use output::{reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};
-pub use rerank::{RankedDocumentWithValue, RerankResponseMetadata, RerankResult};
+pub use rerank::{RankedDocumentWithValue, RerankResponseMetadata, RerankResult, rerank};
 pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
