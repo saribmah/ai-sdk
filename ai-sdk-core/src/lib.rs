@@ -15,7 +15,7 @@ pub use embed::{
     EmbedResultResponseData,
 };
 pub use error::AISDKError;
-pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata, generate_image};
+pub use generate_image::{GenerateImage, GenerateImageResult, ImageModelResponseMetadata};
 pub use generate_speech::{
     GenerateSpeechResult, GeneratedAudioFile, GeneratedAudioFileWithType, generate_speech,
 };

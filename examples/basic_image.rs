@@ -13,7 +13,7 @@
 /// export OPENAI_API_KEY="your-openai-api-key"
 /// cargo run --example basic_image
 /// ```
-use ai_sdk_core::generate_image;
+use ai_sdk_core::GenerateImage;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
@@ -57,24 +57,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate image
     println!("⏳ Generating image...\n");
-    let result = generate_image(
-        model,
-        prompt.to_string(),
-        Some(1),                       // n: number of images
-        None,                          // max_images_per_call
-        Some("1024x1024".to_string()), // size
-        None,                          // aspect_ratio
-        None,                          // seed
-        None,                          // provider_options
-        None,                          // max_retries
-        None,                          // abort_signal
-        None,                          // headers
-    )
-    .await
-    .map_err(|e| {
-        eprintln!("\n❌ Full error details: {:?}\n", e);
-        e
-    })?;
+    let result = GenerateImage::new(model, prompt.to_string())
+        .n(1)
+        .size("1024x1024")
+        .execute()
+        .await
+        .map_err(|e| {
+            eprintln!("\n❌ Full error details: {:?}\n", e);
+            e
+        })?;
 
     // Display the results
     println!("✅ Image(s) generated!\n");

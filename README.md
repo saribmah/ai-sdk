@@ -280,10 +280,10 @@ println!("Embedding: {:?}", result.embedding);
 
 ### Image Generation
 
-Generate images from text prompts:
+Generate images from text prompts using the builder pattern:
 
 ```rust
-use ai_sdk_core::generate_image;
+use ai_sdk_core::GenerateImage;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
@@ -293,18 +293,17 @@ let provider = OpenAICompatibleClient::new()
 
 let image_model = provider.image_model("dall-e-3");
 
-let result = generate_image(
-    &*image_model,
-    "A serene landscape with mountains",
-    None,
-    None,
-    None,
-    None,
-    None,
-    None
-).await?;
+let result = GenerateImage::new(
+    image_model,
+    "A serene landscape with mountains".to_string(),
+)
+    .n(1)
+    .size("1024x1024")
+    .max_retries(3)
+    .execute()
+    .await?;
 
-println!("Generated image URL: {}", result.image.url);
+println!("Generated {} images", result.images.len());
 ```
 
 ### Provider Trait API
@@ -333,8 +332,8 @@ let image_model = provider_trait.image_model("dall-e-3")?;
 The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
-- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`
-- User-facing APIs: `generate_image()`
+- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`
+- User-facing APIs: `generate_speech()`, `transcribe()`, `rerank()`
 - Prompt standardization and validation
 - Message type conversions
 - Tool execution and management
@@ -361,7 +360,7 @@ The SDK follows a layered architecture:
 - Text generation with `GenerateText`
 - Text streaming with `StreamText`
 - Embedding generation with `Embed` and `EmbedMany`
-- Image generation with `generate_image()`
+- Image generation with `GenerateImage`
 - Prompt handling and standardization
 - Message type system with support for text, images, tool calls, and tool results
 - Provider trait system
@@ -426,7 +425,7 @@ The examples demonstrate:
 - Text generation with `GenerateText` and real API calls
 - Streaming responses with `StreamText` in real-time
 - Generating embeddings with `Embed` and `EmbedMany`
-- Image generation with `generate_image()`
+- Image generation with `GenerateImage`
 - Handling responses and metadata
 - System messages and temperature settings
 - Token usage tracking
