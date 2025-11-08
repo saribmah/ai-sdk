@@ -1,343 +1,440 @@
 # Agent Interface
 
-The Agent interface provides a unified way to create AI agents that can generate or stream outputs from prompts and messages. This document explains how to implement and use the `AgentInterface` trait.
+The Agent interface provides a unified way to create AI agents that can generate or stream outputs from prompts and messages. This document explains the Agent system and how to use it.
 
 ## Overview
 
-An Agent receives a prompt (text or messages) and generates or streams an output that consists of steps, tool calls, data parts, etc. You can implement your own agent by implementing the `AgentInterface` trait.
+An Agent is a reusable wrapper around a language model with persistent configuration (tools, temperature, etc.). It receives a prompt (text or messages) and generates or streams output using `GenerateText` or `StreamText` builders.
+
+## Quick Start
+
+```rust
+use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
+use ai_sdk_core::tool::ToolSet;
+
+// 1. Create and configure tools
+let mut tools = ToolSet::new();
+tools.insert("weather".to_string(), weather_tool);
+
+// 2. Create agent with persistent settings
+let settings = AgentSettings::new(model)
+    .with_tools(tools)
+    .with_temperature(0.7)
+    .with_max_tokens(500);
+
+let agent = Agent::new(settings);
+
+// 3. Use agent multiple times with different prompts
+let result = agent.generate(AgentCallParameters::from_text("What's the weather?"))?
+    .execute()
+    .await?;
+```
 
 ## Key Components
 
-### 1. AgentInterface Trait
+### 1. AgentSettings
 
-The `AgentInterface` trait defines the interface for all agents:
+`AgentSettings` stores the persistent configuration for an agent:
+
+```rust
+pub struct AgentSettings {
+    pub model: Arc<dyn LanguageModel>,
+    pub tools: Option<ToolSet>,
+    pub temperature: Option<f64>,
+    pub max_tokens: Option<u32>,
+    pub top_p: Option<f64>,
+    pub top_k: Option<u32>,
+    pub presence_penalty: Option<f64>,
+    pub frequency_penalty: Option<f64>,
+    pub seed: Option<u32>,
+    pub max_retries: Option<u32>,
+}
+```
+
+**Builder methods:**
+
+```rust
+let settings = AgentSettings::new(model)
+    .with_tools(tool_set)
+    .with_temperature(0.7)
+    .with_max_tokens(500)
+    .with_top_p(0.9)
+    .with_top_k(50)
+    .with_presence_penalty(0.6)
+    .with_frequency_penalty(0.5)
+    .with_seed(42)
+    .with_max_retries(3);
+```
+
+### 2. Agent
+
+`Agent` is the main struct that provides `generate()` and `stream()` methods:
+
+```rust
+pub struct Agent {
+    settings: AgentSettings,
+}
+
+impl Agent {
+    pub fn new(settings: AgentSettings) -> Self;
+    
+    pub fn generate(&self, params: AgentCallParameters) 
+        -> Result<GenerateText, AISDKError>;
+    
+    pub fn stream(&self, params: AgentCallParameters) 
+        -> Result<StreamText, AISDKError>;
+}
+```
+
+**Key design decision:** Agent methods return builders (`GenerateText`/`StreamText`), not results. This allows customization before execution:
+
+```rust
+// Agent returns a builder
+let result = agent.generate(params)?
+    .temperature(0.9)  // Override agent's temperature
+    .on_finish(callback)  // Add callbacks
+    .execute()  // Execute when ready
+    .await?;
+```
+
+### 3. AgentCallParameters
+
+`AgentCallParameters` specifies the prompt for each agent call:
+
+```rust
+pub struct AgentCallParameters {
+    pub prompt: PromptContent,
+}
+
+impl AgentCallParameters {
+    // Create from text
+    pub fn from_text(text: impl Into<String>) -> Self;
+    
+    // Create from messages
+    pub fn from_messages(messages: Vec<Message>) -> Self;
+}
+```
+
+**Usage:**
+
+```rust
+// From text
+let params = AgentCallParameters::from_text("Hello!");
+
+// From messages
+let messages = vec![
+    Message::User(UserMessage::new("What's the weather?")),
+];
+let params = AgentCallParameters::from_messages(messages);
+```
+
+## AgentInterface Trait
+
+The `AgentInterface` trait defines the interface that all agents must implement:
 
 ```rust
 pub trait AgentInterface: Send + Sync {
-    /// The type for call options (provider-specific settings).
-    type CallOptions: Send + Sync;
-
-    /// The output type for this agent.
-    type Output: Send + Sync;
-
-    /// The specification version of the agent interface.
     fn version(&self) -> &'static str {
         "agent-v1"
     }
 
-    /// The id of the agent (optional).
     fn id(&self) -> Option<&str>;
 
-    /// The tools that the agent can use.
-    fn tools(&self) -> &ToolSet;
+    fn tools(&self) -> Option<&ToolSet>;
 
-    /// Generates an output from the agent (non-streaming).
-    async fn generate(
+    fn generate(
         &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<GenerateTextResult, AISDKError>;
+        params: AgentCallParameters,
+    ) -> Result<GenerateText, AISDKError>;
 
-    /// Streams an output from the agent (streaming).
-    async fn stream(
+    fn stream(
         &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<StreamTextResult, AISDKError>;
+        params: AgentCallParameters,
+    ) -> Result<StreamText, AISDKError>;
 }
 ```
 
-### 2. AgentCallParameters
+## Default Implementation
 
-The `AgentCallParameters` struct ensures that you provide either a `prompt` or `messages`, but not both:
-
-```rust
-pub struct AgentCallParameters<CallOptions = ()> {
-    /// A prompt - either text or messages. Mutually exclusive with `messages`.
-    pub prompt: Option<AgentPrompt>,
-
-    /// A list of messages. Mutually exclusive with `prompt`.
-    pub messages: Option<Vec<Message>>,
-
-    /// Optional provider-specific call options.
-    pub options: Option<CallOptions>,
-}
-```
-
-#### Creating AgentCallParameters
+The default `Agent` implementation is in `ai-sdk-core/src/agent/default_impl.rs`:
 
 ```rust
-// Using a text prompt
-let params = AgentCallParameters::with_prompt("What is the weather in San Francisco?");
-
-// Using messages
-let messages = vec![
-    Message::User(UserMessage::new("Hello!")),
-    Message::Assistant(AssistantMessage::new("Hi! How can I help?")),
-    Message::User(UserMessage::new("What's the weather?")),
-];
-let params = AgentCallParameters::with_messages(messages);
-
-// With call options
-let params = AgentCallParameters::with_prompt("What is the weather?")
-    .with_options(MyCallOptions { temperature: 0.7 });
-```
-
-### 3. AgentPrompt
-
-The `AgentPrompt` enum represents the content of a prompt:
-
-```rust
-pub enum AgentPrompt {
-    /// A simple text prompt
-    Text(String),
-    /// A list of messages
-    Messages(Vec<Message>),
-}
-```
-
-## Implementing an Agent
-
-Here's an example of implementing a custom agent:
-
-```rust
-use ai_sdk_core::{
-    Agent, AgentCallParameters, GenerateTextResult, StreamTextResult,
-    AISDKError, ToolSet, Output,
-};
-
-struct MyAgent {
-    id: String,
-    tools: ToolSet,
-    model: Arc<dyn LanguageModel>,
-}
-
-impl MyAgent {
-    fn new(id: String, model: Arc<dyn LanguageModel>) -> Self {
-        Self {
-            id,
-            tools: ToolSet::new(),
-            model,
-        }
+impl AgentInterface for Agent {
+    fn version(&self) -> &'static str {
+        "agent-v1"
     }
-
-    fn with_tools(mut self, tools: ToolSet) -> Self {
-        self.tools = tools;
-        self
-    }
-}
-
-impl AgentInterface for MyAgent {
-    type CallOptions = ();
-    type Output = Output;
 
     fn id(&self) -> Option<&str> {
-        Some(&self.id)
+        None
     }
 
-    fn tools(&self) -> &ToolSet {
-        &self.tools
+    fn tools(&self) -> Option<&ToolSet> {
+        self.settings.tools.as_ref()
     }
 
-    async fn generate(
-        &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<GenerateTextResult, AISDKError> {
-        // Validate parameters
-        params.validate()
-            .map_err(|e| AISDKError::invalid_argument(e))?;
+    fn generate(&self, params: AgentCallParameters) -> Result<GenerateText, AISDKError> {
+        let prompt = self.build_prompt(params.prompt);
+        let mut builder = GenerateText::new(self.settings.model.clone(), prompt);
 
-        // Convert params to Prompt
-        let prompt = match (params.prompt, params.messages) {
-            (Some(AgentPrompt::Text(text)), None) => Prompt::text(text),
-            (Some(AgentPrompt::Messages(msgs)), None) => Prompt::messages(msgs),
-            (None, Some(msgs)) => Prompt::messages(msgs),
-            _ => return Err(AISDKError::invalid_argument(
-                "Invalid prompt configuration"
-            )),
-        };
+        // Apply settings to builder
+        if let Some(tools) = &self.settings.tools {
+            builder = builder.tools(tools.clone());
+        }
+        if let Some(temp) = self.settings.temperature {
+            builder = builder.temperature(temp);
+        }
+        // ... (other settings)
 
-        // Use GenerateText to generate output
-        GenerateText::new(self.model.clone(), prompt)
-            .tools(self.tools.clone())
-            .execute()
-            .await
+        Ok(builder)
     }
 
-    async fn stream(
-        &self,
-        params: AgentCallParameters<Self::CallOptions>,
-    ) -> Result<StreamTextResult, AISDKError> {
-        // Validate parameters
-        params.validate()
-            .map_err(|e| AISDKError::invalid_argument(e))?;
-
-        // Convert params to Prompt
-        let prompt = match (params.prompt, params.messages) {
-            (Some(AgentPrompt::Text(text)), None) => Prompt::text(text),
-            (Some(AgentPrompt::Messages(msgs)), None) => Prompt::messages(msgs),
-            (None, Some(msgs)) => Prompt::messages(msgs),
-            _ => return Err(AISDKError::invalid_argument(
-                "Invalid prompt configuration"
-            )),
-        };
-
-        // Use StreamText to stream output
-        StreamText::new(self.model.clone(), prompt)
-            .tools(self.tools.clone())
-            .execute()
-            .await
+    fn stream(&self, params: AgentCallParameters) -> Result<StreamText, AISDKError> {
+        // Similar to generate(), but returns StreamText
     }
 }
 ```
 
-## Using an Agent
+## Complete Example
 
 ### Non-Streaming Generation
 
 ```rust
-use ai_sdk_core::{AgentInterface, AgentCallParameters};
+use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
+use ai_sdk_core::tool::{Tool, ToolSet};
+use std::sync::Arc;
 
-async fn example_generate(agent: &impl AgentInterfaceInterface<CallOptions = ()>) -> Result<(), AISDKError> {
-    // Create parameters
-    let params = AgentCallParameters::with_prompt("What is the capital of France?");
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider and model
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://api.openai.com/v1")
+        .api_key(std::env::var("OPENAI_API_KEY")?)
+        .build();
+    
+    let model = provider.chat_model("gpt-4");
 
-    // Generate output
-    let result = agent.generate(params).await?;
+    // Create tools
+    let weather_tool = Tool::new(
+        "get_weather",
+        "Get weather for a city",
+        /* schema */,
+        Arc::new(|args| {
+            Box::pin(async move {
+                // Weather API call
+                Ok("Sunny, 72°F".to_string())
+            })
+        }),
+    );
 
-    // Access the generated text
-    println!("Generated text: {}", result.text);
-    println!("Tokens used: {:?}", result.usage);
+    let mut tools = ToolSet::new();
+    tools.insert("get_weather".to_string(), weather_tool);
+
+    // Create agent with settings
+    let settings = AgentSettings::new(model)
+        .with_tools(tools)
+        .with_temperature(0.7)
+        .with_max_tokens(500);
+
+    let agent = Agent::new(settings);
+
+    // Use agent multiple times
+    let result1 = agent.generate(
+        AgentCallParameters::from_text("What's the weather in SF?")
+    )?
+        .execute()
+        .await?;
+
+    println!("Response: {}", result1.text);
+
+    // Use again with different prompt
+    let result2 = agent.generate(
+        AgentCallParameters::from_text("How about New York?")
+    )?
+        .temperature(0.9)  // Override agent temperature
+        .execute()
+        .await?;
+
+    println!("Response: {}", result2.text);
 
     Ok(())
 }
 ```
 
-### Streaming Generation
+### Streaming Example
 
 ```rust
-use ai_sdk_core::{AgentInterface, AgentCallParameters};
 use futures_util::StreamExt;
 
-async fn example_stream(agent: &impl AgentInterfaceInterface<CallOptions = ()>) -> Result<(), AISDKError> {
-    // Create parameters
-    let params = AgentCallParameters::with_prompt("Tell me a short story");
+let result = agent.stream(
+    AgentCallParameters::from_text("Tell me a story about AI")
+)?
+    .on_chunk(Box::new(|event| {
+        Box::pin(async move {
+            // Process chunks in real-time
+        })
+    }))
+    .execute()
+    .await?;
 
-    // Stream output
-    let result = agent.stream(params).await?;
-
-    // Stream text deltas
-    let mut stream = result.text_stream();
-    while let Some(delta) = stream.next().await {
-        print!("{}", delta);
-    }
-
-    Ok(())
+let mut text_stream = result.text_stream();
+while let Some(delta) = text_stream.next().await {
+    print!("{}", delta);
 }
 ```
 
 ### Using Messages
 
 ```rust
-use ai_sdk_core::{AgentInterface, AgentCallParameters};
-use ai_sdk_core::prompt::message::{Message, UserMessage};
+use ai_sdk_core::prompt::message::{Message, UserMessage, SystemMessage};
 
-async fn example_with_messages(agent: &impl AgentInterfaceInterface<CallOptions = ()>) -> Result<(), AISDKError> {
-    // Create conversation messages
-    let messages = vec![
-        Message::User(UserMessage::new("What's the weather like?")),
-    ];
+let messages = vec![
+    Message::System(SystemMessage::new("You are a helpful assistant")),
+    Message::User(UserMessage::new("What's the capital of France?")),
+];
 
-    // Create parameters with messages
-    let params = AgentCallParameters::with_messages(messages);
+let result = agent.generate(
+    AgentCallParameters::from_messages(messages)
+)?
+    .execute()
+    .await?;
 
-    // Generate output
-    let result = agent.generate(params).await?;
-
-    println!("Response: {}", result.text);
-
-    Ok(())
-}
+println!("Response: {}", result.text);
 ```
 
-## Type Parameters
+## Design Rationale
 
-### CallOptions
+### Why Tools in AgentSettings (Not Parameters)?
 
-The `CallOptions` type parameter allows you to specify provider-specific options:
+- **Tools are cloneable** - Using `Arc` for function pointers makes tools cheap to clone
+- **Reusable configuration** - Agent is configured once, used many times
+- **Single source of truth** - Tools defined in one place
+- **Just change the prompt** - Each call only needs a different prompt
+
+### Why Agent Returns Builders (Not Results)?
+
+- **Flexibility** - Users can customize per call (temperature, callbacks, etc.)
+- **Ergonomic** - Familiar builder pattern
+- **Non-breaking** - Future settings can be added without breaking changes
+- **Progressive disclosure** - Simple cases are simple, complex cases are possible
+
+**Example:**
 
 ```rust
-#[derive(Clone)]
-struct MyCallOptions {
-    temperature: f64,
-    max_tokens: usize,
-}
+// Simple case - just execute
+let result = agent.generate(params)?.execute().await?;
 
-struct MyAgent {
-    // ...
-}
-
-impl AgentInterface for MyAgent {
-    type CallOptions = MyCallOptions;
-    type Output = Output;
-
-    // ...
-}
-
-// Usage
-let params = AgentCallParameters::with_prompt("Hello")
-    .with_options(MyCallOptions {
-        temperature: 0.7,
-        max_tokens: 100,
-    });
+// Complex case - customize before execution
+let result = agent.generate(params)?
+    .temperature(0.9)
+    .on_finish(callback)
+    .stop_sequences(vec!["END".to_string()])
+    .execute()
+    .await?;
 ```
 
-If you don't need call options, use `()`:
+### Why No Generic CallOptions?
+
+In earlier versions, `Agent` had a `CallOptions` generic parameter. We removed it because:
+
+- **Unused** - The generic was never actually used after removing `prepare_call`
+- **Complexity** - Added unnecessary type parameters and `PhantomData`
+- **Builders handle it** - Call-specific options can be set on the returned builder
+
+## Implementing Custom Agents
+
+You can implement `AgentInterface` for your own types:
 
 ```rust
-impl AgentInterface for MyAgent {
-    type CallOptions = ();
-    type Output = Output;
+struct MyCustomAgent {
+    model: Arc<dyn LanguageModel>,
+    system_prompt: String,
+}
 
-    // ...
+impl AgentInterface for MyCustomAgent {
+    fn version(&self) -> &'static str {
+        "agent-v1"
+    }
+
+    fn id(&self) -> Option<&str> {
+        Some("my-custom-agent")
+    }
+
+    fn tools(&self) -> Option<&ToolSet> {
+        None
+    }
+
+    fn generate(&self, params: AgentCallParameters) -> Result<GenerateText, AISDKError> {
+        // Custom logic - e.g., inject system prompt
+        let messages = match params.prompt {
+            PromptContent::Text(text) => vec![
+                Message::System(SystemMessage::new(&self.system_prompt)),
+                Message::User(UserMessage::new(text)),
+            ],
+            PromptContent::Messages(mut msgs) => {
+                msgs.insert(0, Message::System(SystemMessage::new(&self.system_prompt)));
+                msgs
+            }
+        };
+
+        Ok(GenerateText::new(
+            self.model.clone(),
+            Prompt::messages(messages),
+        ))
+    }
+
+    fn stream(&self, params: AgentCallParameters) -> Result<StreamText, AISDKError> {
+        // Similar to generate()
+    }
 }
 ```
 
-### Output
+## Architecture Summary
 
-The `Output` type parameter specifies the output type for the agent. By default, use the `Output` enum from `ai_sdk_core::output`.
+```
+┌─────────────────────────────────────────┐
+│          AgentSettings                  │
+│  - model: Arc<LanguageModel>           │
+│  - tools: ToolSet                      │
+│  - temperature, max_tokens, etc.       │
+└────────────┬────────────────────────────┘
+             │
+             │ used by
+             ▼
+┌─────────────────────────────────────────┐
+│            Agent                        │
+│  - settings: AgentSettings             │
+│                                        │
+│  Methods:                              │
+│  + generate(params) -> GenerateText   │
+│  + stream(params) -> StreamText       │
+└────────────┬────────────────────────────┘
+             │
+             │ takes
+             ▼
+┌─────────────────────────────────────────┐
+│       AgentCallParameters               │
+│  - prompt: PromptContent               │
+│                                        │
+│  Constructors:                         │
+│  + from_text(text)                     │
+│  + from_messages(messages)             │
+└─────────────────────────────────────────┘
+```
 
-## Comparison with TypeScript
+## Examples
 
-The Rust implementation closely follows the TypeScript interface:
+See the following example files:
 
-| TypeScript | Rust |
-|------------|------|
-| `version: 'agent-v1'` | `fn version(&self) -> &'static str` |
-| `id: string \| undefined` | `fn id(&self) -> Option<&str>` |
-| `tools: TOOLS` | `fn tools(&self) -> &ToolSet` |
-| `generate(options)` | `async fn generate(params)` |
-| `stream(options)` | `async fn stream(params)` |
-
-Key differences:
-- Rust uses associated types (`CallOptions`, `Output`) instead of generic type parameters
-- Rust uses `async fn` instead of `PromiseLike`
-- Rust enforces `Send + Sync` bounds for thread safety
-- Rust uses `Result` for error handling instead of throwing exceptions
+- **`examples/agent_generate.rs`** - Non-streaming generation with reusable agent
+- **`examples/agent_stream.rs`** - Streaming with reusable agent
 
 ## Best Practices
 
-1. **Always validate parameters**: Call `params.validate()` at the beginning of your `generate` and `stream` methods.
-
-2. **Use proper error handling**: Return descriptive errors using `AISDKError`.
-
-3. **Implement both methods**: Even if you only need one, implement both `generate` and `stream` for consistency.
-
-4. **Tool management**: Store tools in the agent struct and expose them via the `tools()` method.
-
-5. **Thread safety**: Ensure your agent implementation is `Send + Sync` to work with async Rust.
-
-## Future: ToolLoopAgent
-
-A `ToolLoopAgent` implementation will be provided that handles tool execution loops automatically, similar to the TypeScript version.
+1. **Create agents once, use many times** - Agents are designed to be reusable
+2. **Configure tools in settings** - Tools are cloneable and cheap to share
+3. **Use builders for customization** - Override agent settings per call when needed
+4. **Keep prompts in parameters** - Only the prompt changes between calls
+5. **Leverage type safety** - Use `TypeSafeTool` for compile-time checking
 
 ## Versioning
 

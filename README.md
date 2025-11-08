@@ -119,6 +119,57 @@ let weather_tool = WeatherTool.into_tool();
 
 See the `type_safe_tools` example for a complete demonstration.
 
+### Agents
+
+The Agent API provides a higher-level abstraction for building AI agents with persistent tool configurations:
+
+```rust
+use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
+use ai_sdk_core::tool::ToolSet;
+use std::sync::Arc;
+
+// 1. Create tools once
+let mut tools = ToolSet::new();
+tools.insert("weather".to_string(), weather_tool);
+tools.insert("calculator".to_string(), calculator_tool);
+
+// 2. Configure agent with tools and settings
+let settings = AgentSettings::new(model)
+    .with_tools(tools)              // Tools configured once
+    .with_temperature(0.7)
+    .with_max_tokens(500);
+
+let agent = Agent::new(settings);
+
+// 3. Call agent multiple times with different prompts
+let result1 = agent.generate(AgentCallParameters::from_text("What's the weather?"))?
+    .execute()
+    .await?;
+
+let result2 = agent.generate(AgentCallParameters::from_messages(messages))?
+    .temperature(0.9)  // Can override settings per call
+    .execute()
+    .await?;
+
+// 4. Streaming is also supported
+let stream_result = agent.stream(AgentCallParameters::from_text("Tell me a story"))?
+    .execute()
+    .await?;
+
+let mut text_stream = stream_result.text_stream();
+while let Some(delta) = text_stream.next().await {
+    print!("{}", delta);
+}
+```
+
+**Benefits:**
+- ✅ **Reusable configuration** - Create once, use many times
+- ✅ **Tool persistence** - Tools cloneable and shared across calls
+- ✅ **Builder pattern** - Returns `GenerateText`/`StreamText` for customization
+- ✅ **Clean separation** - Agent handles configuration, builders handle execution
+
+See `agent_generate.rs` and `agent_stream.rs` examples for complete demonstrations.
+
 ### Using Different Providers
 
 The SDK supports any OpenAI-compatible API through the flexible client builder:
@@ -403,6 +454,10 @@ export OPENAI_API_KEY="your-api-key"
 cargo run --example basic_chat              # Simple text generation
 cargo run --example conversation            # System messages and temperature settings
 
+# Agents
+cargo run --example agent_generate          # Reusable agent with tool calling (non-streaming)
+cargo run --example agent_stream            # Reusable agent with streaming
+
 # Tool Calling
 cargo run --example tool_calling            # Function calling with a weather tool
 cargo run --example type_safe_tools         # Compile-time type checking for tools
@@ -422,6 +477,7 @@ cargo run --example basic_image             # Generate images from text prompts
 The examples demonstrate:
 - Creating providers with environment variables
 - Text generation with `GenerateText` and real API calls
+- **Agent pattern** with reusable configuration and persistent tools (see `agent_generate.rs` and `agent_stream.rs`)
 - Streaming responses with `StreamText` in real-time
 - Generating embeddings with `Embed` and `EmbedMany`
 - Image generation with `GenerateImage`
@@ -516,7 +572,3 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-<sub>Inspired by [Vercel's AI SDK](https://github.com/vercel/ai)</sub>
