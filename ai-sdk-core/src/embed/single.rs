@@ -10,8 +10,152 @@ use tokio_util::sync::CancellationToken;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Builder for embedding a single value using an embedding model.
+///
+/// # Example
+///
+/// ```ignore
+/// use ai_sdk_core::Embed;
+/// use std::sync::Arc;
+///
+/// let result = Embed::new(model, "Hello, world!".to_string())
+///     .max_retries(3)
+///     .execute()
+///     .await?;
+///
+/// println!("Embedding: {:?}", result.embedding);
+/// println!("Usage: {:?}", result.usage);
+/// ```
+pub struct Embed<V>
+where
+    V: Clone + Send + Sync + 'static,
+{
+    model: Arc<dyn EmbeddingModel<V>>,
+    value: V,
+    max_retries: Option<u32>,
+    abort_signal: Option<CancellationToken>,
+    headers: Option<SharedHeaders>,
+    provider_options: Option<SharedProviderOptions>,
+}
+
+impl<V> Embed<V>
+where
+    V: Clone + Send + Sync + 'static,
+{
+    /// Create a new Embed builder.
+    ///
+    /// # Arguments
+    ///
+    /// * `model` - The embedding model to use
+    /// * `value` - The value that should be embedded
+    pub fn new(model: Arc<dyn EmbeddingModel<V>>, value: V) -> Self {
+        Self {
+            model,
+            value,
+            max_retries: None,
+            abort_signal: None,
+            headers: None,
+            provider_options: None,
+        }
+    }
+
+    /// Set the maximum number of retries.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum number of retries. Set to 0 to disable retries. Default: 2.
+    pub fn max_retries(mut self, max_retries: u32) -> Self {
+        self.max_retries = Some(max_retries);
+        self
+    }
+
+    /// Set an abort signal that can be used to cancel the call.
+    ///
+    /// # Arguments
+    ///
+    /// * `abort_signal` - An optional abort signal
+    pub fn abort_signal(mut self, abort_signal: CancellationToken) -> Self {
+        self.abort_signal = Some(abort_signal);
+        self
+    }
+
+    /// Set additional HTTP headers to be sent with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Additional HTTP headers. Only applicable for HTTP-based providers.
+    pub fn headers(mut self, headers: SharedHeaders) -> Self {
+        self.headers = Some(headers);
+        self
+    }
+
+    /// Set additional provider-specific options.
+    ///
+    /// # Arguments
+    ///
+    /// * `provider_options` - Additional provider-specific options
+    pub fn provider_options(mut self, provider_options: SharedProviderOptions) -> Self {
+        self.provider_options = Some(provider_options);
+        self
+    }
+
+    /// Execute the embedding operation.
+    ///
+    /// # Returns
+    ///
+    /// A result object that contains the embedding, the value, and additional information.
+    pub async fn execute(self) -> Result<EmbedResult<V>, AISDKError> {
+        // Prepare retry configuration
+        let retry_config = prepare_retries(self.max_retries, self.abort_signal.clone())?;
+
+        // Add user agent to headers
+        let headers_with_user_agent =
+            add_user_agent_suffix(self.headers, format!("ai/{}", VERSION));
+
+        // Execute the embedding call with retry logic
+        let result = retry_config
+            .execute_with_boxed_error(|| {
+                let model = self.model.clone();
+                let value = self.value.clone();
+                let headers = headers_with_user_agent.clone();
+                let provider_options = self.provider_options.clone();
+                async move {
+                    let options = EmbeddingModelCallOptions {
+                        values: vec![value],
+                        abort_signal: None,
+                        headers,
+                        provider_options,
+                    };
+                    model.do_embed(options).await
+                }
+            })
+            .await?;
+
+        // Extract the first embedding (since we only embedded one value)
+        let embedding = result
+            .embeddings
+            .into_iter()
+            .next()
+            .ok_or_else(|| AISDKError::model_error("No embedding returned from model"))?;
+
+        let usage = result.usage.unwrap_or_else(|| EmbeddingModelUsage::new(0));
+        let provider_metadata = result.provider_metadata;
+        let response = result.response.map(|r| {
+            EmbedResultResponseData::new()
+                .with_headers(r.headers.unwrap_or_default())
+                .with_body(r.body.unwrap_or_default())
+        });
+
+        Ok(EmbedResult::new(self.value, embedding, usage)
+            .with_provider_metadata(provider_metadata.unwrap_or_default())
+            .with_response(response.unwrap_or_default()))
+    }
+}
+
 /// Embed a value using an embedding model. The type of the value is defined
 /// by the embedding model.
+///
+/// **Deprecated:** Use the `Embed` builder instead.
 ///
 /// # Arguments
 ///
@@ -44,7 +188,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// println!("Embedding: {:?}", result.embedding);
 /// println!("Usage: {:?}", result.usage);
 /// ```
-pub async fn embed<V>(
+#[allow(dead_code)]
+async fn embed<V>(
     model: Arc<dyn EmbeddingModel<V>>,
     value: V,
     max_retries: Option<u32>,

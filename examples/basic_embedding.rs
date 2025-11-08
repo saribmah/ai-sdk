@@ -10,7 +10,7 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_embedding
 /// ```
-use ai_sdk_core::embed_many;
+use ai_sdk_core::EmbedMany;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate embeddings
     println!("⏳ Generating embeddings...\n");
-    let result = embed_many(model, texts, None, None, None, None, None).await?;
+    let result = EmbedMany::new(model, texts).execute().await?;
 
     // Display the results
     println!("✅ Embeddings generated!\n");

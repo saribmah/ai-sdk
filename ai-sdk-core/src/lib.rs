@@ -11,8 +11,8 @@ pub mod tool;
 pub mod transcribe;
 
 pub use embed::{
-    EmbedManyResult, EmbedManyResultResponseData, EmbedResult, EmbedResultResponseData, embed,
-    embed_many,
+    Embed, EmbedMany, EmbedManyResult, EmbedManyResultResponseData, EmbedResult,
+    EmbedResultResponseData,
 };
 pub use error::AISDKError;
 pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata, generate_image};

@@ -240,10 +240,10 @@ while let Some(delta) = text_stream.next().await {
 
 ### Embeddings
 
-Generate embeddings for text:
+Generate embeddings for text using the builder pattern:
 
 ```rust
-use ai_sdk_core::{embed_many, EmbedManyInput};
+use ai_sdk_core::EmbedMany;
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
@@ -251,17 +251,31 @@ let provider = OpenAICompatibleClient::new()
     .api_key(api_key)
     .build();
 
-let embedding_model = provider.embedding_model("text-embedding-3-small");
+let embedding_model = provider.text_embedding_model("text-embedding-3-small");
 
-let result = embed_many(
-    &*embedding_model,
-    EmbedManyInput::from_strings(vec!["Hello world", "AI is awesome"]),
-    None,
-    None,
-    None
-).await?;
+let result = EmbedMany::new(
+    embedding_model,
+    vec!["Hello world".to_string(), "AI is awesome".to_string()],
+)
+    .max_retries(3)
+    .max_parallel_calls(5)
+    .execute()
+    .await?;
 
 println!("Embeddings: {:?}", result.embeddings);
+```
+
+For embedding a single value, use `Embed`:
+
+```rust
+use ai_sdk_core::Embed;
+
+let result = Embed::new(embedding_model, "Hello world".to_string())
+    .max_retries(3)
+    .execute()
+    .await?;
+
+println!("Embedding: {:?}", result.embedding);
 ```
 
 ### Image Generation
@@ -319,8 +333,8 @@ let image_model = provider_trait.image_model("dall-e-3")?;
 The SDK follows a layered architecture:
 
 ### Core Layer (`ai-sdk-core`)
-- User-facing APIs: `embed_many()`, `generate_image()`
-- Builder pattern APIs: `GenerateText`, `StreamText`
+- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`
+- User-facing APIs: `generate_image()`
 - Prompt standardization and validation
 - Message type conversions
 - Tool execution and management
@@ -346,7 +360,7 @@ The SDK follows a layered architecture:
 ✅ **Implemented:**
 - Text generation with `GenerateText`
 - Text streaming with `StreamText`
-- Embedding generation with `embed_many()`
+- Embedding generation with `Embed` and `EmbedMany`
 - Image generation with `generate_image()`
 - Prompt handling and standardization
 - Message type system with support for text, images, tool calls, and tool results
@@ -411,7 +425,7 @@ The examples demonstrate:
 - Creating providers with environment variables
 - Text generation with `GenerateText` and real API calls
 - Streaming responses with `StreamText` in real-time
-- Generating embeddings with `embed_many()`
+- Generating embeddings with `Embed` and `EmbedMany`
 - Image generation with `generate_image()`
 - Handling responses and metadata
 - System messages and temperature settings
