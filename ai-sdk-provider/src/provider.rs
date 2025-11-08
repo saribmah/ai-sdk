@@ -41,6 +41,7 @@ use std::sync::Arc;
 ///     }
 /// }
 /// ```
+#[allow(clippy::result_large_err)]
 pub trait Provider: Send + Sync {
     /// The provider must specify which provider interface version it implements.
     /// This will allow us to evolve the provider interface and retain backwards compatibility.

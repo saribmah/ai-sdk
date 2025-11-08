@@ -15,6 +15,7 @@ pub use embed::{
 };
 pub use error::AISDKError;
 pub use generate_image::{GenerateImageResult, ImageModelResponseMetadata};
+pub use generate_speech::{GenerateSpeechResult, GeneratedAudioFile, GeneratedAudioFileWithType};
 pub use generate_text::{
     FinishEvent, GenerateTextBuilder, GenerateTextResult, GeneratedFile, HasToolCall, OnFinish,
     OnStepFinish, PrepareStep, PrepareStepOptions, PrepareStepResult, RequestMetadata,
@@ -23,6 +24,7 @@ pub use generate_text::{
     to_response_messages,
 };
 pub use output::{reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};
+pub use rerank::{RankedDocumentWithValue, RerankResponseMetadata, RerankResult};
 pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,
@@ -36,3 +38,4 @@ pub use tool::{
     execute_tool_call, is_approval_needed, no_repair, parse_provider_executed_dynamic_tool_call,
     parse_tool_call, prepare_tools_and_tool_choice,
 };
+pub use transcribe::TranscriptionResult;
