@@ -1,0 +1,25 @@
+[package]
+name = "ai-sdk-storage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Storage interfaces and traits for AI SDK Rust"
+
+[dependencies]
+# Async trait support
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+thiserror = "2.0"
+
+[dev-dependencies]
+tokio = { version = "1.41", features = ["full"] }
