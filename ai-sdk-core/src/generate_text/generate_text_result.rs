@@ -47,11 +47,18 @@ pub struct ResponseMetadata {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::generate_text::{generate_text, GenerateTextResult};
+/// ```no_run
+/// use ai_sdk_core::generate_text::GenerateTextResult;
+/// # use ai_sdk_core::GenerateText;
+/// # use ai_sdk_core::prompt::Prompt;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::LanguageModel;
+/// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
-/// let result: GenerateTextResult<Value, Value> = generate_text(/* ... */).await?;
+/// let result = GenerateText::new(model, Prompt::text("Hello")).execute().await?;
 /// println!("Generated text: {}", result.text);
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct GenerateTextResult {

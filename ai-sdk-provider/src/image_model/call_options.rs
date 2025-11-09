@@ -9,7 +9,9 @@ use tokio_util::sync;
 /// Must have the format `{width}x{height}`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ImageSize {
+    /// Width in pixels.
     pub width: u32,
+    /// Height in pixels.
     pub height: u32,
 }
 
@@ -53,7 +55,9 @@ impl FromStr for ImageSize {
 /// Must have the format `{width}:{height}`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AspectRatio {
+    /// Width component of the aspect ratio.
     pub width: u32,
+    /// Height component of the aspect ratio.
     pub height: u32,
 }
 
@@ -187,32 +191,37 @@ impl ImageModelCallOptions {
         }
     }
 
-    // Builder methods
+    /// Set the size of the generated image.
     pub fn with_size(mut self, size: ImageSize) -> Self {
         self.size = Some(size);
         self
     }
 
+    /// Set the aspect ratio of the generated image.
     pub fn with_aspect_ratio(mut self, aspect_ratio: AspectRatio) -> Self {
         self.aspect_ratio = Some(aspect_ratio);
         self
     }
 
+    /// Set the random seed for deterministic generation.
     pub fn with_seed(mut self, seed: u32) -> Self {
         self.seed = Some(seed);
         self
     }
 
+    /// Set provider-specific options.
     pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
 
+    /// Set additional HTTP headers for the request.
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = Some(headers);
         self
     }
 
+    /// Set an abort signal to cancel the request.
     pub fn with_abort_signal(mut self, signal: sync::CancellationToken) -> Self {
         self.abort_signal = Some(signal);
         self

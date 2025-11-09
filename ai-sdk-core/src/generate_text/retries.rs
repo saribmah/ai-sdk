@@ -4,7 +4,9 @@ use tokio_util::sync::CancellationToken;
 
 /// Configuration for retry behavior.
 pub struct RetryConfig {
+    /// Maximum number of retry attempts.
     pub max_retries: u32,
+    /// Optional cancellation token to abort retry attempts.
     pub abort_signal: Option<CancellationToken>,
 }
 
@@ -28,16 +30,24 @@ impl RetryConfig {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// use ai_sdk_core::generate_text::RetryConfig;
+    /// use ai_sdk_core::error::AISDKError;
+    ///
+    /// # async fn example() -> Result<(), AISDKError> {
     /// let config = RetryConfig {
     ///     max_retries: 3,
     ///     abort_signal: None,
     /// };
     ///
+    /// # let tool_call = ();
+    /// # async fn execute_tool(_: ()) -> Result<String, AISDKError> { Ok("result".to_string()) }
     /// let result = config.execute(|| async {
     ///     // Your operation that returns Result<T, AISDKError>
     ///     execute_tool(tool_call).await
     /// }).await?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn execute<F, Fut, T>(&self, operation: F) -> Result<T, AISDKError>
     where

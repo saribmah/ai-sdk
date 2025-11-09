@@ -30,6 +30,7 @@ fn is_zero(n: &u64) -> bool {
 }
 
 impl LanguageModelUsage {
+    /// Create a new usage instance with input and output tokens
     pub fn new(input_tokens: u64, output_tokens: u64) -> Self {
         Self {
             input_tokens,
@@ -40,6 +41,7 @@ impl LanguageModelUsage {
         }
     }
 
+    /// Get the total number of tokens used
     pub fn total(&self) -> u64 {
         if self.total_tokens > 0 {
             self.total_tokens

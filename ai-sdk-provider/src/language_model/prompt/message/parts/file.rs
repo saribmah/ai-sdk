@@ -2,9 +2,11 @@ use crate::language_model::prompt::message::data_content::LanguageModelDataConte
 use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
+/// File content part in a message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelFilePart {
+    /// Type discriminator for file parts
     #[serde(rename = "type")]
     pub content_type: FilePartType,
 
@@ -23,11 +25,13 @@ pub struct LanguageModelFilePart {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
+/// Type discriminator for file parts
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "file")]
 pub struct FilePartType;
 
 impl LanguageModelFilePart {
+    /// Create a new file part
     pub fn new(data: LanguageModelDataContent, media_type: impl Into<String>) -> Self {
         Self {
             content_type: FilePartType,
@@ -38,6 +42,7 @@ impl LanguageModelFilePart {
         }
     }
 
+    /// Create a new file part with all options
     pub fn with_options(
         filename: Option<String>,
         data: LanguageModelDataContent,

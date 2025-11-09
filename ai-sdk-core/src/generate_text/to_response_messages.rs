@@ -24,10 +24,11 @@ use crate::tool::ToolSet;
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::generate_text::{to_response_messages, Output};
+/// ```no_run
+/// use ai_sdk_core::generate_text::to_response_messages;
+/// use ai_sdk_core::output::Output;
 ///
-/// let content = vec![/* content parts */];
+/// # let content: Vec<Output> = vec![];
 /// let messages = to_response_messages(content, None);
 /// ```
 pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Vec<ResponseMessage> {

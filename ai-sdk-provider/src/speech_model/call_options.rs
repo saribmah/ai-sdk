@@ -77,41 +77,49 @@ impl SpeechModelCallOptions {
     }
 
     // Builder methods
+    /// Set the voice to use for synthesis
     pub fn with_voice(mut self, voice: impl Into<String>) -> Self {
         self.voice = Some(voice.into());
         self
     }
 
+    /// Set the output audio format (e.g., "mp3", "wav")
     pub fn with_output_format(mut self, format: impl Into<String>) -> Self {
         self.output_format = Some(format.into());
         self
     }
 
+    /// Set additional instructions for the model
     pub fn with_instructions(mut self, instructions: impl Into<String>) -> Self {
         self.instructions = Some(instructions.into());
         self
     }
 
+    /// Set the playback speed (e.g., 1.0 for normal, 0.5 for half speed, 2.0 for double speed)
     pub fn with_speed(mut self, speed: f64) -> Self {
         self.speed = Some(speed);
         self
     }
 
+    /// Set the language code for the speech (e.g., "en", "es", "fr")
     pub fn with_language(mut self, language: impl Into<String>) -> Self {
         self.language = Some(language.into());
         self
     }
 
+    /// Set provider-specific options
     pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
 
+    /// Set HTTP headers for the request
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = Some(headers);
         self
     }
 
+    /// Set an abort signal to cancel the request
     pub fn with_abort_signal(mut self, signal: sync::CancellationToken) -> Self {
         self.abort_signal = Some(signal);
         self

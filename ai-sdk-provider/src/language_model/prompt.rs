@@ -1,3 +1,4 @@
+/// Message types for language model prompts
 pub mod message;
 
 pub use message::{

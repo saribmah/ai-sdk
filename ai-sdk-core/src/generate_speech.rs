@@ -1,4 +1,6 @@
+/// Generated audio file types.
 pub mod audio_file;
+/// Result type for speech generation operations.
 pub mod result;
 
 pub use audio_file::{GeneratedAudioFile, GeneratedAudioFileWithType};
@@ -19,8 +21,11 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::GenerateSpeech;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::speech_model::SpeechModel;
+/// # async fn example(model: Arc<dyn SpeechModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateSpeech::new(model, "Hello, welcome to the AI SDK!".to_string())
 ///     .voice("alloy")
@@ -32,6 +37,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///     .await?;
 ///
 /// println!("Generated audio format: {}", result.audio.format);
+/// # Ok(())
+/// # }
 /// ```
 pub struct GenerateSpeech {
     model: Arc<dyn SpeechModel>,

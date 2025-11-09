@@ -11,7 +11,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 ///
 /// ## Basic Usage
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
@@ -24,7 +24,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 ///
 /// ## Custom Provider
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
@@ -39,7 +39,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 ///
 /// ## Azure OpenAI
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
@@ -196,7 +196,7 @@ impl OpenAICompatibleClient {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
     /// use ai_sdk_openai_compatible::OpenAICompatibleClient;
     ///
     /// let provider = OpenAICompatibleClient::new()

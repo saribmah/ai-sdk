@@ -1,9 +1,11 @@
 use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
+/// Incremental text content in a streaming response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelStreamTextDelta {
+    /// Type discriminator for text delta events
     #[serde(rename = "type")]
     pub content_type: TextDeltaType,
 
@@ -18,11 +20,13 @@ pub struct LanguageModelStreamTextDelta {
     pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
+/// Type discriminator for text delta events
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "text-delta")]
 pub struct TextDeltaType;
 
 impl LanguageModelStreamTextDelta {
+    /// Create a new text delta event
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {
         Self {
             content_type: TextDeltaType,
@@ -32,6 +36,7 @@ impl LanguageModelStreamTextDelta {
         }
     }
 
+    /// Create a new text delta event with provider metadata
     pub fn with_metadata(
         id: impl Into<String>,
         delta: impl Into<String>,

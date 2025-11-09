@@ -32,7 +32,7 @@ pub enum ErrorMode {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::prompt::create_tool_model_output::{create_tool_model_output, ErrorMode};
 /// use serde_json::json;
 ///

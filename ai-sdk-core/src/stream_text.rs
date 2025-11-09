@@ -1,7 +1,12 @@
+/// Callback types for streaming events.
 pub mod callbacks;
+/// Output parsing for structured streaming.
 pub mod output;
+/// Result type for streaming operations.
 pub mod stream_text_result;
+/// Stream part types for text streaming.
 pub mod text_stream_part;
+/// Stream transformation utilities.
 pub mod transform;
 
 pub use callbacks::{
@@ -383,12 +388,15 @@ async fn stream_single_step(
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::StreamText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
+/// use futures::StreamExt;
+/// # use ai_sdk_provider::LanguageModel;
+/// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
-/// let result = StreamText::new(Arc::new(model), Prompt::text("Tell me a story"))
+/// let result = StreamText::new(model, Prompt::text("Tell me a story"))
 ///     .temperature(0.8)
 ///     .max_output_tokens(500)
 ///     .include_raw_chunks(true)
@@ -400,6 +408,8 @@ async fn stream_single_step(
 /// while let Some(delta) = stream.next().await {
 ///     print!("{}", delta);
 /// }
+/// # Ok(())
+/// # }
 /// ```
 pub struct StreamText {
     model: Arc<dyn LanguageModel>,

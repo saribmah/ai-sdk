@@ -5,5 +5,9 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Shared utilities for the AI SDK workspace"
+keywords = ["ai", "utilities", "sdk"]
+categories = ["api-bindings"]
+readme = "../README.md"
 
 [dependencies]

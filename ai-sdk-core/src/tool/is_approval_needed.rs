@@ -22,7 +22,14 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::tool::is_approval_needed;
+/// use ai_sdk_core::tool::{is_approval_needed, Tool};
+/// use serde_json::json;
+/// # use ai_sdk_core::prompt::message::Message;
+/// # use tokio::runtime::Runtime;
+/// # fn example(tool: Tool) {
+/// # Runtime::new().unwrap().block_on(async {
+/// # let input = json!({});
+/// # let messages: Vec<Message> = vec![];
 ///
 /// let needs_approval = is_approval_needed(
 ///     &tool,
@@ -35,6 +42,8 @@ use serde_json::Value;
 /// if needs_approval {
 ///     println!("This tool call requires user approval");
 /// }
+/// # });
+/// # }
 /// ```
 pub async fn is_approval_needed(
     tool: &Tool,

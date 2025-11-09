@@ -7,31 +7,109 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::SystemTime;
 
+/// Options for calling reranking models
 pub mod call_options;
 
-/// Specification for a reranking model that implements the reranking model
-/// interface version 3.
+/// Document reranking model trait.
+///
+/// This trait defines the interface for reranking models that reorder documents
+/// based on their relevance to a query. This is commonly used in retrieval-augmented
+/// generation (RAG) and search applications to improve result quality.
+///
+/// # Specification Version
+///
+/// This implements version 3 of the reranking model interface, which supports:
+/// - Query-based document reranking
+/// - Relevance score calculation
+/// - Top-N result filtering
+/// - Batch processing of documents
+///
+/// # Use Cases
+///
+/// - **RAG Systems**: Rerank retrieved documents before passing to LLM
+/// - **Search**: Improve search result relevance
+/// - **Recommendation**: Order content by relevance to user query
+///
+/// # Examples
+///
+/// ```no_run
+/// use ai_sdk_provider::RerankingModel;
+/// use ai_sdk_provider::reranking_model::call_options::RerankingModelCallOptions;
+/// use ai_sdk_provider::reranking_model::RerankingModelResponse;
+/// use async_trait::async_trait;
+///
+/// struct MyRerankingModel {
+///     model_id: String,
+///     api_key: String,
+/// }
+///
+/// #[async_trait]
+/// impl RerankingModel for MyRerankingModel {
+///     fn provider(&self) -> &str {
+///         "my-provider"
+///     }
+///
+///     fn model_id(&self) -> &str {
+///         &self.model_id
+///     }
+///
+///     async fn do_rerank(
+///         &self,
+///         options: RerankingModelCallOptions,
+///     ) -> Result<RerankingModelResponse, Box<dyn std::error::Error>> {
+///         // Implementation
+///         todo!()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait RerankingModel: Send + Sync {
-    /// The reranking model must specify which reranking model interface
-    /// version it implements. This will allow us to evolve the reranking
-    /// model interface and retain backwards compatibility. The different
-    /// implementation versions can be handled as a discriminated union
-    /// on our side.
+    /// Returns the specification version this model implements.
+    ///
+    /// Defaults to "v3" for the current SDK version. This allows us to evolve
+    /// the reranking model interface and retain backwards compatibility.
     fn specification_version(&self) -> &str {
         "v3"
     }
 
-    /// Provider ID.
+    /// Name of the provider for logging purposes.
+    ///
+    /// Examples: "cohere", "jina", "voyage"
     fn provider(&self) -> &str;
 
-    /// Provider-specific model ID.
+    /// Provider-specific model ID for logging purposes.
+    ///
+    /// Examples: "rerank-english-v3.0", "jina-reranker-v1"
     fn model_id(&self) -> &str;
 
-    /// Reranking a list of documents using the query.
+    /// Reranks a list of documents based on their relevance to a query.
     ///
-    /// Naming: "do" prefix to prevent accidental direct usage of the method
-    /// by the user.
+    /// This method takes a query and a list of documents, then returns the documents
+    /// sorted by relevance score in descending order.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Call options including query, documents, top_n, etc.
+    ///
+    /// # Returns
+    ///
+    /// A [`RerankingModelResponse`] containing:
+    /// - Ranked documents with relevance scores (sorted by score descending)
+    /// - Provider-specific metadata
+    /// - Warnings about unsupported settings
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The API request fails
+    /// - The query or documents are invalid
+    /// - The document list exceeds provider limits
+    /// - Reranking fails
+    ///
+    /// # Note
+    ///
+    /// The "do_" prefix prevents accidental direct usage of this method.
+    /// Use the high-level `Rerank` builder from `ai-sdk-core` instead.
     async fn do_rerank(
         &self,
         options: RerankingModelCallOptions,

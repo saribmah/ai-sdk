@@ -140,77 +140,91 @@ impl LanguageModelCallOptions {
         }
     }
 
-    // Builder methods
+    /// Set the maximum number of tokens to generate.
     pub fn with_max_output_tokens(mut self, tokens: u32) -> Self {
         self.max_output_tokens = Some(tokens);
         self
     }
 
+    /// Set the temperature for sampling (0.0 to 2.0).
     pub fn with_temperature(mut self, temperature: f64) -> Self {
         self.temperature = Some(temperature);
         self
     }
 
+    /// Set sequences that will stop generation when encountered.
     pub fn with_stop_sequences(mut self, sequences: Vec<String>) -> Self {
         self.stop_sequences = Some(sequences);
         self
     }
 
+    /// Set the nucleus sampling parameter (0.0 to 1.0).
     pub fn with_top_p(mut self, top_p: f64) -> Self {
         self.top_p = Some(top_p);
         self
     }
 
+    /// Set the top-K sampling parameter.
     pub fn with_top_k(mut self, top_k: u32) -> Self {
         self.top_k = Some(top_k);
         self
     }
 
+    /// Set the presence penalty (-2.0 to 2.0).
     pub fn with_presence_penalty(mut self, penalty: f64) -> Self {
         self.presence_penalty = Some(penalty);
         self
     }
 
+    /// Set the frequency penalty (-2.0 to 2.0).
     pub fn with_frequency_penalty(mut self, penalty: f64) -> Self {
         self.frequency_penalty = Some(penalty);
         self
     }
 
+    /// Set the response format (e.g., JSON mode).
     pub fn with_response_format(mut self, format: LanguageModelResponseFormat) -> Self {
         self.response_format = Some(format);
         self
     }
 
+    /// Set the random seed for deterministic generation.
     pub fn with_seed(mut self, seed: u32) -> Self {
         self.seed = Some(seed);
         self
     }
 
+    /// Set the tools available for the model to call.
     pub fn with_tools(mut self, tools: Vec<LanguageModelTool>) -> Self {
         self.tools = Some(tools);
         self
     }
 
+    /// Set the tool choice strategy.
     pub fn with_tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
         self.tool_choice = Some(choice);
         self
     }
 
+    /// Set whether to include raw response chunks in the stream.
     pub fn with_include_raw_chunks(mut self, include: bool) -> Self {
         self.include_raw_chunks = Some(include);
         self
     }
 
+    /// Set additional HTTP headers for the request.
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = Some(headers);
         self
     }
 
+    /// Set provider-specific options.
     pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
 
+    /// Set an abort signal to cancel the request.
     pub fn with_abort_signal(mut self, signal: sync::CancellationToken) -> Self {
         self.abort_signal = Some(signal);
         self

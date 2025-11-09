@@ -15,12 +15,28 @@ use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMet
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
+/// use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+///
+/// // This is an internal utility function
+/// fn get_response_metadata(
+///     id: Option<String>,
+///     model: Option<String>,
+///     created: Option<i64>,
+/// ) -> LanguageModelResponseMetadata {
+///     LanguageModelResponseMetadata {
+///         id,
+///         model_id: model,
+///         timestamp: created.map(|ts| ts * 1000),
+///     }
+/// }
+///
 /// let metadata = get_response_metadata(
 ///     Some("chatcmpl-123".to_string()),
 ///     Some("gpt-4".to_string()),
 ///     Some(1677649420)
 /// );
+/// assert_eq!(metadata.id, Some("chatcmpl-123".to_string()));
 /// ```
 pub fn get_response_metadata(
     id: Option<String>,

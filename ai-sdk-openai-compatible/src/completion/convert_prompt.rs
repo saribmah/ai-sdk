@@ -37,18 +37,24 @@ use ai_sdk_provider::language_model::prompt::message::parts::{
 /// # Example
 ///
 /// ```ignore
-/// let prompt = vec![
-///     Message::System {
+/// use ai_sdk_provider::language_model::prompt::{LanguageModelPrompt, LanguageModelMessage};
+/// use ai_sdk_provider::language_model::prompt::message::{LanguageModelSystemMessage, LanguageModelUserMessage};
+/// use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelTextPart;
+///
+/// let prompt: LanguageModelPrompt = vec![
+///     LanguageModelMessage::System(LanguageModelSystemMessage {
 ///         content: "You are a helpful assistant.".to_string(),
 ///         provider_options: None,
-///     },
-///     Message::User {
-///         content: vec![UserMessagePart::Text {
-///             text: "Hello!".to_string(),
-///             provider_options: None,
-///         }],
+///     }),
+///     LanguageModelMessage::User(LanguageModelUserMessage {
+///         content: vec![LanguageModelUserMessagePart::Text(
+///             LanguageModelTextPart {
+///                 text: "Hello!".to_string(),
+///                 provider_options: None,
+///             }
+///         )],
 ///         provider_options: None,
-///     },
+///     }),
 /// ];
 ///
 /// let result = convert_to_openai_compatible_completion_prompt(

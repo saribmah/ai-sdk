@@ -1,9 +1,11 @@
 use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
+/// Incremental tool input (arguments) in a streaming response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelStreamToolInputDelta {
+    /// Type discriminator for tool input delta events
     #[serde(rename = "type")]
     pub content_type: ToolInputDeltaType,
 
@@ -18,11 +20,13 @@ pub struct LanguageModelStreamToolInputDelta {
     pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
+/// Type discriminator for tool input delta events
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-input-delta")]
 pub struct ToolInputDeltaType;
 
 impl LanguageModelStreamToolInputDelta {
+    /// Create a new tool input delta event
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {
         Self {
             content_type: ToolInputDeltaType,
@@ -32,6 +36,7 @@ impl LanguageModelStreamToolInputDelta {
         }
     }
 
+    /// Create a new tool input delta event with provider metadata
     pub fn with_metadata(
         id: impl Into<String>,
         delta: impl Into<String>,

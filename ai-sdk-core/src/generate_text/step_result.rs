@@ -56,8 +56,17 @@ impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
 /// the generated content, token usage, finish reason, and metadata.
 ///
 ///
-/// ```ignore
-/// use ai_sdk_core::StepResult;
+/// ```no_run
+/// use ai_sdk_core::generate_text::{StepResult, RequestMetadata, StepResponseMetadata};
+/// use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
+/// # use ai_sdk_core::output::Output;
+/// # let content: Vec<Output> = vec![];
+/// # let finish_reason = LanguageModelFinishReason::Stop;
+/// # let usage = LanguageModelUsage::new(10, 20);
+/// # let warnings = None;
+/// # let request_metadata = RequestMetadata::default();
+/// # let response_metadata = StepResponseMetadata::default();
+/// # let provider_metadata = None;
 ///
 /// let result = StepResult::new(
 ///     content,
@@ -137,9 +146,12 @@ impl StepResult {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use ai_sdk_core::generate_text::StepResult;
+    /// # fn example(result: StepResult) {
     /// let text = result.text();
     /// println!("Generated text: {}", text);
+    /// # }
     /// ```
     pub fn text(&self) -> String {
         self.content

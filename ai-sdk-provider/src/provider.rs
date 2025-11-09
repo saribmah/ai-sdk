@@ -15,8 +15,8 @@ use std::sync::Arc;
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_provider::{Provider, LanguageModel, ProviderError};
+/// ```no_run
+/// use ai_sdk_provider::{Provider, LanguageModel, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel, ProviderError};
 /// use std::sync::Arc;
 ///
 /// struct MyProvider {
@@ -29,15 +29,28 @@ use std::sync::Arc;
 ///     }
 ///
 ///     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
-///         match model_id {
-///             "my-model-1" => Ok(Arc::new(MyModel::new(model_id))),
-///             _ => Err(ProviderError::no_such_model(model_id, &self.provider_id)),
-///         }
+///         // Implementation
+///         Err(ProviderError::no_such_model(model_id, &self.provider_id))
 ///     }
 ///
-///     // Optional: implement other model types as needed
 ///     fn text_embedding_model(&self, model_id: &str) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError> {
 ///         Err(ProviderError::no_such_model(model_id, "embedding-not-supported"))
+///     }
+///
+///     fn image_model(&self, model_id: &str) -> Result<Arc<dyn ImageModel>, ProviderError> {
+///         Err(ProviderError::no_such_model(model_id, &self.provider_id))
+///     }
+///
+///     fn transcription_model(&self, model_id: &str) -> Result<Arc<dyn TranscriptionModel>, ProviderError> {
+///         Err(ProviderError::no_such_model(model_id, &self.provider_id))
+///     }
+///
+///     fn speech_model(&self, model_id: &str) -> Result<Arc<dyn SpeechModel>, ProviderError> {
+///         Err(ProviderError::no_such_model(model_id, &self.provider_id))
+///     }
+///
+///     fn reranking_model(&self, model_id: &str) -> Result<Arc<dyn RerankingModel>, ProviderError> {
+///         Err(ProviderError::no_such_model(model_id, &self.provider_id))
 ///     }
 /// }
 /// ```
@@ -70,9 +83,37 @@ pub trait Provider: Send + Sync {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let provider = MyProvider::new();
+    /// ```no_run
+    /// use ai_sdk_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
+    /// use std::sync::Arc;
+    ///
+    /// struct MyProvider;
+    /// impl Provider for MyProvider {
+    ///     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    ///     fn text_embedding_model(&self, model_id: &str) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    ///     fn image_model(&self, model_id: &str) -> Result<Arc<dyn ImageModel>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    ///     fn transcription_model(&self, model_id: &str) -> Result<Arc<dyn TranscriptionModel>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    ///     fn speech_model(&self, model_id: &str) -> Result<Arc<dyn SpeechModel>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    ///     fn reranking_model(&self, model_id: &str) -> Result<Arc<dyn RerankingModel>, ProviderError> {
+    ///         unimplemented!()
+    ///     }
+    /// }
+    ///
+    /// # fn example() -> Result<(), ProviderError> {
+    /// let provider = MyProvider;
     /// let model = provider.language_model("gpt-4")?;
+    /// # Ok(())
+    /// # }
     /// ```
     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError>;
 

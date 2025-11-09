@@ -57,7 +57,9 @@ pub trait Output: Send + Sync {
 /// Error that can occur during output parsing.
 #[derive(Debug, Clone)]
 pub struct OutputParseError {
+    /// The error message.
     pub message: String,
+    /// The kind of error that occurred.
     pub kind: OutputParseErrorKind,
 }
 
@@ -81,6 +83,7 @@ pub enum OutputParseErrorKind {
 }
 
 impl OutputParseError {
+    /// Creates a new output parse error with the given message and kind.
     pub fn new(message: impl Into<String>, kind: OutputParseErrorKind) -> Self {
         Self {
             message: message.into(),
@@ -88,14 +91,17 @@ impl OutputParseError {
         }
     }
 
+    /// Creates an invalid JSON error.
     pub fn invalid_json(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::InvalidJson)
     }
 
+    /// Creates a schema mismatch error.
     pub fn schema_mismatch(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::SchemaMismatch)
     }
 
+    /// Creates a missing field error.
     pub fn missing_field(field: impl Into<String>) -> Self {
         Self::new(
             format!("Missing required field: {}", field.into()),
@@ -103,6 +109,7 @@ impl OutputParseError {
         )
     }
 
+    /// Creates a type mismatch error.
     pub fn type_mismatch(message: impl Into<String>) -> Self {
         Self::new(message, OutputParseErrorKind::TypeMismatch)
     }
@@ -123,6 +130,7 @@ impl std::error::Error for OutputParseError {}
 pub struct TextOutput;
 
 impl TextOutput {
+    /// Creates a new text output specification.
     pub fn new() -> Self {
         Self
     }
@@ -158,6 +166,7 @@ impl Output for TextOutput {
 pub struct JsonOutput;
 
 impl JsonOutput {
+    /// Creates a new JSON output specification.
     pub fn new() -> Self {
         Self
     }
@@ -214,6 +223,7 @@ impl<T> ObjectOutput<T>
 where
     T: for<'de> Deserialize<'de> + Send + Sync,
 {
+    /// Creates a new object output specification for the given type.
     pub fn new() -> Self {
         Self {
             _phantom: PhantomData,
@@ -276,6 +286,7 @@ impl<T> ArrayOutput<T>
 where
     T: for<'de> Deserialize<'de> + Send + Sync,
 {
+    /// Creates a new array output specification for arrays of the given element type.
     pub fn new() -> Self {
         Self {
             _phantom: PhantomData,
@@ -330,6 +341,7 @@ pub struct ChoiceOutput {
 }
 
 impl ChoiceOutput {
+    /// Creates a new choice output specification with the given options.
     pub fn new(options: Vec<String>) -> Self {
         Self { options }
     }

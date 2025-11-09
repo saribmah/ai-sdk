@@ -32,13 +32,11 @@ impl ResponseMessage {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, AssistantMessage};
+    /// ```no_run
+    /// use ai_sdk_core::generate_text::ResponseMessage;
+    /// use ai_sdk_core::prompt::message::AssistantMessage;
     ///
-    /// let assistant_msg = AssistantMessage {
-    ///     role: "assistant".to_string(),
-    ///     content: vec![],
-    /// };
+    /// let assistant_msg = AssistantMessage::new("Hello");
     /// let response = ResponseMessage::from_assistant(assistant_msg);
     /// ```
     pub fn from_assistant(message: AssistantMessage) -> Self {
@@ -53,13 +51,11 @@ impl ResponseMessage {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::{ResponseMessage, ToolMessage};
+    /// ```no_run
+    /// use ai_sdk_core::generate_text::ResponseMessage;
+    /// use ai_sdk_core::prompt::message::ToolMessage;
     ///
-    /// let tool_msg = ToolMessage {
-    ///     role: "tool".to_string(),
-    ///     content: vec![],
-    /// };
+    /// let tool_msg = ToolMessage::new(vec![]);
     /// let response = ResponseMessage::from_tool(tool_msg);
     /// ```
     pub fn from_tool(message: ToolMessage) -> Self {

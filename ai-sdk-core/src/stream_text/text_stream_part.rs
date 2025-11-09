@@ -28,20 +28,88 @@ pub struct StreamGeneratedFile {
 
 /// A part of a text stream produced during streaming text generation.
 ///
-/// This enum represents all the different types of stream parts that can be
-/// produced during a streaming text generation operation.
+/// This enum represents all the different types of events that can occur during
+/// streaming text generation. Stream parts are emitted in real-time as the model
+/// generates content, allowing you to process text, tool calls, and metadata
+/// incrementally.
 ///
-/// # Example
+/// # Stream Part Types
+///
+/// - **Text**: Text content (start, delta, end)
+/// - **Reasoning**: Model's reasoning process (for models that support it)
+/// - **Sources**: Citations and sources (for RAG models)
+/// - **Tool Calls**: Function calls from the model
+/// - **Tool Results**: Results from executed tools
+/// - **File**: Generated files (images, audio, etc.)
+/// - **Finish**: Generation completion with finish reason
+/// - **Metadata**: Usage statistics and response information
+/// - **Error**: Errors during streaming
+///
+/// # Usage Pattern
+///
+/// ```no_run
+/// use ai_sdk_core::StreamText;
+/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use ai_sdk_core::prompt::Prompt;
+/// use futures::StreamExt;
+/// # use ai_sdk_provider::LanguageModel;
+/// # use std::sync::Arc;
+/// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
+/// # let prompt = Prompt::text("Hello");
+///
+/// let result = StreamText::new(model, prompt)
+///     .execute()
+///     .await?;
+///
+/// let mut stream = result.full_stream();
+/// while let Some(part) = stream.next().await {
+///     match part {
+///         TextStreamPart::TextDelta { text, .. } => {
+///             print!("{}", text); // Print text as it arrives
+///         }
+///         TextStreamPart::Finish { finish_reason, .. } => {
+///             println!("\nFinished: {:?}", finish_reason);
+///         }
+///         _ => {}
+///     }
+/// }
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Serialization
+///
+/// Stream parts are serializable to JSON with a `type` field discriminator,
+/// making them suitable for transmission over WebSockets or other streaming
+/// protocols.
+///
+/// # Examples
+///
+/// ## Text Delta
 ///
 /// ```
 /// use ai_sdk_core::stream_text::TextStreamPart;
-/// use serde_json::Value;
 ///
-/// // A text delta part
 /// let part = TextStreamPart::TextDelta {
 ///     id: "text_123".to_string(),
 ///     provider_metadata: None,
 ///     text: "Hello ".to_string(),
+/// };
+/// ```
+///
+/// ## Tool Call
+///
+/// ```no_run
+/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use ai_sdk_core::tool::ToolCall;
+/// use serde_json::json;
+///
+/// let part = TextStreamPart::ToolCall {
+///     tool_call: ToolCall::new(
+///         "call_1".to_string(),
+///         "get_weather".to_string(),
+///         json!({"location": "Paris"}),
+///     ),
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

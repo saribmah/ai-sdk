@@ -102,6 +102,7 @@ impl LanguageModelToolResultPart {
         }
     }
 
+    /// Create a new tool result part with provider options
     pub fn with_options(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,

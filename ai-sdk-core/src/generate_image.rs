@@ -1,3 +1,4 @@
+/// Result type for image generation operations.
 pub mod result;
 
 pub use result::{GenerateImageResult, ImageModelResponseMetadata};
@@ -21,8 +22,11 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::GenerateImage;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::image_model::ImageModel;
+/// # async fn example(model: Arc<dyn ImageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateImage::new(model, "A beautiful sunset over mountains".to_string())
 ///     .n(2)
@@ -32,6 +36,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///     .await?;
 ///
 /// println!("Generated {} images", result.images.len());
+/// # Ok(())
+/// # }
 /// ```
 pub struct GenerateImage {
     model: Arc<dyn ImageModel>,

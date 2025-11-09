@@ -1,3 +1,4 @@
+/// Result type for transcription operations.
 pub mod result;
 
 pub use result::TranscriptionResult;
@@ -20,9 +21,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::{Transcribe, AudioInput};
 /// use ai_sdk_core::prompt::message::DataContent;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::transcription_model::TranscriptionModel;
+/// # async fn example(model: Arc<dyn TranscriptionModel>) -> Result<(), Box<dyn std::error::Error>> {
+/// # let audio_bytes = vec![0u8; 100];
 ///
 /// let audio_data = DataContent::from(audio_bytes);
 /// let result = Transcribe::new(model, AudioInput::Data(audio_data))
@@ -31,6 +36,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///     .await?;
 ///
 /// println!("Transcript: {}", result.text);
+/// # Ok(())
+/// # }
 /// ```
 pub struct Transcribe {
     model: Arc<dyn TranscriptionModel>,

@@ -368,8 +368,8 @@ impl Provider for OpenAICompatibleProvider {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+/// ```no_run
+/// use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 ///
 /// // Create an OpenAI provider and get a chat model
 /// let provider = create_openai_compatible(

@@ -7,7 +7,9 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::time::SystemTime;
 
+/// Call options for image generation requests.
 pub mod call_options;
+/// Warning types for image generation.
 pub mod call_warning;
 
 /// Provider-specific metadata for image generation.
@@ -25,31 +27,110 @@ pub mod call_warning;
 /// ```
 pub type ImageModelProviderMetadata = HashMap<String, HashMap<String, Value>>;
 
-/// Image generation model specification version 3.
+/// Image generation model trait.
+///
+/// This trait defines the interface for AI image generation models. Implementations
+/// handle converting text prompts into images using provider-specific APIs.
+///
+/// # Specification Version
+///
+/// This implements version 3 of the image model interface, which supports:
+/// - Text-to-image generation
+/// - Multiple images per request
+/// - Base64 and binary image formats
+/// - Provider-specific metadata
+///
+/// # Examples
+///
+/// ```no_run
+/// use ai_sdk_provider::ImageModel;
+/// use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
+/// use ai_sdk_provider::image_model::ImageModelResponse;
+/// use async_trait::async_trait;
+///
+/// struct MyImageModel {
+///     model_id: String,
+///     api_key: String,
+/// }
+///
+/// #[async_trait]
+/// impl ImageModel for MyImageModel {
+///     fn provider(&self) -> &str {
+///         "my-provider"
+///     }
+///
+///     fn model_id(&self) -> &str {
+///         &self.model_id
+///     }
+///
+///     async fn max_images_per_call(&self, model_id: &str) -> Option<usize> {
+///         Some(10) // Limit to 10 images per call
+///     }
+///
+///     async fn do_generate(
+///         &self,
+///         options: ImageModelCallOptions,
+///     ) -> Result<ImageModelResponse, Box<dyn std::error::Error>> {
+///         // Implementation
+///         todo!()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait ImageModel: Send + Sync {
-    /// The image model must specify which image model interface
-    /// version it implements. This will allow us to evolve the image
-    /// model interface and retain backwards compatibility. The different
-    /// implementation versions can be handled as a discriminated union
-    /// on our side.
+    /// Returns the specification version this model implements.
+    ///
+    /// Defaults to "v3" for the current SDK version. This allows us to evolve
+    /// the image model interface and retain backwards compatibility.
     fn specification_version(&self) -> &str {
         "v3"
     }
 
     /// Name of the provider for logging purposes.
+    ///
+    /// Examples: "openai", "stability-ai", "midjourney"
     fn provider(&self) -> &str;
 
     /// Provider-specific model ID for logging purposes.
+    ///
+    /// Examples: "dall-e-3", "stable-diffusion-xl", "midjourney-v6"
     fn model_id(&self) -> &str;
 
-    /// Limit of how many images can be generated in a single API call.
+    /// Returns the maximum number of images that can be generated in a single API call.
     ///
-    /// Returns None for no limit, or Some(n) for a specific limit.
-    /// Can be model-specific by using the model_id parameter.
+    /// This limit may vary by model. Returns `None` for no limit, or `Some(n)` for
+    /// a specific limit.
+    ///
+    /// # Arguments
+    ///
+    /// * `model_id` - The model ID to check the limit for
+    ///
+    /// # Returns
+    ///
+    /// - `None` if there's no limit
+    /// - `Some(n)` if the model is limited to n images per call
     async fn max_images_per_call(&self, model_id: &str) -> Option<usize>;
 
-    /// Generates an array of images.
+    /// Generates images from a text prompt.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Call options including prompt, image count, size, quality, etc.
+    ///
+    /// # Returns
+    ///
+    /// An [`ImageModelResponse`] containing:
+    /// - Generated images (as base64 or binary data)
+    /// - Provider-specific metadata
+    /// - Warnings about unsupported settings
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The API request fails
+    /// - The prompt is invalid or violates content policy
+    /// - The requested image count exceeds limits
+    /// - Image generation fails
     async fn do_generate(
         &self,
         options: ImageModelCallOptions,

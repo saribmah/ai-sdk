@@ -7,28 +7,97 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::SystemTime;
 
+/// Options for calling speech models
 pub mod call_options;
+/// Warnings that can be emitted during speech model calls
 pub mod call_warning;
 
-/// Speech model specification version 3.
+/// Speech synthesis model trait.
+///
+/// This trait defines the interface for text-to-speech (TTS) models. Implementations
+/// handle converting text input into synthesized speech audio using provider-specific APIs.
+///
+/// # Specification Version
+///
+/// This implements version 3 of the speech model interface, which supports:
+/// - Text-to-speech synthesis
+/// - Multiple voice options
+/// - Various audio formats (MP3, WAV, PCM, etc.)
+/// - Speed and pitch control
+/// - Base64 and binary audio output
+///
+/// # Examples
+///
+/// ```no_run
+/// use ai_sdk_provider::SpeechModel;
+/// use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
+/// use ai_sdk_provider::speech_model::SpeechModelResponse;
+/// use async_trait::async_trait;
+///
+/// struct MySpeechModel {
+///     model_id: String,
+///     api_key: String,
+/// }
+///
+/// #[async_trait]
+/// impl SpeechModel for MySpeechModel {
+///     fn provider(&self) -> &str {
+///         "my-provider"
+///     }
+///
+///     fn model_id(&self) -> &str {
+///         &self.model_id
+///     }
+///
+///     async fn do_generate(
+///         &self,
+///         options: SpeechModelCallOptions,
+///     ) -> Result<SpeechModelResponse, Box<dyn std::error::Error>> {
+///         // Implementation
+///         todo!()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait SpeechModel: Send + Sync {
-    /// The speech model must specify which speech model interface
-    /// version it implements. This will allow us to evolve the speech
-    /// model interface and retain backwards compatibility. The different
-    /// implementation versions can be handled as a discriminated union
-    /// on our side.
+    /// Returns the specification version this model implements.
+    ///
+    /// Defaults to "v3" for the current SDK version. This allows us to evolve
+    /// the speech model interface and retain backwards compatibility.
     fn specification_version(&self) -> &str {
         "v3"
     }
 
     /// Name of the provider for logging purposes.
+    ///
+    /// Examples: "openai", "elevenlabs", "google"
     fn provider(&self) -> &str;
 
     /// Provider-specific model ID for logging purposes.
+    ///
+    /// Examples: "tts-1", "tts-1-hd", "eleven_monolingual_v1"
     fn model_id(&self) -> &str;
 
     /// Generates speech audio from text.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Call options including text, voice, format, speed, etc.
+    ///
+    /// # Returns
+    ///
+    /// A [`SpeechModelResponse`] containing:
+    /// - Generated audio (as base64 or binary data)
+    /// - Provider-specific metadata
+    /// - Warnings about unsupported settings
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The API request fails
+    /// - The text is invalid or too long
+    /// - The voice or format is unsupported
+    /// - Audio generation fails
     async fn do_generate(
         &self,
         options: SpeechModelCallOptions,

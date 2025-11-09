@@ -7,28 +7,99 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::SystemTime;
 
+/// Options for calling transcription models
 pub mod call_options;
+/// Warnings that can be emitted during transcription model calls
 pub mod call_warning;
 
-/// Transcription model specification version 3.
+/// Audio transcription model trait.
+///
+/// This trait defines the interface for speech-to-text (STT) models. Implementations
+/// handle converting audio input into transcribed text using provider-specific APIs.
+///
+/// # Specification Version
+///
+/// This implements version 3 of the transcription model interface, which supports:
+/// - Audio-to-text transcription
+/// - Multiple audio formats (MP3, WAV, M4A, etc.)
+/// - Language detection
+/// - Timestamped segments
+/// - Duration information
+///
+/// # Examples
+///
+/// ```no_run
+/// use ai_sdk_provider::TranscriptionModel;
+/// use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+/// use ai_sdk_provider::transcription_model::TranscriptionModelResponse;
+/// use async_trait::async_trait;
+///
+/// struct MyTranscriptionModel {
+///     model_id: String,
+///     api_key: String,
+/// }
+///
+/// #[async_trait]
+/// impl TranscriptionModel for MyTranscriptionModel {
+///     fn provider(&self) -> &str {
+///         "my-provider"
+///     }
+///
+///     fn model_id(&self) -> &str {
+///         &self.model_id
+///     }
+///
+///     async fn do_generate(
+///         &self,
+///         options: TranscriptionModelCallOptions,
+///     ) -> Result<TranscriptionModelResponse, Box<dyn std::error::Error>> {
+///         // Implementation
+///         todo!()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait TranscriptionModel: Send + Sync {
-    /// The transcription model must specify which transcription model interface
-    /// version it implements. This will allow us to evolve the transcription
-    /// model interface and retain backwards compatibility. The different
-    /// implementation versions can be handled as a discriminated union
-    /// on our side.
+    /// Returns the specification version this model implements.
+    ///
+    /// Defaults to "v3" for the current SDK version. This allows us to evolve
+    /// the transcription model interface and retain backwards compatibility.
     fn specification_version(&self) -> &str {
         "v3"
     }
 
     /// Name of the provider for logging purposes.
+    ///
+    /// Examples: "openai", "assemblyai", "deepgram"
     fn provider(&self) -> &str;
 
     /// Provider-specific model ID for logging purposes.
+    ///
+    /// Examples: "whisper-1", "nova-2", "base"
     fn model_id(&self) -> &str;
 
-    /// Generates a transcript.
+    /// Transcribes audio to text.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Call options including audio data, language, format, etc.
+    ///
+    /// # Returns
+    ///
+    /// A [`TranscriptionModelResponse`] containing:
+    /// - Transcribed text
+    /// - Timestamped segments
+    /// - Detected language
+    /// - Audio duration
+    /// - Provider-specific metadata
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The API request fails
+    /// - The audio format is unsupported
+    /// - The audio is too long or corrupted
+    /// - Transcription fails
     async fn do_generate(
         &self,
         options: TranscriptionModelCallOptions,

@@ -1,9 +1,11 @@
 use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
+/// Start of tool input in a streaming response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelStreamToolInputStart {
+    /// Type discriminator for tool input start events
     #[serde(rename = "type")]
     pub content_type: ToolInputStartType,
 
@@ -22,11 +24,13 @@ pub struct LanguageModelStreamToolInputStart {
     pub provider_executed: Option<bool>,
 }
 
+/// Type discriminator for tool input start events
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-input-start")]
 pub struct ToolInputStartType;
 
 impl LanguageModelStreamToolInputStart {
+    /// Create a new tool input start event
     pub fn new(id: impl Into<String>, tool_name: impl Into<String>) -> Self {
         Self {
             content_type: ToolInputStartType,
@@ -37,6 +41,7 @@ impl LanguageModelStreamToolInputStart {
         }
     }
 
+    /// Create a new tool input start event with all options
     pub fn with_options(
         id: impl Into<String>,
         tool_name: impl Into<String>,

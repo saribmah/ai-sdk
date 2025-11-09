@@ -29,6 +29,7 @@ pub enum LanguageModelAssistantMessagePart {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelAssistantMessage {
+    /// Role identifier for assistant messages
     pub role: AssistantRole,
 
     /// Array of content parts (text, files, reasoning, tool calls, tool results)
@@ -39,11 +40,13 @@ pub struct LanguageModelAssistantMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
+/// Role identifier for assistant messages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "assistant")]
 pub struct AssistantRole;
 
 impl LanguageModelAssistantMessage {
+    /// Create a new assistant message
     pub fn new(content: Vec<LanguageModelAssistantMessagePart>) -> Self {
         Self {
             role: AssistantRole,
@@ -52,6 +55,7 @@ impl LanguageModelAssistantMessage {
         }
     }
 
+    /// Create a new assistant message with provider options
     pub fn with_options(
         content: Vec<LanguageModelAssistantMessagePart>,
         provider_options: Option<SharedProviderOptions>,

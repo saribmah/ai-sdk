@@ -10,7 +10,9 @@ pub type ToolContent = Vec<ToolContentPart>;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ToolContentPart {
+    /// Result from a tool execution.
     ToolResult(ToolResultPart),
+    /// Response to a tool approval request.
     ApprovalResponse(ToolApprovalResponse),
 }
 

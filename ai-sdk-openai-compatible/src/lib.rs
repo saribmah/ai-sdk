@@ -7,7 +7,7 @@
 //!
 //! ## Basic Usage with Client Builder (Recommended)
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
 //!
 //! // Create a provider using the client builder
@@ -21,7 +21,7 @@
 //!
 //! ## Alternative: Using Settings (Legacy)
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
 //!
 //! // Create a provider using settings
@@ -38,7 +38,7 @@
 //!
 //! ## Chained Usage
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
 //!
 //! let model = OpenAICompatibleClient::new()
@@ -51,7 +51,7 @@
 //!
 //! ## Custom Headers and Query Parameters
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
 //!
 //! let provider = OpenAICompatibleClient::new()
@@ -67,7 +67,7 @@
 //!
 //! ## Azure OpenAI Example
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
 //!
 //! let provider = OpenAICompatibleClient::new()
@@ -82,10 +82,11 @@
 //!
 //! ## Text Embeddings
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_core::embed_many;
+//! use ai_sdk_core::EmbedMany;
 //!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
 //!     .base_url("https://api.openai.com/v1")
 //!     .api_key("your-api-key")
@@ -97,17 +98,19 @@
 //!     "The capital of France is Paris.".to_string(),
 //!     "The capital of Germany is Berlin.".to_string(),
 //! ];
-//!
-//! let result = embed_many(model, texts, None, None, None, None, None).await?;
+//! let result = EmbedMany::new(model, texts).execute().await?;
 //! println!("Embeddings: {:?}", result.embeddings);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Image Generation
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_core::generate_image;
+//! use ai_sdk_core::GenerateImage;
 //!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
 //!     .base_url("https://api.openai.com/v1")
 //!     .api_key("your-api-key")
@@ -115,25 +118,31 @@
 //!
 //! let model = provider.image_model("dall-e-3");
 //!
-//! let result = generate_image(
+//! let result = GenerateImage::new(
 //!     model,
 //!     "A beautiful sunset over the ocean".to_string(),
-//!     None,  // image_count
-//!     None,  // abort_signal
-//!     None,  // headers
-//!     None,  // provider_options
-//! ).await?;
+//! ).execute().await?;
 //!
 //! println!("Generated {} image(s)", result.images.len());
+//! # Ok(())
+//! # }
 //! ```
 
+/// Chat completion implementation for OpenAI-compatible APIs.
 pub mod chat;
+/// Client builder for creating OpenAI-compatible providers.
 pub mod client;
+/// Text completion implementation for OpenAI-compatible APIs.
 pub mod completion;
+/// Embedding model implementation for OpenAI-compatible APIs.
 pub mod embedding;
+/// Error types for OpenAI-compatible provider operations.
 pub mod error;
+/// Image generation implementation for OpenAI-compatible APIs.
 pub mod image;
+/// Provider implementation and creation functions.
 pub mod provider;
+/// Settings and configuration for OpenAI-compatible providers.
 pub mod settings;
 mod utils;
 

@@ -8,10 +8,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::SourceOutput;
+/// ```no_run
+/// use ai_sdk_core::output::SourceOutput;
+/// use ai_sdk_provider::language_model::content::source::LanguageModelSource;
 ///
-/// let source = SourceOutput::new(source);
+/// # let source = LanguageModelSource::Url {
+/// #     id: "source_1".to_string(),
+/// #     url: "https://example.com".to_string(),
+/// #     title: None,
+/// #     provider_metadata: None,
+/// # };
+/// let source_output = SourceOutput::new(source);
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

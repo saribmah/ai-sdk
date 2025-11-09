@@ -23,8 +23,9 @@ pub type ErrorHandler = Arc<dyn Fn(AISDKError) + Send + Sync>;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::stream_text::ConsumeStreamOptions;
+/// use std::sync::Arc;
 ///
 /// let options = ConsumeStreamOptions {
 ///     on_error: Some(Arc::new(|error| {
@@ -58,15 +59,18 @@ impl ConsumeStreamOptions {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::stream_text::AsyncIterableStream;
+/// use futures::StreamExt;
 ///
-/// let stream: AsyncIterableStream<String> = /* ... */;
-///
+/// # async fn example() {
+/// # let stream: AsyncIterableStream<String> = Box::pin(futures::stream::empty());
 /// // Use as async iterator
+/// # let mut stream = stream;
 /// while let Some(item) = stream.next().await {
 ///     println!("Item: {}", item);
 /// }
+/// # }
 /// ```
 pub type AsyncIterableStream<T> = Pin<Box<dyn Stream<Item = T> + Send>>;
 
@@ -133,11 +137,11 @@ impl Default for StreamState {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::stream_text::StreamTextResult;
+/// use futures::StreamExt;
 ///
-/// let result: StreamTextResult<Value, Value> = /* ... */;
-///
+/// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {
 /// // Access the final text (automatically consumes the stream)
 /// let text = result.text().await?;
 /// println!("Generated text: {}", text);
@@ -147,6 +151,8 @@ impl Default for StreamState {
 /// while let Some(delta) = stream.next().await {
 ///     print!("{}", delta);
 /// }
+/// # Ok(())
+/// # }
 /// ```
 pub struct StreamTextResult {
     /// Shared state that holds the consumed stream data
@@ -168,9 +174,12 @@ impl StreamTextResult {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
     /// use ai_sdk_core::stream_text::StreamTextResult;
+    /// # use ai_sdk_core::stream_text::AsyncIterableStream;
+    /// # use ai_sdk_core::stream_text::TextStreamPart;
     ///
+    /// # let stream: AsyncIterableStream<TextStreamPart> = Box::pin(futures::stream::empty());
     /// let result = StreamTextResult::new(stream);
     /// ```
     pub fn new(full_stream: AsyncIterableStream<TextStreamPart>) -> Self {
@@ -359,11 +368,15 @@ impl StreamTextResult {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use ai_sdk_core::stream_text::StreamTextResult;
+    /// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {
     /// let content = result.content().await?;
     /// for part in content {
     ///     // Process content parts
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn content(&self) -> Result<Vec<Output>, AISDKError> {
         self.ensure_consumed().await?;
@@ -539,11 +552,18 @@ impl StreamTextResult {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let mut partial_stream = result.partial_output_stream();
+    /// ```no_run
+    /// # use ai_sdk_core::stream_text::StreamTextResult;
+    /// # use futures::StreamExt;
+    /// # use serde::Deserialize;
+    /// # #[derive(Debug, Deserialize)]
+    /// # struct MyOutput { field: String }
+    /// # async fn example(result: StreamTextResult) {
+    /// let mut partial_stream = result.partial_output_stream::<MyOutput>();
     /// while let Some(partial_value) = partial_stream.next().await {
     ///     println!("Partial JSON: {:?}", partial_value);
     /// }
+    /// # }
     /// ```
     pub fn partial_output_stream<OUTPUT>(&self) -> AsyncIterableStream<OUTPUT>
     where
@@ -592,12 +612,11 @@ impl StreamTextResult {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
     /// use ai_sdk_core::stream_text::{ConsumeStreamOptions, StreamTextResult};
     /// use std::sync::Arc;
     ///
-    /// let result: StreamTextResult = /* ... */;
-    ///
+    /// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {
     /// // Consume without error handling
     /// result.consume_stream(None).await?;
     ///
@@ -608,6 +627,8 @@ impl StreamTextResult {
     ///     })),
     /// };
     /// result.consume_stream(Some(options)).await?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn consume_stream(
         &self,

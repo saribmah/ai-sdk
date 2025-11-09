@@ -14,9 +14,11 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::Embed;
 /// use std::sync::Arc;
+/// # use ai_sdk_provider::embedding_model::EmbeddingModel;
+/// # async fn example(model: Arc<dyn EmbeddingModel<String>>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = Embed::new(model, "Hello, world!".to_string())
 ///     .max_retries(3)
@@ -25,6 +27,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// println!("Embedding: {:?}", result.embedding);
 /// println!("Usage: {:?}", result.usage);
+/// # Ok(())
+/// # }
 /// ```
 pub struct Embed<V>
 where

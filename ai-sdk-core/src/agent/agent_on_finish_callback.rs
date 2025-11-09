@@ -66,7 +66,7 @@ impl AgentFinishEvent {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::agent::AgentOnFinishCallback;
 /// use std::sync::Arc;
 ///

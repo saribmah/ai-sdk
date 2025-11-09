@@ -1,11 +1,20 @@
+/// Callback types for generation events.
 mod callbacks;
+/// Result type for text generation operations.
 pub mod generate_text_result;
+/// Generated file types from model outputs.
 pub mod generated_file;
+/// Prepare step callback for customizing generation steps.
 mod prepare_step;
+/// Response message types for multi-step generation.
 mod response_message;
+/// Retry logic for generation operations.
 mod retries;
+/// Step result type for multi-step generation.
 mod step_result;
+/// Stop condition types for controlling multi-step generation.
 mod stop_condition;
+/// Conversion of outputs to response messages.
 pub mod to_response_messages;
 
 use crate::output::{Output, ReasoningOutput, SourceOutput, TextOutput};
@@ -62,9 +71,11 @@ use tokio_util::sync::CancellationToken;
 /// # Example
 ///
 /// ```ignore
+/// // This is an internal function, not part of the public API
+/// let tool_call_refs: Vec<&ToolCall> = tool_calls.iter().collect();
 /// let outputs = execute_tools(
-///     &tool_calls,
-///     tool_set,
+///     &tool_call_refs,
+///     &tool_set,
 ///     &messages,
 ///     Some(abort_signal),
 /// ).await;
@@ -117,12 +128,20 @@ async fn execute_tools(
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
+/// # use ai_sdk_core::generate_text::as_output;
+/// # use ai_sdk_core::tool::{ToolCall, ToolOutput};
+/// # use ai_sdk_provider::language_model::content::LanguageModelContent;
+/// # fn example() {
+/// # let response_content: Vec<LanguageModelContent> = vec![];
+/// # let tool_calls: Vec<ToolCall> = vec![];
+/// # let tool_outputs: Vec<ToolOutput> = vec![];
 /// let content_parts = as_output(
-///     response.content,
+///     response_content,
 ///     tool_calls,
 ///     tool_outputs,
 /// );
+/// # }
 /// ```
 pub fn as_output(
     content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
@@ -234,18 +253,23 @@ pub fn as_output(
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::{GenerateText, step_count_is};
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
+/// # use ai_sdk_provider::LanguageModel;
+/// # use ai_sdk_core::tool::ToolSet;
+/// # async fn example(model: Arc<dyn LanguageModel>, my_tools: ToolSet) -> Result<(), Box<dyn std::error::Error>> {
 ///
-/// let result = GenerateText::new(Arc::new(model), Prompt::text("Tell me a joke"))
+/// let result = GenerateText::new(model, Prompt::text("Tell me a joke"))
 ///     .temperature(0.7)
 ///     .max_output_tokens(100)
 ///     .tools(my_tools)
 ///     .stop_when(vec![Box::new(step_count_is(1))])
 ///     .execute()
 ///     .await?;
+/// # Ok(())
+/// # }
 /// ```
 pub struct GenerateText {
     model: Arc<dyn LanguageModel>,

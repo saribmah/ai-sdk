@@ -18,11 +18,17 @@ pub enum AssistantContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AssistantContentPart {
+    /// Text content part.
     Text(TextPart),
+    /// File attachment part.
     File(FilePart),
+    /// Reasoning or thought process part.
     Reasoning(ReasoningPart),
+    /// Tool call part (function to invoke).
     ToolCall(ToolCallPart),
+    /// Tool result part (result of a tool execution).
     ToolResult(ToolResultPart),
+    /// Tool approval request part (request to approve a tool call).
     ToolApprovalRequest(ToolApprovalRequest),
 }
 
