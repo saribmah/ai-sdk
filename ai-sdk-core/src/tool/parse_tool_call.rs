@@ -142,14 +142,17 @@ pub fn parse_provider_executed_dynamic_tool_call(
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::tool::parse_tool_call;
+/// ```no_run
+/// use ai_sdk_core::tool::{parse_tool_call, ToolSet};
 /// use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
-/// use std::collections::HashMap;
+/// # use ai_sdk_core::error::AISDKError;
+/// # fn example() -> Result<(), AISDKError> {
 ///
 /// let tool_call = LanguageModelToolCall::new("call_123", "get_weather", r#"{"city": "SF"}"#);
-/// let tools = HashMap::new();
+/// let tools = ToolSet::new();
 /// let parsed = parse_tool_call(&tool_call, &tools)?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn parse_tool_call(
     tool_call: &LanguageModelToolCall,

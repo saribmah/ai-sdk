@@ -10,7 +10,8 @@ use crate::tool::ToolSet;
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::agent::AgentCallParameters;
 /// use ai_sdk_core::prompt::PromptContent;
 ///
 /// // Using a text prompt
@@ -20,6 +21,7 @@ use crate::tool::ToolSet;
 ///
 /// // Or use the helper methods
 /// let params = AgentCallParameters::from_text("What is the weather?");
+/// # let messages = vec![];
 /// let params = AgentCallParameters::from_messages(messages);
 /// ```
 pub struct AgentCallParameters {
@@ -37,7 +39,9 @@ impl AgentCallParameters {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentCallParameters;
+    ///
     /// let params = AgentCallParameters::from_text("What is the weather?");
     /// ```
     pub fn from_text(text: impl Into<String>) -> Self {
@@ -50,7 +54,10 @@ impl AgentCallParameters {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentCallParameters;
+    /// use ai_sdk_core::prompt::message::{Message, UserMessage};
+    ///
     /// let messages = vec![Message::User(UserMessage::new("Hello"))];
     /// let params = AgentCallParameters::from_messages(messages);
     /// ```
@@ -76,8 +83,13 @@ impl AgentCallParameters {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::agent::{AgentInterface, AgentCallParameters};
+/// use ai_sdk_core::tool::ToolSet;
+/// use ai_sdk_core::output::Output;
+/// use ai_sdk_core::generate_text::GenerateText;
+/// use ai_sdk_core::stream_text::StreamText;
+/// use ai_sdk_core::error::AISDKError;
 ///
 /// struct MyAgent {
 ///     id: Option<String>,
@@ -85,7 +97,6 @@ impl AgentCallParameters {
 /// }
 ///
 /// impl AgentInterface for MyAgent {
-///     type CallOptions = ();
 ///     type Output = Output;
 ///
 ///     fn version(&self) -> &'static str {
@@ -151,7 +162,10 @@ pub trait AgentInterface: Send + Sync {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use ai_sdk_core::agent::AgentCallParameters;
+    /// # use ai_sdk_core::agent::AgentInterface;
+    /// # async fn example(agent: &impl AgentInterface) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = AgentCallParameters::from_text("What is the weather?");
     ///
     /// // Get builder and execute
@@ -159,11 +173,14 @@ pub trait AgentInterface: Send + Sync {
     /// println!("Generated text: {}", result.text);
     ///
     /// // Or customize before executing
-    /// let result = agent.generate(params)?
+    /// let params2 = AgentCallParameters::from_text("Tell me a joke");
+    /// let result = agent.generate(params2)?
     ///     .temperature(0.9)
     ///     .max_output_tokens(200)
     ///     .execute()
     ///     .await?;
+    /// # Ok(())
+    /// # }
     /// ```
     fn generate(
         &self,
@@ -185,7 +202,11 @@ pub trait AgentInterface: Send + Sync {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use ai_sdk_core::agent::AgentCallParameters;
+    /// # use ai_sdk_core::agent::AgentInterface;
+    /// # use futures::StreamExt;
+    /// # async fn example(agent: &impl AgentInterface) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = AgentCallParameters::from_text("Tell me a story");
     ///
     /// // Get builder and execute
@@ -198,11 +219,13 @@ pub trait AgentInterface: Send + Sync {
     /// }
     ///
     /// // Or customize before executing
-    /// let result = agent.stream(params)?
+    /// let params2 = AgentCallParameters::from_text("Write a poem");
+    /// let result = agent.stream(params2)?
     ///     .temperature(0.8)
-    ///     .on_chunk(|chunk| { /* ... */ })
     ///     .execute()
     ///     .await?;
+    /// # Ok(())
+    /// # }
     /// ```
     fn stream(&self, params: AgentCallParameters) -> Result<StreamText, crate::error::AISDKError>;
 }

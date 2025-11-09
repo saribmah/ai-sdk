@@ -120,9 +120,11 @@ pub enum ToolType {
 ///
 /// ## Basic Function Tool
 ///
-/// ```ignore
-/// use ai_sdk_core::Tool;
+/// ```no_run
+/// use ai_sdk_core::tool::Tool;
+/// use ai_sdk_core::tool::definition::ToolExecutionOutput;
 /// use serde_json::json;
+/// use std::sync::Arc;
 ///
 /// let weather_tool = Tool::function(json!({
 ///     "type": "object",
@@ -145,7 +147,15 @@ pub enum ToolType {
 ///
 /// ## Tool with Approval
 ///
-/// ```ignore
+/// ```no_run
+/// # use ai_sdk_core::tool::Tool;
+/// # use ai_sdk_core::tool::definition::ToolExecutionOutput;
+/// # use serde_json::json;
+/// # use std::sync::Arc;
+/// # let schema = json!({"type": "object"});
+/// # let execute_fn = Arc::new(|input, _opts| {
+/// #     ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({})) }))
+/// # });
 /// let delete_tool = Tool::function(schema)
 ///     .with_description("Delete a file")
 ///     .with_needs_approval(true)
@@ -157,7 +167,14 @@ pub enum ToolType {
 /// For compile-time type safety, use the `TypeSafeTool` trait instead:
 ///
 /// ```ignore
-/// #[derive(Deserialize, JsonSchema)]
+/// # use serde::{Deserialize, Serialize};
+/// # use schemars::JsonSchema;
+/// # use ai_sdk_core::tool::TypeSafeTool;
+/// # use serde_json::Value;
+/// # struct WeatherTool;
+/// # #[derive(Serialize, Deserialize, JsonSchema)]
+/// # struct WeatherOutput { temp: f64 }
+/// #[derive(Serialize, Deserialize, JsonSchema)]
 /// struct WeatherInput {
 ///     location: String,
 /// }
@@ -165,6 +182,14 @@ pub enum ToolType {
 /// impl TypeSafeTool for WeatherTool {
 ///     type Input = WeatherInput;
 ///     type Output = WeatherOutput;
+/// #     fn name(&self) -> &str { "weather" }
+/// #     fn description(&self) -> &str { "Get weather" }
+/// #     fn execute(
+/// #         &self,
+/// #         _input: Self::Input,
+/// #     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Self::Output, Value>> + Send>> {
+/// #         Box::pin(async move { Ok(WeatherOutput { temp: 72.0 }) })
+/// #     }
 ///     // ...
 /// }
 /// ```
@@ -486,7 +511,12 @@ pub type OnPreliminaryToolResult = Arc<dyn Fn(ToolResult) + Send + Sync>;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::tool::execute_tool_call;
+/// use ai_sdk_core::tool::{execute_tool_call, ToolSet, ToolCall};
+/// use ai_sdk_core::prompt::message::Message;
+/// # use tokio_util::sync::CancellationToken;
+/// # use tokio::runtime::Runtime;
+/// # fn example(tool_call: ToolCall, tools: ToolSet, messages: Vec<Message>, abort_signal: CancellationToken) {
+/// # Runtime::new().unwrap().block_on(async {
 ///
 /// let output = execute_tool_call(
 ///     tool_call,
@@ -496,6 +526,8 @@ pub type OnPreliminaryToolResult = Arc<dyn Fn(ToolResult) + Send + Sync>;
 ///     None,
 ///     None,
 /// ).await;
+/// # });
+/// # }
 /// ```
 pub async fn execute_tool_call(
     tool_call: ToolCall,

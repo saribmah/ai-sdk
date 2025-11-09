@@ -9,8 +9,10 @@ use std::future::Future;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::StopCondition;
+/// use ai_sdk_core::StepResult;
+/// use async_trait::async_trait;
 ///
 /// struct CustomCondition;
 ///
@@ -149,15 +151,18 @@ pub fn has_tool_call(tool_name: impl Into<String>) -> HasToolCall {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::{is_stop_condition_met, step_count_is, has_tool_call};
+/// ```no_run
+/// use ai_sdk_core::{is_stop_condition_met, step_count_is, has_tool_call, StopCondition, StepResult};
 ///
+/// # async fn example() {
+/// # let steps: Vec<StepResult> = vec![];
 /// let conditions: Vec<Box<dyn StopCondition>> = vec![
 ///     Box::new(step_count_is(10)),
 ///     Box::new(has_tool_call("final_answer")),
 /// ];
 ///
 /// let should_stop = is_stop_condition_met(&conditions, &steps).await;
+/// # }
 /// ```
 pub async fn is_stop_condition_met(
     stop_conditions: &[Box<dyn StopCondition>],

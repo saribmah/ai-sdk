@@ -19,11 +19,14 @@
 //!
 //! ## Text Generation
 //!
-//! ```ignore
-//! use ai_sdk_core::{GenerateText, Prompt};
+//! ```no_run
+//! use ai_sdk_core::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::Provider;
+//! # use std::sync::Arc;
+//! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
 //!
-//! let model = provider.language_model("gpt-4");
+//! let model = provider.language_model("gpt-4")?;
 //!
 //! let result = GenerateText::new(model, Prompt::text("What is the capital of France?"))
 //!     .temperature(0.7)
@@ -32,52 +35,70 @@
 //!     .await?;
 //!
 //! println!("Response: {}", result.text);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Text Streaming
 //!
-//! ```ignore
-//! use ai_sdk_core::{StreamText, Prompt};
+//! ```no_run
+//! use ai_sdk_core::StreamText;
+//! use ai_sdk_core::prompt::Prompt;
+//! use ai_sdk_core::stream_text::TextStreamPart;
+//! # use ai_sdk_provider::Provider;
+//! # use std::sync::Arc;
+//! # use futures::StreamExt;
+//! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
 //!
-//! let model = provider.language_model("gpt-4");
+//! let model = provider.language_model("gpt-4")?;
 //!
-//! let mut stream = StreamText::new(model, Prompt::text("Write a poem"))
+//! let result = StreamText::new(model, Prompt::text("Write a poem"))
 //!     .temperature(0.8)
 //!     .execute()
 //!     .await?;
 //!
-//! while let Some(chunk) = stream.stream.next().await {
-//!     match chunk? {
-//!         TextStreamPart::TextDelta(delta) => print!("{}", delta),
-//!         _ => {}
-//!     }
+//! let mut stream = result.text_stream();
+//! while let Some(text) = stream.next().await {
+//!     print!("{}", text);
 //! }
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Embeddings
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_core::Embed;
+//! # use ai_sdk_provider::Provider;
+//! # use std::sync::Arc;
+//! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
 //!
-//! let embedding_model = provider.text_embedding_model("text-embedding-3-small");
+//! let embedding_model = provider.text_embedding_model("text-embedding-3-small")?;
 //!
 //! let result = Embed::new(embedding_model, "Hello world".to_string())
 //!     .execute()
 //!     .await?;
 //!
 //! println!("Embedding dimension: {}", result.embedding.len());
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Agent Pattern
 //!
-//! ```ignore
+//! ```no_run
 //! use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
+//! use ai_sdk_core::agent::AgentInterface;
+//! # use std::sync::Arc;
+//! # use ai_sdk_provider::LanguageModel;
+//! # use ai_sdk_core::tool::ToolSet;
+//! # async fn example(model: Arc<dyn LanguageModel>, tools: ToolSet) -> Result<(), Box<dyn std::error::Error>> {
 //!
 //! // Configure agent with persistent settings
 //! let settings = AgentSettings::new(model)
 //!     .with_tools(tools)
 //!     .with_temperature(0.7)
-//!     .with_max_tokens(500);
+//!     .with_max_output_tokens(500);
 //!
 //! let agent = Agent::new(settings);
 //!
@@ -85,35 +106,46 @@
 //! let result = agent.generate(AgentCallParameters::from_text("Hello"))?
 //!     .execute()
 //!     .await?;
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Tool Calling
 //!
-//! ```ignore
-//! use ai_sdk_core::{GenerateText, Prompt, Tool};
+//! ```no_run
+//! use ai_sdk_core::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
+//! use ai_sdk_core::tool::{Tool, ToolSet};
+//! use ai_sdk_core::tool::definition::ToolExecutionOutput;
 //! use serde_json::json;
+//! # use std::sync::Arc;
+//! # use ai_sdk_provider::LanguageModel;
+//! # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 //!
 //! // Create a tool
-//! let weather_tool = Tool::new(
-//!     "get_weather",
-//!     Some("Get the current weather for a location"),
-//!     json!({
-//!         "type": "object",
-//!         "properties": {
-//!             "location": {"type": "string", "description": "City name"}
-//!         },
-//!         "required": ["location"]
-//!     }),
-//!     |args| Box::pin(async move {
-//!         // Implementation
-//!         Ok("Sunny, 72°F".to_string())
-//!     })
-//! );
+//! let weather_tool = Tool::function(json!({
+//!     "type": "object",
+//!     "properties": {
+//!         "location": {"type": "string", "description": "City name"}
+//!     },
+//!     "required": ["location"]
+//! }))
+//!     .with_description("Get the current weather for a location")
+//!     .with_execute(Arc::new(|_input, _opts| {
+//!         ToolExecutionOutput::Single(Box::pin(async move {
+//!             Ok(json!("Sunny, 72°F"))
+//!         }))
+//!     }));
+//!
+//! let mut tools = ToolSet::new();
+//! tools.insert("get_weather".to_string(), weather_tool);
 //!
 //! let result = GenerateText::new(model, Prompt::text("What's the weather in Paris?"))
-//!     .tools(vec![weather_tool])
+//!     .tools(tools)
 //!     .execute()
 //!     .await?;
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! # Features

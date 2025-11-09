@@ -62,8 +62,10 @@ impl ReasoningOutput {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::ReasoningOutput;
+    /// ```no_run
+    /// use ai_sdk_core::output::ReasoningOutput;
+    /// use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+    /// # let metadata = SharedProviderMetadata::new();
     ///
     /// let reasoning = ReasoningOutput::new("Thinking...")
     ///     .with_provider_metadata(metadata);

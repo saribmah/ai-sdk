@@ -150,6 +150,12 @@ pub trait TypeSafeTool: Send + Sync {
 ///
 /// ```ignore
 /// use ai_sdk_core::create_tool;
+/// # use serde::{Deserialize, Serialize};
+/// # use schemars::JsonSchema;
+/// # #[derive(Serialize, Deserialize, JsonSchema)]
+/// # struct WeatherInput { city: String }
+/// # #[derive(Serialize, Deserialize, JsonSchema)]
+/// # struct WeatherOutput { temperature: f64, conditions: String }
 ///
 /// let weather_tool = create_tool!(
 ///     name: "get_weather",

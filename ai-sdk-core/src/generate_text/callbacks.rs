@@ -10,7 +10,7 @@ use std::future::Future;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::{OnStepFinish, StepResult};
 /// use async_trait::async_trait;
 ///
@@ -110,11 +110,14 @@ impl FinishEvent {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::FinishEvent;
+    /// ```no_run
+    /// use ai_sdk_core::generate_text::FinishEvent;
+    /// # use ai_sdk_core::generate_text::StepResult;
+    /// # fn example(final_step: StepResult, all_steps: Vec<StepResult>) {
     ///
-    /// let event = FinishEvent::new(final_step, all_steps);
+    /// let event = FinishEvent::new(&final_step, all_steps);
     /// println!("Total tokens used: {}", event.total_usage.total_tokens);
+    /// # }
     /// ```
     pub fn new(final_step: &StepResult, all_steps: Vec<StepResult>) -> Self {
         // Calculate total usage across all steps
@@ -158,7 +161,7 @@ impl FinishEvent {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::{OnFinish, FinishEvent};
 /// use async_trait::async_trait;
 ///

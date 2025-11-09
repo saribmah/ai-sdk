@@ -22,20 +22,27 @@ use super::interface::{AgentCallParameters, AgentInterface};
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_core::agent::Agent;
+/// ```no_run
+/// use ai_sdk_core::agent::{Agent, AgentCallParameters};
+/// # use ai_sdk_core::agent::AgentSettings;
+/// # use ai_sdk_core::agent::AgentInterface;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::LanguageModel;
+/// # async fn example(settings: AgentSettings) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let agent = Agent::new(settings);
 ///
 /// // Generate non-streaming - returns a builder
-/// let result = agent.generate(AgentCallParameters::with_prompt("Hello"))?
+/// let result = agent.generate(AgentCallParameters::from_text("Hello"))?
 ///     .execute()
 ///     .await?;
 ///
 /// // Stream - returns a builder
-/// let result = agent.stream(AgentCallParameters::with_prompt("Hello"))?
+/// let result = agent.stream(AgentCallParameters::from_text("Hello"))?
 ///     .execute()
 ///     .await?;
+/// # Ok(())
+/// # }
 /// ```
 pub struct Agent {
     settings: AgentSettings,
@@ -46,12 +53,18 @@ impl Agent {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```no_run
+    /// use ai_sdk_core::agent::{Agent, AgentSettings};
+    /// # use std::sync::Arc;
+    /// # use ai_sdk_provider::LanguageModel;
+    /// # fn example(model: Arc<dyn LanguageModel>, tools: ai_sdk_core::tool::ToolSet) {
+    ///
     /// let settings = AgentSettings::new(model)
     ///     .with_instructions("You are a helpful assistant")
     ///     .with_tools(tools);
     ///
     /// let agent = Agent::new(settings);
+    /// # }
     /// ```
     pub fn new(settings: AgentSettings) -> Self {
         Self { settings }

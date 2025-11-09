@@ -47,20 +47,25 @@ pub struct StreamGeneratedFile {
 ///
 /// # Usage Pattern
 ///
-/// ```ignore
-/// use ai_sdk_core::{StreamText, TextStreamPart};
+/// ```no_run
+/// use ai_sdk_core::StreamText;
+/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use ai_sdk_core::prompt::Prompt;
+/// use futures::StreamExt;
+/// # use ai_sdk_provider::LanguageModel;
+/// # use std::sync::Arc;
+/// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
+/// # let prompt = Prompt::text("Hello");
 ///
-/// let mut stream = StreamText::new(model, prompt)
+/// let result = StreamText::new(model, prompt)
 ///     .execute()
 ///     .await?;
 ///
-/// while let Some(part) = stream.stream.next().await {
-///     match part? {
+/// let mut stream = result.full_stream();
+/// while let Some(part) = stream.next().await {
+///     match part {
 ///         TextStreamPart::TextDelta { text, .. } => {
 ///             print!("{}", text); // Print text as it arrives
-///         }
-///         TextStreamPart::ToolCallDelta { tool_call_delta, .. } => {
-///             // Handle tool call streaming
 ///         }
 ///         TextStreamPart::Finish { finish_reason, .. } => {
 ///             println!("\nFinished: {:?}", finish_reason);
@@ -68,6 +73,8 @@ pub struct StreamGeneratedFile {
 ///         _ => {}
 ///     }
 /// }
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// # Serialization
@@ -92,15 +99,17 @@ pub struct StreamGeneratedFile {
 ///
 /// ## Tool Call
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use ai_sdk_core::tool::ToolCall;
+/// use serde_json::json;
+///
 /// let part = TextStreamPart::ToolCall {
-///     id: "call_1".to_string(),
-///     provider_metadata: None,
-///     tool_call: ToolCall {
-///         id: "call_1".to_string(),
-///         name: "get_weather".to_string(),
-///         args: json!({"location": "Paris"}),
-///     },
+///     tool_call: ToolCall::new(
+///         "call_1".to_string(),
+///         "get_weather".to_string(),
+///         json!({"location": "Paris"}),
+///     ),
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

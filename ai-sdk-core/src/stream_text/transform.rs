@@ -10,8 +10,9 @@ use std::pin::Pin;
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::stream_text::transform::{StreamTransform, filter_transform};
+/// use ai_sdk_core::stream_text::TextStreamPart;
 ///
 /// // Create a transform that only allows text deltas
 /// let text_only = filter_transform(|part| {
@@ -126,7 +127,10 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::map_transform;
+/// use ai_sdk_core::stream_text::TextStreamPart;
+///
 /// let uppercase_text = map_transform(|part| {
 ///     match part {
 ///         TextStreamPart::TextDelta { id, text, provider_metadata } => {
@@ -179,7 +183,8 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::throttle_transform;
 /// use std::time::Duration;
 ///
 /// // Limit to one item every 100ms
@@ -219,7 +224,10 @@ impl StreamTransform for ThrottleTransform {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::batch_text_transform;
+/// use std::time::Duration;
+///
 /// // Batch up to 10 text deltas or flush after 100ms
 /// let batched = batch_text_transform(10, Duration::from_millis(100));
 /// ```
@@ -316,7 +324,10 @@ impl StreamTransform for BatchTextTransform {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::filter_transform;
+/// use ai_sdk_core::stream_text::TextStreamPart;
+///
 /// let text_only = filter_transform(|part| {
 ///     matches!(part, TextStreamPart::TextDelta { .. })
 /// });
@@ -332,7 +343,10 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::map_transform;
+/// use ai_sdk_core::stream_text::TextStreamPart;
+///
 /// let uppercase_text = map_transform(|part| {
 ///     // Transform the part
 ///     part
@@ -349,7 +363,8 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::throttle_transform;
 /// use std::time::Duration;
 ///
 /// let throttled = throttle_transform(Duration::from_millis(100));
@@ -362,7 +377,8 @@ pub fn throttle_transform(delay: std::time::Duration) -> ThrottleTransform {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
+/// use ai_sdk_core::stream_text::transform::batch_text_transform;
 /// use std::time::Duration;
 ///
 /// let batched = batch_text_transform(10, Duration::from_millis(100));

@@ -24,8 +24,11 @@ use tokio_util::sync::CancellationToken;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::Rerank;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::reranking_model::RerankingModel;
+/// # async fn example(model: Arc<dyn RerankingModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let documents = vec![
 ///     "The sky is blue".to_string(),
@@ -41,6 +44,8 @@ use tokio_util::sync::CancellationToken;
 ///
 /// println!("Top result: {}", result.reranked_documents[0]);
 /// println!("Score: {}", result.ranking[0].score);
+/// # Ok(())
+/// # }
 /// ```
 pub struct Rerank<V>
 where

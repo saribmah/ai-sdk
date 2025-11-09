@@ -61,8 +61,10 @@ impl TextOutput {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// use ai_sdk_core::TextOutput;
+    /// ```no_run
+    /// use ai_sdk_core::output::TextOutput;
+    /// use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+    /// # let metadata = SharedProviderMetadata::new();
     ///
     /// let text = TextOutput::new("Hello")
     ///     .with_provider_metadata(metadata);

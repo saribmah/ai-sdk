@@ -24,12 +24,18 @@ use ai_sdk_provider::{
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::{ToolSet, prepare_tools_and_tool_choice};
-/// use ai_sdk_core::message::tool::definition::Tool;
+/// ```no_run
+/// use ai_sdk_core::tool::{ToolSet, prepare_tools_and_tool_choice, Tool};
+/// use serde_json::json;
+/// use std::sync::Arc;
+/// use ai_sdk_core::tool::definition::ToolExecutionOutput;
 ///
 /// let mut tools = ToolSet::new();
-/// tools.insert("my_tool".to_string(), Tool::function(...));
+/// let tool = Tool::function(json!({"type": "object"}))
+///     .with_execute(Arc::new(|_input, _opts| {
+///         ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({})) }))
+///     }));
+/// tools.insert("my_tool".to_string(), tool);
 ///
 /// let (provider_tools, tool_choice) = prepare_tools_and_tool_choice(Some(&tools), None);
 /// ```

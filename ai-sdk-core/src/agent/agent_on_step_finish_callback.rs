@@ -11,7 +11,7 @@ use std::sync::Arc;
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::agent::AgentOnStepFinishCallback;
 /// use std::sync::Arc;
 ///
@@ -19,7 +19,7 @@ use std::sync::Arc;
 ///     Box::pin(async move {
 ///         println!("Step completed: {}", step_result.text());
 ///         println!("Step usage: {:?}", step_result.usage);
-///         println!("Tool calls in this step: {}", step_result.tool_calls().count());
+///         println!("Tool calls in this step: {}", step_result.tool_calls().len());
 ///     })
 /// });
 /// ```
@@ -32,10 +32,10 @@ pub type AgentOnStepFinishCallback =
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_core::agent::noop_on_step_finish_callback;
+/// ```no_run
+/// use ai_sdk_core::agent::noop_agent_on_step_finish_callback;
 ///
-/// let callback = noop_on_step_finish_callback();
+/// let callback = noop_agent_on_step_finish_callback();
 /// // The callback can be safely called but will do nothing
 /// ```
 pub fn noop_on_step_finish_callback() -> AgentOnStepFinishCallback {

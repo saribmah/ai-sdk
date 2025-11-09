@@ -11,8 +11,9 @@ use std::future::Future;
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::PrepareStepOptions;
+/// ```no_run
+/// use ai_sdk_core::generate_text::{PrepareStepOptions, PrepareStepResult};
+/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 ///
 /// fn my_prepare_step(options: &PrepareStepOptions) -> Option<PrepareStepResult> {
 ///     // Access current state
@@ -21,7 +22,7 @@ use std::future::Future;
 ///
 ///     // Return custom settings for this step
 ///     Some(PrepareStepResult {
-///         tool_choice: Some(ToolChoice::Required),
+///         tool_choice: Some(LanguageModelToolChoice::Required),
 ///         ..Default::default()
 ///     })
 /// }
@@ -70,12 +71,14 @@ pub struct PrepareStepResult {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use ai_sdk_core::generate_text::PrepareStepResult;
     /// // Only allow the "final_answer" tool on the last step
+    /// # let result =
     /// PrepareStepResult {
     ///     active_tools: Some(vec!["final_answer".to_string()]),
     ///     ..Default::default()
-    /// }
+    /// };
     /// ```
     pub active_tools: Option<Vec<String>>,
 
@@ -100,8 +103,9 @@ pub struct PrepareStepResult {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use ai_sdk_core::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+/// ```no_run
+/// use ai_sdk_core::generate_text::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
 /// use async_trait::async_trait;
 ///
 /// struct MyPrepareStep;
@@ -113,7 +117,7 @@ pub struct PrepareStepResult {
 ///         if options.step_number == 9 {
 ///             Some(PrepareStepResult {
 ///                 active_tools: Some(vec!["final_answer".to_string()]),
-///                 tool_choice: Some(ToolChoice::Required),
+///                 tool_choice: Some(LanguageModelToolChoice::Required),
 ///                 ..Default::default()
 ///             })
 ///         } else {

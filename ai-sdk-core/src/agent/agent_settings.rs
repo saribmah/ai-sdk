@@ -18,14 +18,18 @@ use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::agent::AgentSettings;
+/// # use std::sync::Arc;
+/// # use ai_sdk_provider::LanguageModel;
+/// # fn example(model: Arc<dyn LanguageModel>, tools: ai_sdk_core::tool::ToolSet) {
 ///
 /// let settings = AgentSettings::new(model)
 ///     .with_id("my-agent")
 ///     .with_instructions("You are a helpful assistant")
 ///     .with_tools(tools)
 ///     .with_temperature(0.7);
+/// # }
 /// ```
 pub struct AgentSettings {
     // Core agent settings

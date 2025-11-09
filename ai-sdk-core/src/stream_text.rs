@@ -388,12 +388,15 @@ async fn stream_single_step(
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```no_run
 /// use ai_sdk_core::StreamText;
 /// use ai_sdk_core::prompt::Prompt;
 /// use std::sync::Arc;
+/// use futures::StreamExt;
+/// # use ai_sdk_provider::LanguageModel;
+/// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
-/// let result = StreamText::new(Arc::new(model), Prompt::text("Tell me a story"))
+/// let result = StreamText::new(model, Prompt::text("Tell me a story"))
 ///     .temperature(0.8)
 ///     .max_output_tokens(500)
 ///     .include_raw_chunks(true)
@@ -405,6 +408,8 @@ async fn stream_single_step(
 /// while let Some(delta) = stream.next().await {
 ///     print!("{}", delta);
 /// }
+/// # Ok(())
+/// # }
 /// ```
 pub struct StreamText {
     model: Arc<dyn LanguageModel>,
