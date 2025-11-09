@@ -1,4 +1,3 @@
-/// Multi-step tool execution example demonstrating iterative tool calling.
 ///
 /// This example shows how to:
 /// - Use tools with multi-step generation
@@ -16,6 +15,8 @@ use ai_sdk_core::{GenerateText, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use serde_json::{Value, json};
 use std::env;
+/// Multi-step tool execution example demonstrating iterative tool calling.
+use std::sync::Arc;
 
 /// Simulates getting the current weather for a city
 fn get_weather(city: &str) -> Value {
@@ -128,7 +129,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["city"]
     }))
     .with_description("Get the current weather for a given city")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let city = input
             .get("city")
             .and_then(|v| v.as_str())
@@ -159,7 +160,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["value", "from_unit", "to_unit"]
     }))
     .with_description("Convert temperature between fahrenheit and celsius")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let value = input.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
         let from_unit = input
             .get("from_unit")

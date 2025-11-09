@@ -108,7 +108,7 @@ pub trait TypeSafeTool: Send + Sync {
 
         // Create the execute function that wraps the typed execute
         let execute_fn: ToolExecuteFunction<Value, Value> =
-            Box::new(move |input: Value, _options| {
+            Arc::new(move |input: Value, _options| {
                 let tool = tool_arc.clone();
 
                 ToolExecutionOutput::Single(Box::pin(async move {

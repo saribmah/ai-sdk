@@ -1,4 +1,3 @@
-/// Streaming tool calling example demonstrating real-time tool execution with streaming.
 ///
 /// This example shows how to:
 /// - Define tools with parameters
@@ -19,6 +18,8 @@ use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::env;
+/// Streaming tool calling example demonstrating real-time tool execution with streaming.
+use std::sync::Arc;
 
 /// Simulates fetching weather data for a given city
 fn get_weather(city: &str) -> Value {
@@ -108,7 +109,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["city"]
     }))
     .with_description("Get the current weather for a given city")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let city = input
             .get("city")
             .and_then(|v| v.as_str())
@@ -147,7 +148,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["temperature", "from_unit", "to_unit"]
     }))
     .with_description("Convert temperature between different units")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let temperature = input
             .get("temperature")
             .and_then(|v| v.as_f64())
@@ -262,7 +263,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "required": ["city"]
     }))
     .with_description("Get the current weather for a given city")
-    .with_execute(Box::new(|input: Value, _options| {
+    .with_execute(Arc::new(|input: Value, _options| {
         let city = input
             .get("city")
             .and_then(|v| v.as_str())
