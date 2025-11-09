@@ -32,8 +32,10 @@ pub mod call_options;
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_provider::{RerankingModel, RerankingModelCallOptions};
+/// ```no_run
+/// use ai_sdk_provider::RerankingModel;
+/// use ai_sdk_provider::reranking_model::call_options::RerankingModelCallOptions;
+/// use ai_sdk_provider::reranking_model::RerankingModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyRerankingModel {

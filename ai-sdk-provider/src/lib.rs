@@ -40,9 +40,13 @@
 //!
 //! ## Example
 //!
-//! ```ignore
-//! use ai_sdk_provider::{Provider, LanguageModel};
+//! ```no_run
+//! use ai_sdk_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::{LanguageModelGenerateResponse, LanguageModelStreamResponse};
 //! use std::sync::Arc;
+//! use std::collections::HashMap;
+//! use regex::Regex;
 //!
 //! struct MyProvider {
 //!     api_key: String,
@@ -50,12 +54,32 @@
 //! }
 //!
 //! impl Provider for MyProvider {
-//!     fn language_model(&self, model_id: &str) -> Arc<dyn LanguageModel> {
-//!         Arc::new(MyLanguageModel::new(
-//!             model_id.to_string(),
-//!             self.api_key.clone(),
-//!             self.base_url.clone(),
-//!         ))
+//!     fn language_model(&self, model_id: &str) -> Result<Arc<dyn LanguageModel>, ProviderError> {
+//!         Ok(Arc::new(MyLanguageModel {
+//!             model_id: model_id.to_string(),
+//!             api_key: self.api_key.clone(),
+//!             base_url: self.base_url.clone(),
+//!         }))
+//!     }
+//!     
+//!     fn text_embedding_model(&self, model_id: &str) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError> {
+//!         Err(ProviderError::no_such_model(model_id, "my-provider"))
+//!     }
+//!     
+//!     fn image_model(&self, model_id: &str) -> Result<Arc<dyn ImageModel>, ProviderError> {
+//!         Err(ProviderError::no_such_model(model_id, "my-provider"))
+//!     }
+//!     
+//!     fn transcription_model(&self, model_id: &str) -> Result<Arc<dyn TranscriptionModel>, ProviderError> {
+//!         Err(ProviderError::no_such_model(model_id, "my-provider"))
+//!     }
+//!     
+//!     fn speech_model(&self, model_id: &str) -> Result<Arc<dyn SpeechModel>, ProviderError> {
+//!         Err(ProviderError::no_such_model(model_id, "my-provider"))
+//!     }
+//!     
+//!     fn reranking_model(&self, model_id: &str) -> Result<Arc<dyn RerankingModel>, ProviderError> {
+//!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
 //! }
 //!
@@ -67,10 +91,14 @@
 //!
 //! #[async_trait::async_trait]
 //! impl LanguageModel for MyLanguageModel {
+//!     fn provider(&self) -> &str { "my-provider" }
+//!     fn model_id(&self) -> &str { &self.model_id }
+//!     async fn supported_urls(&self) -> HashMap<String, Vec<Regex>> { HashMap::new() }
+//!     
 //!     async fn do_generate(
 //!         &self,
 //!         options: LanguageModelCallOptions,
-//!     ) -> Result<LanguageModelGenerateResponse, ProviderError> {
+//!     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
 //!         // Implement generation logic
 //!         todo!()
 //!     }
@@ -78,7 +106,7 @@
 //!     async fn do_stream(
 //!         &self,
 //!         options: LanguageModelCallOptions,
-//!     ) -> Result<LanguageModelStreamResponse, ProviderError> {
+//!     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
 //!         // Implement streaming logic
 //!         todo!()
 //!     }

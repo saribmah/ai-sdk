@@ -40,8 +40,10 @@ pub mod embedding;
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_provider::{EmbeddingModel, EmbeddingModelCallOptions};
+/// ```no_run
+/// use ai_sdk_provider::EmbeddingModel;
+/// use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+/// use ai_sdk_provider::embedding_model::EmbeddingModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyEmbeddingModel {

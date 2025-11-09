@@ -28,8 +28,10 @@ pub mod call_warning;
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_provider::{TranscriptionModel, TranscriptionModelCallOptions};
+/// ```no_run
+/// use ai_sdk_provider::TranscriptionModel;
+/// use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+/// use ai_sdk_provider::transcription_model::TranscriptionModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyTranscriptionModel {

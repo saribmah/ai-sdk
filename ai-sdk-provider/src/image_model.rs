@@ -42,8 +42,10 @@ pub type ImageModelProviderMetadata = HashMap<String, HashMap<String, Value>>;
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use ai_sdk_provider::{ImageModel, ImageModelCallOptions};
+/// ```no_run
+/// use ai_sdk_provider::ImageModel;
+/// use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
+/// use ai_sdk_provider::image_model::ImageModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyImageModel {
