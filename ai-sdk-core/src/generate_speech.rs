@@ -1,4 +1,6 @@
+/// Generated audio file types.
 pub mod audio_file;
+/// Result type for speech generation operations.
 pub mod result;
 
 pub use audio_file::{GeneratedAudioFile, GeneratedAudioFileWithType};

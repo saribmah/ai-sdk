@@ -5,8 +5,10 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Provider definition for AI SDK"
-categories = ["api-bindings"]
+description = "Provider interface and traits for the AI SDK - defines the contract for implementing AI model providers"
+keywords = ["ai", "llm", "provider", "trait", "interface"]
+categories = ["api-bindings", "asynchronous"]
+readme = "../README.md"
 
 [dependencies]
 regex = "1.12.2"

@@ -88,49 +88,152 @@ pub enum ToolType {
     },
 }
 
-/// A tool contains the description and the schema of the input that the tool expects.
-/// This enables the language model to generate the input.
+/// A tool that can be called by a language model.
 ///
-/// The tool can also contain an optional execute function for the actual execution of the tool.
+/// Tools enable language models to perform actions beyond text generation, such as:
+/// - Retrieving information from external APIs
+/// - Performing calculations
+/// - Accessing databases
+/// - Executing arbitrary code
+/// - Interacting with external systems
 ///
-/// For type-safe tools with compile-time guarantees, use the `TypeSafeTool` trait instead.
+/// # Tool Definition
 ///
-/// Tools are cloneable because all function pointers are wrapped in Arc.
+/// A `Tool` consists of:
+/// - **Input Schema**: JSON Schema describing the parameters the model should provide
+/// - **Description**: Human-readable explanation helping the model decide when to use the tool
+/// - **Execute Function**: Async function that performs the tool's action
+/// - **Approval Settings**: Optional approval workflow before execution
+///
+/// # Tool Types
+///
+/// - **Function**: User-defined tools with custom execution logic
+/// - **Dynamic**: Tools defined at runtime (e.g., from MCP servers)
+/// - **Provider-Defined**: Tools with provider-specific schemas and implementations
+///
+/// # Cloneability
+///
+/// Tools are cloneable because all function pointers are wrapped in `Arc`. This allows
+/// tools to be shared across multiple agents or included in multiple tool sets.
+///
+/// # Examples
+///
+/// ## Basic Function Tool
+///
+/// ```ignore
+/// use ai_sdk_core::Tool;
+/// use serde_json::json;
+///
+/// let weather_tool = Tool::function(json!({
+///     "type": "object",
+///     "properties": {
+///         "location": {
+///             "type": "string",
+///             "description": "City name"
+///         }
+///     },
+///     "required": ["location"]
+/// }))
+/// .with_description("Get current weather for a location")
+/// .with_execute(Arc::new(|input, _opts| {
+///     ToolExecutionOutput::Single(Box::pin(async move {
+///         // Parse input and fetch weather
+///         Ok(json!({"temperature": 72, "condition": "sunny"}))
+///     }))
+/// }));
+/// ```
+///
+/// ## Tool with Approval
+///
+/// ```ignore
+/// let delete_tool = Tool::function(schema)
+///     .with_description("Delete a file")
+///     .with_needs_approval(true)
+///     .with_execute(execute_fn);
+/// ```
+///
+/// ## Type-Safe Alternative
+///
+/// For compile-time type safety, use the `TypeSafeTool` trait instead:
+///
+/// ```ignore
+/// #[derive(Deserialize, JsonSchema)]
+/// struct WeatherInput {
+///     location: String,
+/// }
+///
+/// impl TypeSafeTool for WeatherTool {
+///     type Input = WeatherInput;
+///     type Output = WeatherOutput;
+///     // ...
+/// }
+/// ```
+///
+/// # See Also
+///
+/// - [`crate::tool::TypeSafeTool`]: Type-safe alternative with compile-time guarantees
+/// - [`ToolSet`]: Collection of tools to pass to models
+/// - [`execute_tool_call`]: Execute a tool call
 #[derive(Clone)]
 pub struct Tool {
-    /// An optional description of what the tool does.
-    /// Will be used by the language model to decide whether to use the tool.
+    /// Description of what the tool does.
+    ///
+    /// This helps the language model decide when to use the tool. Should be
+    /// clear and specific about the tool's purpose and when it should be called.
     pub description: Option<String>,
 
-    /// Additional provider-specific metadata.
+    /// Provider-specific options and metadata.
+    ///
+    /// Some providers support custom tool configurations. Use this to pass
+    /// provider-specific settings.
     pub provider_options: Option<SharedProviderOptions>,
 
-    /// The schema of the input that the tool expects.
-    /// Use JSON Schema to describe the input structure.
+    /// JSON Schema describing the tool's input parameters.
+    ///
+    /// The model uses this schema to generate valid input arguments.
+    /// Should be a valid JSON Schema object with properties and types.
     pub input_schema: Value,
 
-    /// The schema of the output that the tool produces (optional).
+    /// JSON Schema describing the tool's output (optional).
+    ///
+    /// Documents what the tool returns. Not used by most models, but helpful
+    /// for documentation and validation.
     pub output_schema: Option<Value>,
 
-    /// Whether the tool needs approval before it can be executed.
+    /// Whether the tool requires approval before execution.
+    ///
+    /// - `NeedsApproval::No`: Execute immediately
+    /// - `NeedsApproval::Yes`: Always require approval
+    /// - `NeedsApproval::Function(f)`: Conditional approval based on input
     pub needs_approval: NeedsApproval,
 
-    /// The type of tool.
+    /// The type of tool (function, dynamic, or provider-defined).
     pub tool_type: ToolType,
 
-    /// An async function that is called with the arguments from the tool call and produces a result.
+    /// Async function that executes the tool with the given input.
+    ///
+    /// Returns either a single value or a stream of values. Wrapped in `Arc`
+    /// to allow cloning. If `None`, the tool is for schema-only purposes.
     pub execute: Option<ToolExecuteFunction<Value, Value>>,
 
-    /// Optional function that is called when the argument streaming starts.
+    /// Callback invoked when tool input streaming starts.
+    ///
+    /// For tools that support streaming input, this is called before any deltas.
     pub on_input_start: Option<OnInputStartCallback>,
 
-    /// Optional function that is called when an argument streaming delta is available.
+    /// Callback invoked for each input delta during streaming.
+    ///
+    /// For tools that support streaming input, this is called with each chunk.
     pub on_input_delta: Option<OnInputDeltaCallback>,
 
-    /// Optional function that is called when a tool call can be started.
+    /// Callback invoked when complete tool input is available.
+    ///
+    /// Called once the model has provided all input parameters, before execution.
     pub on_input_available: Option<OnInputAvailableCallback<Value>>,
 
-    /// Optional conversion function that maps the tool result to an output that can be used by the language model.
+    /// Function that converts tool output to model-compatible format.
+    ///
+    /// Use this to transform the tool's output before sending it back to the model.
     pub to_model_output: Option<ToModelOutputFunction<Value>>,
 }
 

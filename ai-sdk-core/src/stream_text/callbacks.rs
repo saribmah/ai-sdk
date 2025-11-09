@@ -29,52 +29,77 @@ pub struct StreamTextChunkEvent {
 pub enum ChunkStreamPart {
     /// A text delta (incremental update).
     TextDelta {
+        /// ID of the text stream.
         id: String,
+        /// Provider-specific metadata.
         provider_metadata:
             Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+        /// The text delta content.
         text: String,
     },
 
     /// A reasoning delta (incremental update).
     ReasoningDelta {
+        /// ID of the reasoning stream.
         id: String,
+        /// Provider-specific metadata.
         provider_metadata:
             Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+        /// The reasoning delta content.
         text: String,
     },
 
     /// A source/reference in the generation.
-    Source { source: crate::output::SourceOutput },
+    Source {
+        /// The source output.
+        source: crate::output::SourceOutput,
+    },
 
     /// A tool call.
-    ToolCall { tool_call: crate::tool::ToolCall },
+    ToolCall {
+        /// The tool call.
+        tool_call: crate::tool::ToolCall,
+    },
 
     /// Indicates the start of a tool input.
     ToolInputStart {
+        /// ID of the tool call.
         id: String,
+        /// Name of the tool being called.
         tool_name: String,
+        /// Provider-specific metadata.
         provider_metadata:
             Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+        /// Whether the tool was executed by the provider.
         provider_executed: Option<bool>,
+        /// Whether this is a dynamic tool.
         dynamic: Option<bool>,
+        /// Optional title for the tool call.
         title: Option<String>,
     },
 
     /// A tool input delta (incremental update).
     ToolInputDelta {
+        /// ID of the tool call.
         id: String,
+        /// The input delta content.
         delta: String,
+        /// Provider-specific metadata.
         provider_metadata:
             Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
     },
 
     /// A tool result.
     ToolResult {
+        /// The tool result.
         tool_result: crate::tool::ToolResult,
     },
 
     /// A raw value from the provider (for debugging/custom handling).
-    Raw { raw_value: Value },
+    Raw {
+        /// The raw value from the provider.
+        raw_value: Value,
+    },
 }
 
 impl ChunkStreamPart {

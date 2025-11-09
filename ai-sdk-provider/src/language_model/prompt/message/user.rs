@@ -17,6 +17,7 @@ pub enum LanguageModelUserMessagePart {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelUserMessage {
+    /// Role identifier for user messages
     pub role: UserRole,
 
     /// Array of text or file content parts
@@ -27,11 +28,13 @@ pub struct LanguageModelUserMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
+/// Role identifier for user messages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "user")]
 pub struct UserRole;
 
 impl LanguageModelUserMessage {
+    /// Create a new user message
     pub fn new(content: Vec<LanguageModelUserMessagePart>) -> Self {
         Self {
             role: UserRole,
@@ -40,6 +43,7 @@ impl LanguageModelUserMessage {
         }
     }
 
+    /// Create a new user message with provider options
     pub fn with_options(
         content: Vec<LanguageModelUserMessagePart>,
         provider_options: Option<SharedProviderOptions>,

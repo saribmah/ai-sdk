@@ -572,3 +572,7 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+<sub>Inspired by [Vercel's AI SDK](https://github.com/vercel/ai)</sub>

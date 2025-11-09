@@ -127,13 +127,21 @@
 //! println!("Generated {} image(s)", result.images.len());
 //! ```
 
+/// Chat completion implementation for OpenAI-compatible APIs.
 pub mod chat;
+/// Client builder for creating OpenAI-compatible providers.
 pub mod client;
+/// Text completion implementation for OpenAI-compatible APIs.
 pub mod completion;
+/// Embedding model implementation for OpenAI-compatible APIs.
 pub mod embedding;
+/// Error types for OpenAI-compatible provider operations.
 pub mod error;
+/// Image generation implementation for OpenAI-compatible APIs.
 pub mod image;
+/// Provider implementation and creation functions.
 pub mod provider;
+/// Settings and configuration for OpenAI-compatible providers.
 pub mod settings;
 mod utils;
 

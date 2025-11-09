@@ -1,3 +1,4 @@
+/// Result type for image generation operations.
 pub mod result;
 
 pub use result::{GenerateImageResult, ImageModelResponseMetadata};

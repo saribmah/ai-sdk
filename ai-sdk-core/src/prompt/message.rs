@@ -1,8 +1,14 @@
+/// Assistant message types.
 pub mod assistant;
+/// Content part types for messages.
 pub mod content_parts;
+/// Data content types for binary data.
 pub mod data_content;
+/// System message types.
 pub mod system;
+/// Tool message types.
 pub mod tool;
+/// User message types.
 pub mod user;
 
 pub use assistant::{AssistantContent, AssistantContentPart, AssistantMessage};

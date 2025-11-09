@@ -8,13 +8,21 @@ use tokio_util::sync::CancellationToken;
 /// which are handled separately during the actual API call.
 #[derive(Debug, Clone, Default)]
 pub struct PreparedCallSettings {
+    /// Maximum number of tokens to generate.
     pub max_output_tokens: Option<u32>,
+    /// Temperature setting for randomness (must be >= 0).
     pub temperature: Option<f64>,
+    /// Nucleus sampling parameter (must be in range (0, 1]).
     pub top_p: Option<f64>,
+    /// Top-k sampling parameter (must be > 0).
     pub top_k: Option<u32>,
+    /// Presence penalty (must be in range [-2, 2]).
     pub presence_penalty: Option<f64>,
+    /// Frequency penalty (must be in range [-2, 2]).
     pub frequency_penalty: Option<f64>,
+    /// Sequences where generation should stop.
     pub stop_sequences: Option<Vec<String>>,
+    /// Seed for deterministic generation.
     pub seed: Option<u32>,
 }
 

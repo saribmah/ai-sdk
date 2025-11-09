@@ -1,7 +1,12 @@
+/// Callback types for streaming events.
 pub mod callbacks;
+/// Output parsing for structured streaming.
 pub mod output;
+/// Result type for streaming operations.
 pub mod stream_text_result;
+/// Stream part types for text streaming.
 pub mod text_stream_part;
+/// Stream transformation utilities.
 pub mod transform;
 
 pub use callbacks::{

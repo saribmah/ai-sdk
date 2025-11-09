@@ -1,7 +1,12 @@
+/// Call settings for language model generation.
 pub mod call_settings;
+/// Conversion of prompts to language model format.
 pub mod convert_to_language_model_prompt;
+/// Creation of tool model output from responses.
 pub mod create_tool_model_output;
+/// Message types for prompts.
 pub mod message;
+/// Standardization of prompts for language models.
 pub mod standardize;
 
 use message::Message;
@@ -15,7 +20,7 @@ pub struct Prompt {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<String>,
 
-    /// The main content of the prompt - either text or messages
+    /// The main content of the prompt - either text or messages.
     #[serde(flatten)]
     pub content: PromptContent,
 }
@@ -26,11 +31,13 @@ pub struct Prompt {
 pub enum PromptContent {
     /// A simple text prompt
     Text {
+        /// The text content of the prompt.
         #[serde(rename = "prompt")]
         text: String,
     },
     /// A list of messages
     Messages {
+        /// The list of messages in the conversation.
         #[serde(rename = "messages")]
         messages: Vec<Message>,
     },

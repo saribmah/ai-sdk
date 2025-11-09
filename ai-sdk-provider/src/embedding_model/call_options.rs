@@ -37,17 +37,19 @@ impl<V> EmbeddingModelCallOptions<V> {
         }
     }
 
-    // Builder methods
+    /// Set additional HTTP headers for the request.
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = Some(headers);
         self
     }
 
+    /// Set provider-specific options.
     pub fn with_provider_options(mut self, options: SharedProviderOptions) -> Self {
         self.provider_options = Some(options);
         self
     }
 
+    /// Set an abort signal to cancel the request.
     pub fn with_abort_signal(mut self, signal: sync::CancellationToken) -> Self {
         self.abort_signal = Some(signal);
         self

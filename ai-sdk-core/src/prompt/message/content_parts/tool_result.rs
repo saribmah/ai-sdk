@@ -30,42 +30,55 @@ pub struct ToolResultPart {
 pub enum ToolResultOutput {
     /// Text tool output that should be directly sent to the API.
     Text {
+        /// The text value of the tool output.
         value: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// JSON tool output.
     Json {
+        /// The JSON value of the tool output.
         value: Value,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// Type when the user has denied the execution of the tool call.
     ExecutionDenied {
+        /// Optional reason for denying the execution.
         #[serde(skip_serializing_if = "Option::is_none")]
         reason: Option<String>,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// Error as text.
     ErrorText {
+        /// The error message as text.
         value: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// Error as JSON.
     ErrorJson {
+        /// The error message as JSON.
         value: Value,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// Content array with various content types.
-    Content { value: Vec<ToolResultContentPart> },
+    Content {
+        /// Array of content parts.
+        value: Vec<ToolResultContentPart>,
+    },
 }
 
 /// Content part within a tool result output.
@@ -74,7 +87,9 @@ pub enum ToolResultOutput {
 pub enum ToolResultContentPart {
     /// Text content.
     Text {
+        /// The text content.
         text: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
@@ -82,7 +97,9 @@ pub enum ToolResultContentPart {
     /// Media content (deprecated - use FileData or ImageData instead).
     #[deprecated(note = "Use FileData or ImageData instead")]
     Media {
+        /// Base64-encoded media data.
         data: String,
+        /// IANA media type of the media.
         #[serde(rename = "mediaType")]
         media_type: String,
     },
@@ -97,13 +114,16 @@ pub enum ToolResultContentPart {
         /// Optional filename of the file.
         #[serde(skip_serializing_if = "Option::is_none")]
         filename: Option<String>,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// File URL.
     FileUrl {
+        /// URL of the file.
         url: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
@@ -116,6 +136,7 @@ pub enum ToolResultContentPart {
         /// using the HashMap variant. The key is the provider name (e.g., "openai", "anthropic").
         #[serde(rename = "fileId")]
         file_id: FileId,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
@@ -127,13 +148,16 @@ pub enum ToolResultContentPart {
         /// IANA media type.
         #[serde(rename = "mediaType")]
         media_type: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
 
     /// Image URL.
     ImageUrl {
+        /// URL of the image.
         url: String,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
@@ -146,6 +170,7 @@ pub enum ToolResultContentPart {
         /// using the HashMap variant.
         #[serde(rename = "fileId")]
         file_id: FileId,
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },
@@ -154,6 +179,7 @@ pub enum ToolResultContentPart {
     ///
     /// This can be used to implement provider-specific content parts.
     Custom {
+        /// Additional provider-specific options.
         #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
         provider_options: Option<SharedProviderOptions>,
     },

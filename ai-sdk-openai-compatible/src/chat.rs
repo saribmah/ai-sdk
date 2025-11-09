@@ -1,8 +1,14 @@
+/// Prompt conversion utilities for chat completions.
 pub mod convert_prompt;
+/// Language model implementation for chat completions.
 pub mod language_model;
+/// Metadata extraction from chat responses.
 pub mod metadata_extractor;
+/// Provider options for chat completions.
 pub mod options;
+/// Tool preparation for chat completions.
 pub mod prepare_tools;
+/// Prompt types for chat completions.
 pub mod prompt;
 
 pub use convert_prompt::convert_to_openai_compatible_chat_messages;

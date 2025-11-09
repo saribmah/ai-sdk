@@ -1,8 +1,14 @@
+/// Assistant message types
 pub mod assistant;
+/// Data content types for messages
 pub mod data_content;
+/// Message part types (text, file, tool calls, etc.)
 pub mod parts;
+/// System message types
 pub mod system;
+/// Tool message types
 pub mod tool;
+/// User message types
 pub mod user;
 
 pub use assistant::{LanguageModelAssistantMessage, LanguageModelAssistantMessagePart};

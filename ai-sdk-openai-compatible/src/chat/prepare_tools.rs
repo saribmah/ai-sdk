@@ -45,8 +45,10 @@ pub enum OpenAICompatibleToolChoice {
 
     /// Specific tool choice
     Tool {
+        /// The type of tool (always "function").
         #[serde(rename = "type")]
         tool_type: String,
+        /// The function to call.
         function: ToolFunction,
     },
 }
@@ -54,6 +56,7 @@ pub enum OpenAICompatibleToolChoice {
 /// Tool function name for specific tool choice
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ToolFunction {
+    /// The name of the function to call.
     pub name: String,
 }
 

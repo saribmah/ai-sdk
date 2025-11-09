@@ -2,9 +2,11 @@ use crate::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// Tool call part in a message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelToolCallPart {
+    /// Type discriminator for tool call parts
     #[serde(rename = "type")]
     pub content_type: ToolCallPartType,
 
@@ -26,11 +28,13 @@ pub struct LanguageModelToolCallPart {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
+/// Type discriminator for tool call parts
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool-call")]
 pub struct ToolCallPartType;
 
 impl LanguageModelToolCallPart {
+    /// Create a new tool call part
     pub fn new(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,
@@ -46,6 +50,7 @@ impl LanguageModelToolCallPart {
         }
     }
 
+    /// Create a new tool call part with all options
     pub fn with_options(
         tool_call_id: impl Into<String>,
         tool_name: impl Into<String>,

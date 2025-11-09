@@ -3,9 +3,11 @@ use crate::language_model::usage::LanguageModelUsage;
 use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
+/// Stream finish event with usage and finish reason
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelStreamFinish {
+    /// Type discriminator for finish events
     #[serde(rename = "type")]
     pub content_type: FinishType,
 
@@ -20,11 +22,13 @@ pub struct LanguageModelStreamFinish {
     pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
+/// Type discriminator for finish events
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "finish")]
 pub struct FinishType;
 
 impl LanguageModelStreamFinish {
+    /// Create a new finish event
     pub fn new(usage: LanguageModelUsage, finish_reason: LanguageModelFinishReason) -> Self {
         Self {
             content_type: FinishType,
@@ -34,6 +38,7 @@ impl LanguageModelStreamFinish {
         }
     }
 
+    /// Create a new finish event with provider metadata
     pub fn with_metadata(
         usage: LanguageModelUsage,
         finish_reason: LanguageModelFinishReason,

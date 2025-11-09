@@ -7,6 +7,7 @@ pub type EmbeddingModelEmbedding = Vec<f64>;
 /// Helper struct for serialization/deserialization if needed
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Embedding {
+    /// The embedding values as a vector of floating-point numbers.
     pub values: Vec<f64>,
 }
 

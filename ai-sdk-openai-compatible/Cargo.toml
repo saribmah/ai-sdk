@@ -5,6 +5,10 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "OpenAI-compatible provider implementation for the AI SDK - supports OpenAI, Azure OpenAI, and compatible APIs"
+keywords = ["ai", "openai", "azure", "llm", "provider"]
+categories = ["api-bindings", "asynchronous"]
+readme = "../README.md"
 
 [dependencies]
 ai-sdk-provider = { path = "../ai-sdk-provider" }

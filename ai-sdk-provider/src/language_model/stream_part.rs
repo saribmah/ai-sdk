@@ -1,15 +1,28 @@
+/// Error events in streaming responses
 pub mod error;
+/// Finish events in streaming responses
 pub mod finish;
+/// Raw chunk events from providers
 pub mod raw;
+/// Reasoning delta events (incremental reasoning content)
 pub mod reasoning_delta;
+/// Reasoning end events
 pub mod reasoning_end;
+/// Reasoning start events
 pub mod reasoning_start;
+/// Stream start events
 pub mod stream_start;
+/// Text delta events (incremental text content)
 pub mod text_delta;
+/// Text end events
 pub mod text_end;
+/// Text start events
 pub mod text_start;
+/// Tool input delta events (incremental tool arguments)
 pub mod tool_input_delta;
+/// Tool input end events
 pub mod tool_input_end;
+/// Tool input start events
 pub mod tool_input_start;
 
 use crate::language_model::call_warning::LanguageModelCallWarning;

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelToolMessage {
+    /// Role identifier for tool messages
     pub role: ToolRole,
 
     /// Array of tool result parts
@@ -16,11 +17,13 @@ pub struct LanguageModelToolMessage {
     pub provider_options: Option<SharedProviderOptions>,
 }
 
+/// Role identifier for tool messages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "tool")]
 pub struct ToolRole;
 
 impl LanguageModelToolMessage {
+    /// Create a new tool message
     pub fn new(content: Vec<LanguageModelToolResultPart>) -> Self {
         Self {
             role: ToolRole,
@@ -29,6 +32,7 @@ impl LanguageModelToolMessage {
         }
     }
 
+    /// Create a new tool message with provider options
     pub fn with_options(
         content: Vec<LanguageModelToolResultPart>,
         provider_options: Option<SharedProviderOptions>,

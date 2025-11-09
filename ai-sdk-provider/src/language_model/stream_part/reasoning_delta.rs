@@ -1,9 +1,11 @@
 use crate::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
+/// Incremental reasoning content in a streaming response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LanguageModelStreamReasoningDelta {
+    /// Type discriminator for reasoning delta events
     #[serde(rename = "type")]
     pub content_type: ReasoningDeltaType,
 
@@ -18,11 +20,13 @@ pub struct LanguageModelStreamReasoningDelta {
     pub provider_metadata: Option<SharedProviderMetadata>,
 }
 
+/// Type discriminator for reasoning delta events
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename = "reasoning-delta")]
 pub struct ReasoningDeltaType;
 
 impl LanguageModelStreamReasoningDelta {
+    /// Create a new reasoning delta event
     pub fn new(id: impl Into<String>, delta: impl Into<String>) -> Self {
         Self {
             content_type: ReasoningDeltaType,
@@ -32,6 +36,7 @@ impl LanguageModelStreamReasoningDelta {
         }
     }
 
+    /// Create a new reasoning delta event with provider metadata
     pub fn with_metadata(
         id: impl Into<String>,
         delta: impl Into<String>,

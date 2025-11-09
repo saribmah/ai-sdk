@@ -6,47 +6,150 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// Call options for embedding model requests.
 pub mod call_options;
+/// Embedding response types.
 pub mod embedding;
 
-/// Specification for an embedding model that implements the embedding model
-/// interface version 3.
+/// Embedding model trait for generating vector embeddings.
 ///
-/// VALUE is the type of the values that the model can embed.
-/// This will allow us to go beyond text embeddings in the future,
-/// e.g. to support image embeddings.
+/// This trait defines the interface for embedding models that convert input values
+/// (typically text) into high-dimensional vector representations. These embeddings
+/// can be used for semantic search, similarity comparison, clustering, and more.
+///
+/// # Type Parameter
+///
+/// * `V` - The type of values that can be embedded. Currently this is typically `String`
+///   for text embeddings, but the generic design allows for future support of other
+///   types like images or multimodal inputs.
+///
+/// # Specification Version
+///
+/// This implements version 3 of the embedding model interface, which supports:
+/// - Text-to-embedding conversion
+/// - Batch processing of multiple inputs
+/// - Parallel API calls for large batches
+/// - Token usage tracking
+///
+/// # Use Cases
+///
+/// - **Semantic Search**: Convert documents and queries to embeddings for similarity search
+/// - **RAG Systems**: Embed documents for retrieval-augmented generation
+/// - **Clustering**: Group similar items based on embedding distance
+/// - **Recommendation**: Find similar content based on vector similarity
+///
+/// # Examples
+///
+/// ```ignore
+/// use ai_sdk_provider::{EmbeddingModel, EmbeddingModelCallOptions};
+/// use async_trait::async_trait;
+///
+/// struct MyEmbeddingModel {
+///     model_id: String,
+///     api_key: String,
+/// }
+///
+/// #[async_trait]
+/// impl EmbeddingModel<String> for MyEmbeddingModel {
+///     fn provider(&self) -> &str {
+///         "my-provider"
+///     }
+///
+///     fn model_id(&self) -> &str {
+///         &self.model_id
+///     }
+///
+///     async fn max_embeddings_per_call(&self) -> Option<usize> {
+///         Some(100) // Limit to 100 embeddings per call
+///     }
+///
+///     async fn supports_parallel_calls(&self) -> bool {
+///         true // Support parallel batching
+///     }
+///
+///     async fn do_embed(
+///         &self,
+///         options: EmbeddingModelCallOptions<String>,
+///     ) -> Result<EmbeddingModelResponse, Box<dyn std::error::Error>> {
+///         // Implementation
+///         todo!()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait EmbeddingModel<V>: Send + Sync
 where
     V: Send + Sync,
 {
-    /// The embedding model must specify which embedding model interface
-    /// version it implements. This will allow us to evolve the embedding
-    /// model interface and retain backwards compatibility. The different
-    /// implementation versions can be handled as a discriminated union
-    /// on our side.
+    /// Returns the specification version this model implements.
+    ///
+    /// Defaults to "v3" for the current SDK version. This allows us to evolve
+    /// the embedding model interface and retain backwards compatibility.
     fn specification_version(&self) -> &str {
         "v3"
     }
 
     /// Name of the provider for logging purposes.
+    ///
+    /// Examples: "openai", "cohere", "voyage"
     fn provider(&self) -> &str;
 
     /// Provider-specific model ID for logging purposes.
+    ///
+    /// Examples: "text-embedding-3-small", "embed-english-v3.0"
     fn model_id(&self) -> &str;
 
-    /// Limit of how many embeddings can be generated in a single API call.
+    /// Returns the maximum number of embeddings that can be generated in a single API call.
     ///
-    /// Use None for models that do not have a limit.
+    /// This limit varies by provider and model. The SDK automatically splits large
+    /// batches into multiple calls if needed.
+    ///
+    /// # Returns
+    ///
+    /// - `None` if there's no limit
+    /// - `Some(n)` if the model is limited to n embeddings per call
     async fn max_embeddings_per_call(&self) -> Option<usize>;
 
-    /// True if the model can handle multiple embedding calls in parallel.
+    /// Returns whether the model supports parallel API calls.
+    ///
+    /// When `true`, the SDK can make multiple embedding API calls in parallel
+    /// to process large batches more efficiently. When `false`, calls are made
+    /// sequentially.
+    ///
+    /// # Returns
+    ///
+    /// - `true` if parallel calls are supported and safe
+    /// - `false` if calls must be made sequentially
     async fn supports_parallel_calls(&self) -> bool;
 
-    /// Generates a list of embeddings for the given input values.
+    /// Generates embeddings for the given input values.
     ///
-    /// Naming: "do" prefix to prevent accidental direct usage of the method
-    /// by the user.
+    /// This method processes one or more input values and returns their vector
+    /// embeddings in the same order as the inputs.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Call options including values to embed and provider-specific settings
+    ///
+    /// # Returns
+    ///
+    /// An [`EmbeddingModelResponse`] containing:
+    /// - Vector embeddings in the same order as inputs
+    /// - Token usage statistics
+    /// - Provider-specific metadata
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The API request fails
+    /// - The input is invalid or too long
+    /// - The number of inputs exceeds the limit
+    /// - Embedding generation fails
+    ///
+    /// # Note
+    ///
+    /// The "do_" prefix prevents accidental direct usage of this method.
+    /// Use the high-level `Embed` or `EmbedMany` builders from `ai-sdk-core` instead.
     async fn do_embed(
         &self,
         options: EmbeddingModelCallOptions<V>,

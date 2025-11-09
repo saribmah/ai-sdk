@@ -4,7 +4,9 @@ use tokio_util::sync::CancellationToken;
 
 /// Configuration for retry behavior.
 pub struct RetryConfig {
+    /// Maximum number of retry attempts.
     pub max_retries: u32,
+    /// Optional cancellation token to abort retry attempts.
     pub abort_signal: Option<CancellationToken>,
 }
 

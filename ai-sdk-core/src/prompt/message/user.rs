@@ -16,8 +16,11 @@ pub enum UserContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum UserContentPart {
+    /// Text content part.
     Text(TextPart),
+    /// Image content part.
     Image(ImagePart),
+    /// File attachment part.
     File(FilePart),
 }
 

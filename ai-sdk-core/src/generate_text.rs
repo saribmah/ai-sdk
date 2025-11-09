@@ -1,11 +1,20 @@
+/// Callback types for generation events.
 mod callbacks;
+/// Result type for text generation operations.
 pub mod generate_text_result;
+/// Generated file types from model outputs.
 pub mod generated_file;
+/// Prepare step callback for customizing generation steps.
 mod prepare_step;
+/// Response message types for multi-step generation.
 mod response_message;
+/// Retry logic for generation operations.
 mod retries;
+/// Step result type for multi-step generation.
 mod step_result;
+/// Stop condition types for controlling multi-step generation.
 mod stop_condition;
+/// Conversion of outputs to response messages.
 pub mod to_response_messages;
 
 use crate::output::{Output, ReasoningOutput, SourceOutput, TextOutput};

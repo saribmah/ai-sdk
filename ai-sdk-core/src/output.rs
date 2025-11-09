@@ -1,5 +1,8 @@
+/// Reasoning output type for chain-of-thought content.
 pub mod reasoning;
+/// Source output type for references and citations.
 pub mod source;
+/// Text output type for plain text content.
 pub mod text;
 
 pub use reasoning::ReasoningOutput;
