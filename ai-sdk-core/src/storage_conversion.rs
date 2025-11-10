@@ -531,4 +531,247 @@ mod tests {
             }
         }
     }
+
+    #[tokio::test]
+    async fn test_multi_turn_conversation_history() {
+        let (storage, _dir) = setup_storage().await;
+        let session_id = storage.generate_session_id();
+
+        // Create session
+        let session = ai_sdk_storage::Session::new(session_id.clone());
+        storage.store_session(&session).await.unwrap();
+
+        // Store 3 user messages
+        for i in 1..=3 {
+            let user_msg = UserMessage::new(format!("User message {}", i));
+            let (storage_user_msg, user_parts) =
+                user_message_to_storage(&storage, session_id.clone(), &user_msg);
+            storage
+                .store_user_message(&storage_user_msg, &user_parts)
+                .await
+                .unwrap();
+        }
+
+        // Load history
+        let history = load_conversation_history(&storage, &session_id)
+            .await
+            .unwrap();
+
+        // Should have 3 user messages
+        assert_eq!(history.len(), 3);
+
+        // Verify all are user messages
+        for msg in &history {
+            assert!(matches!(msg, Message::User(_)));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_image_part_conversion_roundtrip() {
+        use crate::prompt::message::{DataContent, ImagePart as PromptImagePart};
+
+        let (storage, _dir) = setup_storage().await;
+
+        // Test Base64 image conversion
+        let image_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==".to_string();
+        let prompt_image = PromptImagePart::from_data(DataContent::Base64(image_data.clone()))
+            .with_media_type("image/png");
+
+        // Convert to storage
+        let storage_part =
+            image_part_to_storage(storage.generate_part_id(), &prompt_image).unwrap();
+
+        // Convert back to prompt
+        if let MessagePart::Image(image_storage) = storage_part {
+            let roundtrip_image = storage_image_to_prompt(&image_storage).unwrap();
+            assert_eq!(roundtrip_image.media_type, Some("image/png".to_string()));
+
+            // Verify the image part was created successfully
+            // Note: The internal structure may vary, so just verify basic properties
+            assert!(roundtrip_image.media_type.is_some());
+        } else {
+            panic!("Expected Image part");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_file_part_conversion_roundtrip() {
+        use crate::prompt::message::{DataContent, FilePart as PromptFilePart};
+
+        let (storage, _dir) = setup_storage().await;
+
+        // Test file conversion with filename
+        let file_data = vec![0x48, 0x65, 0x6c, 0x6c, 0x6f]; // "Hello" in bytes
+        let prompt_file = PromptFilePart::from_data(
+            DataContent::Bytes(file_data.clone()),
+            "text/plain".to_string(),
+        )
+        .with_filename("test.txt");
+
+        // Convert to storage
+        let storage_part = file_part_to_storage(storage.generate_part_id(), &prompt_file).unwrap();
+
+        // Convert back to prompt
+        if let MessagePart::File(file_storage) = storage_part {
+            let roundtrip_file = storage_file_to_prompt(&file_storage).unwrap();
+            assert_eq!(roundtrip_file.media_type, "text/plain");
+            assert_eq!(roundtrip_file.filename, Some("test.txt".to_string()));
+
+            // Basic verification that file part was created successfully
+            assert!(!roundtrip_file.media_type.is_empty());
+        } else {
+            panic!("Expected File part");
+        }
+    }
+
+    // Note: Tool call conversion testing requires GenerateTextResult with actual tool calls
+    // This is better tested via end-to-end examples rather than unit tests
+
+    #[tokio::test]
+    async fn test_large_conversation_history() {
+        let (storage, _dir) = setup_storage().await;
+        let session_id = storage.generate_session_id();
+
+        // Create session
+        let session = ai_sdk_storage::Session::new(session_id.clone());
+        storage.store_session(&session).await.unwrap();
+
+        // Store 50 user messages to test large history loading
+        for i in 1..=50 {
+            let user_msg = UserMessage::new(format!("Message number {}", i));
+            let (storage_user_msg, user_parts) =
+                user_message_to_storage(&storage, session_id.clone(), &user_msg);
+            storage
+                .store_user_message(&storage_user_msg, &user_parts)
+                .await
+                .unwrap();
+        }
+
+        // Load all history
+        let history = load_conversation_history(&storage, &session_id)
+            .await
+            .unwrap();
+
+        // Verify all 50 messages loaded
+        assert_eq!(history.len(), 50);
+
+        // Verify first and last messages
+        if let Message::User(first) = &history[0] {
+            match &first.content {
+                crate::prompt::message::UserContent::Text(text) => {
+                    assert_eq!(text, "Message number 1");
+                }
+                _ => panic!("Expected text content"),
+            }
+        }
+
+        if let Message::User(last) = &history[49] {
+            match &last.content {
+                crate::prompt::message::UserContent::Text(text) => {
+                    assert_eq!(text, "Message number 50");
+                }
+                _ => panic!("Expected text content"),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_message_ordering_preservation() {
+        let (storage, _dir) = setup_storage().await;
+        let session_id = storage.generate_session_id();
+
+        // Create session
+        let session = ai_sdk_storage::Session::new(session_id.clone());
+        storage.store_session(&session).await.unwrap();
+
+        // Store messages with deliberate timing
+        let messages = vec!["First", "Second", "Third"];
+
+        for msg_text in messages {
+            let user_msg = UserMessage::new(msg_text);
+            let (storage_user_msg, user_parts) =
+                user_message_to_storage(&storage, session_id.clone(), &user_msg);
+            storage
+                .store_user_message(&storage_user_msg, &user_parts)
+                .await
+                .unwrap();
+
+            // Small delay to ensure different timestamps
+            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        }
+
+        // Load history
+        let history = load_conversation_history(&storage, &session_id)
+            .await
+            .unwrap();
+
+        assert_eq!(history.len(), 3);
+
+        // Verify messages are in correct order
+        let expected_order = ["First", "Second", "Third"];
+        for (i, msg) in history.iter().enumerate() {
+            if let Message::User(user) = msg {
+                match &user.content {
+                    crate::prompt::message::UserContent::Text(text) => {
+                        assert_eq!(text, expected_order[i]);
+                    }
+                    _ => panic!("Expected text content"),
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_empty_session_history() {
+        let (storage, _dir) = setup_storage().await;
+        let session_id = storage.generate_session_id();
+
+        // Create session but don't store any messages
+        let session = ai_sdk_storage::Session::new(session_id.clone());
+        storage.store_session(&session).await.unwrap();
+
+        // Load history from empty session
+        let history = load_conversation_history(&storage, &session_id)
+            .await
+            .unwrap();
+
+        assert_eq!(history.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_multimodal_user_message_conversion() {
+        use crate::prompt::message::content_parts::TextPart;
+        use crate::prompt::message::{DataContent, ImagePart as PromptImagePart, UserContentPart};
+
+        let (storage, _dir) = setup_storage().await;
+        let session_id = storage.generate_session_id();
+
+        // Create user message with text and image
+        let image = PromptImagePart::from_data(DataContent::Base64("base64data".to_string()))
+            .with_media_type("image/png");
+
+        let user_msg = UserMessage::with_parts(vec![
+            UserContentPart::Text(TextPart::new("Check out this image")),
+            UserContentPart::Image(image),
+        ]);
+
+        // Convert to storage
+        let (_storage_msg, parts) =
+            user_message_to_storage(&storage, session_id.clone(), &user_msg);
+
+        // Should have 2 parts: text + image
+        assert_eq!(parts.len(), 2);
+
+        let text_parts: Vec<_> = parts
+            .iter()
+            .filter(|p| matches!(p, MessagePart::Text(_)))
+            .collect();
+        assert_eq!(text_parts.len(), 1);
+
+        let image_parts: Vec<_> = parts
+            .iter()
+            .filter(|p| matches!(p, MessagePart::Image(_)))
+            .collect();
+        assert_eq!(image_parts.len(), 1);
+    }
 }
