@@ -5,9 +5,9 @@
 //!
 //! # Key Functions
 //!
-//! - [`user_message_to_storage`]: Convert user messages from prompts to storage format
-//! - [`assistant_output_to_storage`]: Convert assistant outputs to storage format
-//! - [`load_conversation_history`]: Load and convert stored messages back to prompt format
+//! - `user_message_to_storage`: Convert user messages from prompts to storage format
+//! - `assistant_output_to_storage`: Convert assistant outputs to storage format
+//! - `load_conversation_history`: Load and convert stored messages back to prompt format
 //!
 //! # Example
 //!
@@ -53,7 +53,7 @@ use std::sync::Arc;
 ///
 /// # Returns
 ///
-/// A tuple of (StorageUserMessage, Vec<MessagePart>) ready to be stored
+/// A tuple of (StorageUserMessage, `Vec<MessagePart>`) ready to be stored
 ///
 /// # Example
 ///
@@ -114,7 +114,7 @@ pub fn user_message_to_storage(
 ///
 /// # Returns
 ///
-/// A tuple of (StorageAssistantMessage, Vec<MessagePart>) ready to be stored
+/// A tuple of (StorageAssistantMessage, `Vec<MessagePart>`) ready to be stored
 ///
 /// # Example
 ///
