@@ -20,6 +20,8 @@ This is a Cargo workspace with multiple crates:
 - **`ai-sdk-core`**: Core functionality including builder APIs (`GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`), prompt handling, message types, and tool system
 - **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
 - **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
+- **`ai-sdk-storage`**: Storage trait and types for conversation persistence
+- **`ai-sdk-storage-filesystem`**: Filesystem-based storage provider implementation
 - **`ai-sdk-utils`**: Shared utilities and helper functions
 
 ## Installation
@@ -169,6 +171,118 @@ while let Some(delta) = text_stream.next().await {
 - ✅ **Clean separation** - Agent handles configuration, builders handle execution
 
 See `agent_generate.rs` and `agent_stream.rs` examples for complete demonstrations.
+
+### Conversation Storage
+
+Store and retrieve conversation history automatically with persistent storage:
+
+```rust
+use ai_sdk_storage_filesystem::FilesystemStorage;
+use std::sync::Arc;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://api.openai.com/v1")
+        .api_key(std::env::var("OPENAI_API_KEY")?)
+        .build();
+    
+    let model = provider.chat_model("gpt-4");
+    
+    // Initialize storage
+    let storage = Arc::new(FilesystemStorage::new("./storage")?);
+    storage.initialize().await?;
+    let session_id = storage.generate_session_id();
+    
+    // First message - no history yet
+    GenerateText::new(model.clone(), Prompt::text("What is Rust?"))
+        .with_storage(storage.clone())
+        .with_session_id(session_id.clone())
+        .without_history()  // Important for first message!
+        .execute()
+        .await?;
+    
+    // Subsequent messages - history loaded automatically
+    GenerateText::new(model, Prompt::text("Why should I learn it?"))
+        .with_storage(storage)
+        .with_session_id(session_id)
+        .execute()
+        .await?;  // Previous messages included as context
+    
+    Ok(())
+}
+```
+
+**Key Features:**
+- ✅ **Automatic history loading** - Previous messages automatically included as context
+- ✅ **Hierarchical storage** - Session → Message → Part architecture
+- ✅ **Type-safe parts** - Text, images, files, tool calls, reasoning all strongly typed
+- ✅ **Multiple providers** - Filesystem (built-in), MongoDB/PostgreSQL (future)
+- ✅ **Multimodal support** - Store conversations with images and files
+- ✅ **Tool call tracking** - Automatically stores tool invocations and results
+
+**Storage Methods:**
+- `.with_storage(storage)` - Enable storage for a generation
+- `.with_session_id(session_id)` - Set the session to store/load messages from
+- `.without_history()` - Disable automatic history loading (use for first message)
+
+**Available Storage Providers:**
+
+To use storage, enable the `storage` feature:
+```toml
+[dependencies]
+ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
+ai-sdk-storage = { path = "ai-sdk-storage" }
+ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
+```
+
+**Filesystem Storage:**
+```rust
+use ai_sdk_storage_filesystem::FilesystemStorage;
+
+let storage = FilesystemStorage::new("./my-storage")?;
+storage.initialize().await?;
+```
+
+**Error Handling:**
+
+Configure how storage errors are handled with `StorageErrorBehavior`:
+
+```rust
+use ai_sdk_core::storage_config::{StorageConfig, StorageErrorBehavior};
+
+// Log warnings and continue (default, non-blocking)
+GenerateText::new(model, prompt)
+    .with_storage(storage)
+    .with_session_id(session_id)
+    .execute().await?;
+
+// Fail fast on storage errors
+GenerateText::new(model, prompt)
+    .with_storage(storage)
+    .with_session_id(session_id)
+    .storage_error_behavior(StorageErrorBehavior::ReturnError)
+    .execute().await?;
+
+// Retry transient errors with exponential backoff
+GenerateText::new(model, prompt)
+    .with_storage(storage)
+    .with_session_id(session_id)
+    .storage_error_behavior(StorageErrorBehavior::default_retry())
+    .execute().await?;
+
+// Full configuration with telemetry
+let config = StorageConfig::new()
+    .with_error_behavior(StorageErrorBehavior::default_retry())
+    .with_telemetry(Arc::new(MyTelemetry));
+
+GenerateText::new(model, prompt)
+    .with_storage(storage)
+    .storage_config(config)
+    .execute().await?;
+```
+
+See `examples/storage_conversation_full.rs` for a complete example demonstrating multi-turn conversations with automatic history.
 
 ### Using Different Providers
 
@@ -411,8 +525,10 @@ The SDK follows a layered architecture:
 - Text streaming with `StreamText`
 - Embedding generation with `Embed` and `EmbedMany`
 - Image generation with `GenerateImage`
+- Conversation storage with automatic history loading
+- Filesystem storage provider
 - Prompt handling and standardization
-- Message type system with support for text, images, tool calls, and tool results
+- Message type system with support for text, images, files, tool calls, and tool results
 - Provider trait system
 - OpenAI-compatible provider with `do_generate()` and `do_stream()`
 - Tool calling support (both dynamic and type-safe)
@@ -472,12 +588,19 @@ cargo run --example partial_output          # Partial JSON parsing
 # Embeddings & Images
 cargo run --example basic_embedding         # Generate text embeddings
 cargo run --example basic_image             # Generate images from text prompts
+
+# Storage (requires --features storage)
+cargo run --example storage_basic --features storage                    # Basic storage operations
+cargo run --example storage_filesystem_basic --features storage         # Filesystem provider basics
+cargo run --example storage_filesystem_conversation --features storage  # Multi-turn with filesystem
+cargo run --example storage_conversation_full --features storage        # Full integration example
 ```
 
 The examples demonstrate:
 - Creating providers with environment variables
 - Text generation with `GenerateText` and real API calls
 - **Agent pattern** with reusable configuration and persistent tools (see `agent_generate.rs` and `agent_stream.rs`)
+- **Conversation storage** with automatic history loading (see `storage_conversation_full.rs`)
 - Streaming responses with `StreamText` in real-time
 - Generating embeddings with `Embed` and `EmbedMany`
 - Image generation with `GenerateImage`
@@ -489,6 +612,7 @@ The examples demonstrate:
 - Multi-step tool execution with iterative calls
 - Stream transforms for filtering and batching
 - Partial output parsing for structured data
+- Persistent conversation management with filesystem storage
 
 ## Development
 

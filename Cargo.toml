@@ -25,6 +25,9 @@ version.workspace = true
 edition.workspace = true
 publish = false
 
+[features]
+storage = ["ai-sdk-core/storage"]
+
 [dependencies]
 ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
 ai-sdk-provider = { path = "ai-sdk-provider" }
@@ -94,5 +97,25 @@ path = "examples/type_safe_tools.rs"
 [[example]]
 name = "storage_basic"
 path = "examples/storage_basic.rs"
+required-features = ["storage"]
 
+[[example]]
+name = "storage_filesystem_basic"
+path = "examples/storage_filesystem_basic.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "storage_filesystem_conversation"
+path = "examples/storage_filesystem_conversation.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "storage_conversation_full"
+path = "examples/storage_conversation_full.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "agent_storage_conversation"
+path = "examples/agent_storage_conversation.rs"
+required-features = ["storage"]
 

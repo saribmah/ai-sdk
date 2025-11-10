@@ -34,9 +34,10 @@ use crate::generate_text::GenerateTextResult;
 use crate::output::Output;
 use crate::prompt::message::{AssistantMessage, Message, UserMessage};
 use ai_sdk_storage::{
-    AssistantMessage as StorageAssistantMessage, MessageMetadata, MessagePart, MessageRole,
-    ReasoningPart, Storage, StorageError, TextPart, ToolCallPart, UsageStats,
-    UserMessage as StorageUserMessage,
+    AssistantMessage as StorageAssistantMessage, FileData as StorageFileData,
+    FilePart as StorageFilePart, ImageData as StorageImageData, ImagePart as StorageImagePart,
+    MessageMetadata, MessagePart, MessageRole, ReasoningPart, Storage, StorageError, TextPart,
+    ToolCallPart, UsageStats, UserMessage as StorageUserMessage,
 };
 use std::sync::Arc;
 
@@ -85,14 +86,30 @@ pub fn user_message_to_storage(
             for content in content_parts {
                 let part_id = storage.generate_part_id();
 
-                if let crate::prompt::message::UserContentPart::Text(text_part) = content {
-                    parts.push(MessagePart::Text(TextPart::new(
-                        part_id.clone(),
-                        text_part.text.clone(),
-                    )));
-                    part_ids.push(part_id);
+                match content {
+                    crate::prompt::message::UserContentPart::Text(text_part) => {
+                        parts.push(MessagePart::Text(TextPart::new(
+                            part_id.clone(),
+                            text_part.text.clone(),
+                        )));
+                        part_ids.push(part_id);
+                    }
+                    crate::prompt::message::UserContentPart::Image(image_part) => {
+                        if let Some(storage_part) =
+                            image_part_to_storage(part_id.clone(), image_part)
+                        {
+                            parts.push(storage_part);
+                            part_ids.push(part_id);
+                        }
+                    }
+                    crate::prompt::message::UserContentPart::File(file_part) => {
+                        if let Some(storage_part) = file_part_to_storage(part_id.clone(), file_part)
+                        {
+                            parts.push(storage_part);
+                            part_ids.push(part_id);
+                        }
+                    }
                 }
-                // TODO: Handle image and file parts when needed
             }
         }
     }
@@ -258,12 +275,27 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
     // Multi-part message - convert each part
     let mut content_parts = Vec::new();
     for part in parts {
-        if let MessagePart::Text(text) = part {
-            content_parts.push(crate::prompt::message::UserContentPart::Text(
-                crate::prompt::message::TextPart::new(text.text.clone()),
-            ));
+        match part {
+            MessagePart::Text(text) => {
+                content_parts.push(crate::prompt::message::UserContentPart::Text(
+                    crate::prompt::message::TextPart::new(text.text.clone()),
+                ));
+            }
+            MessagePart::Image(image) => {
+                if let Some(prompt_image) = storage_image_to_prompt(image) {
+                    content_parts
+                        .push(crate::prompt::message::UserContentPart::Image(prompt_image));
+                }
+            }
+            MessagePart::File(file) => {
+                if let Some(prompt_file) = storage_file_to_prompt(file) {
+                    content_parts.push(crate::prompt::message::UserContentPart::File(prompt_file));
+                }
+            }
+            _ => {
+                // Skip other part types (tool calls, reasoning, etc.) in user messages
+            }
         }
-        // TODO: Handle other part types (images, files) when needed
     }
 
     UserMessage::with_parts(content_parts)
@@ -308,6 +340,129 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
     }
 
     AssistantMessage::with_parts(content_parts)
+}
+
+/// Convert a prompt ImagePart to storage format.
+///
+/// Returns `None` if the conversion cannot be performed (e.g., unsupported format).
+fn image_part_to_storage(
+    id: String,
+    image: &crate::prompt::message::ImagePart,
+) -> Option<MessagePart> {
+    use crate::prompt::message::{DataContent, ImageSource};
+
+    let media_type = image
+        .media_type
+        .clone()
+        .unwrap_or_else(|| "image/jpeg".to_string());
+
+    let storage_data = match &image.image {
+        ImageSource::Data(data_content) => match data_content {
+            DataContent::Base64(base64_str) => StorageImageData::Base64 {
+                data: base64_str.clone(),
+            },
+            DataContent::Bytes(bytes) => StorageImageData::Binary {
+                data: bytes.clone(),
+            },
+        },
+        ImageSource::Url(url) => StorageImageData::Url {
+            url: url.to_string(),
+        },
+    };
+
+    Some(MessagePart::Image(StorageImagePart::new(
+        id,
+        media_type,
+        storage_data,
+    )))
+}
+
+/// Convert a prompt FilePart to storage format.
+///
+/// Returns `None` if the conversion cannot be performed.
+fn file_part_to_storage(
+    id: String,
+    file: &crate::prompt::message::FilePart,
+) -> Option<MessagePart> {
+    use crate::prompt::message::{DataContent, FileSource};
+
+    let storage_data = match &file.data {
+        FileSource::Data(data_content) => match data_content {
+            DataContent::Base64(base64_str) => StorageFileData::Base64 {
+                data: base64_str.clone(),
+            },
+            DataContent::Bytes(bytes) => StorageFileData::Binary {
+                data: bytes.clone(),
+            },
+        },
+        FileSource::Url(url) => StorageFileData::Url {
+            url: url.to_string(),
+        },
+    };
+
+    let mut storage_part = StorageFilePart::new(id, file.media_type.clone(), storage_data);
+
+    if let Some(filename) = &file.filename {
+        storage_part = storage_part.with_filename(filename.clone());
+    }
+
+    Some(MessagePart::File(storage_part))
+}
+
+/// Convert storage ImagePart to prompt format.
+///
+/// Returns `None` if the conversion cannot be performed.
+fn storage_image_to_prompt(image: &StorageImagePart) -> Option<crate::prompt::message::ImagePart> {
+    use crate::prompt::message::{DataContent, ImagePart as PromptImagePart};
+
+    let mut prompt_image = match &image.data {
+        StorageImageData::Base64 { data } => {
+            PromptImagePart::from_data(DataContent::Base64(data.clone()))
+        }
+        StorageImageData::Binary { data } => {
+            PromptImagePart::from_data(DataContent::Bytes(data.clone()))
+        }
+        StorageImageData::Url { url } => {
+            // Parse URL - if it fails, skip this image
+            match url::Url::parse(url) {
+                Ok(parsed_url) => PromptImagePart::from_url(parsed_url),
+                Err(_) => return None,
+            }
+        }
+    };
+
+    prompt_image.media_type = Some(image.media_type.clone());
+
+    Some(prompt_image)
+}
+
+/// Convert storage FilePart to prompt format.
+///
+/// Returns `None` if the conversion cannot be performed.
+fn storage_file_to_prompt(file: &StorageFilePart) -> Option<crate::prompt::message::FilePart> {
+    use crate::prompt::message::{DataContent, FilePart as PromptFilePart};
+
+    let mut prompt_file = match &file.data {
+        StorageFileData::Base64 { data } => {
+            PromptFilePart::from_data(DataContent::Base64(data.clone()), file.media_type.clone())
+        }
+        StorageFileData::Binary { data } => {
+            PromptFilePart::from_data(DataContent::Bytes(data.clone()), file.media_type.clone())
+        }
+        StorageFileData::Url { url } => {
+            // Parse URL - if it fails, skip this file
+            match url::Url::parse(url) {
+                Ok(parsed_url) => PromptFilePart::from_url(parsed_url, file.media_type.clone()),
+                Err(_) => return None,
+            }
+        }
+    };
+
+    if let Some(filename) = &file.filename {
+        prompt_file = prompt_file.with_filename(filename.clone());
+    }
+
+    Some(prompt_file)
 }
 
 #[cfg(all(test, feature = "storage"))]

@@ -9,6 +9,9 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+#[cfg(feature = "storage")]
+use ai_sdk_storage::Storage;
+
 use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 
 /// Configuration options for an agent.
@@ -84,6 +87,29 @@ pub struct AgentSettings {
     /// Experimental (can break in patch releases).
     pub experimental_context: Option<Value>,
 
+    // Storage settings
+    /// Optional storage provider for conversation persistence.
+    ///
+    /// When set, all agent calls can store and retrieve conversation history.
+    /// Requires the "storage" feature flag.
+    #[cfg(feature = "storage")]
+    pub storage: Option<Arc<dyn Storage>>,
+
+    /// Optional session ID for persistent conversations (stateful mode).
+    ///
+    /// When set in AgentSettings, all calls from this agent use the same session (stateful mode).
+    /// When not set, session_id can be specified per call via builder methods (stateless mode).
+    /// Requires the "storage" feature flag.
+    #[cfg(feature = "storage")]
+    pub session_id: Option<String>,
+
+    /// Storage error handling configuration.
+    ///
+    /// Controls how storage errors are handled, retry behavior, and telemetry hooks.
+    /// Requires the "storage" feature flag.
+    #[cfg(feature = "storage")]
+    pub storage_config: crate::storage_config::StorageConfig,
+
     // Call settings (inherited from CallSettings)
     /// Maximum number of tokens to generate.
     pub max_output_tokens: Option<u32>,
@@ -131,6 +157,12 @@ impl AgentSettings {
             on_finish: None,
             provider_options: None,
             experimental_context: None,
+            #[cfg(feature = "storage")]
+            storage: None,
+            #[cfg(feature = "storage")]
+            session_id: None,
+            #[cfg(feature = "storage")]
+            storage_config: crate::storage_config::StorageConfig::default(),
             max_output_tokens: None,
             temperature: None,
             top_p: None,
@@ -272,6 +304,129 @@ impl AgentSettings {
     /// Sets the HTTP headers.
     pub fn with_headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = Some(headers);
+        self
+    }
+
+    /// Sets the storage provider for conversation persistence.
+    ///
+    /// When storage is configured, agent calls can automatically store and retrieve
+    /// conversation history. Use with `with_session_id()` for stateful agents, or
+    /// specify session per call for stateless agents.
+    ///
+    /// Requires the "storage" feature flag.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentSettings;
+    /// # #[cfg(feature = "storage")]
+    /// # use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// # use std::sync::Arc;
+    /// # use ai_sdk_provider::LanguageModel;
+    /// # #[cfg(feature = "storage")]
+    /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
+    /// # let storage = Arc::new(FilesystemStorage::new("./storage")?);
+    ///
+    /// // Stateless mode - specify session per call
+    /// let settings = AgentSettings::new(model)
+    ///     .with_storage(storage);
+    ///
+    /// // Later, specify session_id when calling:
+    /// // agent.generate(params)?.with_session_id("session-123").execute()
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn with_storage(mut self, storage: Arc<dyn Storage>) -> Self {
+        self.storage = Some(storage);
+        self
+    }
+
+    /// Sets the session ID for persistent conversations (stateful mode).
+    ///
+    /// When set, all calls from this agent use the same session, enabling
+    /// automatic conversation history across multiple interactions.
+    ///
+    /// Requires the "storage" feature flag and storage to be configured.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentSettings;
+    /// # #[cfg(feature = "storage")]
+    /// # use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// # #[cfg(feature = "storage")]
+    /// # use ai_sdk_storage::Storage;
+    /// # use std::sync::Arc;
+    /// # use ai_sdk_provider::LanguageModel;
+    /// # #[cfg(feature = "storage")]
+    /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
+    /// # let storage = Arc::new(FilesystemStorage::new("./storage")?);
+    /// # let session_id = storage.generate_session_id();
+    ///
+    /// // Stateful mode - all calls use the same session
+    /// let settings = AgentSettings::new(model)
+    ///     .with_storage(storage)
+    ///     .with_session_id(session_id);
+    ///
+    /// // All agent calls automatically load/store history for this session
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn with_session_id(mut self, session_id: impl Into<String>) -> Self {
+        self.session_id = Some(session_id.into());
+        self
+    }
+
+    /// Configure storage error handling and telemetry.
+    ///
+    /// Controls how storage errors are handled (log, return, retry) and
+    /// provides hooks for monitoring storage operations.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentSettings;
+    /// use ai_sdk_core::storage_config::{StorageConfig, StorageErrorBehavior};
+    /// # use std::sync::Arc;
+    /// # use ai_sdk_provider::LanguageModel;
+    /// # fn example(model: Arc<dyn LanguageModel>) {
+    ///
+    /// let config = StorageConfig::new()
+    ///     .with_error_behavior(StorageErrorBehavior::default_retry());
+    ///
+    /// let settings = AgentSettings::new(model)
+    ///     .storage_config(config);
+    /// # }
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn storage_config(mut self, config: crate::storage_config::StorageConfig) -> Self {
+        self.storage_config = config;
+        self
+    }
+
+    /// Shortcut for configuring storage error behavior.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use ai_sdk_core::agent::AgentSettings;
+    /// use ai_sdk_core::storage_config::StorageErrorBehavior;
+    /// # use std::sync::Arc;
+    /// # use ai_sdk_provider::LanguageModel;
+    /// # fn example(model: Arc<dyn LanguageModel>) {
+    ///
+    /// let settings = AgentSettings::new(model)
+    ///     .storage_error_behavior(StorageErrorBehavior::ReturnError);
+    /// # }
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn storage_error_behavior(
+        mut self,
+        behavior: crate::storage_config::StorageErrorBehavior,
+    ) -> Self {
+        self.storage_config.error_behavior = behavior;
         self
     }
 
