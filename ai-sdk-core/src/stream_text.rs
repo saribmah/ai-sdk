@@ -432,8 +432,6 @@ pub struct StreamText {
     session_id: Option<String>,
     #[cfg(feature = "storage")]
     load_history: bool,
-    #[cfg(feature = "storage")]
-    storage_config: crate::storage_config::StorageConfig,
 }
 
 impl StreamText {
@@ -460,8 +458,6 @@ impl StreamText {
             session_id: None,
             #[cfg(feature = "storage")]
             load_history: true, // Default to true for automatic history loading
-            #[cfg(feature = "storage")]
-            storage_config: crate::storage_config::StorageConfig::default(),
         }
     }
 
@@ -673,55 +669,6 @@ impl StreamText {
         self
     }
 
-    /// Configure storage error handling and telemetry.
-    ///
-    /// Controls how storage errors are handled (log, return, retry) and
-    /// provides hooks for monitoring storage operations.
-    ///
-    /// # Example
-    ///
-    /// ```ignore
-    /// use ai_sdk_core::storage_config::{StorageConfig, StorageErrorBehavior};
-    ///
-    /// let config = StorageConfig::new()
-    ///     .with_error_behavior(StorageErrorBehavior::default_retry());
-    ///
-    /// let result = StreamText::new(model, prompt)
-    ///     .with_storage(storage)
-    ///     .with_session_id(session_id)
-    ///     .storage_config(config)
-    ///     .execute()
-    ///     .await?;
-    /// ```
-    #[cfg(feature = "storage")]
-    pub fn storage_config(mut self, config: crate::storage_config::StorageConfig) -> Self {
-        self.storage_config = config;
-        self
-    }
-
-    /// Shortcut for configuring storage error behavior.
-    ///
-    /// # Example
-    ///
-    /// ```ignore
-    /// use ai_sdk_core::storage_config::StorageErrorBehavior;
-    ///
-    /// let result = StreamText::new(model, prompt)
-    ///     .with_storage(storage)
-    ///     .with_session_id(session_id)
-    ///     .storage_error_behavior(StorageErrorBehavior::ReturnError)
-    ///     .execute()
-    ///     .await?;
-    /// ```
-    #[cfg(feature = "storage")]
-    pub fn storage_error_behavior(
-        mut self,
-        behavior: crate::storage_config::StorageErrorBehavior,
-    ) -> Self {
-        self.storage_config.error_behavior = behavior;
-        self
-    }
-
     /// Executes the text streaming with the configured settings.
     pub async fn execute(self) -> Result<StreamTextResult, AISDKError> {
         // Initialize stop conditions with default if not provided
@@ -787,8 +734,6 @@ impl StreamText {
         let storage_arc = self.storage;
         #[cfg(feature = "storage")]
         let session_id_arc = self.session_id;
-        #[cfg(feature = "storage")]
-        let storage_config_arc = self.storage_config;
 
         // Spawn a task to handle the multi-step streaming
         let tx_clone = tx.clone();
@@ -1099,19 +1044,9 @@ impl StreamText {
                 // Create session if it doesn't exist
                 if storage.get_session(session_id).await.is_err() {
                     let session = ai_sdk_storage::Session::new(session_id.clone());
-                    let storage_ref = storage.clone();
-                    let session_id_ref = session_id.clone();
-                    let _ = crate::generate_text::execute_storage_operation(
-                        "store_session",
-                        &session_id_ref,
-                        &storage_config_arc,
-                        || {
-                            let storage = storage_ref.clone();
-                            let session = session.clone();
-                            async move { storage.store_session(&session).await }
-                        },
-                    )
-                    .await;
+                    if let Err(e) = storage.store_session(&session).await {
+                        log::warn!("Failed to create session: {}", e);
+                    }
                 }
 
                 // Store user message (from the original prompt, not including history)
@@ -1121,39 +1056,17 @@ impl StreamText {
                 {
                     let (storage_msg, parts) =
                         user_message_to_storage(storage, session_id.clone(), user_message);
-                    let msg_id = storage_msg.id.clone();
-                    let storage_ref = storage.clone();
-                    let _ = crate::generate_text::execute_storage_operation(
-                        "store_user_message",
-                        &msg_id,
-                        &storage_config_arc,
-                        || {
-                            let storage = storage_ref.clone();
-                            let storage_msg = storage_msg.clone();
-                            let parts = parts.clone();
-                            async move { storage.store_user_message(&storage_msg, &parts).await }
-                        },
-                    )
-                    .await;
+                    if let Err(e) = storage.store_user_message(&storage_msg, &parts).await {
+                        log::warn!("Failed to store user message: {}", e);
+                    }
                 }
 
                 // Store assistant message
                 let (storage_msg, parts) =
                     assistant_output_to_storage(storage, session_id.clone(), &stream_result);
-                let msg_id = storage_msg.id.clone();
-                let storage_ref = storage.clone();
-                let _ = crate::generate_text::execute_storage_operation(
-                    "store_assistant_message",
-                    &msg_id,
-                    &storage_config_arc,
-                    || {
-                        let storage = storage_ref.clone();
-                        let storage_msg = storage_msg.clone();
-                        let parts = parts.clone();
-                        async move { storage.store_assistant_message(&storage_msg, &parts).await }
-                    },
-                )
-                .await;
+                if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
+                    log::warn!("Failed to store assistant message: {}", e);
+                }
             }
         });
 

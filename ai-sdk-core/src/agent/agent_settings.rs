@@ -103,13 +103,6 @@ pub struct AgentSettings {
     #[cfg(feature = "storage")]
     pub session_id: Option<String>,
 
-    /// Storage error handling configuration.
-    ///
-    /// Controls how storage errors are handled, retry behavior, and telemetry hooks.
-    /// Requires the "storage" feature flag.
-    #[cfg(feature = "storage")]
-    pub storage_config: crate::storage_config::StorageConfig,
-
     // Call settings (inherited from CallSettings)
     /// Maximum number of tokens to generate.
     pub max_output_tokens: Option<u32>,
@@ -161,8 +154,6 @@ impl AgentSettings {
             storage: None,
             #[cfg(feature = "storage")]
             session_id: None,
-            #[cfg(feature = "storage")]
-            storage_config: crate::storage_config::StorageConfig::default(),
             max_output_tokens: None,
             temperature: None,
             top_p: None,
@@ -376,57 +367,6 @@ impl AgentSettings {
     #[cfg(feature = "storage")]
     pub fn with_session_id(mut self, session_id: impl Into<String>) -> Self {
         self.session_id = Some(session_id.into());
-        self
-    }
-
-    /// Configure storage error handling and telemetry.
-    ///
-    /// Controls how storage errors are handled (log, return, retry) and
-    /// provides hooks for monitoring storage operations.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use ai_sdk_core::agent::AgentSettings;
-    /// use ai_sdk_core::storage_config::{StorageConfig, StorageErrorBehavior};
-    /// # use std::sync::Arc;
-    /// # use ai_sdk_provider::LanguageModel;
-    /// # fn example(model: Arc<dyn LanguageModel>) {
-    ///
-    /// let config = StorageConfig::new()
-    ///     .with_error_behavior(StorageErrorBehavior::default_retry());
-    ///
-    /// let settings = AgentSettings::new(model)
-    ///     .storage_config(config);
-    /// # }
-    /// ```
-    #[cfg(feature = "storage")]
-    pub fn storage_config(mut self, config: crate::storage_config::StorageConfig) -> Self {
-        self.storage_config = config;
-        self
-    }
-
-    /// Shortcut for configuring storage error behavior.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use ai_sdk_core::agent::AgentSettings;
-    /// use ai_sdk_core::storage_config::StorageErrorBehavior;
-    /// # use std::sync::Arc;
-    /// # use ai_sdk_provider::LanguageModel;
-    /// # fn example(model: Arc<dyn LanguageModel>) {
-    ///
-    /// let settings = AgentSettings::new(model)
-    ///     .storage_error_behavior(StorageErrorBehavior::ReturnError);
-    /// # }
-    /// ```
-    #[cfg(feature = "storage")]
-    pub fn storage_error_behavior(
-        mut self,
-        behavior: crate::storage_config::StorageErrorBehavior,
-    ) -> Self {
-        self.storage_config.error_behavior = behavior;
         self
     }
 

@@ -244,44 +244,6 @@ let storage = FilesystemStorage::new("./my-storage")?;
 storage.initialize().await?;
 ```
 
-**Error Handling:**
-
-Configure how storage errors are handled with `StorageErrorBehavior`:
-
-```rust
-use ai_sdk_core::storage_config::{StorageConfig, StorageErrorBehavior};
-
-// Log warnings and continue (default, non-blocking)
-GenerateText::new(model, prompt)
-    .with_storage(storage)
-    .with_session_id(session_id)
-    .execute().await?;
-
-// Fail fast on storage errors
-GenerateText::new(model, prompt)
-    .with_storage(storage)
-    .with_session_id(session_id)
-    .storage_error_behavior(StorageErrorBehavior::ReturnError)
-    .execute().await?;
-
-// Retry transient errors with exponential backoff
-GenerateText::new(model, prompt)
-    .with_storage(storage)
-    .with_session_id(session_id)
-    .storage_error_behavior(StorageErrorBehavior::default_retry())
-    .execute().await?;
-
-// Full configuration with telemetry
-let config = StorageConfig::new()
-    .with_error_behavior(StorageErrorBehavior::default_retry())
-    .with_telemetry(Arc::new(MyTelemetry));
-
-GenerateText::new(model, prompt)
-    .with_storage(storage)
-    .storage_config(config)
-    .execute().await?;
-```
-
 See `examples/storage_conversation_full.rs` for a complete example demonstrating multi-turn conversations with automatic history.
 
 ### Using Different Providers

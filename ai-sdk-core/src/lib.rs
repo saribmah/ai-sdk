@@ -193,9 +193,6 @@ pub mod output;
 pub mod prompt;
 /// Document reranking functionality.
 pub mod rerank;
-/// Storage configuration and error handling (requires storage feature).
-#[cfg(feature = "storage")]
-pub mod storage_config;
 /// Storage conversion utilities (requires storage feature).
 #[cfg(feature = "storage")]
 pub mod storage_conversion;
@@ -229,10 +226,6 @@ pub use generate_text::{
 };
 pub use output::{Output, reasoning::ReasoningOutput, source::SourceOutput, text::TextOutput};
 pub use rerank::{RankedDocumentWithValue, Rerank, RerankResponseMetadata, RerankResult};
-#[cfg(feature = "storage")]
-pub use storage_config::{
-    StorageConfig, StorageErrorBehavior, StorageTelemetry, retry_with_backoff,
-};
 pub use stream_text::{
     AbortEvent, AsyncIterableStream, ChunkEvent, ChunkStreamPart, ConsumeStreamOptions, ErrorEvent,
     ErrorHandler, OnAbortCallback, OnChunkCallback, OnErrorCallback, OnFinishCallback,

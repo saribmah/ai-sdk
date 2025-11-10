@@ -142,7 +142,6 @@ impl AgentInterface for Agent {
                 builder = builder.with_session_id(session_id.clone());
             }
         }
-        builder = builder.storage_config(self.settings.storage_config.clone());
 
         // Apply other settings
         if let Some(prepare_step) = &self.settings.prepare_step {
@@ -221,7 +220,6 @@ impl AgentInterface for Agent {
                 builder = builder.with_session_id(session_id.clone());
             }
         }
-        builder = builder.storage_config(self.settings.storage_config.clone());
 
         // Apply other settings
         if let Some(prepare_step) = &self.settings.prepare_step {
