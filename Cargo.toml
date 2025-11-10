@@ -95,10 +95,4 @@ path = "examples/type_safe_tools.rs"
 name = "storage_basic"
 path = "examples/storage_basic.rs"
 
-[[example]]
-name = "storage_with_generate"
-path = "examples/storage_with_generate.rs"
 
-[[example]]
-name = "storage_with_stream"
-path = "examples/storage_with_stream.rs"

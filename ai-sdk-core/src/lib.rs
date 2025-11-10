@@ -193,6 +193,9 @@ pub mod output;
 pub mod prompt;
 /// Document reranking functionality.
 pub mod rerank;
+/// Storage conversion utilities (requires storage feature).
+#[cfg(feature = "storage")]
+pub mod storage_conversion;
 /// Text streaming with callbacks and transforms.
 pub mod stream_text;
 /// Tool system for function calling (dynamic and type-safe).

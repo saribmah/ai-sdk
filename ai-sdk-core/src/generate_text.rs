@@ -248,158 +248,6 @@ pub fn as_output(
 }
 
 /// Storage helper functions (only compiled when storage feature is enabled)
-#[cfg(feature = "storage")]
-pub(crate) mod storage_helpers {
-    use super::*;
-    use ai_sdk_storage::{
-        ConversationStorage, MessageMetadata, MessageRole, StoredMessage, ToolCallRecord,
-        UsageStats,
-    };
-    use chrono::Utc;
-
-    /// Store messages to storage after successful generation.
-    ///
-    /// This function stores both the user prompt and the assistant's response.
-    pub async fn store_generation_messages(
-        storage: &Arc<dyn ai_sdk_storage::StorageProvider>,
-        session_id: &str,
-        initial_prompt: &StandardizedPrompt,
-        result: &GenerateTextResult,
-        model_id: &str,
-    ) {
-        let conversation_storage = storage.conversation_storage();
-
-        // Store user message(s) from initial prompt
-        for message in &initial_prompt.messages {
-            if let Err(e) =
-                store_user_message(conversation_storage.as_ref(), session_id, message).await
-            {
-                log::warn!("Failed to store user message: {}", e);
-            }
-        }
-
-        // Store assistant response
-        if let Err(e) =
-            store_assistant_message(conversation_storage.as_ref(), session_id, result, model_id)
-                .await
-        {
-            log::warn!("Failed to store assistant message: {}", e);
-        }
-    }
-
-    /// Store a user message to storage.
-    async fn store_user_message(
-        storage: &dyn ConversationStorage,
-        session_id: &str,
-        message: &Message,
-    ) -> Result<String, ai_sdk_storage::StorageError> {
-        let message_id = uuid::Uuid::new_v4().to_string();
-
-        let (role, content) = match message {
-            Message::User(user_msg) => {
-                // Extract text from UserContent for consistent storage format
-                use crate::prompt::message::UserContent;
-                let text = match &user_msg.content {
-                    UserContent::Text(text) => text.clone(),
-                    UserContent::Parts(parts) => {
-                        // Concatenate text from all text parts
-                        parts
-                            .iter()
-                            .filter_map(|part| {
-                                if let crate::prompt::message::UserContentPart::Text(text_part) =
-                                    part
-                                {
-                                    Some(text_part.text.as_str())
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect::<Vec<_>>()
-                            .join(" ")
-                    }
-                };
-                (MessageRole::User, serde_json::json!({ "text": text }))
-            }
-            Message::System(system_msg) => (
-                MessageRole::System,
-                serde_json::json!({ "text": system_msg.content }),
-            ),
-            _ => return Ok(message_id), // Skip non-user messages
-        };
-
-        let stored_message = StoredMessage {
-            id: message_id.clone(),
-            session_id: session_id.to_string(),
-            role,
-            content,
-            metadata: MessageMetadata::default(),
-            created_at: Utc::now(),
-        };
-
-        storage.store_message(stored_message).await
-    }
-
-    /// Store an assistant message to storage.
-    async fn store_assistant_message(
-        storage: &dyn ConversationStorage,
-        session_id: &str,
-        result: &GenerateTextResult,
-        model_id: &str,
-    ) -> Result<String, ai_sdk_storage::StorageError> {
-        let message_id = uuid::Uuid::new_v4().to_string();
-
-        // Extract tool calls from result
-        let tool_calls = result
-            .tool_calls
-            .iter()
-            .map(|tool_call| ToolCallRecord {
-                tool_name: tool_call.tool_name.clone(),
-                tool_arguments: tool_call.input.clone(),
-                tool_result: None,
-                error: None,
-            })
-            .collect::<Vec<_>>();
-
-        // Build usage stats
-        let usage = Some(UsageStats {
-            prompt_tokens: Some(result.usage.input_tokens as u32),
-            completion_tokens: Some(result.usage.output_tokens as u32),
-            total_tokens: Some(result.usage.total_tokens as u32),
-        });
-
-        // Build metadata
-        let metadata = MessageMetadata {
-            model_id: Some(model_id.to_string()),
-            provider: None, // Could be extracted from model if available
-            usage,
-            finish_reason: Some(format!("{:?}", result.finish_reason)),
-            tool_calls: if tool_calls.is_empty() {
-                None
-            } else {
-                Some(tool_calls)
-            },
-            custom: None,
-        };
-
-        // Build content from content field
-        let content = serde_json::json!({
-            "text": result.text,
-            "content": result.content,
-        });
-
-        let stored_message = StoredMessage {
-            id: message_id.clone(),
-            session_id: session_id.to_string(),
-            role: MessageRole::Assistant,
-            content,
-            metadata,
-            created_at: Utc::now(),
-        };
-
-        storage.store_message(stored_message).await
-    }
-}
-
 /// Builder for generating text using a language model with fluent API.
 ///
 /// This builder provides a chainable interface for configuring text generation.
@@ -436,9 +284,11 @@ pub struct GenerateText {
     on_step_finish: Option<Box<dyn OnStepFinish>>,
     on_finish: Option<Box<dyn OnFinish>>,
     #[cfg(feature = "storage")]
-    storage: Option<Arc<dyn ai_sdk_storage::StorageProvider>>,
+    storage: Option<Arc<dyn ai_sdk_storage::Storage>>,
     #[cfg(feature = "storage")]
     session_id: Option<String>,
+    #[cfg(feature = "storage")]
+    load_history: bool,
 }
 
 impl GenerateText {
@@ -459,6 +309,8 @@ impl GenerateText {
             storage: None,
             #[cfg(feature = "storage")]
             session_id: None,
+            #[cfg(feature = "storage")]
+            load_history: true, // Default to true for automatic history loading
         }
     }
 
@@ -576,18 +428,22 @@ impl GenerateText {
         self
     }
 
-    /// Enable storage of messages to a storage provider.
+    /// Enable storage for conversation persistence.
     ///
-    /// When storage is configured, messages (both user prompts and assistant responses)
-    /// will be automatically stored after successful generation.
+    /// When storage is configured with a session ID, the system will:
+    /// 1. Load previous conversation history (if `load_history` is true)
+    /// 2. Prepend history to the current prompt
+    /// 3. Store both user and assistant messages after generation
     ///
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_storage_filesystem::FilesystemStorageProvider;
+    /// use ai_sdk_storage_filesystem::FilesystemStorage;
     /// use std::sync::Arc;
     ///
-    /// let storage = Arc::new(FilesystemStorageProvider::new("./storage"));
+    /// let storage = Arc::new(FilesystemStorage::new("./storage")?);
+    /// storage.initialize().await?;
+    ///
     /// let result = GenerateText::new(model, prompt)
     ///     .with_storage(storage)
     ///     .with_session_id("my-session".to_string())
@@ -595,15 +451,16 @@ impl GenerateText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::StorageProvider>) -> Self {
+    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::Storage>) -> Self {
         self.storage = Some(storage);
+        self.load_history = true; // Enable history loading by default
         self
     }
 
     /// Set a session ID for conversation continuity.
     ///
-    /// Messages will be associated with this session ID in storage,
-    /// allowing you to retrieve and continue conversations later.
+    /// This identifies which conversation this generation belongs to.
+    /// If the session doesn't exist, it will be created automatically.
     ///
     /// # Example
     ///
@@ -615,8 +472,29 @@ impl GenerateText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_session_id(mut self, session_id: String) -> Self {
-        self.session_id = Some(session_id);
+    pub fn with_session_id(mut self, session_id: impl Into<String>) -> Self {
+        self.session_id = Some(session_id.into());
+        self
+    }
+
+    /// Disable automatic history loading.
+    ///
+    /// Useful for the first message in a session or when you want to
+    /// provide the full context manually.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let result = GenerateText::new(model, prompt)
+    ///     .with_storage(storage)
+    ///     .with_session_id(session_id)
+    ///     .without_history() // First message, no history to load
+    ///     .execute()
+    ///     .await?;
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn without_history(mut self) -> Self {
+        self.load_history = false;
         self
     }
 
@@ -637,7 +515,32 @@ impl GenerateText {
         let prepared_settings = prepare_call_settings(&self.settings)?;
 
         // Initialize response messages array for multi-step generation
-        let initial_prompt = validate_and_standardize(self.prompt)?;
+        let mut initial_prompt = validate_and_standardize(self.prompt)?;
+
+        // Load conversation history if storage is configured
+        #[cfg(feature = "storage")]
+        if let (Some(storage), Some(session_id)) = (&self.storage, &self.session_id)
+            && self.load_history
+        {
+            // Try to load history (session may not exist yet)
+            if let Ok(_session) = storage.get_session(session_id).await {
+                use crate::storage_conversion::load_conversation_history;
+
+                match load_conversation_history(storage, session_id).await {
+                    Ok(history) => {
+                        if !history.is_empty() {
+                            // Prepend history to current prompt
+                            let mut all_messages = history;
+                            all_messages.extend(initial_prompt.messages);
+                            initial_prompt.messages = all_messages;
+                        }
+                    }
+                    Err(e) => {
+                        log::warn!("Failed to load conversation history: {}", e);
+                    }
+                }
+            }
+        }
 
         // Store the initial messages before the loop
         let initial_messages = initial_prompt.messages.clone();
@@ -938,15 +841,33 @@ impl GenerateText {
         // Store messages if storage is configured
         #[cfg(feature = "storage")]
         if let (Some(storage), Some(session_id)) = (&self.storage, &self.session_id) {
-            let model_id = self.model.model_id();
-            storage_helpers::store_generation_messages(
-                storage,
-                session_id,
-                &initial_prompt,
-                &result,
-                model_id,
-            )
-            .await;
+            use crate::storage_conversion::{assistant_output_to_storage, user_message_to_storage};
+
+            // Create session if it doesn't exist
+            if storage.get_session(session_id).await.is_err() {
+                let session = ai_sdk_storage::Session::new(session_id.clone());
+                if let Err(e) = storage.store_session(&session).await {
+                    log::warn!("Failed to create session: {}", e);
+                }
+            }
+
+            // Store user message (from the original prompt, not including history)
+            if let Some(user_msg) = initial_messages.iter().find(|m| m.is_user())
+                && let Message::User(user_message) = user_msg
+            {
+                let (storage_msg, parts) =
+                    user_message_to_storage(storage, session_id.clone(), user_message);
+                if let Err(e) = storage.store_user_message(&storage_msg, &parts).await {
+                    log::warn!("Failed to store user message: {}", e);
+                }
+            }
+
+            // Store assistant message
+            let (storage_msg, parts) =
+                assistant_output_to_storage(storage, session_id.clone(), &result);
+            if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
+                log::warn!("Failed to store assistant message: {}", e);
+            }
         }
 
         // Return the GenerateTextResult

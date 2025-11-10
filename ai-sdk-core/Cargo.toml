@@ -40,3 +40,5 @@ storage = ["ai-sdk-storage", "chrono"]  # Enable storage functionality
 tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests
 async-trait = "0.1.89"  # For async trait implementations in tests
 regex = "1.12.2"  # For Regex in tests
+ai-sdk-storage-filesystem = { path = "../ai-sdk-storage-filesystem" }  # For storage tests
+tempfile = "3.0"  # For temporary directories in storage tests

@@ -9,10 +9,10 @@
 //! - Delete sessions
 
 use ai_sdk_storage::{
-    ConversationSession, MessageMetadata, MessageRole, SessionMetadata, StorageProvider,
-    StoredMessage,
+    AssistantMessage, MessageMetadata, MessagePart, Session, SessionMetadata, Storage, TextPart,
+    UsageStats, UserMessage,
 };
-use ai_sdk_storage_filesystem::FilesystemStorageProvider;
+use ai_sdk_storage_filesystem::FilesystemStorage;
 use chrono::Utc;
 use std::sync::Arc;
 
@@ -24,15 +24,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let storage_path = std::env::temp_dir().join("ai-sdk-storage-example");
     println!("📁 Storage path: {}\n", storage_path.display());
 
-    let provider = Arc::new(FilesystemStorageProvider::new(&storage_path)?);
-    provider.initialize().await?;
-
-    let storage = provider.conversation_storage();
+    let storage = Arc::new(FilesystemStorage::new(&storage_path)?);
+    storage.initialize().await?;
 
     // Create a conversation session
     println!("1️⃣  Creating conversation session...");
-    let session = ConversationSession {
-        id: "example-session-1".to_string(),
+    let session_id = storage.generate_session_id();
+    let session = Session {
+        id: session_id.clone(),
         title: Some("My First Conversation".to_string()),
         metadata: SessionMetadata {
             user_id: Some("user-123".to_string()),
@@ -43,83 +42,84 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         updated_at: Utc::now(),
     };
 
-    storage.create_session(session).await?;
-    println!("✅ Session created: example-session-1\n");
+    storage.store_session(&session).await?;
+    println!("✅ Session created: {}\n", session_id);
 
     // Store some messages
     println!("2️⃣  Storing messages...");
 
-    let user_message = StoredMessage {
-        id: "msg-1".to_string(),
-        session_id: "example-session-1".to_string(),
-        role: MessageRole::User,
-        content: serde_json::json!({
-            "text": "Hello! Can you help me understand Rust's ownership system?"
-        }),
-        metadata: MessageMetadata {
-            model_id: None,
-            provider: None,
-            usage: None,
-            finish_reason: None,
-            tool_calls: None,
-            custom: None,
-        },
-        created_at: Utc::now(),
-    };
+    // User message
+    let user_msg_id = storage.generate_message_id();
+    let user_part_id = storage.generate_part_id();
+    let user_text_part = TextPart::new(
+        user_part_id.clone(),
+        "Hello! Can you help me understand Rust's ownership system?".to_string(),
+    );
+    let user_message =
+        UserMessage::new(user_msg_id.clone(), session_id.clone(), vec![user_part_id]);
 
-    storage.store_message(user_message).await?;
+    storage
+        .store_user_message(&user_message, &[MessagePart::Text(user_text_part)])
+        .await?;
     println!("✅ User message stored");
 
     // Simulate a delay
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
-    let assistant_message = StoredMessage {
-        id: "msg-2".to_string(),
-        session_id: "example-session-1".to_string(),
-        role: MessageRole::Assistant,
-        content: serde_json::json!({
-            "text": "I'd be happy to help! Rust's ownership system is one of its most distinctive features..."
+    // Assistant message
+    let assistant_msg_id = storage.generate_message_id();
+    let assistant_part_id = storage.generate_part_id();
+    let assistant_text_part = TextPart::new(
+        assistant_part_id.clone(),
+        "I'd be happy to help! Rust's ownership system is one of its most distinctive features..."
+            .to_string(),
+    );
+
+    let metadata = MessageMetadata {
+        model_id: Some("gpt-4".to_string()),
+        provider: Some("openai".to_string()),
+        usage: Some(UsageStats {
+            prompt_tokens: 20,
+            completion_tokens: 50,
+            total_tokens: 70,
         }),
-        metadata: MessageMetadata {
-            model_id: Some("gpt-4".to_string()),
-            provider: Some("openai".to_string()),
-            usage: Some(ai_sdk_storage::UsageStats {
-                prompt_tokens: Some(20),
-                completion_tokens: Some(50),
-                total_tokens: Some(70),
-            }),
-            finish_reason: Some("stop".to_string()),
-            tool_calls: None,
-            custom: None,
-        },
-        created_at: Utc::now(),
+        finish_reason: Some("stop".to_string()),
+        custom: None,
     };
 
-    storage.store_message(assistant_message).await?;
+    let assistant_message = AssistantMessage::new(
+        assistant_msg_id.clone(),
+        session_id.clone(),
+        vec![assistant_part_id],
+    )
+    .with_metadata(metadata);
+
+    storage
+        .store_assistant_message(
+            &assistant_message,
+            &[MessagePart::Text(assistant_text_part)],
+        )
+        .await?;
     println!("✅ Assistant message stored\n");
 
     // Retrieve conversation history
     println!("3️⃣  Retrieving conversation history...");
-    let messages = storage.get_messages("example-session-1", None).await?;
+    let message_ids = storage.list_messages(&session_id, None).await?;
 
-    println!("📜 Conversation has {} messages:", messages.len());
-    for (i, msg) in messages.iter().enumerate() {
-        println!(
-            "   {}. {:?}: {}",
-            i + 1,
-            msg.role,
-            msg.content
-                .get("text")
-                .and_then(|v| v.as_str())
-                .unwrap_or("N/A")
-        );
+    println!("📜 Conversation has {} messages:", message_ids.len());
+    for (i, msg_id) in message_ids.iter().enumerate() {
+        let (role, parts) = storage.get_message(&session_id, msg_id).await?;
+        if let Some(MessagePart::Text(text_part)) = parts.first() {
+            println!("   {}. {:?}: {}", i + 1, role, text_part.text);
+        }
     }
     println!();
 
     // Create another session
     println!("4️⃣  Creating another session...");
-    let session2 = ConversationSession {
-        id: "example-session-2".to_string(),
+    let session_id2 = storage.generate_session_id();
+    let session2 = Session {
+        id: session_id2.clone(),
         title: Some("Learning about async/await".to_string()),
         metadata: SessionMetadata {
             user_id: Some("user-123".to_string()),
@@ -130,7 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         updated_at: Utc::now(),
     };
 
-    storage.create_session(session2).await?;
+    storage.store_session(&session2).await?;
     println!("✅ Second session created\n");
 
     // List all sessions
@@ -149,7 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Delete a session
     println!("6️⃣  Deleting first session...");
-    storage.delete_session("example-session-1").await?;
+    storage.delete_session(&session_id).await?;
     println!("✅ Session deleted\n");
 
     // Verify deletion
@@ -163,7 +163,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Cleanup
     println!("🧹 Cleaning up...");
-    storage.delete_session("example-session-2").await?;
+    storage.delete_session(&session_id2).await?;
     println!("✅ All sessions cleaned up\n");
 
     println!("✨ Example completed successfully!");

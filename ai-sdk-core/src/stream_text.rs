@@ -427,9 +427,11 @@ pub struct StreamText {
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
     #[cfg(feature = "storage")]
-    storage: Option<Arc<dyn ai_sdk_storage::StorageProvider>>,
+    storage: Option<Arc<dyn ai_sdk_storage::Storage>>,
     #[cfg(feature = "storage")]
     session_id: Option<String>,
+    #[cfg(feature = "storage")]
+    load_history: bool,
 }
 
 impl StreamText {
@@ -454,6 +456,8 @@ impl StreamText {
             storage: None,
             #[cfg(feature = "storage")]
             session_id: None,
+            #[cfg(feature = "storage")]
+            load_history: true, // Default to true for automatic history loading
         }
     }
 
@@ -595,18 +599,22 @@ impl StreamText {
         self
     }
 
-    /// Enable storage of messages to a storage provider.
+    /// Enable storage for conversation persistence.
     ///
-    /// When storage is configured, messages (both user prompts and assistant responses)
-    /// will be automatically stored after successful streaming.
+    /// When storage is configured with a session ID, the system will:
+    /// 1. Load previous conversation history (if `load_history` is true)
+    /// 2. Prepend history to the current prompt
+    /// 3. Store both user and assistant messages after streaming completes
     ///
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_storage_filesystem::FilesystemStorageProvider;
+    /// use ai_sdk_storage_filesystem::FilesystemStorage;
     /// use std::sync::Arc;
     ///
-    /// let storage = Arc::new(FilesystemStorageProvider::new("./storage"));
+    /// let storage = Arc::new(FilesystemStorage::new("./storage")?);
+    /// storage.initialize().await?;
+    ///
     /// let result = StreamText::new(model, prompt)
     ///     .with_storage(storage)
     ///     .with_session_id("my-session".to_string())
@@ -614,15 +622,16 @@ impl StreamText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::StorageProvider>) -> Self {
+    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::Storage>) -> Self {
         self.storage = Some(storage);
+        self.load_history = true; // Enable history loading by default
         self
     }
 
     /// Set a session ID for conversation continuity.
     ///
-    /// Messages will be associated with this session ID in storage,
-    /// allowing you to retrieve and continue conversations later.
+    /// This identifies which conversation this streaming belongs to.
+    /// If the session doesn't exist, it will be created automatically.
     ///
     /// # Example
     ///
@@ -634,8 +643,29 @@ impl StreamText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_session_id(mut self, session_id: String) -> Self {
-        self.session_id = Some(session_id);
+    pub fn with_session_id(mut self, session_id: impl Into<String>) -> Self {
+        self.session_id = Some(session_id.into());
+        self
+    }
+
+    /// Disable automatic history loading.
+    ///
+    /// Useful for the first message in a session or when you want to
+    /// provide the full context manually.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let result = StreamText::new(model, prompt)
+    ///     .with_storage(storage)
+    ///     .with_session_id(session_id)
+    ///     .without_history() // First message, no history to load
+    ///     .execute()
+    ///     .await?;
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn without_history(mut self) -> Self {
+        self.load_history = false;
         self
     }
 
@@ -651,7 +681,32 @@ impl StreamText {
         let prepared_settings = prepare_call_settings(&self.settings)?;
 
         // Validate and standardize the prompt
-        let standardized_prompt = validate_and_standardize(self.prompt)?;
+        let mut standardized_prompt = validate_and_standardize(self.prompt)?;
+
+        // Load conversation history if storage is configured
+        #[cfg(feature = "storage")]
+        if let (Some(storage), Some(session_id)) = (&self.storage, &self.session_id)
+            && self.load_history
+        {
+            // Try to load history (session may not exist yet)
+            if let Ok(_session) = storage.get_session(session_id).await {
+                use crate::storage_conversion::load_conversation_history;
+
+                match load_conversation_history(storage, session_id).await {
+                    Ok(history) => {
+                        if !history.is_empty() {
+                            // Prepend history to current prompt
+                            let mut all_messages = history;
+                            all_messages.extend(standardized_prompt.messages);
+                            standardized_prompt.messages = all_messages;
+                        }
+                    }
+                    Err(e) => {
+                        log::warn!("Failed to load conversation history: {}", e);
+                    }
+                }
+            }
+        }
 
         // Prepare tools and tool choice
         let (provider_tools, prepared_tool_choice) =
@@ -978,20 +1033,40 @@ impl StreamText {
             if let (Some(storage), Some(session_id)) = (&storage_arc, &session_id_arc)
                 && !all_steps.is_empty()
             {
+                use crate::storage_conversion::{
+                    assistant_output_to_storage, user_message_to_storage,
+                };
+
                 // Build a result from the stream
                 let stream_result =
                     crate::generate_text::GenerateTextResult::from_steps(all_steps, total_usage);
-                let model_id = model_arc.model_id();
 
-                // Reuse the storage helpers from generate_text
-                crate::generate_text::storage_helpers::store_generation_messages(
-                    storage,
-                    session_id,
-                    &standardized_prompt_arc,
-                    &stream_result,
-                    model_id,
-                )
-                .await;
+                // Create session if it doesn't exist
+                if storage.get_session(session_id).await.is_err() {
+                    let session = ai_sdk_storage::Session::new(session_id.clone());
+                    if let Err(e) = storage.store_session(&session).await {
+                        log::warn!("Failed to create session: {}", e);
+                    }
+                }
+
+                // Store user message (from the original prompt, not including history)
+                let initial_messages = &standardized_prompt_arc.messages;
+                if let Some(user_msg) = initial_messages.iter().find(|m| m.is_user())
+                    && let crate::prompt::message::Message::User(user_message) = user_msg
+                {
+                    let (storage_msg, parts) =
+                        user_message_to_storage(storage, session_id.clone(), user_message);
+                    if let Err(e) = storage.store_user_message(&storage_msg, &parts).await {
+                        log::warn!("Failed to store user message: {}", e);
+                    }
+                }
+
+                // Store assistant message
+                let (storage_msg, parts) =
+                    assistant_output_to_storage(storage, session_id.clone(), &stream_result);
+                if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
+                    log::warn!("Failed to store assistant message: {}", e);
+                }
             }
         });
 
