@@ -296,10 +296,30 @@ pub(crate) mod storage_helpers {
         let message_id = uuid::Uuid::new_v4().to_string();
 
         let (role, content) = match message {
-            Message::User(user_msg) => (
-                MessageRole::User,
-                serde_json::to_value(&user_msg.content).unwrap_or_default(),
-            ),
+            Message::User(user_msg) => {
+                // Extract text from UserContent for consistent storage format
+                use crate::prompt::message::UserContent;
+                let text = match &user_msg.content {
+                    UserContent::Text(text) => text.clone(),
+                    UserContent::Parts(parts) => {
+                        // Concatenate text from all text parts
+                        parts
+                            .iter()
+                            .filter_map(|part| {
+                                if let crate::prompt::message::UserContentPart::Text(text_part) =
+                                    part
+                                {
+                                    Some(text_part.text.as_str())
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    }
+                };
+                (MessageRole::User, serde_json::json!({ "text": text }))
+            }
             Message::System(system_msg) => (
                 MessageRole::System,
                 serde_json::json!({ "text": system_msg.content }),

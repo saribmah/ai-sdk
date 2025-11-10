@@ -26,7 +26,7 @@ edition.workspace = true
 publish = false
 
 [dependencies]
-ai-sdk-core = { path = "ai-sdk-core" }
+ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
 ai-sdk-provider = { path = "ai-sdk-provider" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 ai-sdk-storage = { path = "ai-sdk-storage" }
@@ -40,8 +40,24 @@ schemars = "0.8"
 chrono = "0.4"
 
 [[example]]
+name = "agent_generate"
+path = "examples/agent_generate.rs"
+
+[[example]]
+name = "agent_stream"
+path = "examples/agent_stream.rs"
+
+[[example]]
 name = "basic_chat"
 path = "examples/basic_chat.rs"
+
+[[example]]
+name = "basic_embedding"
+path = "examples/basic_embedding.rs"
+
+[[example]]
+name = "basic_image"
+path = "examples/basic_image.rs"
 
 [[example]]
 name = "conversation"
@@ -79,13 +95,10 @@ path = "examples/type_safe_tools.rs"
 name = "storage_basic"
 path = "examples/storage_basic.rs"
 
-# Note: These examples require an API key and integration
-# with GenerateText/StreamText. They are kept for documentation
-# but commented out until the storage integration is fully tested.
-# [[example]]
-# name = "storage_with_generate"
-# path = "examples/storage_with_generate.rs"
+[[example]]
+name = "storage_with_generate"
+path = "examples/storage_with_generate.rs"
 
-# [[example]]
-# name = "storage_with_stream"
-# path = "examples/storage_with_stream.rs"
+[[example]]
+name = "storage_with_stream"
+path = "examples/storage_with_stream.rs"

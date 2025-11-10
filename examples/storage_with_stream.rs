@@ -66,22 +66,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🤖 Response (streaming):\n");
 
-    let mut stream = result.text_stream;
+    let mut stream = result.text_stream();
     let mut full_text = String::new();
 
-    while let Some(chunk) = stream.next().await {
-        match chunk {
-            Ok(text) => {
-                print!("{}", text);
-                full_text.push_str(&text);
-                // Flush stdout to see the streaming effect
-                use std::io::Write;
-                std::io::stdout().flush().unwrap();
-            }
-            Err(e) => {
-                eprintln!("\n❌ Stream error: {}", e);
-            }
-        }
+    while let Some(text) = stream.next().await {
+        print!("{}", text);
+        full_text.push_str(&text);
+        // Flush stdout to see the streaming effect
+        use std::io::Write;
+        std::io::stdout().flush().unwrap();
     }
 
     println!("\n\n✓ Stream completed");
@@ -111,20 +104,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // Show metadata for assistant messages
-        if matches!(msg.role, ai_sdk_storage::MessageRole::Assistant) {
-            if let Some(usage) = &msg.metadata.usage {
-                println!("   📊 Token usage:");
-                if let Some(prompt_tokens) = usage.prompt_tokens {
-                    println!("      Prompt: {}", prompt_tokens);
-                }
-                if let Some(completion_tokens) = usage.completion_tokens {
-                    println!("      Completion: {}", completion_tokens);
-                }
-                if let Some(total_tokens) = usage.total_tokens {
-                    println!("      Total: {}", total_tokens);
-                }
-                println!();
+        if matches!(msg.role, ai_sdk_storage::MessageRole::Assistant)
+            && let Some(usage) = &msg.metadata.usage
+        {
+            println!("   📊 Token usage:");
+            if let Some(prompt_tokens) = usage.prompt_tokens {
+                println!("      Prompt: {}", prompt_tokens);
             }
+            if let Some(completion_tokens) = usage.completion_tokens {
+                println!("      Completion: {}", completion_tokens);
+            }
+            if let Some(total_tokens) = usage.total_tokens {
+                println!("      Total: {}", total_tokens);
+            }
+            println!();
         }
     }
 
@@ -144,19 +137,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🤖 Response (streaming):\n");
 
-    let mut stream2 = result2.text_stream;
+    let mut stream2 = result2.text_stream();
 
-    while let Some(chunk) = stream2.next().await {
-        match chunk {
-            Ok(text) => {
-                print!("{}", text);
-                use std::io::Write;
-                std::io::stdout().flush().unwrap();
-            }
-            Err(e) => {
-                eprintln!("\n❌ Stream error: {}", e);
-            }
-        }
+    while let Some(text) = stream2.next().await {
+        print!("{}", text);
+        use std::io::Write;
+        std::io::stdout().flush().unwrap();
     }
 
     println!("\n\n✓ Second stream completed\n");

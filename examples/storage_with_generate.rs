@@ -63,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .execute()
         .await?;
 
-    println!("🤖 Response: {}\n", result1.text());
+    println!("🤖 Response: {}\n", result1.text);
     println!("✓ Message automatically stored to session\n");
 
     // Second question with the same storage and session
@@ -80,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .execute()
         .await?;
 
-    println!("🤖 Response: {}\n", result2.text());
+    println!("🤖 Response: {}\n", result2.text);
     println!("✓ Message automatically stored to session\n");
 
     // Retrieve and display conversation history
