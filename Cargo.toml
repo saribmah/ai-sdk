@@ -5,6 +5,8 @@ members = [
     "ai-sdk-provider",
     "ai-sdk-utils",
     "ai-sdk-openai-compatible",
+    "ai-sdk-storage",
+    "ai-sdk-storage-filesystem",
 ]
 
 [workspace.package]
@@ -23,20 +25,42 @@ version.workspace = true
 edition.workspace = true
 publish = false
 
+[features]
+storage = ["ai-sdk-core/storage"]
+
 [dependencies]
-ai-sdk-core = { path = "ai-sdk-core" }
+ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
 ai-sdk-provider = { path = "ai-sdk-provider" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
+ai-sdk-storage = { path = "ai-sdk-storage" }
+ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
 tokio = { version = "1.41", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 futures-util = "0.3"
 async-trait = "0.1"
 schemars = "0.8"
+chrono = "0.4"
+
+[[example]]
+name = "agent_generate"
+path = "examples/agent_generate.rs"
+
+[[example]]
+name = "agent_stream"
+path = "examples/agent_stream.rs"
 
 [[example]]
 name = "basic_chat"
 path = "examples/basic_chat.rs"
+
+[[example]]
+name = "basic_embedding"
+path = "examples/basic_embedding.rs"
+
+[[example]]
+name = "basic_image"
+path = "examples/basic_image.rs"
 
 [[example]]
 name = "conversation"
@@ -69,3 +93,29 @@ path = "examples/stream_tool_calling.rs"
 [[example]]
 name = "type_safe_tools"
 path = "examples/type_safe_tools.rs"
+
+[[example]]
+name = "storage_basic"
+path = "examples/storage_basic.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "storage_filesystem_basic"
+path = "examples/storage_filesystem_basic.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "storage_filesystem_conversation"
+path = "examples/storage_filesystem_conversation.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "storage_conversation_full"
+path = "examples/storage_conversation_full.rs"
+required-features = ["storage"]
+
+[[example]]
+name = "agent_storage_conversation"
+path = "examples/agent_storage_conversation.rs"
+required-features = ["storage"]
+

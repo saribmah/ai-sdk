@@ -21,6 +21,7 @@ serde_bytes = "0.11"   # For efficient byte array serialization
 schemars = "0.8"       # For JSON schema generation from Rust types
 url = "2.5.7"          # For URL parsing
 ai-sdk-provider = { path = "../ai-sdk-provider" }  # Provider types and traits
+ai-sdk-storage = { path = "../ai-sdk-storage", optional = true }  # Optional storage functionality
 async-stream = "0.3"   # For async generators
 futures-util = "0.3"   # For Stream trait and StreamExt
 async-trait = "0.1.89" # For async trait implementations
@@ -28,8 +29,16 @@ futures = "0.3"        # For future utilities like join_all
 jsonschema = "0.29"    # For JSON Schema validation
 reqwest = "0.12"       # For downloading audio/files from URLs
 log = "0.4"            # For logging warnings
+uuid = { version = "1.11", features = ["v4"] }  # For generating unique IDs
+chrono = { version = "0.4", optional = true }  # For timestamps (storage feature)
+
+[features]
+default = []
+storage = ["ai-sdk-storage", "chrono"]  # Enable storage functionality
 
 [dev-dependencies]
 tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests
 async-trait = "0.1.89"  # For async trait implementations in tests
 regex = "1.12.2"  # For Regex in tests
+ai-sdk-storage-filesystem = { path = "../ai-sdk-storage-filesystem" }  # For storage tests
+tempfile = "3.0"  # For temporary directories in storage tests

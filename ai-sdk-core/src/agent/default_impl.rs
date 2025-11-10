@@ -132,6 +132,17 @@ impl AgentInterface for Agent {
             builder = builder.stop_when(vec![Box::new(step_count_is(20))]);
         }
 
+        // Apply storage settings (if feature enabled)
+        #[cfg(feature = "storage")]
+        {
+            if let Some(storage) = &self.settings.storage {
+                builder = builder.with_storage(storage.clone());
+            }
+            if let Some(session_id) = &self.settings.session_id {
+                builder = builder.with_session_id(session_id.clone());
+            }
+        }
+
         // Apply other settings
         if let Some(prepare_step) = &self.settings.prepare_step {
             builder = builder.prepare_step(Box::new(ArcPrepareStepWrapper(prepare_step.clone())));
@@ -197,6 +208,17 @@ impl AgentInterface for Agent {
         } else {
             // Default stop condition
             builder = builder.stop_when(vec![Box::new(step_count_is(20))]);
+        }
+
+        // Apply storage settings (if feature enabled)
+        #[cfg(feature = "storage")]
+        {
+            if let Some(storage) = &self.settings.storage {
+                builder = builder.with_storage(storage.clone());
+            }
+            if let Some(session_id) = &self.settings.session_id {
+                builder = builder.with_session_id(session_id.clone());
+            }
         }
 
         // Apply other settings
