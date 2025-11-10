@@ -9,8 +9,7 @@
 //! Run with: `cargo run --example storage_conversation_full`
 
 use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
-use ai_sdk_provider::Provider;
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 use ai_sdk_storage::Storage;
 use ai_sdk_storage_filesystem::FilesystemStorage;
 use std::sync::Arc;
@@ -21,12 +20,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize provider
     let api_key = std::env::var("OPENAI_API_KEY")?;
-    let settings = OpenAICompatibleProviderSettings {
-        api_key: Some(api_key),
-        ..Default::default()
-    };
-    let provider = OpenAICompatibleProvider::new(settings);
-    let model = provider.language_model("gpt-4o-mini")?;
+    let provider = OpenAICompatibleClient::new()
+        .base_url("https://openrouter.ai/api/v1")
+        .api_key(api_key)
+        .build();
+    let model = provider.chat_model("openai/gpt-4o");
 
     // Initialize storage
     let storage_path = std::env::temp_dir().join("ai-sdk-conversation-example");
