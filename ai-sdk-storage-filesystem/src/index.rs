@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use crate::error::FilesystemError;
+use crate::utils::{read_json, write_json};
 
 /// Index for messages within a conversation session.
 ///
@@ -51,13 +52,24 @@ impl MessageIndex {
     }
 
     /// Loads a message index from a file.
-    pub async fn load(_path: &Path) -> Result<Self, FilesystemError> {
-        todo!("MessageIndex::load")
+    ///
+    /// If the file doesn't exist, returns an error.
+    pub async fn load(path: &Path) -> Result<Self, FilesystemError> {
+        read_json(path).await
+    }
+
+    /// Loads a message index from a file, or creates a new one if it doesn't exist.
+    pub async fn load_or_new(path: &Path, session_id: String) -> Result<Self, FilesystemError> {
+        match Self::load(path).await {
+            Ok(index) => Ok(index),
+            Err(FilesystemError::Io(_)) => Ok(Self::new(session_id)),
+            Err(e) => Err(e),
+        }
     }
 
     /// Saves the message index to a file.
-    pub async fn save(&self, _path: &Path) -> Result<(), FilesystemError> {
-        todo!("MessageIndex::save")
+    pub async fn save(&self, path: &Path) -> Result<(), FilesystemError> {
+        write_json(path, self).await
     }
 }
 
@@ -127,13 +139,24 @@ impl SessionIndex {
     }
 
     /// Loads the session index from a file.
-    pub async fn load(_path: &Path) -> Result<Self, FilesystemError> {
-        todo!("SessionIndex::load")
+    ///
+    /// If the file doesn't exist, returns an error.
+    pub async fn load(path: &Path) -> Result<Self, FilesystemError> {
+        read_json(path).await
+    }
+
+    /// Loads the session index from a file, or creates a new one if it doesn't exist.
+    pub async fn load_or_new(path: &Path) -> Result<Self, FilesystemError> {
+        match Self::load(path).await {
+            Ok(index) => Ok(index),
+            Err(FilesystemError::Io(_)) => Ok(Self::new()),
+            Err(e) => Err(e),
+        }
     }
 
     /// Saves the session index to a file.
-    pub async fn save(&self, _path: &Path) -> Result<(), FilesystemError> {
-        todo!("SessionIndex::save")
+    pub async fn save(&self, path: &Path) -> Result<(), FilesystemError> {
+        write_json(path, self).await
     }
 }
 
