@@ -65,6 +65,7 @@
 pub mod conversation;
 pub mod error;
 pub mod provider;
+pub mod utils;
 
 // Re-export key types for convenience
 pub use conversation::{

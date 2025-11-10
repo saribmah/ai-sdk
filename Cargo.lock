@@ -30,9 +30,11 @@ name = "ai-sdk-core"
 version = "0.1.0"
 dependencies = [
  "ai-sdk-provider",
+ "ai-sdk-storage",
  "async-stream",
  "async-trait",
  "base64",
+ "chrono",
  "futures",
  "futures-util",
  "jsonschema",
@@ -47,6 +49,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "url",
+ "uuid",
 ]
 
 [[package]]
@@ -112,6 +115,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

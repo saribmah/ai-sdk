@@ -426,6 +426,10 @@ pub struct StreamText {
     on_error: Option<OnErrorCallback>,
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
+    #[cfg(feature = "storage")]
+    storage: Option<Arc<dyn ai_sdk_storage::StorageProvider>>,
+    #[cfg(feature = "storage")]
+    session_id: Option<String>,
 }
 
 impl StreamText {
@@ -446,6 +450,10 @@ impl StreamText {
             on_error: None,
             on_step_finish: None,
             on_finish: None,
+            #[cfg(feature = "storage")]
+            storage: None,
+            #[cfg(feature = "storage")]
+            session_id: None,
         }
     }
 
@@ -587,6 +595,50 @@ impl StreamText {
         self
     }
 
+    /// Enable storage of messages to a storage provider.
+    ///
+    /// When storage is configured, messages (both user prompts and assistant responses)
+    /// will be automatically stored after successful streaming.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use ai_sdk_storage_filesystem::FilesystemStorageProvider;
+    /// use std::sync::Arc;
+    ///
+    /// let storage = Arc::new(FilesystemStorageProvider::new("./storage"));
+    /// let result = StreamText::new(model, prompt)
+    ///     .with_storage(storage)
+    ///     .with_session_id("my-session".to_string())
+    ///     .execute()
+    ///     .await?;
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::StorageProvider>) -> Self {
+        self.storage = Some(storage);
+        self
+    }
+
+    /// Set a session ID for conversation continuity.
+    ///
+    /// Messages will be associated with this session ID in storage,
+    /// allowing you to retrieve and continue conversations later.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let result = StreamText::new(model, prompt)
+    ///     .with_storage(storage)
+    ///     .with_session_id("session-123".to_string())
+    ///     .execute()
+    ///     .await?;
+    /// ```
+    #[cfg(feature = "storage")]
+    pub fn with_session_id(mut self, session_id: String) -> Self {
+        self.session_id = Some(session_id);
+        self
+    }
+
     /// Executes the text streaming with the configured settings.
     pub async fn execute(self) -> Result<StreamTextResult, AISDKError> {
         // Initialize stop conditions with default if not provided
@@ -623,6 +675,10 @@ impl StreamText {
         let model_arc = self.model; // model is already Arc<dyn LanguageModel>
         let stop_conditions_arc = stop_conditions;
         let include_raw_chunks = self.include_raw_chunks;
+        #[cfg(feature = "storage")]
+        let storage_arc = self.storage;
+        #[cfg(feature = "storage")]
+        let session_id_arc = self.session_id;
 
         // Spawn a task to handle the multi-step streaming
         let tx_clone = tx.clone();
@@ -911,10 +967,31 @@ impl StreamText {
             {
                 let event = callbacks::StreamTextFinishEvent {
                     step_result: last_step.clone(),
-                    steps: all_steps,
+                    steps: all_steps.clone(),
                     total_usage,
                 };
                 callback(event).await;
+            }
+
+            // Store messages if storage is configured
+            #[cfg(feature = "storage")]
+            if let (Some(storage), Some(session_id)) = (&storage_arc, &session_id_arc)
+                && !all_steps.is_empty()
+            {
+                // Build a result from the stream
+                let stream_result =
+                    crate::generate_text::GenerateTextResult::from_steps(all_steps, total_usage);
+                let model_id = model_arc.model_id();
+
+                // Reuse the storage helpers from generate_text
+                crate::generate_text::storage_helpers::store_generation_messages(
+                    storage,
+                    session_id,
+                    &standardized_prompt_arc,
+                    &stream_result,
+                    model_id,
+                )
+                .await;
             }
         });
 
