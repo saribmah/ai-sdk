@@ -29,6 +29,7 @@ dependencies = [
 name = "ai-sdk-anthropic"
 version = "0.1.0"
 dependencies = [
+ "ai-sdk-provider",
  "serde",
  "serde_json",
 ]
