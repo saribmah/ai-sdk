@@ -8,10 +8,8 @@ pub mod is_approval_needed;
 pub mod parse_tool_call;
 /// Preparation of tools and tool choice for provider calls.
 pub mod prepare_tools;
-/// Output type for tool approval requests.
-pub mod tool_approval_request_output;
 /// Tool call repair functions for fixing malformed inputs.
-pub mod tool_call_repair_function;
+pub mod repair_function;
 /// Tool set collection type.
 pub mod tool_set;
 /// Type-safe tool trait with compile-time schema validation.
@@ -24,7 +22,6 @@ pub use execute_tool_call::execute_tool_call;
 pub use is_approval_needed::is_approval_needed;
 pub use parse_tool_call::{parse_provider_executed_dynamic_tool_call, parse_tool_call};
 pub use prepare_tools::prepare_tools_and_tool_choice;
-pub use tool_approval_request_output::ToolApprovalRequestOutput;
-pub use tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
+pub use repair_function::{ToolCallRepairFunction, ToolCallRepairOptions, no_repair};
 pub use tool_set::ToolSet;
 pub use type_safe::TypeSafeTool;

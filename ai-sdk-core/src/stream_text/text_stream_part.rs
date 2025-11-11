@@ -1,12 +1,11 @@
 use crate::generate_text::RequestMetadata;
 use crate::output::SourceOutput;
-use crate::tool::ToolApprovalRequestOutput;
 use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
 use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
 use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolResult};
+use ai_sdk_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall, ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

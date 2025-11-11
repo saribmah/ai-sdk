@@ -67,7 +67,7 @@ impl ToolCallRepairOptions {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::tool::tool_call_repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
+/// use ai_sdk_core::tool::repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
 /// use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
 /// use std::future::Future;
 /// use std::pin::Pin;
@@ -98,7 +98,7 @@ pub type ToolCallRepairFunction = Box<
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::tool::tool_call_repair_function::no_repair;
+/// use ai_sdk_core::tool::repair_function::no_repair;
 ///
 /// let repair_fn = no_repair();
 /// // This repair function will always return None, indicating no repair is possible

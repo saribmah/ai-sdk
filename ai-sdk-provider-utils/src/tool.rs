@@ -1,5 +1,7 @@
 /// Tool approval request types.
 pub mod approval_request;
+/// Output type for tool approval requests.
+pub mod approval_request_output;
 /// Tool approval response types.
 pub mod approval_response;
 /// Tool definition and execution logic.
@@ -20,6 +22,7 @@ use crate::tool::callbacks::{
 };
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 pub use approval_request::ToolApprovalRequest;
+pub use approval_request_output::ToolApprovalRequestOutput;
 pub use approval_response::ToolApprovalResponse;
 pub use callbacks::{
     NeedsApproval, OnPreliminaryToolResult, ToolExecuteFunction, ToolExecutionOutput,
