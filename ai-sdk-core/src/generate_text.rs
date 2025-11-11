@@ -864,15 +864,24 @@ impl GenerateText {
         // Create the result
         let result = GenerateTextResult::from_steps(steps, total_usage);
 
-        // Store assistant message if storage is configured (user message already stored)
+        // Store all response messages if storage is configured (user message already stored)
         #[cfg(feature = "storage")]
         if let (Some(storage), Some(session_id)) = (&self.storage, &self.session_id) {
-            use crate::storage_conversion::assistant_output_to_storage;
+            use crate::storage_conversion::response_messages_to_storage;
 
-            let (storage_msg, parts) =
-                assistant_output_to_storage(storage, session_id.clone(), &result);
-            if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
-                log::warn!("Failed to store assistant message: {}", e);
+            // Convert all response messages (assistant + tool) to storage format
+            let storage_messages = response_messages_to_storage(
+                storage,
+                session_id.clone(),
+                &response_messages,
+                &result,
+            );
+
+            // Store each message
+            for (storage_msg, parts) in storage_messages {
+                if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
+                    log::warn!("Failed to store response message: {}", e);
+                }
             }
         }
 

@@ -118,6 +118,295 @@ pub fn user_message_to_storage(
     (storage_message, parts)
 }
 
+/// Convert response messages to storage format.
+///
+/// Takes all response messages from a generation (assistant + tool messages) and converts
+/// them to storage format. Tool messages are stored as assistant messages containing only
+/// tool result parts, which allows them to be distinguished when loading.
+///
+/// # Arguments
+///
+/// * `storage` - Storage instance for generating IDs
+/// * `session_id` - Session these messages belong to
+/// * `response_messages` - All response messages from the generation
+/// * `result` - The final generation result for metadata (model_id, usage, finish_reason)
+///
+/// # Returns
+///
+/// A vector of tuples (StorageAssistantMessage, Vec<MessagePart>) ready to be stored
+///
+/// # Example
+///
+/// ```ignore
+/// let storage_messages = response_messages_to_storage(&storage, session_id, &response_messages, &result);
+/// for (msg, parts) in storage_messages {
+///     storage.store_assistant_message(&msg, &parts).await?;
+/// }
+/// ```
+pub fn response_messages_to_storage(
+    storage: &Arc<dyn Storage>,
+    session_id: String,
+    response_messages: &[crate::ResponseMessage],
+    result: &GenerateTextResult,
+) -> Vec<(StorageAssistantMessage, Vec<MessagePart>)> {
+    use crate::ResponseMessage;
+    use crate::prompt::message::AssistantContent;
+
+    let mut storage_messages = Vec::new();
+
+    for response_msg in response_messages {
+        let message_id = storage.generate_message_id();
+        let mut parts = Vec::new();
+        let mut part_ids = Vec::new();
+
+        match response_msg {
+            ResponseMessage::Assistant(assistant_msg) => {
+                // Convert assistant message content to storage parts
+                match &assistant_msg.content {
+                    AssistantContent::Text(text) => {
+                        let part_id = storage.generate_part_id();
+                        parts.push(MessagePart::Text(TextPart::new(
+                            part_id.clone(),
+                            text.clone(),
+                        )));
+                        part_ids.push(part_id);
+                    }
+                    AssistantContent::Parts(content_parts) => {
+                        for content_part in content_parts {
+                            let part_id = storage.generate_part_id();
+
+                            let part = match content_part {
+                                crate::prompt::message::AssistantContentPart::Text(text) => {
+                                    MessagePart::Text(TextPart::new(
+                                        part_id.clone(),
+                                        text.text.clone(),
+                                    ))
+                                }
+                                crate::prompt::message::AssistantContentPart::Reasoning(
+                                    reasoning,
+                                ) => MessagePart::Reasoning(ReasoningPart::new(
+                                    part_id.clone(),
+                                    reasoning.text.clone(),
+                                )),
+                                crate::prompt::message::AssistantContentPart::ToolCall(
+                                    tool_call,
+                                ) => MessagePart::ToolCall(ToolCallPart::new(
+                                    part_id.clone(),
+                                    tool_call.tool_call_id.clone(),
+                                    tool_call.tool_name.clone(),
+                                    tool_call.input.clone(),
+                                )),
+                                crate::prompt::message::AssistantContentPart::ToolResult(
+                                    tool_result,
+                                ) => {
+                                    // Convert ToolResultOutput to storage format
+                                    use crate::prompt::message::content_parts::ToolResultOutput;
+                                    match &tool_result.output {
+                                        ToolResultOutput::Text { value, .. } => {
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    serde_json::Value::String(value.clone()),
+                                                ),
+                                            )
+                                        }
+                                        ToolResultOutput::Json { value, .. } => {
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    value.clone(),
+                                                ),
+                                            )
+                                        }
+                                        ToolResultOutput::Content { value, .. } => {
+                                            // For content array, serialize the whole array
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    serde_json::to_value(value).unwrap_or_default(),
+                                                ),
+                                            )
+                                        }
+                                        ToolResultOutput::ExecutionDenied { reason, .. } => {
+                                            let error_msg = reason
+                                                .clone()
+                                                .unwrap_or_else(|| "Execution denied".to_string());
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    error_msg,
+                                                ),
+                                            )
+                                        }
+                                        ToolResultOutput::ErrorText { value, .. } => {
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    value.clone(),
+                                                ),
+                                            )
+                                        }
+                                        ToolResultOutput::ErrorJson { value, .. } => {
+                                            MessagePart::ToolResult(
+                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                    part_id.clone(),
+                                                    tool_result.tool_call_id.clone(),
+                                                    tool_result.tool_name.clone(),
+                                                    value.to_string(),
+                                                ),
+                                            )
+                                        }
+                                    }
+                                }
+                                crate::prompt::message::AssistantContentPart::File(file) => {
+                                    generated_file_to_storage_from_file_part(part_id.clone(), file)
+                                }
+                                crate::prompt::message::AssistantContentPart::ToolApprovalRequest(
+                                    _,
+                                ) => {
+                                    // Skip tool approval requests - they're not persisted
+                                    continue;
+                                }
+                            };
+
+                            parts.push(part);
+                            part_ids.push(part_id);
+                        }
+                    }
+                }
+
+                // Build metadata only for the last message (final result)
+                let metadata = if response_msg == response_messages.last().unwrap()
+                    && matches!(response_msg, ResponseMessage::Assistant(_))
+                {
+                    MessageMetadata {
+                        model_id: result.response.model_id.clone(),
+                        provider: None,
+                        usage: Some(UsageStats::new(
+                            result.usage.input_tokens as u32,
+                            result.usage.output_tokens as u32,
+                        )),
+                        finish_reason: Some(format!("{:?}", result.finish_reason)),
+                        custom: None,
+                    }
+                } else {
+                    MessageMetadata::default()
+                };
+
+                let storage_message =
+                    StorageAssistantMessage::new(message_id, session_id.clone(), part_ids)
+                        .with_metadata(metadata);
+
+                storage_messages.push((storage_message, parts));
+            }
+            ResponseMessage::Tool(tool_msg) => {
+                // Convert tool message to assistant message with only tool result parts
+                for tool_content_part in &tool_msg.content {
+                    match tool_content_part {
+                        crate::prompt::message::tool::ToolContentPart::ToolResult(tool_result) => {
+                            let part_id = storage.generate_part_id();
+
+                            let part = {
+                                use crate::prompt::message::content_parts::ToolResultOutput;
+                                match &tool_result.output {
+                                    ToolResultOutput::Text { value, .. } => {
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_success(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                serde_json::Value::String(value.clone()),
+                                            ),
+                                        )
+                                    }
+                                    ToolResultOutput::Json { value, .. } => {
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_success(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                value.clone(),
+                                            ),
+                                        )
+                                    }
+                                    ToolResultOutput::Content { value, .. } => {
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_success(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                serde_json::to_value(value).unwrap_or_default(),
+                                            ),
+                                        )
+                                    }
+                                    ToolResultOutput::ExecutionDenied { reason, .. } => {
+                                        let error_msg = reason
+                                            .clone()
+                                            .unwrap_or_else(|| "Execution denied".to_string());
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_error(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                error_msg,
+                                            ),
+                                        )
+                                    }
+                                    ToolResultOutput::ErrorText { value, .. } => {
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_error(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                value.clone(),
+                                            ),
+                                        )
+                                    }
+                                    ToolResultOutput::ErrorJson { value, .. } => {
+                                        MessagePart::ToolResult(
+                                            ai_sdk_storage::ToolResultPart::new_error(
+                                                part_id.clone(),
+                                                tool_result.tool_call_id.clone(),
+                                                tool_result.tool_name.clone(),
+                                                value.to_string(),
+                                            ),
+                                        )
+                                    }
+                                }
+                            };
+
+                            parts.push(part);
+                            part_ids.push(part_id);
+                        }
+                        crate::prompt::message::tool::ToolContentPart::ApprovalResponse(_) => {
+                            // Skip approval responses - they're not persisted
+                            continue;
+                        }
+                    }
+                }
+
+                // Store as assistant message with no metadata (intermediate step)
+                let storage_message =
+                    StorageAssistantMessage::new(message_id, session_id.clone(), part_ids);
+
+                storage_messages.push((storage_message, parts));
+            }
+        }
+    }
+
+    storage_messages
+}
+
 /// Convert assistant output to storage format.
 ///
 /// Takes the model's output and converts it to storage format, including all outputs
@@ -222,7 +511,9 @@ pub fn assistant_output_to_storage(
 /// Load conversation history from storage and convert to prompt messages.
 ///
 /// Retrieves all messages in a session and converts them back to the prompt format
-/// used by `GenerateText` and `StreamText`.
+/// used by `GenerateText` and `StreamText`. Assistant messages that contain ONLY
+/// tool results are reconstructed as `Message::Tool` to preserve the original
+/// conversation structure.
 ///
 /// # Arguments
 ///
@@ -259,8 +550,21 @@ pub async fn load_conversation_history(
                 messages.push(Message::User(message));
             }
             MessageRole::Assistant => {
-                let message = parts_to_assistant_message(&parts);
-                messages.push(Message::Assistant(message));
+                // Check if this is actually a tool message (contains ONLY tool results)
+                let is_tool_message = !parts.is_empty()
+                    && parts
+                        .iter()
+                        .all(|part| matches!(part, MessagePart::ToolResult(_)));
+
+                if is_tool_message {
+                    // Reconstruct as Tool message
+                    let tool_message = parts_to_tool_message(&parts);
+                    messages.push(Message::Tool(tool_message));
+                } else {
+                    // Regular assistant message
+                    let message = parts_to_assistant_message(&parts);
+                    messages.push(Message::Assistant(message));
+                }
             }
             MessageRole::System => {
                 // Handle system messages if needed in the future
@@ -309,6 +613,26 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
     }
 
     UserMessage::with_parts(content_parts)
+}
+
+/// Convert storage parts to a ToolMessage.
+///
+/// Internal helper function that reconstructs a tool message from stored parts.
+/// This is used when an assistant message contains ONLY tool results.
+fn parts_to_tool_message(parts: &[MessagePart]) -> crate::prompt::message::ToolMessage {
+    use crate::prompt::message::tool::{ToolContentPart, ToolMessage};
+
+    let mut tool_content: Vec<ToolContentPart> = Vec::new();
+
+    for part in parts {
+        if let MessagePart::ToolResult(tool_result) = part
+            && let Some(result_part) = storage_tool_result_to_tool_content(tool_result)
+        {
+            tool_content.push(result_part);
+        }
+    }
+
+    ToolMessage::new(tool_content)
 }
 
 /// Convert storage parts to an AssistantMessage.
@@ -535,6 +859,37 @@ fn generated_file_to_storage(
     MessagePart::File(storage_part)
 }
 
+/// Convert a FilePart (from assistant message) to storage format.
+fn generated_file_to_storage_from_file_part(
+    id: String,
+    file: &crate::prompt::message::FilePart,
+) -> MessagePart {
+    use crate::prompt::message::{DataContent, FileSource};
+    use ai_sdk_storage::FilePart as StorageFilePart;
+
+    let storage_data = match &file.data {
+        FileSource::Data(data_content) => match data_content {
+            DataContent::Base64(base64_str) => StorageFileData::Base64 {
+                data: base64_str.clone(),
+            },
+            DataContent::Bytes(bytes) => StorageFileData::Binary {
+                data: bytes.clone(),
+            },
+        },
+        FileSource::Url(url) => StorageFileData::Url {
+            url: url.to_string(),
+        },
+    };
+
+    let mut storage_part = StorageFilePart::new(id, file.media_type.clone(), storage_data);
+
+    if let Some(filename) = &file.filename {
+        storage_part = storage_part.with_filename(filename.clone());
+    }
+
+    MessagePart::File(storage_part)
+}
+
 /// Convert storage FilePart to assistant message part.
 fn storage_file_to_assistant(
     file: &StorageFilePart,
@@ -587,6 +942,34 @@ fn storage_tool_result_to_assistant(
     );
 
     Some(AssistantContentPart::ToolResult(prompt_tool_result))
+}
+
+/// Convert storage ToolResultPart to tool content part.
+fn storage_tool_result_to_tool_content(
+    tool_result: &ai_sdk_storage::ToolResultPart,
+) -> Option<crate::prompt::message::tool::ToolContentPart> {
+    use crate::prompt::message::tool::ToolContentPart;
+    use crate::prompt::message::{ToolResultOutput, ToolResultPart as PromptToolResultPart};
+    use ai_sdk_storage::ToolResultData;
+
+    let output = match &tool_result.result {
+        ToolResultData::Success { output } => ToolResultOutput::Json {
+            value: output.clone(),
+            provider_options: None,
+        },
+        ToolResultData::Error { error } => ToolResultOutput::Text {
+            value: format!("Error: {}", error),
+            provider_options: None,
+        },
+    };
+
+    let prompt_tool_result = PromptToolResultPart::new(
+        tool_result.tool_call_id.clone(),
+        tool_result.tool_name.clone(),
+        output,
+    );
+
+    Some(ToolContentPart::ToolResult(prompt_tool_result))
 }
 
 #[cfg(all(test, feature = "storage"))]

@@ -1054,22 +1054,30 @@ impl StreamText {
                 callback(event).await;
             }
 
-            // Store assistant message if storage is configured (user message already stored)
+            // Store all response messages if storage is configured (user message already stored)
             #[cfg(feature = "storage")]
             if let (Some(storage), Some(session_id)) = (&storage_arc, &session_id_arc)
                 && !all_steps.is_empty()
             {
-                use crate::storage_conversion::assistant_output_to_storage;
+                use crate::storage_conversion::response_messages_to_storage;
 
-                // Build a result from the stream
+                // Build a result from the stream for metadata
                 let stream_result =
                     crate::generate_text::GenerateTextResult::from_steps(all_steps, total_usage);
 
-                // Store assistant message
-                let (storage_msg, parts) =
-                    assistant_output_to_storage(storage, session_id.clone(), &stream_result);
-                if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
-                    log::warn!("Failed to store assistant message: {}", e);
+                // Convert all response messages (assistant + tool) to storage format
+                let storage_messages = response_messages_to_storage(
+                    storage,
+                    session_id.clone(),
+                    &response_messages,
+                    &stream_result,
+                );
+
+                // Store each message
+                for (storage_msg, parts) in storage_messages {
+                    if let Err(e) = storage.store_assistant_message(&storage_msg, &parts).await {
+                        log::warn!("Failed to store response message: {}", e);
+                    }
                 }
             }
         });
