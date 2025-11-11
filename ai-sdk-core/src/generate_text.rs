@@ -31,17 +31,13 @@ pub use stop_condition::{
 pub use to_response_messages::to_response_messages;
 
 use crate::error::AISDKError;
-use crate::prompt::message::Message;
 use crate::prompt::{
     Prompt,
     call_settings::{CallSettings, prepare_call_settings},
     convert_to_language_model_prompt::convert_to_language_model_prompt,
     standardize::{StandardizedPrompt, validate_and_standardize},
 };
-use crate::tool::{
-    ToolCall, ToolError, ToolOutput, ToolResult, ToolSet, execute_tool_call, parse_tool_call,
-    prepare_tools_and_tool_choice,
-};
+use crate::tool::{ToolSet, execute_tool_call, parse_tool_call, prepare_tools_and_tool_choice};
 use ai_sdk_provider::{
     language_model::tool_choice::LanguageModelToolChoice,
     language_model::{
@@ -49,6 +45,8 @@ use ai_sdk_provider::{
     },
     shared::provider_options::SharedProviderOptions,
 };
+use ai_sdk_provider_utils::message::Message;
+use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolOutput, ToolResult};
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 

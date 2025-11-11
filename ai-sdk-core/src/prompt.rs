@@ -4,12 +4,10 @@ pub mod call_settings;
 pub mod convert_to_language_model_prompt;
 /// Creation of tool model output from responses.
 pub mod create_tool_model_output;
-/// Message types for prompts.
-pub mod message;
 /// Standardization of prompts for language models.
 pub mod standardize;
 
-use message::Message;
+use ai_sdk_provider_utils::message::Message;
 use serde::{Deserialize, Serialize};
 
 /// Prompt part of the AI function options.
@@ -161,7 +159,7 @@ impl PromptContent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use message::{UserContent, UserMessage};
+    use ai_sdk_provider_utils::message::{UserContent, UserMessage};
 
     #[test]
     fn test_text_prompt() {

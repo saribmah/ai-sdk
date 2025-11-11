@@ -1,4 +1,4 @@
-use super::Tool;
+use ai_sdk_provider_utils::tool::Tool;
 use std::collections::HashMap;
 
 /// A set of tools indexed by their names.

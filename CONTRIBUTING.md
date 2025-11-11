@@ -139,7 +139,7 @@ Our CI runs on every push and PR:
 - `ai-sdk-core/` - Core functionality (generate_text, prompts, messages)
 - `ai-sdk-provider/` - Provider traits and interfaces
 - `ai-sdk-openai-compatible/` - OpenAI-compatible provider implementation
-- `ai-sdk-utils/` - Shared utilities
+- `ai-sdk-provider-utils/` - Shared utilities for AI SDK providers
 - `examples/` - Example applications and integration tests
 
 ## Need Help?

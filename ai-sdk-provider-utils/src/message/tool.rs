@@ -1,5 +1,5 @@
-use crate::ToolApprovalResponse;
-use crate::prompt::message::ToolResultPart;
+use crate::message::ToolResultPart;
+use crate::tool::ToolApprovalResponse;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +63,7 @@ impl ToolMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::content_parts::ToolResultOutput;
+    use crate::message::content_parts::ToolResultOutput;
     use serde_json::json;
 
     #[test]

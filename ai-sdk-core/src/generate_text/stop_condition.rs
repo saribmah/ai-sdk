@@ -203,7 +203,7 @@ mod tests {
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
         use crate::output::Output;
         use crate::output::text::TextOutput;
-        use crate::tool::ToolCall;
+        use ai_sdk_provider_utils::tool::ToolCall;
         use serde_json::json;
 
         let mut content: Vec<Output> = vec![Output::Text(TextOutput::new("Test".to_string()))];

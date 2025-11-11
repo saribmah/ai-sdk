@@ -1,8 +1,8 @@
 use crate::generate_text::GenerateText;
 use crate::prompt::PromptContent;
-use crate::prompt::message::Message;
 use crate::stream_text::StreamText;
 use crate::tool::ToolSet;
+use ai_sdk_provider_utils::message::Message;
 
 /// Parameters for calling an agent.
 ///

@@ -1,4 +1,3 @@
-use crate::tool::definition::Tool;
 use crate::tool::tool_set::ToolSet;
 use ai_sdk_provider::{
     language_model::tool::{
@@ -7,6 +6,7 @@ use ai_sdk_provider::{
     },
     language_model::tool_choice::LanguageModelToolChoice,
 };
+use ai_sdk_provider_utils::tool::Tool;
 
 /// Prepares tools and tool choice for the language model.
 ///
@@ -73,7 +73,7 @@ pub fn prepare_tools_and_tool_choice(
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
 fn convert_tool_to_provider(name: String, core_tool: &Tool) -> LanguageModelTool {
-    use crate::tool::definition::ToolType;
+    use ai_sdk_provider_utils::tool::ToolType;
 
     match &core_tool.tool_type {
         ToolType::Function => {

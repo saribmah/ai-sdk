@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
 
-use super::definition::{Tool, ToolExecuteFunction, ToolExecutionOutput};
+use ai_sdk_provider_utils::tool::{Tool, ToolExecuteFunction, ToolExecutionOutput};
 
 #[cfg(test)]
-use super::options::ToolExecuteOptions;
+use ai_sdk_provider_utils::tool::ToolExecuteOptions;
 
 /// A trait for defining type-safe tools with compile-time checked input and output types.
 ///

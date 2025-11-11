@@ -1,92 +1,37 @@
-use super::options::ToolExecuteOptions;
-use super::{ToolCall, ToolError, ToolOutput, ToolResult, ToolSet};
-use crate::prompt::message::Message;
-use crate::prompt::message::content_parts::ToolResultOutput;
+/// Tool approval request types.
+pub mod approval_request;
+/// Tool approval response types.
+pub mod approval_response;
+/// Tool definition and execution logic.
+pub mod callbacks;
+/// Options for tool execution.
+pub mod execute_options;
+/// Tool call type representing a function invocation.
+pub mod tool_call;
+/// Tool error type for failed tool executions.
+pub mod tool_error;
+/// Tool output type (either result or error).
+pub mod tool_output;
+/// Tool result type for successful tool executions.
+pub mod tool_result;
+
+use crate::tool::callbacks::{
+    OnInputAvailableCallback, OnInputDeltaCallback, OnInputStartCallback, ToModelOutputFunction,
+};
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use futures_util::Stream;
-use serde::{Deserialize, Serialize};
+pub use approval_request::ToolApprovalRequest;
+pub use approval_response::ToolApprovalResponse;
+pub use callbacks::{
+    NeedsApproval, OnPreliminaryToolResult, ToolExecuteFunction, ToolExecutionOutput,
+    ToolNeedsApprovalFunction, ToolType,
+};
+pub use execute_options::ToolExecuteOptions;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::Arc;
-use tokio_util::sync::CancellationToken;
-
-/// The output from a tool execution, which can be either a single value or a stream of values.
-///
-/// Tools can return `Result<OUTPUT, Value>` to surface errors. When `Err(error_value)` is returned,
-/// the error will be converted to a `ToolError` and returned to the model.
-pub enum ToolExecutionOutput<OUTPUT>
-where
-    OUTPUT: Send + 'static,
-{
-    /// A single output value (non-streaming).
-    /// Returns `Ok(output)` on success or `Err(error)` on failure.
-    Single(Pin<Box<dyn Future<Output = Result<OUTPUT, Value>> + Send>>),
-
-    /// A stream of output values (streaming).
-    /// Each item is `Ok(output)` on success or `Err(error)` on failure.
-    /// The first error terminates the stream and is returned as a `ToolError`.
-    Streaming(Pin<Box<dyn Stream<Item = Result<OUTPUT, Value>> + Send>>),
-}
-
-/// Function that executes a tool with the given input and options.
-///
-/// Returns either a Future that resolves to a single output, or a Stream of outputs.
-/// Wrapped in Arc to allow cloning.
-pub type ToolExecuteFunction<INPUT, OUTPUT> =
-    Arc<dyn Fn(INPUT, ToolExecuteOptions) -> ToolExecutionOutput<OUTPUT> + Send + Sync>;
-
-/// Function that determines if a tool needs approval before execution.
-/// Wrapped in Arc to allow cloning.
-pub type ToolNeedsApprovalFunction<INPUT> = Arc<
-    dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = bool> + Send>> + Send + Sync,
->;
-
-/// Callback that is called when tool input streaming starts.
-/// Wrapped in Arc to allow cloning.
-pub type OnInputStartCallback =
-    Arc<dyn Fn(ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
-
-/// Callback that is called when a tool input delta is available.
-/// Wrapped in Arc to allow cloning.
-pub type OnInputDeltaCallback = Arc<
-    dyn Fn(String, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
-
-/// Callback that is called when tool input is available.
-/// Wrapped in Arc to allow cloning.
-pub type OnInputAvailableCallback<INPUT> = Arc<
-    dyn Fn(INPUT, ToolExecuteOptions) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
->;
-
-/// Function that converts tool output to model output format.
-/// Wrapped in Arc to allow cloning.
-pub type ToModelOutputFunction<OUTPUT> = Arc<dyn Fn(OUTPUT) -> ToolResultOutput + Send + Sync>;
-
-/// Type of tool.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum ToolType {
-    /// User-defined function tool.
-    #[serde(rename = "function")]
-    Function,
-
-    /// Tool that is defined at runtime (e.g. an MCP tool).
-    Dynamic,
-
-    /// Tool with provider-defined input and output schemas.
-    ProviderDefined {
-        /// The ID of the tool. Should follow the format `<provider-name>.<unique-tool-name>`.
-        id: String,
-
-        /// The name of the tool that the user must use in the tool set.
-        name: String,
-
-        /// The arguments for configuring the tool.
-        args: HashMap<String, Value>,
-    },
-}
+pub use tool_call::ToolCall;
+pub use tool_error::ToolError;
+pub use tool_output::ToolOutput;
+pub use tool_result::ToolResult;
 
 /// A tool that can be called by a language model.
 ///
@@ -194,11 +139,6 @@ pub enum ToolType {
 /// }
 /// ```
 ///
-/// # See Also
-///
-/// - [`crate::tool::TypeSafeTool`]: Type-safe alternative with compile-time guarantees
-/// - [`ToolSet`]: Collection of tools to pass to models
-/// - [`execute_tool_call`]: Execute a tool call
 #[derive(Clone)]
 pub struct Tool {
     /// Description of what the tool does.
@@ -260,19 +200,6 @@ pub struct Tool {
     ///
     /// Use this to transform the tool's output before sending it back to the model.
     pub to_model_output: Option<ToModelOutputFunction<Value>>,
-}
-
-/// Whether a tool needs approval before execution.
-#[derive(Clone)]
-pub enum NeedsApproval {
-    /// Tool does not need approval.
-    No,
-
-    /// Tool always needs approval.
-    Yes,
-
-    /// Tool needs approval based on a function.
-    Function(ToolNeedsApprovalFunction<Value>),
 }
 
 impl Tool {
@@ -484,125 +411,9 @@ impl Tool {
     }
 }
 
-/// Callback function for preliminary tool results during streaming.
-pub type OnPreliminaryToolResult = Arc<dyn Fn(ToolResult) + Send + Sync>;
-
-/// Executes a tool call and returns the output or error.
-///
-/// This function takes a tool call, looks up the tool in the tool set,
-/// executes it with the provided options, and returns the result or error.
-///
-/// For streaming tools, it handles preliminary results through the callback.
-///
-/// # Arguments
-///
-/// * `tool_call` - The tool call to execute
-/// * `tools` - The tool set containing tool definitions
-/// * `messages` - The conversation messages for context
-/// * `abort_signal` - Optional cancellation token to abort execution
-/// * `experimental_context` - Optional experimental context data
-/// * `on_preliminary_tool_result` - Optional callback for preliminary streaming results
-///
-/// # Returns
-///
-/// Returns `Some(ToolOutput)` if the tool was executed (successfully or with error),
-/// or `None` if the tool has no execute function.
-///
-/// # Example
-///
-/// ```no_run
-/// use ai_sdk_core::tool::{execute_tool_call, ToolSet, ToolCall};
-/// use ai_sdk_core::prompt::message::Message;
-/// use tokio_util::sync::CancellationToken;
-///
-/// # async fn example(tool_call: ToolCall, tools: ToolSet, messages: Vec<Message>, abort_signal: CancellationToken) {
-/// let output = execute_tool_call(
-///     tool_call,
-///     &tools,
-///     messages,
-///     Some(abort_signal),
-///     None,
-///     None,
-/// ).await;
-/// # }
-/// ```
-pub async fn execute_tool_call(
-    tool_call: ToolCall,
-    tools: &ToolSet,
-    messages: Vec<Message>,
-    abort_signal: Option<CancellationToken>,
-    experimental_context: Option<Value>,
-    on_preliminary_tool_result: Option<OnPreliminaryToolResult>,
-) -> Option<ToolOutput> {
-    // Extract tool call information
-    let tool_call_id = tool_call.tool_call_id.clone();
-    let tool_name = tool_call.tool_name.clone();
-    let input = tool_call.input.clone();
-
-    // Look up the tool
-    let tool = match tools.get(&tool_name) {
-        Some(tool) => tool,
-        None => return None,
-    };
-
-    // Check if tool has an execute function
-    tool.execute.as_ref()?;
-
-    // Create tool call options
-    let mut options = ToolExecuteOptions::new(&tool_call_id, messages);
-
-    if let Some(signal) = abort_signal {
-        options = options.with_abort_signal(signal);
-    }
-
-    if let Some(context) = experimental_context {
-        options = options.with_experimental_context(context);
-    }
-
-    // Execute the tool using the Tool::execute_tool method
-    let result = if let Some(callback) = on_preliminary_tool_result.as_ref() {
-        let callback = callback.clone();
-        let tool_call_id_clone = tool_call_id.clone();
-        let tool_name_clone = tool_name.clone();
-        let input_clone = input.clone();
-
-        let preliminary_callback = move |output: Value| {
-            let result = ToolResult::new(
-                tool_call_id_clone.clone(),
-                tool_name_clone.clone(),
-                input_clone.clone(),
-                output,
-            )
-            .with_preliminary(true);
-
-            callback(result);
-        };
-
-        tool.execute_tool(input.clone(), options, Some(preliminary_callback))
-            .await
-    } else {
-        tool.execute_tool(input.clone(), options, None::<fn(Value)>)
-            .await
-    };
-
-    // Convert the result to ToolOutput
-    match result {
-        Some(Ok(output)) => {
-            let result = ToolResult::new(tool_call_id, tool_name, input, output);
-            Some(ToolOutput::Result(result))
-        }
-        Some(Err(error)) => {
-            let tool_error = ToolError::new(tool_call_id, tool_name, input, error);
-            Some(ToolOutput::Error(tool_error))
-        }
-        None => None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::ToolSet;
     use serde_json::json;
     use std::sync::Arc;
 
@@ -839,134 +650,5 @@ mod tests {
         let result = result.unwrap();
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), json!("Error in stream"));
-    }
-
-    // Tests for execute_tool_call function
-
-    #[tokio::test]
-    async fn test_execute_tool_call_success() {
-        let mut tools = ToolSet::new();
-
-        let tool = Tool::function(json!({"type": "object"}))
-            .with_description("Test tool")
-            .with_execute(Arc::new(|input: Value, _options| {
-                ToolExecutionOutput::Single(Box::pin(async move { Ok(json!({"result": input})) }))
-            }));
-
-        tools.insert("test_tool".to_string(), tool);
-
-        let tool_call = ToolCall::new("call_123", "test_tool", json!({"city": "SF"}));
-
-        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
-
-        assert!(result.is_some());
-        let output = result.unwrap();
-        assert!(output.is_result());
-
-        if let ToolOutput::Result(res) = output {
-            assert_eq!(res.tool_call_id, "call_123");
-            assert_eq!(res.tool_name, "test_tool");
-            assert_eq!(res.output, json!({"result": {"city": "SF"}}));
-        }
-    }
-
-    #[tokio::test]
-    async fn test_execute_tool_call_error() {
-        let mut tools = ToolSet::new();
-
-        let tool = Tool::function(json!({"type": "object"})).with_execute(Arc::new(
-            |_input: Value, _options| {
-                ToolExecutionOutput::Single(Box::pin(async move {
-                    Err(json!({"error": "Something went wrong"}))
-                }))
-            },
-        ));
-
-        tools.insert("test_tool".to_string(), tool);
-
-        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
-
-        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
-
-        assert!(result.is_some());
-        let output = result.unwrap();
-        assert!(output.is_error());
-
-        if let ToolOutput::Error(err) = output {
-            assert_eq!(err.tool_call_id, "call_123");
-            assert_eq!(err.tool_name, "test_tool");
-            assert_eq!(err.error, json!({"error": "Something went wrong"}));
-        }
-    }
-
-    #[tokio::test]
-    async fn test_execute_tool_call_tool_not_found() {
-        let tools = ToolSet::new();
-
-        let tool_call = ToolCall::new("call_123", "nonexistent_tool", json!({}));
-
-        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
-
-        assert!(result.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_execute_tool_call_no_execute_function() {
-        let mut tools = ToolSet::new();
-
-        let tool = Tool::function(json!({"type": "object"}));
-
-        tools.insert("test_tool".to_string(), tool);
-
-        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
-
-        let result = execute_tool_call(tool_call, &tools, vec![], None, None, None).await;
-
-        assert!(result.is_none());
-    }
-
-    #[tokio::test]
-    async fn test_execute_tool_call_with_streaming() {
-        let mut tools = ToolSet::new();
-
-        let tool = Tool::function(json!({"type": "object"})).with_execute(Arc::new(
-            |_input: Value, _options| {
-                ToolExecutionOutput::Streaming(Box::pin(async_stream::stream! {
-                    yield Ok(json!({"step": 1}));
-                    yield Ok(json!({"step": 2}));
-                    yield Ok(json!({"step": 3}));
-                }))
-            },
-        ));
-
-        tools.insert("test_tool".to_string(), tool);
-
-        let tool_call = ToolCall::new("call_123", "test_tool", json!({}));
-
-        // Track preliminary results
-        let preliminary_count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
-        let preliminary_count_clone = preliminary_count.clone();
-
-        let callback = Arc::new(move |result: ToolResult| {
-            if result.preliminary == Some(true) {
-                preliminary_count_clone.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            }
-        });
-
-        let result = execute_tool_call(tool_call, &tools, vec![], None, None, Some(callback)).await;
-
-        assert!(result.is_some());
-
-        // Should have received 3 preliminary results
-        assert_eq!(
-            preliminary_count.load(std::sync::atomic::Ordering::SeqCst),
-            3
-        );
-
-        // Final result should be the last output
-        if let Some(ToolOutput::Result(res)) = result {
-            assert_eq!(res.output, json!({"step": 3}));
-            assert_eq!(res.preliminary, None); // Final result is not preliminary
-        }
     }
 }

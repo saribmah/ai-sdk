@@ -74,10 +74,10 @@ pub struct FinishEvent {
     pub text: String,
 
     /// Tool calls from the final step (user-facing types).
-    pub tool_calls: Vec<crate::tool::ToolCall>,
+    pub tool_calls: Vec<ai_sdk_provider_utils::tool::ToolCall>,
 
     /// Tool results from the final step (user-facing types).
-    pub tool_results: Vec<crate::tool::ToolResult>,
+    pub tool_results: Vec<ai_sdk_provider_utils::tool::ToolResult>,
 
     /// The reason why the generation finished.
     pub finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason,
@@ -203,10 +203,10 @@ mod tests {
     use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use crate::tool::ToolCall;
     use ai_sdk_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
+    use ai_sdk_provider_utils::tool::ToolCall;
     use serde_json::json;
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {

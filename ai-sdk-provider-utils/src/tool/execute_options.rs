@@ -1,4 +1,4 @@
-use crate::prompt::message::Message;
+use crate::message::Message;
 use tokio_util::sync::CancellationToken;
 
 /// Additional options that are sent into each tool call.
@@ -47,7 +47,7 @@ impl ToolExecuteOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::{SystemMessage, UserMessage};
+    use crate::message::{SystemMessage, UserMessage};
 
     #[test]
     fn test_tool_call_options_new() {

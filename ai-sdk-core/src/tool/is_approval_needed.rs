@@ -1,5 +1,5 @@
-use super::{NeedsApproval, Tool, ToolExecuteOptions};
-use crate::prompt::message::Message;
+use ai_sdk_provider_utils::message::Message;
+use ai_sdk_provider_utils::tool::{NeedsApproval, Tool, ToolExecuteOptions};
 use serde_json::Value;
 
 /// Checks if a tool call needs approval before execution.
@@ -77,7 +77,7 @@ pub async fn is_approval_needed(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::definition::{NeedsApproval, Tool};
+    use ai_sdk_provider_utils::tool::{NeedsApproval, Tool};
     use serde_json::json;
     use std::sync::Arc;
 
@@ -195,7 +195,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_messages() {
-        use crate::prompt::message::user::UserMessage;
+        use ai_sdk_provider_utils::message::user::UserMessage;
 
         let mut tool = Tool::function(json!({
             "type": "object",

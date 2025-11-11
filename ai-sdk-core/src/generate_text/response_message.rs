@@ -1,4 +1,4 @@
-use crate::prompt::message::{AssistantMessage, Message, ToolMessage};
+use ai_sdk_provider_utils::message::{AssistantMessage, Message, ToolMessage};
 
 /// A message that was generated during the generation process.
 ///
@@ -118,8 +118,8 @@ mod tests {
 
     #[test]
     fn test_response_message_from_tool() {
-        use crate::prompt::message::content_parts::{ToolResultOutput, ToolResultPart};
-        use crate::prompt::message::tool::ToolContentPart;
+        use ai_sdk_provider_utils::message::content_parts::{ToolResultOutput, ToolResultPart};
+        use ai_sdk_provider_utils::message::tool::ToolContentPart;
 
         let tool_msg = ToolMessage::new(vec![ToolContentPart::ToolResult(ToolResultPart::new(
             "call_123",

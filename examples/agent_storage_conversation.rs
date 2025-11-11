@@ -1,4 +1,6 @@
 use ai_sdk_core::ToolSet;
+use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
 /// Agent storage conversation example demonstrating persistent conversations with agents.
 ///
 /// This example shows how to:
@@ -12,9 +14,7 @@ use ai_sdk_core::ToolSet;
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example agent_storage_conversation --features storage
 /// ```
-use ai_sdk_core::tool::definition::Tool;
-use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_provider_utils::tool::Tool;
 use ai_sdk_storage::Storage;
 use ai_sdk_storage_filesystem::FilesystemStorage;
 use serde_json::{Value, json};
@@ -82,7 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::tool::definition::ToolExecutionOutput;
+    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
 
     let mut tools = ToolSet::new();
 

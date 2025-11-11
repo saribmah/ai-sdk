@@ -3,7 +3,7 @@ resolver = "3"
 members = [
     "ai-sdk-core",
     "ai-sdk-provider",
-    "ai-sdk-utils",
+    "ai-sdk-provider-utils",
     "ai-sdk-openai-compatible",
     "ai-sdk-storage",
     "ai-sdk-storage-filesystem",
@@ -31,6 +31,7 @@ storage = ["ai-sdk-core/storage"]
 [dependencies]
 ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
 ai-sdk-provider = { path = "ai-sdk-provider" }
+ai-sdk-provider-utils = { path = "ai-sdk-provider-utils" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 ai-sdk-storage = { path = "ai-sdk-storage" }
 ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }

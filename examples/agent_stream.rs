@@ -1,4 +1,3 @@
-use ai_sdk_core::tool::definition::Tool;
 /// Agent stream example demonstrating agent-based tool calling (streaming).
 ///
 /// This example shows how to:
@@ -15,6 +14,7 @@ use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
 use ai_sdk_core::{ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_provider_utils::tool::Tool;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::env;
@@ -202,7 +202,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::tool::definition::ToolExecutionOutput;
+    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
 
     // Stock price tool
     let stock_tool = Tool::function(json!({

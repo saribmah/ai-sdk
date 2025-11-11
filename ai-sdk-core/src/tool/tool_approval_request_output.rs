@@ -1,4 +1,4 @@
-use super::ToolCall;
+use ai_sdk_provider_utils::tool::ToolCall;
 use serde::{Deserialize, Serialize};
 
 /// Output part that indicates that a tool approval request has been made.

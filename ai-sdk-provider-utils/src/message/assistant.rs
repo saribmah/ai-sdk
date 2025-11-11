@@ -131,7 +131,7 @@ impl From<ToolApprovalRequest> for AssistantContentPart {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::content_parts::ToolResultOutput;
+    use crate::message::content_parts::ToolResultOutput;
     use url::Url;
 
     #[test]
