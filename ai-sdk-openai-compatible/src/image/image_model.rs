@@ -26,9 +26,6 @@ pub struct OpenAICompatibleImageModelConfig {
 
     /// Function to generate the URL for API requests
     pub url: UrlGeneratorFn,
-
-    /// Optional custom fetch function
-    pub fetch: Option<fn()>, // TODO: proper fetch function type
 }
 
 impl Default for OpenAICompatibleImageModelConfig {
@@ -37,7 +34,6 @@ impl Default for OpenAICompatibleImageModelConfig {
             provider: "openai-compatible".to_string(),
             headers: Box::new(HashMap::new),
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
-            fetch: None,
         }
     }
 }

@@ -140,7 +140,6 @@ impl OpenAICompatibleProvider {
             url: Box::new(move |_model_id: &str, path: &str| {
                 Self::build_url_with_params(&base_url, path, &query_params)
             }),
-            fetch: None,
             include_usage: self.settings.include_usage,
             supports_structured_outputs: self.settings.supports_structured_outputs,
             supported_urls: None,
@@ -186,7 +185,6 @@ impl OpenAICompatibleProvider {
             url: Box::new(move |_model_id: &str, path: &str| {
                 Self::build_url_with_params(&base_url, path, &query_params)
             }),
-            fetch: None,
             include_usage: self.settings.include_usage,
         }
     }
@@ -232,7 +230,6 @@ impl OpenAICompatibleProvider {
             }),
             max_embeddings_per_call: None,
             supports_parallel_calls: None,
-            fetch: None,
         }
     }
 
@@ -275,7 +272,6 @@ impl OpenAICompatibleProvider {
             url: Box::new(move |_model_id: &str, path: &str| {
                 Self::build_url_with_params(&base_url, path, &query_params)
             }),
-            fetch: None,
         }
     }
 

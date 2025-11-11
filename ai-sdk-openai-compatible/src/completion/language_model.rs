@@ -32,9 +32,6 @@ pub struct OpenAICompatibleCompletionConfig {
     /// Function to generate the URL for API requests
     pub url: CompletionUrlGeneratorFn,
 
-    /// Optional custom fetch function
-    pub fetch: Option<fn()>, // TODO: proper fetch function type
-
     /// Whether to include usage information in streaming responses
     pub include_usage: bool,
 }
@@ -45,7 +42,6 @@ impl Default for OpenAICompatibleCompletionConfig {
             provider: "openai-compatible".to_string(),
             headers: Box::new(HashMap::new),
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
-            fetch: None,
             include_usage: false,
         }
     }
