@@ -30,8 +30,9 @@ use tokio_util::sync::CancellationToken;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::tool::{execute_tool_call, ToolSet, ToolCall};
-/// use ai_sdk_core::prompt::message::Message;
+/// use ai_sdk_core::tool::{execute_tool_call, ToolSet};
+/// use ai_sdk_provider_utils::tool::ToolCall;
+/// use ai_sdk_provider_utils::message::Message;
 /// use tokio_util::sync::CancellationToken;
 ///
 /// # async fn example(tool_call: ToolCall, tools: ToolSet, messages: Vec<Message>, abort_signal: CancellationToken) {

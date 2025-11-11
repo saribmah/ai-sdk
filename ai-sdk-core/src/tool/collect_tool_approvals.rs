@@ -94,9 +94,9 @@ impl CollectedToolApprovals {
 ///
 /// ```rust
 /// use ai_sdk_core::tool::collect_tool_approvals;
-/// use ai_sdk_core::prompt::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
-/// use ai_sdk_core::prompt::message::content_parts::ToolCallPart;
-/// use ai_sdk_core::tool::{ToolApprovalRequest, ToolApprovalResponse};
+/// use ai_sdk_provider_utils::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
+/// use ai_sdk_provider_utils::message::content_parts::ToolCallPart;
+/// use ai_sdk_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse};
 /// use serde_json::json;
 ///
 /// // Create a message history with an approval request

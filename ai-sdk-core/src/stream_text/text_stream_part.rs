@@ -101,7 +101,7 @@ pub struct StreamGeneratedFile {
 ///
 /// ```no_run
 /// use ai_sdk_core::stream_text::TextStreamPart;
-/// use ai_sdk_core::tool::ToolCall;
+/// use ai_sdk_provider_utils::tool::ToolCall;
 /// use serde_json::json;
 ///
 /// let part = TextStreamPart::ToolCall {

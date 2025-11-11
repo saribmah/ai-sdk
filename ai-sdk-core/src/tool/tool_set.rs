@@ -9,7 +9,7 @@ use std::collections::HashMap;
 ///
 /// ```
 /// use ai_sdk_core::ToolSet;
-/// use ai_sdk_core::tool::Tool;
+/// use ai_sdk_provider_utils::tool::Tool;
 /// use serde_json::json;
 ///
 /// let mut tools = ToolSet::new();

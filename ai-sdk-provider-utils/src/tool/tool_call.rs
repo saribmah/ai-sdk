@@ -10,7 +10,7 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::tool::ToolCall;
+/// use ai_sdk_provider_utils::tool::ToolCall;
 /// use serde_json::json;
 ///
 /// let tool_call = ToolCall::new(
@@ -64,7 +64,7 @@ impl ToolCall {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::tool::ToolCall;
+    /// use ai_sdk_provider_utils::tool::ToolCall;
     /// use serde_json::json;
     ///
     /// let tool_call = ToolCall::new(

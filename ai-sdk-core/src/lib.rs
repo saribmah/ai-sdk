@@ -115,8 +115,8 @@
 //! ```no_run
 //! use ai_sdk_core::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_core::tool::{Tool, ToolSet};
-//! use ai_sdk_core::tool::definition::ToolExecutionOutput;
+//! use ai_sdk_core::tool::ToolSet;
+//! use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
 //! use serde_json::json;
 //! # use std::sync::Arc;
 //! # use ai_sdk_provider::LanguageModel;

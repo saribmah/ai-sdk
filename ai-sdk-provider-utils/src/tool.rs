@@ -69,8 +69,7 @@ pub use tool_result::ToolResult;
 /// ## Basic Function Tool
 ///
 /// ```no_run
-/// use ai_sdk_core::tool::Tool;
-/// use ai_sdk_core::tool::definition::ToolExecutionOutput;
+/// use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// use serde_json::json;
 /// use std::sync::Arc;
 ///
@@ -96,8 +95,7 @@ pub use tool_result::ToolResult;
 /// ## Tool with Approval
 ///
 /// ```no_run
-/// # use ai_sdk_core::tool::Tool;
-/// # use ai_sdk_core::tool::definition::ToolExecutionOutput;
+/// # use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// # use serde_json::json;
 /// # use std::sync::Arc;
 /// # let schema = json!({"type": "object"});
@@ -117,7 +115,7 @@ pub use tool_result::ToolResult;
 /// ```ignore
 /// # use serde::{Deserialize, Serialize};
 /// # use schemars::JsonSchema;
-/// # use ai_sdk_core::tool::TypeSafeTool;
+/// # use ai_sdk_provider_utils::tool::TypeSafeTool;
 /// # use serde_json::Value;
 /// # struct WeatherTool;
 /// # #[derive(Serialize, Deserialize, JsonSchema)]

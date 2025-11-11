@@ -9,7 +9,7 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::tool::ToolError;
+/// use ai_sdk_provider_utils::tool::ToolError;
 /// use serde_json::json;
 ///
 /// let error = ToolError::new(
@@ -56,7 +56,7 @@ impl ToolError {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::tool::ToolError;
+    /// use ai_sdk_provider_utils::tool::ToolError;
     /// use serde_json::json;
     ///
     /// let error = ToolError::new(

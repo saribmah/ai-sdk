@@ -64,7 +64,7 @@ impl Prompt {
     ///
     /// ```
     /// use ai_sdk_core::prompt::Prompt;
-    /// use ai_sdk_core::prompt::message::{Message, UserMessage};
+    /// use ai_sdk_provider_utils::message::{Message, UserMessage};
     ///
     /// let messages = vec![
     ///     Message::User(UserMessage::new("Hello")),

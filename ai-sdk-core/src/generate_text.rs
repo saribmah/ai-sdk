@@ -128,7 +128,7 @@ async fn execute_tools(
 ///
 /// ```no_run
 /// # use ai_sdk_core::generate_text::as_output;
-/// # use ai_sdk_core::tool::{ToolCall, ToolOutput};
+/// # use ai_sdk_provider_utils::tool::{ToolCall, ToolOutput};
 /// # use ai_sdk_provider::language_model::content::LanguageModelContent;
 /// # fn example() {
 /// # let response_content: Vec<LanguageModelContent> = vec![];

@@ -22,9 +22,9 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::tool::{is_approval_needed, Tool};
+/// use ai_sdk_core::tool::is_approval_needed, ai_sdk_provider_utils::tool::Tool;
 /// use serde_json::json;
-/// # use ai_sdk_core::prompt::message::Message;
+/// # use ai_sdk_provider_utils::message::Message;
 /// # use tokio::runtime::Runtime;
 /// # fn example(tool: Tool) {
 /// # Runtime::new().unwrap().block_on(async {

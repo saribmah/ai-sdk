@@ -8,7 +8,7 @@ use ai_sdk_provider_utils::message::{AssistantMessage, Message, ToolMessage};
 ///
 /// ```
 /// use ai_sdk_core::ResponseMessage;
-/// use ai_sdk_core::prompt::message::AssistantMessage;
+/// use ai_sdk_provider_utils::message::AssistantMessage;
 ///
 /// // Create an assistant response message
 /// let assistant_msg = AssistantMessage::new("Hello, how can I help you?");
@@ -34,7 +34,7 @@ impl ResponseMessage {
     ///
     /// ```no_run
     /// use ai_sdk_core::generate_text::ResponseMessage;
-    /// use ai_sdk_core::prompt::message::AssistantMessage;
+    /// use ai_sdk_provider_utils::message::AssistantMessage;
     ///
     /// let assistant_msg = AssistantMessage::new("Hello");
     /// let response = ResponseMessage::from_assistant(assistant_msg);
@@ -53,7 +53,7 @@ impl ResponseMessage {
     ///
     /// ```no_run
     /// use ai_sdk_core::generate_text::ResponseMessage;
-    /// use ai_sdk_core::prompt::message::ToolMessage;
+    /// use ai_sdk_provider_utils::message::ToolMessage;
     ///
     /// let tool_msg = ToolMessage::new(vec![]);
     /// let response = ResponseMessage::from_tool(tool_msg);

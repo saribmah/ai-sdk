@@ -25,10 +25,10 @@ use ai_sdk_provider_utils::tool::Tool;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::tool::{ToolSet, prepare_tools_and_tool_choice, Tool};
+/// use ai_sdk_core::tool::{ToolSet, prepare_tools_and_tool_choice};
+/// use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// use serde_json::json;
 /// use std::sync::Arc;
-/// use ai_sdk_core::tool::definition::ToolExecutionOutput;
 ///
 /// let mut tools = ToolSet::new();
 /// let tool = Tool::function(json!({"type": "object"}))
