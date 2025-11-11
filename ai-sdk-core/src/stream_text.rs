@@ -681,32 +681,58 @@ impl StreamText {
         let prepared_settings = prepare_call_settings(&self.settings)?;
 
         // Validate and standardize the prompt
-        let mut standardized_prompt = validate_and_standardize(self.prompt)?;
+        let standardized_prompt = validate_and_standardize(self.prompt)?;
 
-        // Load conversation history if storage is configured
+        // Store user message and load conversation history if storage is configured
         #[cfg(feature = "storage")]
-        if let (Some(storage), Some(session_id)) = (&self.storage, &self.session_id)
-            && self.load_history
+        let standardized_prompt = if let (Some(storage), Some(session_id)) =
+            (&self.storage, &self.session_id)
         {
-            // Try to load history (session may not exist yet)
-            if let Ok(_session) = storage.get_session(session_id).await {
-                use crate::storage_conversion::load_conversation_history;
+            use crate::storage_conversion::{load_conversation_history, user_message_to_storage};
 
+            // Create session if it doesn't exist
+            if storage.get_session(session_id).await.is_err() {
+                let session = ai_sdk_storage::Session::new(session_id.clone());
+                if let Err(e) = storage.store_session(&session).await {
+                    log::warn!("Failed to create session: {}", e);
+                }
+            }
+
+            // Store the new user message immediately
+            if let Some(user_msg) = standardized_prompt.messages.iter().find(|m| m.is_user())
+                && let crate::prompt::message::Message::User(user_message) = user_msg
+            {
+                let (storage_msg, parts) =
+                    user_message_to_storage(storage, session_id.clone(), user_message);
+                if let Err(e) = storage.store_user_message(&storage_msg, &parts).await {
+                    log::warn!("Failed to store user message: {}", e);
+                }
+            }
+
+            // Load conversation history if enabled (includes the just-stored user message)
+            if self.load_history {
                 match load_conversation_history(storage, session_id).await {
                     Ok(history) => {
                         if !history.is_empty() {
-                            // Prepend history to current prompt
-                            let mut all_messages = history;
-                            all_messages.extend(standardized_prompt.messages);
-                            standardized_prompt.messages = all_messages;
+                            crate::prompt::standardize::StandardizedPrompt {
+                                messages: history,
+                                system: standardized_prompt.system.clone(),
+                            }
+                        } else {
+                            standardized_prompt
                         }
                     }
                     Err(e) => {
                         log::warn!("Failed to load conversation history: {}", e);
+                        standardized_prompt
                     }
                 }
+            } else {
+                standardized_prompt
             }
-        }
+        } else {
+            standardized_prompt
+        };
 
         // Prepare tools and tool choice
         let (provider_tools, prepared_tool_choice) =
@@ -1028,38 +1054,16 @@ impl StreamText {
                 callback(event).await;
             }
 
-            // Store messages if storage is configured
+            // Store assistant message if storage is configured (user message already stored)
             #[cfg(feature = "storage")]
             if let (Some(storage), Some(session_id)) = (&storage_arc, &session_id_arc)
                 && !all_steps.is_empty()
             {
-                use crate::storage_conversion::{
-                    assistant_output_to_storage, user_message_to_storage,
-                };
+                use crate::storage_conversion::assistant_output_to_storage;
 
                 // Build a result from the stream
                 let stream_result =
                     crate::generate_text::GenerateTextResult::from_steps(all_steps, total_usage);
-
-                // Create session if it doesn't exist
-                if storage.get_session(session_id).await.is_err() {
-                    let session = ai_sdk_storage::Session::new(session_id.clone());
-                    if let Err(e) = storage.store_session(&session).await {
-                        log::warn!("Failed to create session: {}", e);
-                    }
-                }
-
-                // Store user message (from the original prompt, not including history)
-                let initial_messages = &standardized_prompt_arc.messages;
-                if let Some(user_msg) = initial_messages.iter().find(|m| m.is_user())
-                    && let crate::prompt::message::Message::User(user_message) = user_msg
-                {
-                    let (storage_msg, parts) =
-                        user_message_to_storage(storage, session_id.clone(), user_message);
-                    if let Err(e) = storage.store_user_message(&storage_msg, &parts).await {
-                        log::warn!("Failed to store user message: {}", e);
-                    }
-                }
 
                 // Store assistant message
                 let (storage_msg, parts) =
