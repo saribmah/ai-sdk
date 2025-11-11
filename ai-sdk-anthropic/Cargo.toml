@@ -8,7 +8,9 @@ repository.workspace = true
 
 [dependencies]
 ai-sdk-provider = { path = "../ai-sdk-provider" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

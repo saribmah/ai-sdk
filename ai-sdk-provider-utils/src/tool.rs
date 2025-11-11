@@ -8,6 +8,8 @@ pub mod approval_response;
 pub mod callbacks;
 /// Options for tool execution.
 pub mod execute_options;
+/// Factory for creating provider-defined tools.
+pub mod provider_defined_factory;
 /// Tool call type representing a function invocation.
 pub mod tool_call;
 /// Tool error type for failed tool executions.
@@ -29,6 +31,9 @@ pub use callbacks::{
     ToolNeedsApprovalFunction, ToolType,
 };
 pub use execute_options::ToolExecuteOptions;
+pub use provider_defined_factory::{
+    ProviderDefinedToolFactory, ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions,
+};
 use serde_json::Value;
 use std::collections::HashMap;
 pub use tool_call::ToolCall;

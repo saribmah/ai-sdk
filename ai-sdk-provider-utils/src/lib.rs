@@ -202,7 +202,9 @@ pub use message::{
     ToolContent, ToolContentPart, ToolMessage, UserContent, UserContentPart, UserMessage,
 };
 pub use tool::{
-    NeedsApproval, OnPreliminaryToolResult, Tool, ToolApprovalRequest, ToolApprovalRequestOutput,
-    ToolApprovalResponse, ToolCall, ToolError, ToolExecuteFunction, ToolExecuteOptions,
-    ToolExecutionOutput, ToolNeedsApprovalFunction, ToolOutput, ToolResult, ToolType,
+    NeedsApproval, OnPreliminaryToolResult, ProviderDefinedToolFactory,
+    ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions, Tool, ToolApprovalRequest,
+    ToolApprovalRequestOutput, ToolApprovalResponse, ToolCall, ToolError, ToolExecuteFunction,
+    ToolExecuteOptions, ToolExecutionOutput, ToolNeedsApprovalFunction, ToolOutput, ToolResult,
+    ToolType,
 };

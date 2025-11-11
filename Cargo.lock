@@ -30,8 +30,10 @@ name = "ai-sdk-anthropic"
 version = "0.1.0"
 dependencies = [
  "ai-sdk-provider",
+ "ai-sdk-provider-utils",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
