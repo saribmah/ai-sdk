@@ -35,7 +35,7 @@ use async_trait::async_trait;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, StorageError, MessageRole};
+/// use ai_sdk_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, MessageMetadata, StorageError, MessageRole};
 /// use async_trait::async_trait;
 ///
 /// struct MyStorage {
@@ -67,6 +67,7 @@ use async_trait::async_trait;
 /// #   async fn store_user_message(&self, message: &UserMessage, parts: &[MessagePart]) -> Result<(), StorageError> { todo!() }
 /// #   async fn store_assistant_message(&self, message: &AssistantMessage, parts: &[MessagePart]) -> Result<(), StorageError> { todo!() }
 /// #   async fn get_message(&self, session_id: &str, message_id: &str) -> Result<(MessageRole, Vec<MessagePart>), StorageError> { todo!() }
+/// #   async fn get_message_with_metadata(&self, session_id: &str, message_id: &str) -> Result<(MessageRole, Vec<MessagePart>, Option<MessageMetadata>), StorageError> { todo!() }
 /// #   async fn list_messages(&self, session_id: &str, limit: Option<usize>) -> Result<Vec<String>, StorageError> { todo!() }
 /// #   async fn list_sessions(&self, limit: Option<usize>) -> Result<Vec<Session>, StorageError> { todo!() }
 /// #   async fn delete_session(&self, session_id: &str) -> Result<(), StorageError> { todo!() }
