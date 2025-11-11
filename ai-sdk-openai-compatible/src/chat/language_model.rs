@@ -576,6 +576,13 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         &self,
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
+        // Check if already cancelled before starting
+        if let Some(signal) = &options.abort_signal
+            && signal.is_cancelled()
+        {
+            return Err("Operation cancelled".into());
+        }
+
         // Prepare request body
         let (body, warnings) = self.prepare_request_body(&options)?;
         let body_string = serde_json::to_string(&body)?;
@@ -597,7 +604,17 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             request = request.header(key, value);
         }
 
-        let response = request.body(body_string.clone()).send().await?;
+        // Send request with optional cancellation support
+        let response = if let Some(signal) = &options.abort_signal {
+            tokio::select! {
+                result = request.body(body_string.clone()).send() => result?,
+                _ = signal.cancelled() => {
+                    return Err("Operation cancelled".into());
+                }
+            }
+        } else {
+            request.body(body_string.clone()).send().await?
+        };
         let status = response.status();
         let response_headers = response.headers().clone();
 
@@ -742,6 +759,13 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         &self,
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
+        // Check if already cancelled before starting
+        if let Some(signal) = &options.abort_signal
+            && signal.is_cancelled()
+        {
+            return Err("Operation cancelled".into());
+        }
+
         // Prepare request body with streaming enabled
         let (mut body, warnings) = self.prepare_request_body(&options)?;
         body["stream"] = json!(true);
@@ -772,7 +796,17 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             request = request.header(key, value);
         }
 
-        let response = request.body(body_string.clone()).send().await?;
+        // Send request with optional cancellation support
+        let response = if let Some(signal) = &options.abort_signal {
+            tokio::select! {
+                result = request.body(body_string.clone()).send() => result?,
+                _ = signal.cancelled() => {
+                    return Err("Operation cancelled".into());
+                }
+            }
+        } else {
+            request.body(body_string.clone()).send().await?
+        };
         let status = response.status();
         let response_headers = response.headers().clone();
 

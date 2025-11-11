@@ -92,6 +92,13 @@ impl ImageModel for OpenAICompatibleImageModel {
         &self,
         options: ImageModelCallOptions,
     ) -> Result<ImageModelResponse, Box<dyn std::error::Error>> {
+        // Check if already cancelled before starting
+        if let Some(signal) = &options.abort_signal
+            && signal.is_cancelled()
+        {
+            return Err("Operation cancelled".into());
+        }
+
         let mut warnings: Vec<ImageModelCallWarning> = Vec::new();
 
         // Check for unsupported settings
@@ -152,8 +159,17 @@ impl ImageModel for OpenAICompatibleImageModel {
             request = request.header(&key, value);
         }
 
-        // Send request
-        let response = request.send().await?;
+        // Send request with optional cancellation support
+        let response = if let Some(signal) = &options.abort_signal {
+            tokio::select! {
+                result = request.send() => result?,
+                _ = signal.cancelled() => {
+                    return Err("Operation cancelled".into());
+                }
+            }
+        } else {
+            request.send().await?
+        };
 
         // Get response headers
         let response_headers: HashMap<String, String> = response
