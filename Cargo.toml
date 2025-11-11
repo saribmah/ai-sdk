@@ -6,7 +6,7 @@ members = [
     "ai-sdk-provider-utils",
     "ai-sdk-openai-compatible",
     "ai-sdk-storage",
-    "ai-sdk-storage-filesystem",
+    "ai-sdk-storage-filesystem", "ai-sdk-anthropic",
 ]
 
 [workspace.package]
