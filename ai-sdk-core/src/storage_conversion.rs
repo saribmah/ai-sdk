@@ -183,8 +183,18 @@ pub fn assistant_output_to_storage(
                     tool_error.error.to_string(),
                 ))
             }
-            // Skip source and file for now (not in storage types)
-            _ => continue,
+            Output::Source(source) => {
+                // Convert LanguageModelSource to storage SourcePart
+                if let Some(storage_source) = source_output_to_storage(part_id.clone(), source) {
+                    storage_source
+                } else {
+                    continue;
+                }
+            }
+            Output::File(file) => {
+                // Convert GeneratedFile to storage FilePart
+                generated_file_to_storage(part_id.clone(), file)
+            }
         };
 
         parts.push(part);
@@ -335,7 +345,18 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
                     ),
                 ));
             }
-            _ => {}
+            MessagePart::ToolResult(tool_result) => {
+                if let Some(part) = storage_tool_result_to_assistant(tool_result) {
+                    content_parts.push(part);
+                }
+            }
+            MessagePart::File(file) => {
+                if let Some(part) = storage_file_to_assistant(file) {
+                    content_parts.push(part);
+                }
+            }
+            // Skip source and image parts - sources are metadata only, images not in AssistantContentPart
+            MessagePart::Source(_) | MessagePart::Image(_) => {}
         }
     }
 
@@ -463,6 +484,109 @@ fn storage_file_to_prompt(file: &StorageFilePart) -> Option<crate::prompt::messa
     }
 
     Some(prompt_file)
+}
+
+/// Convert a SourceOutput to storage format.
+///
+/// Returns `None` if the conversion cannot be performed.
+fn source_output_to_storage(
+    id: String,
+    source_output: &crate::output::SourceOutput,
+) -> Option<MessagePart> {
+    use ai_sdk_provider::language_model::content::source::LanguageModelSource;
+    use ai_sdk_storage::SourcePart;
+
+    let (reference, title) = match &source_output.source {
+        LanguageModelSource::Url { url, title, .. } => (url.clone(), title.clone()),
+        LanguageModelSource::Document {
+            title, filename, ..
+        } => (
+            filename.clone().unwrap_or_else(|| title.clone()),
+            Some(title.clone()),
+        ),
+    };
+
+    let mut source_part = SourcePart::new(id, reference);
+    if let Some(title_str) = title {
+        source_part = source_part.with_title(title_str);
+    }
+
+    Some(MessagePart::Source(source_part))
+}
+
+/// Convert a GeneratedFile to storage format.
+fn generated_file_to_storage(
+    id: String,
+    file: &crate::generate_text::GeneratedFile,
+) -> MessagePart {
+    use ai_sdk_storage::FilePart as StorageFilePart;
+
+    // Use base64 format for storage
+    let storage_data = StorageFileData::Base64 {
+        data: file.base64().to_string(),
+    };
+
+    let mut storage_part = StorageFilePart::new(id, file.media_type.clone(), storage_data);
+
+    if let Some(filename) = &file.name {
+        storage_part = storage_part.with_filename(filename.clone());
+    }
+
+    MessagePart::File(storage_part)
+}
+
+/// Convert storage FilePart to assistant message part.
+fn storage_file_to_assistant(
+    file: &StorageFilePart,
+) -> Option<crate::prompt::message::AssistantContentPart> {
+    use crate::prompt::message::{AssistantContentPart, DataContent, FilePart as PromptFilePart};
+
+    let prompt_file_data = match &file.data {
+        StorageFileData::Base64 { data } => DataContent::Base64(data.clone()),
+        StorageFileData::Binary { data } => DataContent::Bytes(data.clone()),
+        StorageFileData::Url { url: _ } => {
+            // For URL, we'll convert to a prompt FilePart with URL source
+            // However, prompt FilePart doesn't have a direct URL constructor for assistant messages
+            // We'll use Base64 or skip - let's skip for now
+            return None;
+        }
+    };
+
+    let mut prompt_file = PromptFilePart::from_data(prompt_file_data, file.media_type.clone());
+    if let Some(filename) = &file.filename {
+        prompt_file = prompt_file.with_filename(filename.clone());
+    }
+
+    Some(AssistantContentPart::File(prompt_file))
+}
+
+/// Convert storage ToolResultPart to assistant message part.
+fn storage_tool_result_to_assistant(
+    tool_result: &ai_sdk_storage::ToolResultPart,
+) -> Option<crate::prompt::message::AssistantContentPart> {
+    use crate::prompt::message::{
+        AssistantContentPart, ToolResultOutput, ToolResultPart as PromptToolResultPart,
+    };
+    use ai_sdk_storage::ToolResultData;
+
+    let output = match &tool_result.result {
+        ToolResultData::Success { output } => ToolResultOutput::Json {
+            value: output.clone(),
+            provider_options: None,
+        },
+        ToolResultData::Error { error } => ToolResultOutput::Text {
+            value: format!("Error: {}", error),
+            provider_options: None,
+        },
+    };
+
+    let prompt_tool_result = PromptToolResultPart::new(
+        tool_result.tool_call_id.clone(),
+        tool_result.tool_name.clone(),
+        output,
+    );
+
+    Some(AssistantContentPart::ToolResult(prompt_tool_result))
 }
 
 #[cfg(all(test, feature = "storage"))]
