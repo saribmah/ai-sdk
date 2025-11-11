@@ -37,9 +37,6 @@ pub struct OpenAICompatibleChatConfig {
     /// Function to generate the URL for API requests
     pub url: UrlGeneratorFn,
 
-    /// Optional custom fetch function
-    pub fetch: Option<fn()>, // TODO: proper fetch function type
-
     /// Whether to include usage information in streaming responses
     pub include_usage: bool,
 
@@ -56,7 +53,6 @@ impl Default for OpenAICompatibleChatConfig {
             provider: "openai-compatible".to_string(),
             headers: Box::new(HashMap::new),
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
-            fetch: None,
             include_usage: false,
             supports_structured_outputs: false,
             supported_urls: None,
@@ -376,6 +372,55 @@ impl OpenAICompatibleChatLanguageModel {
             body["tool_choice"] = serde_json::to_value(tool_choice)?;
         }
 
+        // Add response_format if specified and supported
+        if let Some(response_format) = &options.response_format
+            && self.config.supports_structured_outputs
+        {
+            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+
+            let format_json = match response_format {
+                LanguageModelResponseFormat::Text => {
+                    // Text is the default, no need to specify
+                    None
+                }
+                LanguageModelResponseFormat::Json {
+                    schema,
+                    name,
+                    description,
+                } => {
+                    if let Some(schema_value) = schema {
+                        // Structured output with JSON schema
+                        let mut json_schema = json!({
+                            "type": "json_schema",
+                            "json_schema": {
+                                "schema": schema_value,
+                                "strict": true
+                            }
+                        });
+
+                        // Add optional name and description
+                        if let Some(name_str) = name {
+                            json_schema["json_schema"]["name"] = json!(name_str);
+                        }
+                        if let Some(desc_str) = description {
+                            json_schema["json_schema"]["description"] = json!(desc_str);
+                        }
+
+                        Some(json_schema)
+                    } else {
+                        // Simple JSON mode without schema
+                        Some(json!({
+                            "type": "json_object"
+                        }))
+                    }
+                }
+            };
+
+            if let Some(format) = format_json {
+                body["response_format"] = format;
+            }
+        }
+
         Ok((body, warnings))
     }
 }
@@ -527,6 +572,13 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         &self,
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelGenerateResponse, Box<dyn std::error::Error>> {
+        // Check if already cancelled before starting
+        if let Some(signal) = &options.abort_signal
+            && signal.is_cancelled()
+        {
+            return Err("Operation cancelled".into());
+        }
+
         // Prepare request body
         let (body, warnings) = self.prepare_request_body(&options)?;
         let body_string = serde_json::to_string(&body)?;
@@ -548,7 +600,17 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             request = request.header(key, value);
         }
 
-        let response = request.body(body_string.clone()).send().await?;
+        // Send request with optional cancellation support
+        let response = if let Some(signal) = &options.abort_signal {
+            tokio::select! {
+                result = request.body(body_string.clone()).send() => result?,
+                _ = signal.cancelled() => {
+                    return Err("Operation cancelled".into());
+                }
+            }
+        } else {
+            request.body(body_string.clone()).send().await?
+        };
         let status = response.status();
         let response_headers = response.headers().clone();
 
@@ -693,6 +755,13 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         &self,
         options: LanguageModelCallOptions,
     ) -> Result<LanguageModelStreamResponse, Box<dyn std::error::Error>> {
+        // Check if already cancelled before starting
+        if let Some(signal) = &options.abort_signal
+            && signal.is_cancelled()
+        {
+            return Err("Operation cancelled".into());
+        }
+
         // Prepare request body with streaming enabled
         let (mut body, warnings) = self.prepare_request_body(&options)?;
         body["stream"] = json!(true);
@@ -723,7 +792,17 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             request = request.header(key, value);
         }
 
-        let response = request.body(body_string.clone()).send().await?;
+        // Send request with optional cancellation support
+        let response = if let Some(signal) = &options.abort_signal {
+            tokio::select! {
+                result = request.body(body_string.clone()).send() => result?,
+                _ = signal.cancelled() => {
+                    return Err("Operation cancelled".into());
+                }
+            }
+        } else {
+            request.body(body_string.clone()).send().await?
+        };
         let status = response.status();
         let response_headers = response.headers().clone();
 

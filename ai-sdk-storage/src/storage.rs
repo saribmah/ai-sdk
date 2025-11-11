@@ -1,4 +1,6 @@
-use crate::{AssistantMessage, MessagePart, MessageRole, Session, StorageError, UserMessage};
+use crate::{
+    AssistantMessage, MessageMetadata, MessagePart, MessageRole, Session, StorageError, UserMessage,
+};
 use async_trait::async_trait;
 
 /// Storage trait for AI SDK conversation and message persistence.
@@ -33,7 +35,7 @@ use async_trait::async_trait;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, StorageError, MessageRole};
+/// use ai_sdk_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, MessageMetadata, StorageError, MessageRole};
 /// use async_trait::async_trait;
 ///
 /// struct MyStorage {
@@ -65,6 +67,7 @@ use async_trait::async_trait;
 /// #   async fn store_user_message(&self, message: &UserMessage, parts: &[MessagePart]) -> Result<(), StorageError> { todo!() }
 /// #   async fn store_assistant_message(&self, message: &AssistantMessage, parts: &[MessagePart]) -> Result<(), StorageError> { todo!() }
 /// #   async fn get_message(&self, session_id: &str, message_id: &str) -> Result<(MessageRole, Vec<MessagePart>), StorageError> { todo!() }
+/// #   async fn get_message_with_metadata(&self, session_id: &str, message_id: &str) -> Result<(MessageRole, Vec<MessagePart>, Option<MessageMetadata>), StorageError> { todo!() }
 /// #   async fn list_messages(&self, session_id: &str, limit: Option<usize>) -> Result<Vec<String>, StorageError> { todo!() }
 /// #   async fn list_sessions(&self, limit: Option<usize>) -> Result<Vec<Session>, StorageError> { todo!() }
 /// #   async fn delete_session(&self, session_id: &str) -> Result<(), StorageError> { todo!() }
@@ -176,6 +179,27 @@ pub trait Storage: Send + Sync {
         session_id: &str,
         message_id: &str,
     ) -> Result<(MessageRole, Vec<MessagePart>), StorageError>;
+
+    /// Get a message with all its parts and metadata (for assistant messages).
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The session containing the message
+    /// * `message_id` - The message identifier
+    ///
+    /// # Returns
+    ///
+    /// A tuple of (message role, parts, optional metadata) where parts are in chronological order.
+    /// Metadata is only provided for assistant messages.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError::NotFound` if the message doesn't exist.
+    async fn get_message_with_metadata(
+        &self,
+        session_id: &str,
+        message_id: &str,
+    ) -> Result<(MessageRole, Vec<MessagePart>, Option<MessageMetadata>), StorageError>;
 
     /// List all message IDs in a session.
     ///

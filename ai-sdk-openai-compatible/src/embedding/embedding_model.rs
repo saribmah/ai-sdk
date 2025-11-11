@@ -31,9 +31,6 @@ pub struct OpenAICompatibleEmbeddingConfig {
 
     /// Override the parallelism of embedding calls
     pub supports_parallel_calls: Option<bool>,
-
-    /// Optional custom fetch function
-    pub fetch: Option<fn()>, // TODO: proper fetch function type
 }
 
 impl Default for OpenAICompatibleEmbeddingConfig {
@@ -44,7 +41,6 @@ impl Default for OpenAICompatibleEmbeddingConfig {
             url: Box::new(|_model_id, path| format!("https://api.openai.com/v1{}", path)),
             max_embeddings_per_call: None,
             supports_parallel_calls: None,
-            fetch: None,
         }
     }
 }

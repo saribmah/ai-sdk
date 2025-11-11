@@ -123,10 +123,11 @@ where
                 let value = self.value.clone();
                 let headers = headers_with_user_agent.clone();
                 let provider_options = self.provider_options.clone();
+                let abort_signal = self.abort_signal.clone();
                 async move {
                     let options = EmbeddingModelCallOptions {
                         values: vec![value],
-                        abort_signal: None,
+                        abort_signal,
                         headers,
                         provider_options,
                     };

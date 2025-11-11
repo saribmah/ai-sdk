@@ -60,7 +60,8 @@
 mod id_generator;
 
 use ai_sdk_storage::{
-    AssistantMessage, MessagePart, MessageRole, Session, Storage, StorageError, UserMessage,
+    AssistantMessage, MessageMetadata, MessagePart, MessageRole, Session, Storage, StorageError,
+    UserMessage,
 };
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -388,6 +389,75 @@ impl Storage for FilesystemStorage {
         }
 
         Ok((role, parts))
+    }
+
+    async fn get_message_with_metadata(
+        &self,
+        session_id: &str,
+        message_id: &str,
+    ) -> Result<(MessageRole, Vec<MessagePart>, Option<MessageMetadata>), StorageError> {
+        // Read message to determine role and metadata
+        let message_path = self.message_path(session_id, message_id);
+        let message_data = fs::read(&message_path)
+            .await
+            .map_err(|_| StorageError::NotFound(format!("Message not found: {}", message_id)))?;
+
+        // Deserialize to determine role - check the "role" field in the JSON
+        let json_value: serde_json::Value = serde_json::from_slice(&message_data).map_err(|e| {
+            StorageError::SerializationError(format!("Invalid message JSON: {}", e))
+        })?;
+
+        let role = json_value
+            .get("role")
+            .and_then(|v| v.as_str())
+            .and_then(|s| match s {
+                "user" => Some(MessageRole::User),
+                "assistant" => Some(MessageRole::Assistant),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                StorageError::SerializationError("Missing or invalid role field".to_string())
+            })?;
+
+        // Extract metadata for assistant messages
+        let metadata = if role == MessageRole::Assistant {
+            serde_json::from_value::<AssistantMessage>(json_value)
+                .ok()
+                .map(|msg| msg.metadata)
+        } else {
+            None
+        };
+
+        // List and load all parts
+        let parts_dir = self.base_path.join("part").join(message_id);
+        let mut parts = Vec::new();
+
+        if parts_dir.exists() {
+            let mut entries = fs::read_dir(&parts_dir)
+                .await
+                .map_err(|e| StorageError::IoError(e.to_string()))?;
+
+            let mut part_files = Vec::new();
+            while let Some(entry) = entries
+                .next_entry()
+                .await
+                .map_err(|e| StorageError::IoError(e.to_string()))?
+            {
+                if entry.path().extension().and_then(|s| s.to_str()) == Some("json") {
+                    part_files.push(entry.path());
+                }
+            }
+
+            // Sort by filename (which are part IDs)
+            part_files.sort();
+
+            for part_file in part_files {
+                let part: MessagePart = self.read_json(&part_file).await?;
+                parts.push(part);
+            }
+        }
+
+        Ok((role, parts, metadata))
     }
 
     async fn list_messages(

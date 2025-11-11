@@ -150,10 +150,11 @@ where
                     let values = self.values.clone();
                     let headers = headers_with_user_agent.clone();
                     let provider_options = self.provider_options.clone();
+                    let abort_signal = self.abort_signal.clone();
                     async move {
                         let options = EmbeddingModelCallOptions {
                             values,
-                            abort_signal: None,
+                            abort_signal,
                             headers,
                             provider_options,
                         };
@@ -211,7 +212,7 @@ where
                 let future = async move {
                     let retry_config = RetryConfig {
                         max_retries,
-                        abort_signal: abort_signal_clone,
+                        abort_signal: abort_signal_clone.clone(),
                     };
 
                     retry_config
@@ -220,10 +221,11 @@ where
                             let chunk = chunk.clone();
                             let headers = headers.clone();
                             let provider_options = provider_options.clone();
+                            let abort_signal = abort_signal_clone.clone();
                             async move {
                                 let options = EmbeddingModelCallOptions {
                                     values: chunk,
-                                    abort_signal: None,
+                                    abort_signal,
                                     headers,
                                     provider_options,
                                 };
