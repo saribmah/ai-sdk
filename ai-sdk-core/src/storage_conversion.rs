@@ -133,7 +133,7 @@ pub fn user_message_to_storage(
 ///
 /// # Returns
 ///
-/// A vector of tuples (StorageAssistantMessage, Vec<MessagePart>) ready to be stored
+/// A vector of tuples (StorageAssistantMessage, `Vec<MessagePart>`) ready to be stored
 ///
 /// # Example
 ///
