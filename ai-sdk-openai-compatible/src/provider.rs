@@ -27,6 +27,38 @@ impl OpenAICompatibleProvider {
         Self { settings }
     }
 
+    /// Helper function to safely build URLs with query parameters.
+    ///
+    /// This function properly URL-encodes query parameter values and handles
+    /// URLs that may already contain query parameters.
+    fn build_url_with_params(
+        base_url: &str,
+        path: &str,
+        query_params: &HashMap<String, String>,
+    ) -> String {
+        let full_url = format!("{}{}", base_url, path);
+
+        if query_params.is_empty() {
+            return full_url;
+        }
+
+        // Parse the URL to safely add query parameters
+        match url::Url::parse(&full_url) {
+            Ok(mut url) => {
+                // Add query parameters using the proper API
+                for (key, value) in query_params {
+                    url.query_pairs_mut().append_pair(key, value);
+                }
+                url.to_string()
+            }
+            Err(_) => {
+                // If parsing fails, fall back to the original URL
+                // This shouldn't happen with valid base URLs
+                full_url
+            }
+        }
+    }
+
     /// Creates a language model with the given model ID.
     pub fn model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
         self.chat_model(model_id)
@@ -106,18 +138,7 @@ impl OpenAICompatibleProvider {
                 headers
             }),
             url: Box::new(move |_model_id: &str, path: &str| {
-                let mut url = format!("{}{}", base_url, path);
-
-                // Add query parameters if present
-                if !query_params.is_empty() {
-                    let params: Vec<String> = query_params
-                        .iter()
-                        .map(|(k, v)| format!("{}={}", k, v))
-                        .collect();
-                    url = format!("{}?{}", url, params.join("&"));
-                }
-
-                url
+                Self::build_url_with_params(&base_url, path, &query_params)
             }),
             fetch: None,
             include_usage: self.settings.include_usage,
@@ -163,18 +184,7 @@ impl OpenAICompatibleProvider {
                 headers
             }),
             url: Box::new(move |_model_id: &str, path: &str| {
-                let mut url = format!("{}{}", base_url, path);
-
-                // Add query parameters if present
-                if !query_params.is_empty() {
-                    let params: Vec<String> = query_params
-                        .iter()
-                        .map(|(k, v)| format!("{}={}", k, v))
-                        .collect();
-                    url = format!("{}?{}", url, params.join("&"));
-                }
-
-                url
+                Self::build_url_with_params(&base_url, path, &query_params)
             }),
             fetch: None,
             include_usage: self.settings.include_usage,
@@ -218,18 +228,7 @@ impl OpenAICompatibleProvider {
                 headers
             }),
             url: Box::new(move |_model_id: &str, path: &str| {
-                let mut url = format!("{}{}", base_url, path);
-
-                // Add query parameters if present
-                if !query_params.is_empty() {
-                    let params: Vec<String> = query_params
-                        .iter()
-                        .map(|(k, v)| format!("{}={}", k, v))
-                        .collect();
-                    url = format!("{}?{}", url, params.join("&"));
-                }
-
-                url
+                Self::build_url_with_params(&base_url, path, &query_params)
             }),
             max_embeddings_per_call: None,
             supports_parallel_calls: None,
@@ -274,18 +273,7 @@ impl OpenAICompatibleProvider {
                 headers
             }),
             url: Box::new(move |_model_id: &str, path: &str| {
-                let mut url = format!("{}{}", base_url, path);
-
-                // Add query parameters if present
-                if !query_params.is_empty() {
-                    let params: Vec<String> = query_params
-                        .iter()
-                        .map(|(k, v)| format!("{}={}", k, v))
-                        .collect();
-                    url = format!("{}?{}", url, params.join("&"));
-                }
-
-                url
+                Self::build_url_with_params(&base_url, path, &query_params)
             }),
             fetch: None,
         }
