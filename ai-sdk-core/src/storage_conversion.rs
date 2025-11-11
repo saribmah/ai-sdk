@@ -395,9 +395,17 @@ pub fn response_messages_to_storage(
                     }
                 }
 
-                // Store as assistant message with no metadata (intermediate step)
+                // Store as assistant message with metadata flag indicating client-executed tools
+                let metadata = MessageMetadata {
+                    custom: Some(serde_json::json!({
+                        "is_client_tool_message": true
+                    })),
+                    ..Default::default()
+                };
+
                 let storage_message =
-                    StorageAssistantMessage::new(message_id, session_id.clone(), part_ids);
+                    StorageAssistantMessage::new(message_id, session_id.clone(), part_ids)
+                        .with_metadata(metadata);
 
                 storage_messages.push((storage_message, parts));
             }
@@ -542,7 +550,9 @@ pub async fn load_conversation_history(
     let mut messages = Vec::new();
 
     for message_id in message_ids {
-        let (role, parts) = storage.get_message(session_id, &message_id).await?;
+        let (role, parts, metadata) = storage
+            .get_message_with_metadata(session_id, &message_id)
+            .await?;
 
         match role {
             MessageRole::User => {
@@ -550,18 +560,20 @@ pub async fn load_conversation_history(
                 messages.push(Message::User(message));
             }
             MessageRole::Assistant => {
-                // Check if this is actually a tool message (contains ONLY tool results)
-                let is_tool_message = !parts.is_empty()
-                    && parts
-                        .iter()
-                        .all(|part| matches!(part, MessagePart::ToolResult(_)));
+                // Check if this is a client-executed tool message by looking at metadata
+                let is_client_tool_message = metadata
+                    .as_ref()
+                    .and_then(|m| m.custom.as_ref())
+                    .and_then(|c| c.get("is_client_tool_message"))
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
 
-                if is_tool_message {
-                    // Reconstruct as Tool message
+                if is_client_tool_message {
+                    // Reconstruct as Tool message (client-executed tools)
                     let tool_message = parts_to_tool_message(&parts);
                     messages.push(Message::Tool(tool_message));
                 } else {
-                    // Regular assistant message
+                    // Regular assistant message (including provider-executed tool results)
                     let message = parts_to_assistant_message(&parts);
                     messages.push(Message::Assistant(message));
                 }
