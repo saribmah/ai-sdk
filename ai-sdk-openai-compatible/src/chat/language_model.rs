@@ -376,6 +376,55 @@ impl OpenAICompatibleChatLanguageModel {
             body["tool_choice"] = serde_json::to_value(tool_choice)?;
         }
 
+        // Add response_format if specified and supported
+        if let Some(response_format) = &options.response_format
+            && self.config.supports_structured_outputs
+        {
+            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+
+            let format_json = match response_format {
+                LanguageModelResponseFormat::Text => {
+                    // Text is the default, no need to specify
+                    None
+                }
+                LanguageModelResponseFormat::Json {
+                    schema,
+                    name,
+                    description,
+                } => {
+                    if let Some(schema_value) = schema {
+                        // Structured output with JSON schema
+                        let mut json_schema = json!({
+                            "type": "json_schema",
+                            "json_schema": {
+                                "schema": schema_value,
+                                "strict": true
+                            }
+                        });
+
+                        // Add optional name and description
+                        if let Some(name_str) = name {
+                            json_schema["json_schema"]["name"] = json!(name_str);
+                        }
+                        if let Some(desc_str) = description {
+                            json_schema["json_schema"]["description"] = json!(desc_str);
+                        }
+
+                        Some(json_schema)
+                    } else {
+                        // Simple JSON mode without schema
+                        Some(json!({
+                            "type": "json_object"
+                        }))
+                    }
+                }
+            };
+
+            if let Some(format) = format_json {
+                body["response_format"] = format;
+            }
+        }
+
         Ok((body, warnings))
     }
 }
