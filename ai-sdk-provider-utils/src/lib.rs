@@ -192,6 +192,15 @@ pub mod message;
 /// - Tool callbacks and options
 pub mod tool;
 
+/// Provider options parsing utilities.
+///
+/// This module provides functionality to extract and parse provider-specific options
+/// from a generic provider options map. It includes:
+/// - Schema-based validation using serde
+/// - Safe validation with error handling
+/// - Provider-specific option extraction
+pub mod parse_provider_options;
+
 // Re-export commonly used types for convenience
 pub use message::content_parts::{
     FileId, FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart,
@@ -200,6 +209,9 @@ pub use message::content_parts::{
 pub use message::{
     AssistantContent, AssistantContentPart, AssistantMessage, DataContent, Message, SystemMessage,
     ToolContent, ToolContentPart, ToolMessage, UserContent, UserContentPart, UserMessage,
+};
+pub use parse_provider_options::{
+    Schema, SerdeSchema, ValidationResult, parse_provider_options, safe_validate_types,
 };
 pub use tool::{
     NeedsApproval, OnPreliminaryToolResult, ProviderDefinedToolFactory,
