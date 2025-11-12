@@ -41,6 +41,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-azure"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-openai-compatible",
+ "ai-sdk-provider",
+ "async-trait",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "ai-sdk-core"
 version = "0.1.0"
 dependencies = [
@@ -74,6 +88,7 @@ dependencies = [
 name = "ai-sdk-examples"
 version = "0.1.0"
 dependencies = [
+ "ai-sdk-azure",
  "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
