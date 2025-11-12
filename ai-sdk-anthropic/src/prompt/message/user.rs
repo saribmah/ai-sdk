@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::prompt::message::content::document::AnthropicDocumentContent;
 use crate::prompt::message::content::image::AnthropicImageContent;
@@ -8,9 +8,9 @@ use crate::prompt::message::content::tool_result::AnthropicToolResultContent;
 /// User message content types.
 ///
 /// User messages can contain text, images, documents, or tool results.
-/// Uses untagged serialization since each content type has its own `type` field.
-/// Order matters: more specific types (with unique required fields) are checked first.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Uses custom deserialization to properly distinguish between image and document content
+/// based on the `type` field value.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(untagged)]
 pub enum UserMessageContent {
     /// Tool result content (has unique `tool_use_id` field)
@@ -22,8 +22,64 @@ pub enum UserMessageContent {
     /// Image content (has `source` field, no optional metadata fields)
     Image(AnthropicImageContent),
 
-    /// Document content (has `source` + optional metadata, checked last)
+    /// Document content (has `source` + optional metadata)
     Document(AnthropicDocumentContent),
+}
+
+impl<'de> Deserialize<'de> for UserMessageContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+
+        // Check for tool_use_id field to identify ToolResult
+        if value.get("tool_use_id").is_some() {
+            return serde_json::from_value(value)
+                .map(UserMessageContent::ToolResult)
+                .map_err(serde::de::Error::custom);
+        }
+
+        // Check the type field
+        if let Some(content_type) = value.get("type").and_then(|v| v.as_str()) {
+            match content_type {
+                "text" => {
+                    return serde_json::from_value(value)
+                        .map(UserMessageContent::Text)
+                        .map_err(serde::de::Error::custom);
+                }
+                "image" => {
+                    return serde_json::from_value(value)
+                        .map(UserMessageContent::Image)
+                        .map_err(serde::de::Error::custom);
+                }
+                "document" => {
+                    return serde_json::from_value(value)
+                        .map(UserMessageContent::Document)
+                        .map_err(serde::de::Error::custom);
+                }
+                _ => {}
+            }
+        }
+
+        // Fallback: try each variant (for backwards compatibility)
+        if let Ok(text) = serde_json::from_value::<AnthropicTextContent>(value.clone()) {
+            return Ok(UserMessageContent::Text(text));
+        }
+        if let Ok(image) = serde_json::from_value::<AnthropicImageContent>(value.clone()) {
+            return Ok(UserMessageContent::Image(image));
+        }
+        if let Ok(document) = serde_json::from_value::<AnthropicDocumentContent>(value.clone()) {
+            return Ok(UserMessageContent::Document(document));
+        }
+        if let Ok(tool_result) = serde_json::from_value::<AnthropicToolResultContent>(value) {
+            return Ok(UserMessageContent::ToolResult(tool_result));
+        }
+
+        Err(serde::de::Error::custom(
+            "unable to deserialize UserMessageContent: unknown content type",
+        ))
+    }
 }
 
 impl From<AnthropicTextContent> for UserMessageContent {

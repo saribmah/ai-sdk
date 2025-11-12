@@ -659,7 +659,8 @@ mod tests {
             "content": [
                 {
                     "type": "thinking",
-                    "thinking": "Analysis"
+                    "thinking": "Analysis",
+                    "signature": "sig_test123"
                 },
                 {
                     "type": "text",
