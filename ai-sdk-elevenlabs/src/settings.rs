@@ -11,7 +11,7 @@ pub struct ElevenLabsProviderSettings {
     pub headers: Option<HashMap<String, String>>,
 
     /// Base URL for the ElevenLabs API.
-    /// Defaults to "https://api.elevenlabs.io".
+    /// Defaults to <https://api.elevenlabs.io>.
     pub base_url: Option<String>,
 }
 
