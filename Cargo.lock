@@ -90,6 +90,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-openai"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-provider",
+ "ai-sdk-provider-utils",
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "ai-sdk-openai-compatible"
 version = "0.1.0"
 dependencies = [
