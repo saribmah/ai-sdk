@@ -1,5 +1,6 @@
 pub mod anthropic_tools;
 mod convert_to_message_prompt;
+pub mod error;
 pub mod get_cache_control;
 pub mod language_model;
 pub mod map_stop_reason;
@@ -11,4 +12,9 @@ pub mod provider_metadata_utils;
 pub mod provider_tool;
 
 // Re-export main types for convenience
+pub use error::{AnthropicError, AnthropicErrorData, AnthropicErrorDetails, parse_anthropic_error};
+pub use language_model::{
+    response_schema::{AnthropicMessagesResponse, ContentBlock, Usage},
+    stream_schema::{AnthropicChunk, ContentBlockDelta, ContentBlockStart},
+};
 pub use provider::{AnthropicProvider, AnthropicProviderSettings, anthropic, create_anthropic};
