@@ -31,10 +31,13 @@ version = "0.1.0"
 dependencies = [
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
+ "async-trait",
  "base64",
+ "regex",
  "serde",
  "serde_json",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

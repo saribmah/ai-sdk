@@ -23,6 +23,107 @@ pub use crate::provider_tool::{
     web_search_20250305,
 };
 
+use crate::provider_tool::{
+    text_editor_20250728::TextEditor20250728Builder, web_fetch_20250910::WebFetch20250910Builder,
+    web_search_20250305::WebSearch20250305Builder,
+};
+use ai_sdk_provider_utils::tool::provider_defined_factory::ProviderDefinedToolOptions;
+
+/// Static tools namespace for provider access.
+pub struct AnthropicTools;
+
+impl AnthropicTools {
+    pub fn bash_20241022(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        bash_20241022(options)
+    }
+
+    pub fn bash_20250124(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        bash_20250124(options)
+    }
+
+    pub fn code_execution_20250522(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        code_execution_20250522(options)
+    }
+
+    pub fn code_execution_20250825(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        code_execution_20250825(options)
+    }
+
+    pub fn computer_20241022(
+        &self,
+        display_width_px: u32,
+        display_height_px: u32,
+        display_number: Option<u32>,
+    ) -> ai_sdk_provider_utils::Tool {
+        computer_20241022(display_width_px, display_height_px, display_number)
+    }
+
+    pub fn computer_20250124(
+        &self,
+        display_width_px: u32,
+        display_height_px: u32,
+        display_number: Option<u32>,
+    ) -> ai_sdk_provider_utils::Tool {
+        computer_20250124(display_width_px, display_height_px, display_number)
+    }
+
+    pub fn memory_20250818(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        memory_20250818(options)
+    }
+
+    pub fn text_editor_20241022(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        text_editor_20241022(options)
+    }
+
+    pub fn text_editor_20250124(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        text_editor_20250124(options)
+    }
+
+    #[allow(deprecated)]
+    pub fn text_editor_20250429(
+        &self,
+        options: Option<ProviderDefinedToolOptions>,
+    ) -> ai_sdk_provider_utils::Tool {
+        text_editor_20250429(options)
+    }
+
+    pub fn text_editor_20250728(&self) -> TextEditor20250728Builder {
+        text_editor_20250728()
+    }
+
+    pub fn web_fetch_20250910(&self) -> WebFetch20250910Builder {
+        web_fetch_20250910()
+    }
+
+    pub fn web_search_20250305(&self) -> WebSearch20250305Builder {
+        web_search_20250305()
+    }
+}
+
+/// Static instance of tools for provider access.
+pub static TOOLS: AnthropicTools = AnthropicTools;
+
 /// The bash tool (version 20241022) enables Claude to execute shell commands in a persistent bash session,
 /// allowing system operations, script execution, and command-line automation.
 ///
