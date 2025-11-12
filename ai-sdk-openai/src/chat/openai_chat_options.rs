@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// OpenAI chat model identifier.
 ///
 /// Supports both specific model versions and the "string & {}" pattern for custom models.
-/// Based on https://platform.openai.com/docs/models
+/// Based on <https://platform.openai.com/docs/models>
 pub type OpenAIChatModelId = String;
 
 /// Provider-specific options for OpenAI chat models.
