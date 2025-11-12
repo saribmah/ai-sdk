@@ -6,7 +6,7 @@ pub struct MaxOutputTokensResult {
 
 /// Get the maximum output tokens for a given Anthropic model
 ///
-/// See: https://docs.claude.com/en/docs/about-claude/models/overview#model-comparison-table
+/// See: <https://docs.claude.com/en/docs/about-claude/models/overview#model-comparison-table>
 pub fn get_max_output_tokens_for_model(model_id: &str) -> MaxOutputTokensResult {
     if model_id.contains("claude-sonnet-4-")
         || model_id.contains("claude-3-7-sonnet")

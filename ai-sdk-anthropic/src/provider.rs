@@ -8,15 +8,13 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{create_anthropic, AnthropicProviderSettings};
+//! use ai_sdk_provider::provider::Provider;
 //!
 //! // Create provider with default settings
 //! let anthropic = create_anthropic(AnthropicProviderSettings::default());
 //!
 //! // Create a language model
 //! let model = anthropic.language_model("claude-3-5-sonnet-20241022".to_string());
-//!
-//! // Or use the shorthand
-//! let model = anthropic("claude-3-5-sonnet-20241022".to_string());
 //! ```
 
 use std::collections::HashMap;
@@ -195,7 +193,7 @@ impl AnthropicProvider {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use ai_sdk_anthropic::create_anthropic;
     ///
     /// let provider = create_anthropic(Default::default());

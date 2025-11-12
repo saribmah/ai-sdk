@@ -12,7 +12,7 @@
 //! let bash = anthropic_tools::bash_20250124(None);
 //! let computer = anthropic_tools::computer_20250124(1920, 1080, None);
 //! let search = anthropic_tools::web_search_20250305()
-//!     .user_location("San Francisco", Some("CA"), Some("US"), None)
+//!     .user_location("San Francisco", Some("CA"), Some("US"), None::<&str>)
 //!     .build();
 //! ```
 
@@ -142,7 +142,7 @@ pub static TOOLS: AnthropicTools = AnthropicTools;
 /// let tool = anthropic_tools::bash_20241022(None);
 /// ```
 ///
-/// See [`bash_20241022`] for more details.
+/// See [`bash_20241022()`] for more details.
 pub use bash_20241022 as bash_20241022_tool;
 
 /// The bash tool (version 20250124) enables Claude to execute shell commands in a persistent bash session,
@@ -163,7 +163,7 @@ pub use bash_20241022 as bash_20241022_tool;
 /// let tool = anthropic_tools::bash_20250124(None);
 /// ```
 ///
-/// See [`bash_20250124`] for more details.
+/// See [`bash_20250124()`] for more details.
 pub use bash_20250124 as bash_20250124_tool;
 
 /// Claude can analyze data, create visualizations, perform complex calculations,
@@ -191,7 +191,7 @@ pub use bash_20250124 as bash_20250124_tool;
 /// let tool = anthropic_tools::code_execution_20250522(None);
 /// ```
 ///
-/// See [`code_execution_20250522`] for more details.
+/// See [`code_execution_20250522()`] for more details.
 pub use code_execution_20250522 as code_execution_20250522_tool;
 
 /// Claude can analyze data, create visualizations, perform complex calculations,
@@ -223,7 +223,7 @@ pub use code_execution_20250522 as code_execution_20250522_tool;
 /// let tool = anthropic_tools::code_execution_20250825(None);
 /// ```
 ///
-/// See [`code_execution_20250825`] for more details.
+/// See [`code_execution_20250825()`] for more details.
 pub use code_execution_20250825 as code_execution_20250825_tool;
 
 /// Claude can interact with computer environments through the computer use tool (version 20241022),
@@ -250,7 +250,7 @@ pub use code_execution_20250825 as code_execution_20250825_tool;
 /// let tool = anthropic_tools::computer_20241022(1920, 1080, None);
 /// ```
 ///
-/// See [`computer_20241022`] for more details.
+/// See [`computer_20241022()`] for more details.
 pub use computer_20241022 as computer_20241022_tool;
 
 /// Claude can interact with computer environments through the computer use tool (version 20250124),
@@ -277,7 +277,7 @@ pub use computer_20241022 as computer_20241022_tool;
 /// let tool = anthropic_tools::computer_20250124(1920, 1080, Some(0));
 /// ```
 ///
-/// See [`computer_20250124`] for more details.
+/// See [`computer_20250124()`] for more details.
 pub use computer_20250124 as computer_20250124_tool;
 
 /// The memory tool enables Claude to store and retrieve information across conversations
@@ -307,7 +307,7 @@ pub use computer_20250124 as computer_20250124_tool;
 /// let tool = anthropic_tools::memory_20250818(None);
 /// ```
 ///
-/// See [`memory_20250818`] for more details.
+/// See [`memory_20250818()`] for more details.
 pub use memory_20250818 as memory_20250818_tool;
 
 /// Claude can use an Anthropic-defined text editor tool to view and modify text files,
@@ -330,7 +330,7 @@ pub use memory_20250818 as memory_20250818_tool;
 /// let tool = anthropic_tools::text_editor_20241022(None);
 /// ```
 ///
-/// See [`text_editor_20241022`] for more details.
+/// See [`text_editor_20241022()`] for more details.
 pub use text_editor_20241022 as text_editor_20241022_tool;
 
 /// Claude can use an Anthropic-defined text editor tool to view and modify text files,
@@ -353,7 +353,7 @@ pub use text_editor_20241022 as text_editor_20241022_tool;
 /// let tool = anthropic_tools::text_editor_20250124(None);
 /// ```
 ///
-/// See [`text_editor_20250124`] for more details.
+/// See [`text_editor_20250124()`] for more details.
 pub use text_editor_20250124 as text_editor_20250124_tool;
 
 /// Claude can use an Anthropic-defined text editor tool to view and modify text files,
@@ -368,7 +368,7 @@ pub use text_editor_20250124 as text_editor_20250124_tool;
 /// Requires: `computer-use-2025-01-24`
 ///
 /// # Deprecation Warning
-/// **Deprecated:** Use [`text_editor_20250728`] instead.
+/// **Deprecated:** Use [`text_editor_20250728()`] instead.
 ///
 /// # Example
 ///
@@ -378,7 +378,7 @@ pub use text_editor_20250124 as text_editor_20250124_tool;
 /// let tool = anthropic_tools::text_editor_20250429(None);
 /// ```
 ///
-/// See [`text_editor_20250429`] for more details.
+/// See [`text_editor_20250429()`] for more details.
 #[deprecated(
     since = "0.1.0",
     note = "Use text_editor_20250728 instead for max_characters support"
@@ -415,7 +415,7 @@ pub use text_editor_20250429 as text_editor_20250429_tool;
 ///     .build();
 /// ```
 ///
-/// See [`text_editor_20250728`] for more details.
+/// See [`text_editor_20250728()`] for more details.
 pub use text_editor_20250728 as text_editor_20250728_tool;
 
 /// Creates a web fetch tool that gives Claude direct access to real-time web content.
@@ -446,7 +446,7 @@ pub use text_editor_20250728 as text_editor_20250728_tool;
 ///     .build();
 /// ```
 ///
-/// See [`web_fetch_20250910`] for more details.
+/// See [`web_fetch_20250910()`] for more details.
 pub use web_fetch_20250910 as web_fetch_20250910_tool;
 
 /// Creates a web search tool that gives Claude direct access to real-time web content.
@@ -474,7 +474,7 @@ pub use web_fetch_20250910 as web_fetch_20250910_tool;
 ///     .build();
 /// ```
 ///
-/// See [`web_search_20250305`] for more details.
+/// See [`web_search_20250305()`] for more details.
 pub use web_search_20250305 as web_search_20250305_tool;
 
 #[cfg(test)]

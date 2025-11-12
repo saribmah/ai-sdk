@@ -34,7 +34,7 @@ impl UserLocation {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::web_search_tool::UserLocation;
+    /// use ai_sdk_anthropic::prompt::tool::web_search_tool::UserLocation;
     ///
     /// let location = UserLocation::new()
     ///     .with_city("San Francisco")
@@ -114,7 +114,7 @@ impl Default for UserLocation {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::tool::web_search_tool::{AnthropicWebSearchTool, UserLocation};
+/// use ai_sdk_anthropic::prompt::tool::web_search_tool::{AnthropicWebSearchTool, UserLocation};
 ///
 /// let location = UserLocation::new()
 ///     .with_city("New York")
@@ -165,7 +165,7 @@ impl AnthropicWebSearchTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::web_search_tool::AnthropicWebSearchTool;
+    /// use ai_sdk_anthropic::prompt::tool::web_search_tool::AnthropicWebSearchTool;
     ///
     /// let tool = AnthropicWebSearchTool::new("web_search");
     /// ```

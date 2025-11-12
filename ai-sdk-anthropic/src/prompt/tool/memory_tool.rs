@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::tool::memory_tool::AnthropicMemoryTool;
+/// use ai_sdk_anthropic::prompt::tool::memory_tool::AnthropicMemoryTool;
 ///
 /// let tool = AnthropicMemoryTool::new("memory");
 /// ```
@@ -32,7 +32,7 @@ impl AnthropicMemoryTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::memory_tool::AnthropicMemoryTool;
+    /// use ai_sdk_anthropic::prompt::tool::memory_tool::AnthropicMemoryTool;
     ///
     /// let tool = AnthropicMemoryTool::new("memory");
     /// ```

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Anthropic Messages API model identifiers.
 ///
-/// See: https://docs.claude.com/en/docs/about-claude/models/overview
+/// See: <https://docs.claude.com/en/docs/about-claude/models/overview>
 pub type AnthropicMessagesModelId = String;
 
 /// Anthropic file part provider options for document-specific features.
@@ -88,7 +88,7 @@ pub struct AnthropicProviderOptions {
     pub disable_parallel_tool_use: Option<bool>,
 
     /// Cache control settings for this message.
-    /// See https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+    /// See <https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching>>
     #[serde(skip_serializing_if = "Option::is_none", rename = "cacheControl")]
     pub cache_control: Option<CacheControl>,
 

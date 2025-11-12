@@ -21,7 +21,7 @@ pub enum BashToolVersion {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::tool::bash_tool::{AnthropicBashTool, BashToolVersion};
+/// use ai_sdk_anthropic::prompt::tool::bash_tool::{AnthropicBashTool, BashToolVersion};
 ///
 /// let tool = AnthropicBashTool::new("bash", BashToolVersion::Bash20250124);
 /// ```

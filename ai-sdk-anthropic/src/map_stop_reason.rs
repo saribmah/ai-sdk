@@ -23,7 +23,7 @@ use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 /// - `tool_use`: The model wants to use a tool
 /// - `refusal`: The model refused to respond (content filter)
 ///
-/// See: https://docs.anthropic.com/en/api/messages#response-stop-reason
+/// See: <https://docs.anthropic.com/en/api/messages#response-stop-reason>
 ///
 /// # Example
 ///

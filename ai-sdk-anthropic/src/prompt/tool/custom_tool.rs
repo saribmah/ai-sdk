@@ -12,7 +12,7 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::tool::custom_tool::AnthropicCustomTool;
+/// use ai_sdk_anthropic::prompt::tool::custom_tool::AnthropicCustomTool;
 /// use serde_json::json;
 ///
 /// let tool = AnthropicCustomTool::new(
@@ -58,7 +58,7 @@ impl AnthropicCustomTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::custom_tool::AnthropicCustomTool;
+    /// use ai_sdk_anthropic::prompt::tool::custom_tool::AnthropicCustomTool;
     /// use serde_json::json;
     ///
     /// let tool = AnthropicCustomTool::new(
@@ -89,7 +89,7 @@ impl AnthropicCustomTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::custom_tool::AnthropicCustomTool;
+    /// use ai_sdk_anthropic::prompt::tool::custom_tool::AnthropicCustomTool;
     /// use serde_json::json;
     ///
     /// let tool = AnthropicCustomTool::new("tool", json!({}))
@@ -115,7 +115,7 @@ impl AnthropicCustomTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::tool::custom_tool::AnthropicCustomTool;
+    /// use ai_sdk_anthropic::prompt::tool::custom_tool::AnthropicCustomTool;
     /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     /// use serde_json::json;
     ///
