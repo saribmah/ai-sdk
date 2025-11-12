@@ -130,10 +130,14 @@ pub async fn build_request_args(
     // Build base arguments
     let mut args = json!({
         "model": model_id,
-        "system": _prompt_result.prompt.system,
         "messages": _prompt_result.prompt.messages,
         "max_tokens": max_tokens,
     });
+
+    // Add system message if present
+    if let Some(system) = _prompt_result.prompt.system {
+        args["system"] = json!(system);
+    }
 
     // Add optional parameters
     if let Some(temperature) = options.temperature {

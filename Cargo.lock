@@ -29,12 +29,15 @@ dependencies = [
 name = "ai-sdk-anthropic"
 version = "0.1.0"
 dependencies = [
+ "ai-sdk-core",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
  "async-stream",
  "async-trait",
  "base64",
  "bytes",
+ "chrono",
+ "futures",
  "futures-util",
  "regex",
  "reqwest",
