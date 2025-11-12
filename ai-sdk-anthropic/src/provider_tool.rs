@@ -10,19 +10,19 @@
 //!
 //! # Available Tools
 //!
-//! - [`bash_20241022()`] - Execute bash commands in a sandboxed environment (version 20241022)
-//! - [`bash_20250124()`] - Execute bash commands in a sandboxed environment (version 20250124)
-//! - [`code_execution_20250522()`] - Execute Python code in a sandboxed environment (version 20250522)
-//! - [`code_execution_20250825()`] - Execute code and edit files (bash + text editor) (version 20250825)
-//! - [`computer_20241022()`] - Control computer display, keyboard, and mouse (version 20241022)
-//! - [`computer_20250124()`] - Control computer with enhanced actions (version 20250124)
-//! - [`memory_20250818()`] - Store and retrieve information across conversations (version 20250818)
-//! - [`text_editor_20241022()`] - View and edit files with text editor commands (version 20241022)
-//! - [`text_editor_20250124()`] - View and edit files with text editor commands (version 20250124)
-//! - [`text_editor_20250429()`] - View and edit files without undo_edit (version 20250429)
-//! - [`text_editor_20250728()`] - View and edit files with maxCharacters support (version 20250728)
-//! - [`web_fetch_20250910()`] - Fetch content from URLs with optional citations (version 20250910)
-//! - [`web_search_20250305()`] - Search the web with citations always enabled (version 20250305)
+//! - `bash_20241022()` - Execute bash commands in a sandboxed environment (version 20241022)
+//! - `bash_20250124()` - Execute bash commands in a sandboxed environment (version 20250124)
+//! - `code_execution_20250522()` - Execute Python code in a sandboxed environment (version 20250522)
+//! - `code_execution_20250825()` - Execute code and edit files (bash + text editor) (version 20250825)
+//! - `computer_20241022()` - Control computer display, keyboard, and mouse (version 20241022)
+//! - `computer_20250124()` - Control computer with enhanced actions (version 20250124)
+//! - `memory_20250818()` - Store and retrieve information across conversations (version 20250818)
+//! - `text_editor_20241022()` - View and edit files with text editor commands (version 20241022)
+//! - `text_editor_20250124()` - View and edit files with text editor commands (version 20250124)
+//! - `text_editor_20250429()` - View and edit files without undo_edit (version 20250429)
+//! - `text_editor_20250728()` - View and edit files with maxCharacters support (version 20250728)
+//! - `web_fetch_20250910()` - Fetch content from URLs with optional citations (version 20250910)
+//! - `web_search_20250305()` - Search the web with citations always enabled (version 20250305)
 //!
 //! # Example
 //!

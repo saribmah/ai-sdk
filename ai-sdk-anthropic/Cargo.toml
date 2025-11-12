@@ -5,6 +5,11 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Anthropic provider for AI SDK Rust - Complete Claude integration with streaming, tools, thinking, and citations"
+keywords = ["anthropic", "claude", "ai", "llm", "sdk"]
+categories = ["api-bindings", "asynchronous", "web-programming"]
+readme = "README.md"
+documentation = "https://docs.rs/ai-sdk-anthropic"
 
 [dependencies]
 ai-sdk-provider = { path = "../ai-sdk-provider" }

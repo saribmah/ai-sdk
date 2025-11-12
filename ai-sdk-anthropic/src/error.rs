@@ -1,19 +1,126 @@
+//! Error types for the Anthropic provider.
+//!
+//! This module provides comprehensive error handling for the Anthropic API, including:
+//! - API-specific error types and response parsing
+//! - HTTP request error handling
+//! - JSON parsing errors
+//! - Configuration validation errors
+//! - Automatic conversion to SDK `ProviderError` types
+//!
+//! ## Error Types
+//!
+//! The main error type is [`AnthropicError`], which provides specific variants for
+//! different error scenarios:
+//!
+//! - [`AnthropicError::ApiError`] - Errors returned by the Anthropic API
+//! - [`AnthropicError::RequestError`] - HTTP request failures
+//! - [`AnthropicError::ParseError`] - JSON parsing failures
+//! - [`AnthropicError::ConfigError`] - Configuration validation failures
+//! - [`AnthropicError::Other`] - Generic error wrapper
+//!
+//! ## API Error Format
+//!
+//! Anthropic API errors follow a consistent structure:
+//!
+//! ```json
+//! {
+//!   "type": "error",
+//!   "error": {
+//!     "type": "invalid_request_error",
+//!     "message": "Invalid request"
+//!   }
+//! }
+//! ```
+//!
+//! Common error types include:
+//! - `invalid_request_error` - Invalid parameters or request format
+//! - `authentication_error` - Invalid API key or authentication failure
+//! - `permission_error` - Insufficient permissions
+//! - `not_found_error` - Resource not found
+//! - `rate_limit_error` - Rate limit exceeded
+//! - `api_error` - Internal API error
+//! - `overloaded_error` - API temporarily overloaded
+//!
+//! ## Usage
+//!
+//! ```rust
+//! use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
+//! use ai_sdk_anthropic::create_anthropic;
+//! use ai_sdk_core::{GenerateText, Prompt};
+//! use ai_sdk_provider::provider::Provider;
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let provider = create_anthropic(Default::default());
+//! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
+//!
+//! match GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello"))
+//!     .execute()
+//!     .await
+//! {
+//!     Ok(result) => println!("{}", result.text),
+//!     Err(e) => {
+//!         // Errors are automatically converted to ProviderError
+//!         eprintln!("Error: {}", e);
+//!     }
+//! }
+//! # Ok(())
+//! # }
+//! ```
+
 use ai_sdk_provider::ProviderError;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-/// Anthropic-specific error types
+/// Anthropic-specific error types.
+///
+/// This enum represents all possible error conditions when interacting with the
+/// Anthropic API. Errors are automatically converted to SDK `ProviderError` types
+/// for consistent error handling across different providers.
+///
+/// # Examples
+///
+/// ```rust
+/// use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
+///
+/// // Create an API error
+/// let error_data = AnthropicErrorData::new(
+///     "invalid_request_error".to_string(),
+///     "Missing required parameter".to_string(),
+/// );
+/// let error = AnthropicError::ApiError(error_data);
+///
+/// // Convert to string
+/// let error_message = error.to_string();
+/// ```
 #[derive(Debug)]
 pub enum AnthropicError {
-    /// API error from Anthropic
+    /// API error from Anthropic.
+    ///
+    /// This variant contains structured error data returned by the Anthropic API,
+    /// including the error type and message.
     ApiError(AnthropicErrorData),
-    /// HTTP request error
+
+    /// HTTP request error.
+    ///
+    /// This variant wraps errors from the underlying HTTP client (reqwest),
+    /// such as network failures, connection timeouts, etc.
     RequestError(reqwest::Error),
-    /// JSON parsing error
+
+    /// JSON parsing error.
+    ///
+    /// This variant wraps errors that occur when parsing JSON responses
+    /// from the API.
     ParseError(serde_json::Error),
-    /// Invalid configuration
+
+    /// Invalid configuration.
+    ///
+    /// This variant represents errors in provider configuration, such as
+    /// missing API keys or invalid base URLs.
     ConfigError(String),
-    /// Generic error wrapper
+
+    /// Generic error wrapper.
+    ///
+    /// This variant wraps any other error types that don't fit the above categories.
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
