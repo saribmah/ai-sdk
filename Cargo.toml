@@ -9,6 +9,7 @@ members = [
     "ai-sdk-storage",
     "ai-sdk-storage-filesystem",
     "ai-sdk-anthropic",
+    "ai-sdk-azure",
 ]
 
 [workspace.package]
@@ -37,6 +38,7 @@ ai-sdk-provider-utils = { path = "ai-sdk-provider-utils" }
 ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 ai-sdk-storage = { path = "ai-sdk-storage" }
 ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
+ai-sdk-azure = { path = "ai-sdk-azure" }
 tokio = { version = "1.41", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -121,4 +123,8 @@ required-features = ["storage"]
 name = "agent_storage_conversation"
 path = "examples/agent_storage_conversation.rs"
 required-features = ["storage"]
+
+[[example]]
+name = "azure_basic"
+path = "examples/azure_basic.rs"
 
