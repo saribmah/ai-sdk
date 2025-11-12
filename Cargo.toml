@@ -5,8 +5,10 @@ members = [
     "ai-sdk-provider",
     "ai-sdk-provider-utils",
     "ai-sdk-openai-compatible",
+    "ai-sdk-openai",
     "ai-sdk-storage",
-    "ai-sdk-storage-filesystem", "ai-sdk-anthropic",
+    "ai-sdk-storage-filesystem",
+    "ai-sdk-anthropic",
 ]
 
 [workspace.package]
