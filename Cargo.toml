@@ -10,6 +10,7 @@ members = [
     "ai-sdk-storage-filesystem",
     "ai-sdk-anthropic",
     "ai-sdk-azure",
+    "ai-sdk-elevenlabs",
 ]
 
 [workspace.package]
