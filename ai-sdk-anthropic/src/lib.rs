@@ -20,7 +20,8 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{create_anthropic, AnthropicProviderSettings};
-//! use ai_sdk_core::{GenerateText, Prompt};
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! #[tokio::main]
@@ -49,7 +50,9 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{create_anthropic, anthropic_tools};
-//! use ai_sdk_core::{GenerateText, Prompt, ToolSet};
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
+//! use ai_sdk_core::tool::tool_set::ToolSet;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -57,12 +60,14 @@
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! // Use provider-defined tools
-//! let tools = ToolSet::from_vec(vec![
-//!     anthropic_tools::bash_20250124(None),
-//!     anthropic_tools::web_search_20250305()
-//!         .max_uses(5)
-//!         .build(),
-//! ]);
+//! let mut tools = ToolSet::new();
+//! let bash_tool = anthropic_tools::bash_20250124(None);
+//! tools.insert(bash_tool.name().to_string(), bash_tool);
+//!
+//! let search_tool = anthropic_tools::web_search_20250305()
+//!     .max_uses(5)
+//!     .build();
+//! tools.insert(search_tool.name().to_string(), search_tool);
 //!
 //! let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Search for Rust news"))
 //!     .tools(tools)
@@ -92,8 +97,10 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::create_anthropic;
-//! use ai_sdk_core::{GenerateText, Prompt};
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::language_model::output::Output;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = create_anthropic(Default::default());
@@ -108,7 +115,7 @@
 //!
 //! // Access reasoning
 //! for output in result.experimental_output.iter() {
-//!     if let ai_sdk_provider::language_model::Output::Reasoning(reasoning) = output {
+//!     if let Output::Reasoning(reasoning) = output {
 //!         println!("Reasoning: {}", reasoning.text);
 //!     }
 //! }
@@ -122,23 +129,26 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::create_anthropic;
-//! use ai_sdk_core::{StreamText, Prompt};
+//! use ai_sdk_core::stream_text::StreamText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::language_model::text_stream_part::TextStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = create_anthropic(Default::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! let mut stream = StreamText::new(std::sync::Arc::new(model),
+//! let stream_result = StreamText::new(std::sync::Arc::new(model),
 //!     Prompt::text("Write a story"))
 //!     .temperature(0.8)
 //!     .execute()
 //!     .await?;
 //!
+//! let mut stream = stream_result.stream;
 //! while let Some(part) = stream.next().await {
 //!     match part {
-//!         Ok(ai_sdk_provider::language_model::TextStreamPart::TextDelta { delta, .. }) => {
+//!         Ok(TextStreamPart::TextDelta { delta, .. }) => {
 //!             print!("{}", delta);
 //!         }
 //!         _ => {}
@@ -153,7 +163,7 @@
 //! Configure the provider with custom settings:
 //!
 //! ```rust
-//! use ai_sdk_anthropic::AnthropicProviderSettings;
+//! use ai_sdk_anthropic::{AnthropicProviderSettings, create_anthropic};
 //! use std::collections::HashMap;
 //!
 //! let settings = AnthropicProviderSettings::new()
@@ -161,6 +171,8 @@
 //!     .with_base_url("https://api.anthropic.com/v1")
 //!     .add_header("Custom-Header", "value")
 //!     .with_name("my-anthropic-provider");
+//!
+//! let provider = create_anthropic(settings);
 //! ```
 //!
 //! ## Environment Variables
@@ -174,7 +186,8 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{create_anthropic, AnthropicError};
-//! use ai_sdk_core::{GenerateText, Prompt};
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() {

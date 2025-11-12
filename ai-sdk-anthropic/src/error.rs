@@ -43,10 +43,11 @@
 //!
 //! ## Usage
 //!
-//! ```rust
+//! ```rust,no_run
 //! use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
 //! use ai_sdk_anthropic::create_anthropic;
-//! use ai_sdk_core::{GenerateText, Prompt};
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
