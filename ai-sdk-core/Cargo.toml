@@ -11,6 +11,7 @@ categories = ["api-bindings", "asynchronous"]
 readme = "../README.md"
 
 [dependencies]
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }  # Provider utils types and traits
 tokio = { version = "1.41", features = ["time"] }  # For async runtime and sleep
 tokio-util = "0.7.16"  # For CancellationToken (equivalent to AbortSignal)
 thiserror = "2.0.9"    # For error handling

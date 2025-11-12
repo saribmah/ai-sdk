@@ -22,9 +22,9 @@
 //!
 //! When validation fails, detailed error messages indicate which constraints were violated.
 
-use super::{Tool, ToolCall};
 use crate::error::AISDKError;
 use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
+use ai_sdk_provider_utils::tool::{Tool, ToolCall};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -210,8 +210,8 @@ pub fn parse_tool_call(
 
 #[cfg(test)]
 mod tests {
-    use super::super::Tool;
     use super::*;
+    use ai_sdk_provider_utils::tool::Tool;
     use serde_json::json;
 
     #[test]

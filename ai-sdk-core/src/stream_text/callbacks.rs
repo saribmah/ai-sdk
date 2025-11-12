@@ -58,7 +58,7 @@ pub enum ChunkStreamPart {
     /// A tool call.
     ToolCall {
         /// The tool call.
-        tool_call: crate::tool::ToolCall,
+        tool_call: ai_sdk_provider_utils::tool::ToolCall,
     },
 
     /// Indicates the start of a tool input.
@@ -92,7 +92,7 @@ pub enum ChunkStreamPart {
     /// A tool result.
     ToolResult {
         /// The tool result.
-        tool_result: crate::tool::ToolResult,
+        tool_result: ai_sdk_provider_utils::tool::ToolResult,
     },
 
     /// A raw value from the provider (for debugging/custom handling).
@@ -296,7 +296,7 @@ pub type StreamTextOnAbortCallback =
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::ToolCall;
+    use ai_sdk_provider_utils::tool::ToolCall;
 
     #[test]
     fn test_chunk_from_text_delta() {

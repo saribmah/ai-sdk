@@ -1,4 +1,4 @@
-use crate::prompt::message::data_content::DataContent;
+use ai_sdk_provider_utils::message::data_content::DataContent;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 

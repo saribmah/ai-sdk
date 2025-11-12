@@ -5,13 +5,13 @@ pub use result::TranscriptionResult;
 
 use crate::error::AISDKError;
 use crate::generate_text::prepare_retries;
-use crate::prompt::message::DataContent;
 use ai_sdk_provider::shared::headers::SharedHeaders;
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 use ai_sdk_provider::transcription_model::TranscriptionModel;
 use ai_sdk_provider::transcription_model::call_options::{
     TranscriptionAudioData, TranscriptionModelCallOptions,
 };
+use ai_sdk_provider_utils::message::DataContent;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -23,7 +23,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// ```no_run
 /// use ai_sdk_core::{Transcribe, AudioInput};
-/// use ai_sdk_core::prompt::message::DataContent;
+/// use ai_sdk_provider_utils::message::DataContent;
 /// # use std::sync::Arc;
 /// # use ai_sdk_provider::transcription_model::TranscriptionModel;
 /// # async fn example(model: Arc<dyn TranscriptionModel>) -> Result<(), Box<dyn std::error::Error>> {

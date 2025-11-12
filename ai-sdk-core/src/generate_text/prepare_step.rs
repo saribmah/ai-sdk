@@ -1,6 +1,6 @@
 use super::step_result::StepResult;
-use crate::prompt::message::Message;
 use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+use ai_sdk_provider_utils::message::Message;
 use async_trait::async_trait;
 use std::future::Future;
 

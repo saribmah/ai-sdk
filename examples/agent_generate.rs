@@ -1,4 +1,3 @@
-use ai_sdk_core::tool::definition::Tool;
 /// Agent generate example demonstrating agent-based tool calling (non-streaming).
 ///
 /// This example shows how to:
@@ -15,6 +14,7 @@ use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
 use ai_sdk_core::{ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 use std::sync::Arc;
@@ -158,7 +158,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::tool::definition::ToolExecutionOutput;
+    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
 
     // Helper function to create tools (since tools can't be cloned, we recreate them for each call)
     let mut tools = ToolSet::new();

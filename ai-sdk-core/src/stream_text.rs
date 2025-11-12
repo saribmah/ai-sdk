@@ -33,15 +33,14 @@ use crate::generate_text::{
     to_response_messages,
 };
 use crate::output::{Output, ReasoningOutput, SourceOutput, TextOutput};
-use crate::prompt::message::Message;
 use crate::prompt::{
     Prompt, call_settings::CallSettings, call_settings::prepare_call_settings,
     convert_to_language_model_prompt::convert_to_language_model_prompt,
     standardize::StandardizedPrompt, standardize::validate_and_standardize,
 };
 use crate::tool::{
-    ToolCall, ToolSet, execute_tool_call, parse_provider_executed_dynamic_tool_call,
-    parse_tool_call, prepare_tools_and_tool_choice,
+    ToolSet, execute_tool_call, parse_provider_executed_dynamic_tool_call, parse_tool_call,
+    prepare_tools_and_tool_choice,
 };
 use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
 use ai_sdk_provider::language_model::{
@@ -49,6 +48,8 @@ use ai_sdk_provider::language_model::{
     usage::LanguageModelUsage,
 };
 use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use ai_sdk_provider_utils::message::Message;
+use ai_sdk_provider_utils::tool::ToolCall;
 use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -314,7 +315,7 @@ async fn stream_single_step(
             }
             LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use crate::tool::ToolResult;
+                use ai_sdk_provider_utils::tool::ToolResult;
 
                 // Find the matching tool call to get the input
                 let matching_call = step_tool_calls
@@ -700,7 +701,7 @@ impl StreamText {
 
             // Store the new user message immediately
             if let Some(user_msg) = standardized_prompt.messages.iter().find(|m| m.is_user())
-                && let crate::prompt::message::Message::User(user_message) = user_msg
+                && let ai_sdk_provider_utils::message::Message::User(user_message) = user_msg
             {
                 let (storage_msg, parts) =
                     user_message_to_storage(storage, session_id.clone(), user_message);
@@ -966,12 +967,12 @@ impl StreamText {
                         {
                             // Emit tool result to the stream
                             match &output {
-                                crate::tool::ToolOutput::Result(result) => {
+                                ai_sdk_provider_utils::tool::ToolOutput::Result(result) => {
                                     let _ = tx_clone.send(TextStreamPart::ToolResult {
                                         tool_result: result.clone(),
                                     });
                                 }
-                                crate::tool::ToolOutput::Error(error) => {
+                                ai_sdk_provider_utils::tool::ToolOutput::Error(error) => {
                                     let _ = tx_clone.send(TextStreamPart::ToolError {
                                         tool_error: error.clone(),
                                     });
@@ -988,10 +989,10 @@ impl StreamText {
                 let mut step_content = step_result.content.clone();
                 for output in client_tool_outputs {
                     match output {
-                        crate::tool::ToolOutput::Result(tool_result) => {
+                        ai_sdk_provider_utils::tool::ToolOutput::Result(tool_result) => {
                             step_content.push(Output::ToolResult(tool_result));
                         }
-                        crate::tool::ToolOutput::Error(tool_error) => {
+                        ai_sdk_provider_utils::tool::ToolOutput::Error(tool_error) => {
                             step_content.push(Output::ToolError(tool_error));
                         }
                     }

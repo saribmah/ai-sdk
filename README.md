@@ -22,7 +22,7 @@ This is a Cargo workspace with multiple crates:
 - **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
 - **`ai-sdk-storage`**: Storage trait and types for conversation persistence
 - **`ai-sdk-storage-filesystem`**: Filesystem-based storage provider implementation
-- **`ai-sdk-utils`**: Shared utilities and helper functions
+- **`ai-sdk-provider-utils`**: Shared utilities for AI SDK providers
 
 ## Installation
 

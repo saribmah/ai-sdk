@@ -1,5 +1,5 @@
-use super::{ToolApprovalRequest, ToolApprovalResponse, ToolCall};
-use crate::prompt::message::{AssistantContent, Message, ToolContentPart};
+use ai_sdk_provider_utils::message::{AssistantContent, Message, ToolContentPart};
+use ai_sdk_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse, ToolCall};
 use std::collections::HashMap;
 
 /// A collected tool approval containing the approval request, response, and associated tool call.
@@ -94,9 +94,9 @@ impl CollectedToolApprovals {
 ///
 /// ```rust
 /// use ai_sdk_core::tool::collect_tool_approvals;
-/// use ai_sdk_core::prompt::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
-/// use ai_sdk_core::prompt::message::content_parts::ToolCallPart;
-/// use ai_sdk_core::tool::{ToolApprovalRequest, ToolApprovalResponse};
+/// use ai_sdk_provider_utils::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
+/// use ai_sdk_provider_utils::message::content_parts::ToolCallPart;
+/// use ai_sdk_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse};
 /// use serde_json::json;
 ///
 /// // Create a message history with an approval request
@@ -143,7 +143,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
             && let AssistantContent::Parts(parts) = &assistant_msg.content
         {
             for part in parts {
-                if let crate::prompt::message::assistant::AssistantContentPart::ToolCall(
+                if let ai_sdk_provider_utils::message::assistant::AssistantContentPart::ToolCall(
                     tool_call,
                 ) = part
                 {
@@ -168,7 +168,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
             && let AssistantContent::Parts(parts) = &assistant_msg.content
         {
             for part in parts {
-                if let crate::prompt::message::assistant::AssistantContentPart::ToolApprovalRequest(
+                if let ai_sdk_provider_utils::message::assistant::AssistantContentPart::ToolApprovalRequest(
                         approval_req,
                     ) = part
                     {
@@ -236,8 +236,10 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prompt::message::content_parts::{ToolCallPart, ToolResultOutput, ToolResultPart};
-    use crate::prompt::message::{AssistantContentPart, AssistantMessage, ToolMessage};
+    use ai_sdk_provider_utils::message::content_parts::{
+        ToolCallPart, ToolResultOutput, ToolResultPart,
+    };
+    use ai_sdk_provider_utils::message::{AssistantContentPart, AssistantMessage, ToolMessage};
     use serde_json::json;
 
     #[test]

@@ -1,11 +1,11 @@
 use crate::ResponseMessage;
 use crate::output::Output;
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
-use crate::prompt::message::assistant::AssistantContentPart;
-use crate::prompt::message::content_parts::tool_result::ToolResultPart;
-use crate::prompt::message::tool::ToolContentPart;
-use crate::prompt::message::{AssistantMessage, ToolMessage};
 use crate::tool::ToolSet;
+use ai_sdk_provider_utils::message::{
+    AssistantMessage, ToolMessage, assistant::AssistantContentPart,
+    content_parts::tool_result::ToolResultPart, tool::ToolContentPart,
+};
 
 /// Converts the result of a `generate_text` call to a list of response messages.
 ///
@@ -65,15 +65,17 @@ pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Ve
         .filter_map(|part| {
             match part {
                 Output::Text(text_output) => Some(AssistantContentPart::Text(
-                    crate::prompt::message::content_parts::TextPart::new(text_output.text.clone()),
+                    ai_sdk_provider_utils::message::content_parts::TextPart::new(
+                        text_output.text.clone(),
+                    ),
                 )),
                 Output::Reasoning(reasoning_output) => Some(AssistantContentPart::Reasoning(
-                    crate::prompt::message::content_parts::ReasoningPart::new(
+                    ai_sdk_provider_utils::message::content_parts::ReasoningPart::new(
                         reasoning_output.text.clone(),
                     ),
                 )),
                 Output::ToolCall(tool_call) => Some(AssistantContentPart::ToolCall(
-                    crate::prompt::message::content_parts::ToolCallPart::new(
+                    ai_sdk_provider_utils::message::content_parts::ToolCallPart::new(
                         tool_call.tool_call_id.clone(),
                         tool_call.tool_name.clone(),
                         tool_call.input.clone(),
@@ -179,7 +181,7 @@ pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Ve
 mod tests {
     use super::*;
     use crate::generate_text::{ReasoningOutput, TextOutput};
-    use crate::tool::{ToolCall, ToolError, ToolResult};
+    use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolResult};
     use serde_json::json;
 
     #[test]

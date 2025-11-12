@@ -239,7 +239,7 @@ impl StepResult {
     /// # Returns
     ///
     /// A vector of references to tool calls.
-    pub fn tool_calls(&self) -> Vec<&crate::tool::ToolCall> {
+    pub fn tool_calls(&self) -> Vec<&ai_sdk_provider_utils::tool::ToolCall> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -257,7 +257,7 @@ impl StepResult {
     /// # Returns
     ///
     /// A vector of references to tool results.
-    pub fn tool_results(&self) -> Vec<&crate::tool::ToolResult> {
+    pub fn tool_results(&self) -> Vec<&ai_sdk_provider_utils::tool::ToolResult> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -282,7 +282,7 @@ mod tests {
             Output::Text(crate::output::text::TextOutput::new("world!".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 1. ".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 2.".to_string())),
-            Output::ToolCall(crate::tool::ToolCall::new(
+            Output::ToolCall(ai_sdk_provider_utils::tool::ToolCall::new(
                 "call_1",
                 "get_weather",
                 json!({"city": "SF"}),

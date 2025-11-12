@@ -12,9 +12,9 @@
 /// cargo run --example stream_tool_calling
 /// ```
 use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::tool::definition::Tool;
 use ai_sdk_core::{StreamText, ToolSet, step_count_is};
 use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_provider_utils::tool::Tool;
 use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::env;
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_core::tool::definition::ToolExecutionOutput;
+    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({

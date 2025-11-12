@@ -32,7 +32,7 @@
 
 use crate::generate_text::GenerateTextResult;
 use crate::output::Output;
-use crate::prompt::message::{AssistantMessage, Message, UserMessage};
+use ai_sdk_provider_utils::message::{AssistantMessage, Message, UserMessage};
 use ai_sdk_storage::{
     AssistantMessage as StorageAssistantMessage, FileData as StorageFileData,
     FilePart as StorageFilePart, ImageData as StorageImageData, ImagePart as StorageImagePart,
@@ -74,7 +74,7 @@ pub fn user_message_to_storage(
 
     // Extract text content from user message
     match &user_message.content {
-        crate::prompt::message::UserContent::Text(text) => {
+        ai_sdk_provider_utils::message::UserContent::Text(text) => {
             let part_id = storage.generate_part_id();
             parts.push(MessagePart::Text(TextPart::new(
                 part_id.clone(),
@@ -82,19 +82,19 @@ pub fn user_message_to_storage(
             )));
             part_ids.push(part_id);
         }
-        crate::prompt::message::UserContent::Parts(content_parts) => {
+        ai_sdk_provider_utils::message::UserContent::Parts(content_parts) => {
             for content in content_parts {
                 let part_id = storage.generate_part_id();
 
                 match content {
-                    crate::prompt::message::UserContentPart::Text(text_part) => {
+                    ai_sdk_provider_utils::message::UserContentPart::Text(text_part) => {
                         parts.push(MessagePart::Text(TextPart::new(
                             part_id.clone(),
                             text_part.text.clone(),
                         )));
                         part_ids.push(part_id);
                     }
-                    crate::prompt::message::UserContentPart::Image(image_part) => {
+                    ai_sdk_provider_utils::message::UserContentPart::Image(image_part) => {
                         if let Some(storage_part) =
                             image_part_to_storage(part_id.clone(), image_part)
                         {
@@ -102,7 +102,7 @@ pub fn user_message_to_storage(
                             part_ids.push(part_id);
                         }
                     }
-                    crate::prompt::message::UserContentPart::File(file_part) => {
+                    ai_sdk_provider_utils::message::UserContentPart::File(file_part) => {
                         if let Some(storage_part) = file_part_to_storage(part_id.clone(), file_part)
                         {
                             parts.push(storage_part);
@@ -150,7 +150,7 @@ pub fn response_messages_to_storage(
     result: &GenerateTextResult,
 ) -> Vec<(StorageAssistantMessage, Vec<MessagePart>)> {
     use crate::ResponseMessage;
-    use crate::prompt::message::AssistantContent;
+    use ai_sdk_provider_utils::message::AssistantContent;
 
     let mut storage_messages = Vec::new();
 
@@ -176,19 +176,19 @@ pub fn response_messages_to_storage(
                             let part_id = storage.generate_part_id();
 
                             let part = match content_part {
-                                crate::prompt::message::AssistantContentPart::Text(text) => {
+                                ai_sdk_provider_utils::message::AssistantContentPart::Text(text) => {
                                     MessagePart::Text(TextPart::new(
                                         part_id.clone(),
                                         text.text.clone(),
                                     ))
                                 }
-                                crate::prompt::message::AssistantContentPart::Reasoning(
+                                ai_sdk_provider_utils::message::AssistantContentPart::Reasoning(
                                     reasoning,
                                 ) => MessagePart::Reasoning(ReasoningPart::new(
                                     part_id.clone(),
                                     reasoning.text.clone(),
                                 )),
-                                crate::prompt::message::AssistantContentPart::ToolCall(
+                                ai_sdk_provider_utils::message::AssistantContentPart::ToolCall(
                                     tool_call,
                                 ) => MessagePart::ToolCall(ToolCallPart::new(
                                     part_id.clone(),
@@ -196,11 +196,11 @@ pub fn response_messages_to_storage(
                                     tool_call.tool_name.clone(),
                                     tool_call.input.clone(),
                                 )),
-                                crate::prompt::message::AssistantContentPart::ToolResult(
+                                ai_sdk_provider_utils::message::AssistantContentPart::ToolResult(
                                     tool_result,
                                 ) => {
                                     // Convert ToolResultOutput to storage format
-                                    use crate::prompt::message::content_parts::ToolResultOutput;
+                                    use ai_sdk_provider_utils::message::content_parts::ToolResultOutput;
                                     match &tool_result.output {
                                         ToolResultOutput::Text { value, .. } => {
                                             MessagePart::ToolResult(
@@ -268,10 +268,10 @@ pub fn response_messages_to_storage(
                                         }
                                     }
                                 }
-                                crate::prompt::message::AssistantContentPart::File(file) => {
+                                ai_sdk_provider_utils::message::AssistantContentPart::File(file) => {
                                     generated_file_to_storage_from_file_part(part_id.clone(), file)
                                 }
-                                crate::prompt::message::AssistantContentPart::ToolApprovalRequest(
+                                ai_sdk_provider_utils::message::AssistantContentPart::ToolApprovalRequest(
                                     _,
                                 ) => {
                                     // Skip tool approval requests - they're not persisted
@@ -313,11 +313,13 @@ pub fn response_messages_to_storage(
                 // Convert tool message to assistant message with only tool result parts
                 for tool_content_part in &tool_msg.content {
                     match tool_content_part {
-                        crate::prompt::message::tool::ToolContentPart::ToolResult(tool_result) => {
+                        ai_sdk_provider_utils::message::tool::ToolContentPart::ToolResult(
+                            tool_result,
+                        ) => {
                             let part_id = storage.generate_part_id();
 
                             let part = {
-                                use crate::prompt::message::content_parts::ToolResultOutput;
+                                use ai_sdk_provider_utils::message::content_parts::ToolResultOutput;
                                 match &tool_result.output {
                                     ToolResultOutput::Text { value, .. } => {
                                         MessagePart::ToolResult(
@@ -388,7 +390,9 @@ pub fn response_messages_to_storage(
                             parts.push(part);
                             part_ids.push(part_id);
                         }
-                        crate::prompt::message::tool::ToolContentPart::ApprovalResponse(_) => {
+                        ai_sdk_provider_utils::message::tool::ToolContentPart::ApprovalResponse(
+                            _,
+                        ) => {
                             // Skip approval responses - they're not persisted
                             continue;
                         }
@@ -603,19 +607,22 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
     for part in parts {
         match part {
             MessagePart::Text(text) => {
-                content_parts.push(crate::prompt::message::UserContentPart::Text(
-                    crate::prompt::message::TextPart::new(text.text.clone()),
+                content_parts.push(ai_sdk_provider_utils::message::UserContentPart::Text(
+                    ai_sdk_provider_utils::message::TextPart::new(text.text.clone()),
                 ));
             }
             MessagePart::Image(image) => {
                 if let Some(prompt_image) = storage_image_to_prompt(image) {
-                    content_parts
-                        .push(crate::prompt::message::UserContentPart::Image(prompt_image));
+                    content_parts.push(ai_sdk_provider_utils::message::UserContentPart::Image(
+                        prompt_image,
+                    ));
                 }
             }
             MessagePart::File(file) => {
                 if let Some(prompt_file) = storage_file_to_prompt(file) {
-                    content_parts.push(crate::prompt::message::UserContentPart::File(prompt_file));
+                    content_parts.push(ai_sdk_provider_utils::message::UserContentPart::File(
+                        prompt_file,
+                    ));
                 }
             }
             _ => {
@@ -631,8 +638,8 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
 ///
 /// Internal helper function that reconstructs a tool message from stored parts.
 /// This is used when an assistant message contains ONLY tool results.
-fn parts_to_tool_message(parts: &[MessagePart]) -> crate::prompt::message::ToolMessage {
-    use crate::prompt::message::tool::{ToolContentPart, ToolMessage};
+fn parts_to_tool_message(parts: &[MessagePart]) -> ai_sdk_provider_utils::message::ToolMessage {
+    use ai_sdk_provider_utils::message::tool::{ToolContentPart, ToolMessage};
 
     let mut tool_content: Vec<ToolContentPart> = Vec::new();
 
@@ -663,23 +670,29 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
     for part in parts {
         match part {
             MessagePart::Text(text) => {
-                content_parts.push(crate::prompt::message::AssistantContentPart::Text(
-                    crate::prompt::message::TextPart::new(text.text.clone()),
+                content_parts.push(ai_sdk_provider_utils::message::AssistantContentPart::Text(
+                    ai_sdk_provider_utils::message::TextPart::new(text.text.clone()),
                 ));
             }
             MessagePart::Reasoning(reasoning) => {
-                content_parts.push(crate::prompt::message::AssistantContentPart::Reasoning(
-                    crate::prompt::message::ReasoningPart::new(reasoning.content.clone()),
-                ));
+                content_parts.push(
+                    ai_sdk_provider_utils::message::AssistantContentPart::Reasoning(
+                        ai_sdk_provider_utils::message::ReasoningPart::new(
+                            reasoning.content.clone(),
+                        ),
+                    ),
+                );
             }
             MessagePart::ToolCall(tool_call) => {
-                content_parts.push(crate::prompt::message::AssistantContentPart::ToolCall(
-                    crate::prompt::message::ToolCallPart::new(
-                        tool_call.tool_call_id.clone(),
-                        tool_call.tool_name.clone(),
-                        tool_call.arguments.clone(),
+                content_parts.push(
+                    ai_sdk_provider_utils::message::AssistantContentPart::ToolCall(
+                        ai_sdk_provider_utils::message::ToolCallPart::new(
+                            tool_call.tool_call_id.clone(),
+                            tool_call.tool_name.clone(),
+                            tool_call.arguments.clone(),
+                        ),
                     ),
-                ));
+                );
             }
             MessagePart::ToolResult(tool_result) => {
                 if let Some(part) = storage_tool_result_to_assistant(tool_result) {
@@ -704,9 +717,9 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
 /// Returns `None` if the conversion cannot be performed (e.g., unsupported format).
 fn image_part_to_storage(
     id: String,
-    image: &crate::prompt::message::ImagePart,
+    image: &ai_sdk_provider_utils::message::ImagePart,
 ) -> Option<MessagePart> {
-    use crate::prompt::message::{DataContent, ImageSource};
+    use ai_sdk_provider_utils::message::{DataContent, ImageSource};
 
     let media_type = image
         .media_type
@@ -739,9 +752,9 @@ fn image_part_to_storage(
 /// Returns `None` if the conversion cannot be performed.
 fn file_part_to_storage(
     id: String,
-    file: &crate::prompt::message::FilePart,
+    file: &ai_sdk_provider_utils::message::FilePart,
 ) -> Option<MessagePart> {
-    use crate::prompt::message::{DataContent, FileSource};
+    use ai_sdk_provider_utils::message::{DataContent, FileSource};
 
     let storage_data = match &file.data {
         FileSource::Data(data_content) => match data_content {
@@ -769,8 +782,10 @@ fn file_part_to_storage(
 /// Convert storage ImagePart to prompt format.
 ///
 /// Returns `None` if the conversion cannot be performed.
-fn storage_image_to_prompt(image: &StorageImagePart) -> Option<crate::prompt::message::ImagePart> {
-    use crate::prompt::message::{DataContent, ImagePart as PromptImagePart};
+fn storage_image_to_prompt(
+    image: &StorageImagePart,
+) -> Option<ai_sdk_provider_utils::message::ImagePart> {
+    use ai_sdk_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
 
     let mut prompt_image = match &image.data {
         StorageImageData::Base64 { data } => {
@@ -796,8 +811,10 @@ fn storage_image_to_prompt(image: &StorageImagePart) -> Option<crate::prompt::me
 /// Convert storage FilePart to prompt format.
 ///
 /// Returns `None` if the conversion cannot be performed.
-fn storage_file_to_prompt(file: &StorageFilePart) -> Option<crate::prompt::message::FilePart> {
-    use crate::prompt::message::{DataContent, FilePart as PromptFilePart};
+fn storage_file_to_prompt(
+    file: &StorageFilePart,
+) -> Option<ai_sdk_provider_utils::message::FilePart> {
+    use ai_sdk_provider_utils::message::{DataContent, FilePart as PromptFilePart};
 
     let mut prompt_file = match &file.data {
         StorageFileData::Base64 { data } => {
@@ -874,9 +891,9 @@ fn generated_file_to_storage(
 /// Convert a FilePart (from assistant message) to storage format.
 fn generated_file_to_storage_from_file_part(
     id: String,
-    file: &crate::prompt::message::FilePart,
+    file: &ai_sdk_provider_utils::message::FilePart,
 ) -> MessagePart {
-    use crate::prompt::message::{DataContent, FileSource};
+    use ai_sdk_provider_utils::message::{DataContent, FileSource};
     use ai_sdk_storage::FilePart as StorageFilePart;
 
     let storage_data = match &file.data {
@@ -905,8 +922,10 @@ fn generated_file_to_storage_from_file_part(
 /// Convert storage FilePart to assistant message part.
 fn storage_file_to_assistant(
     file: &StorageFilePart,
-) -> Option<crate::prompt::message::AssistantContentPart> {
-    use crate::prompt::message::{AssistantContentPart, DataContent, FilePart as PromptFilePart};
+) -> Option<ai_sdk_provider_utils::message::AssistantContentPart> {
+    use ai_sdk_provider_utils::message::{
+        AssistantContentPart, DataContent, FilePart as PromptFilePart,
+    };
 
     let prompt_file_data = match &file.data {
         StorageFileData::Base64 { data } => DataContent::Base64(data.clone()),
@@ -930,8 +949,8 @@ fn storage_file_to_assistant(
 /// Convert storage ToolResultPart to assistant message part.
 fn storage_tool_result_to_assistant(
     tool_result: &ai_sdk_storage::ToolResultPart,
-) -> Option<crate::prompt::message::AssistantContentPart> {
-    use crate::prompt::message::{
+) -> Option<ai_sdk_provider_utils::message::AssistantContentPart> {
+    use ai_sdk_provider_utils::message::{
         AssistantContentPart, ToolResultOutput, ToolResultPart as PromptToolResultPart,
     };
     use ai_sdk_storage::ToolResultData;
@@ -959,9 +978,11 @@ fn storage_tool_result_to_assistant(
 /// Convert storage ToolResultPart to tool content part.
 fn storage_tool_result_to_tool_content(
     tool_result: &ai_sdk_storage::ToolResultPart,
-) -> Option<crate::prompt::message::tool::ToolContentPart> {
-    use crate::prompt::message::tool::ToolContentPart;
-    use crate::prompt::message::{ToolResultOutput, ToolResultPart as PromptToolResultPart};
+) -> Option<ai_sdk_provider_utils::message::tool::ToolContentPart> {
+    use ai_sdk_provider_utils::message::tool::ToolContentPart;
+    use ai_sdk_provider_utils::message::{
+        ToolResultOutput, ToolResultPart as PromptToolResultPart,
+    };
     use ai_sdk_storage::ToolResultData;
 
     let output = match &tool_result.result {
@@ -1043,7 +1064,7 @@ mod tests {
 
         if let Message::User(loaded_msg) = &history[0] {
             match &loaded_msg.content {
-                crate::prompt::message::UserContent::Text(text) => {
+                ai_sdk_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Test message");
                 }
                 _ => panic!("Expected text content"),
@@ -1087,7 +1108,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_image_part_conversion_roundtrip() {
-        use crate::prompt::message::{DataContent, ImagePart as PromptImagePart};
+        use ai_sdk_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
 
         let (storage, _dir) = setup_storage().await;
 
@@ -1115,7 +1136,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_file_part_conversion_roundtrip() {
-        use crate::prompt::message::{DataContent, FilePart as PromptFilePart};
+        use ai_sdk_provider_utils::message::{DataContent, FilePart as PromptFilePart};
 
         let (storage, _dir) = setup_storage().await;
 
@@ -1177,7 +1198,7 @@ mod tests {
         // Verify first and last messages
         if let Message::User(first) = &history[0] {
             match &first.content {
-                crate::prompt::message::UserContent::Text(text) => {
+                ai_sdk_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Message number 1");
                 }
                 _ => panic!("Expected text content"),
@@ -1186,7 +1207,7 @@ mod tests {
 
         if let Message::User(last) = &history[49] {
             match &last.content {
-                crate::prompt::message::UserContent::Text(text) => {
+                ai_sdk_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Message number 50");
                 }
                 _ => panic!("Expected text content"),
@@ -1231,7 +1252,7 @@ mod tests {
         for (i, msg) in history.iter().enumerate() {
             if let Message::User(user) = msg {
                 match &user.content {
-                    crate::prompt::message::UserContent::Text(text) => {
+                    ai_sdk_provider_utils::message::UserContent::Text(text) => {
                         assert_eq!(text, expected_order[i]);
                     }
                     _ => panic!("Expected text content"),
@@ -1259,8 +1280,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_multimodal_user_message_conversion() {
-        use crate::prompt::message::content_parts::TextPart;
-        use crate::prompt::message::{DataContent, ImagePart as PromptImagePart, UserContentPart};
+        use ai_sdk_provider_utils::message::content_parts::TextPart;
+        use ai_sdk_provider_utils::message::{
+            DataContent, ImagePart as PromptImagePart, UserContentPart,
+        };
 
         let (storage, _dir) = setup_storage().await;
         let session_id = storage.generate_session_id();

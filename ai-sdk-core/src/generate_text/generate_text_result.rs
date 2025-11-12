@@ -10,7 +10,7 @@ use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 use crate::output::Output;
 use crate::output::reasoning::ReasoningOutput;
-use crate::tool::{ToolCall, ToolResult};
+use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
 
 /// Metadata for the response, including messages and optional body.
 #[derive(Debug, Clone, PartialEq)]
@@ -389,7 +389,7 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use crate::tool::{ToolCall, ToolResult};
+        use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
 
         // Create a step with tool calls and tool results using Output
         let content = vec![

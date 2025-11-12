@@ -10,7 +10,7 @@ pub use source::SourceOutput;
 pub use text::TextOutput;
 
 use crate::generate_text::GeneratedFile;
-use crate::tool::{ToolCall, ToolError, ToolResult};
+use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
 
 /// An output part that can appear in an assistant message.
@@ -82,7 +82,7 @@ impl Output {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tool::{ToolCall, ToolError, ToolResult};
+    use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolResult};
     use serde_json::json;
 
     #[test]

@@ -1,8 +1,8 @@
 use crate::generate_text::GenerateText;
 use crate::prompt::PromptContent;
-use crate::prompt::message::Message;
 use crate::stream_text::StreamText;
 use crate::tool::ToolSet;
+use ai_sdk_provider_utils::message::Message;
 
 /// Parameters for calling an agent.
 ///
@@ -56,7 +56,7 @@ impl AgentCallParameters {
     ///
     /// ```no_run
     /// use ai_sdk_core::agent::AgentCallParameters;
-    /// use ai_sdk_core::prompt::message::{Message, UserMessage};
+    /// use ai_sdk_provider_utils::message::{Message, UserMessage};
     ///
     /// let messages = vec![Message::User(UserMessage::new("Hello"))];
     /// let params = AgentCallParameters::from_messages(messages);

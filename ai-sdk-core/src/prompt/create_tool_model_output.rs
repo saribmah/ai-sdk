@@ -1,5 +1,5 @@
-use crate::prompt::message::content_parts::tool_result::ToolResultOutput;
-use crate::tool::definition::Tool;
+use ai_sdk_provider_utils::message::content_parts::tool_result::ToolResultOutput;
+use ai_sdk_provider_utils::tool::Tool;
 use serde_json::Value;
 
 /// Error mode for tool output.

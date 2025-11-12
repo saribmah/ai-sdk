@@ -47,9 +47,9 @@ mod tests {
     use super::*;
     use crate::generate_text::{RequestMetadata, StepResponseMetadata};
     use crate::output::{Output, TextOutput};
-    use crate::tool::{ToolCall, ToolResult};
     use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
     use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+    use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
     use serde_json::json;
 
     fn create_test_step(text: &str, usage: LanguageModelUsage) -> StepResult {
