@@ -8,7 +8,7 @@ pub struct HuggingFaceProviderSettings {
     pub api_key: Option<String>,
 
     /// Base URL for the Hugging Face API.
-    /// Defaults to "https://router.huggingface.co/v1".
+    /// Defaults to `<https://router.huggingface.co/v1>`.
     pub base_url: String,
 
     /// Custom headers to include in all requests.

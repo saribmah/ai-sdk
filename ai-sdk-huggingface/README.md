@@ -60,14 +60,15 @@ use ai_sdk_core::{StreamText, prompt::Prompt};
 use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings};
 use futures_util::StreamExt;
 
-let mut stream = StreamText::new(model, Prompt::text("Tell me a story"))
+let result = StreamText::new(model, Prompt::text("Tell me a story"))
+    .temperature(0.8)
     .execute()
     .await?;
 
-while let Some(part) = stream.stream.next().await {
-    if let LanguageModelStreamPart::TextDelta(delta) = part {
-        print!("{}", delta.delta);
-    }
+// Stream text deltas in real-time
+let mut text_stream = result.text_stream();
+while let Some(text_delta) = text_stream.next().await {
+    print!("{}", text_delta);
 }
 ```
 
@@ -199,9 +200,13 @@ Run the examples:
 # Basic chat
 HUGGINGFACE_API_KEY=your-key cargo run --example basic_chat -p ai-sdk-huggingface
 
-# Streaming
+# Streaming chat
 HUGGINGFACE_API_KEY=your-key cargo run --example streaming_chat -p ai-sdk-huggingface
 ```
+
+Available examples:
+- `basic_chat.rs` - Simple text generation with usage stats
+- `streaming_chat.rs` - Real-time streaming with on_finish callback
 
 ## Supported Settings
 

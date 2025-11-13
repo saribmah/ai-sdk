@@ -41,3 +41,7 @@ dotenv = "0.15"
 [[example]]
 name = "basic_chat"
 path = "examples/basic_chat.rs"
+
+[[example]]
+name = "streaming_chat"
+path = "examples/streaming_chat.rs"
