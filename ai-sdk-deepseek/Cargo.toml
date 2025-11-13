@@ -1,0 +1,28 @@
+[package]
+name = "ai-sdk-deepseek"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "DeepSeek provider implementation for the AI SDK - supports chat and reasoning models"
+keywords = ["ai", "deepseek", "llm", "provider", "reasoning"]
+categories = ["api-bindings", "asynchronous"]
+readme = "README.md"
+
+[dependencies]
+ai-sdk-provider = { path = "../ai-sdk-provider" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
+ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible" }
+tokio = { version = "1.41", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+async-trait = "0.1"
+futures-util = "0.3"
+regex = "1.12"
+
+[dev-dependencies]
+tokio = { version = "1.41", features = ["macros", "rt-multi-thread"] }
+ai-sdk-core = { path = "../ai-sdk-core" }

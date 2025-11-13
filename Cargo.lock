@@ -111,6 +111,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-deepseek"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-openai-compatible",
+ "ai-sdk-provider",
+ "ai-sdk-provider-utils",
+ "async-trait",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "ai-sdk-elevenlabs"
 version = "0.1.0"
 dependencies = [
