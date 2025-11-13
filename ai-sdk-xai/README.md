@@ -197,6 +197,42 @@ let result = GenerateText::new(model, prompt)
     .await?;
 ```
 
+### Response Format (JSON Mode)
+
+```rust
+use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+use serde_json::json;
+
+// Simple JSON mode
+let result = GenerateText::new(model, prompt)
+    .with_response_format(LanguageModelResponseFormat::Json {
+        schema: None,
+        name: None,
+        description: None,
+    })
+    .execute()
+    .await?;
+
+// Structured outputs with JSON schema
+let schema = json!({
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "age": {"type": "integer"}
+    },
+    "required": ["name", "age"]
+});
+
+let result = GenerateText::new(model, prompt)
+    .with_response_format(LanguageModelResponseFormat::Json {
+        schema: Some(schema),
+        name: Some("UserProfile".to_string()),
+        description: Some("A user profile".to_string()),
+    })
+    .execute()
+    .await?;
+```
+
 ### Citations
 
 Citations are automatically extracted and included in the response:
@@ -224,6 +260,7 @@ See the `examples/` directory for more:
 - `xai_streaming_chat.rs` - Streaming response
 - `xai_provider_options.rs` - Provider-specific options (reasoning effort, search parameters)
 - `xai_tool_calling.rs` - Tool/function calling with xAI models
+- `xai_response_format.rs` - JSON mode and structured outputs
 
 ## Status
 
@@ -240,9 +277,9 @@ See the `examples/` directory for more:
 - Usage tracking (including reasoning tokens)
 - **Provider-specific options** (reasoning_effort, search_parameters, parallel_function_calling)
 - **Tool calling** (function tools with full lifecycle support)
+- **Response format** (JSON mode, structured outputs with JSON schema)
 
 ### 🚧 Coming Soon
-- Response format (JSON mode, structured outputs)
 - Responses API (agentic mode)
 - Provider-defined tools (webSearch, xSearch, etc.)
 

@@ -53,6 +53,50 @@
 //! let model = provider.chat_model("grok-4-fast-reasoning");
 //! ```
 //!
+//! ## Tool Calling
+//!
+//! ```no_run
+//! use ai_sdk_xai::XaiClient;
+//! use ai_sdk_core::{GenerateText, ToolSet, prompt::Prompt};
+//! use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+//! use serde_json::json;
+//! use std::sync::Arc;
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let provider = XaiClient::new()
+//!     .api_key("your-api-key")
+//!     .build();
+//!
+//! let model = provider.chat_model("grok-2-latest");
+//!
+//! // Define a tool
+//! let weather_tool = Tool::function(json!({
+//!     "type": "object",
+//!     "properties": {
+//!         "city": {"type": "string", "description": "The city name"}
+//!     },
+//!     "required": ["city"]
+//! }))
+//! .with_description("Get the current weather")
+//! .with_execute(Arc::new(|input, _| {
+//!     let result = json!({"temperature": 72, "conditions": "sunny"});
+//!     ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
+//! }));
+//!
+//! let mut tools = ToolSet::new();
+//! tools.insert("get_weather".to_string(), weather_tool);
+//!
+//! let result = GenerateText::new(
+//!     model,
+//!     Prompt::text("What's the weather in Tokyo?")
+//! )
+//! .tools(tools)
+//! .execute()
+//! .await?;
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! ## Image Generation
 //!
 //! ```no_run

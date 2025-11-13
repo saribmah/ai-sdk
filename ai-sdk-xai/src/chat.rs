@@ -1,3 +1,13 @@
+//! xAI chat completion implementation.
+//!
+//! This module provides the chat completion functionality for xAI's Grok models,
+//! including support for:
+//! - Text and reasoning content
+//! - Tool/function calling
+//! - Streaming responses
+//! - Provider-specific options (reasoning effort, search parameters)
+//! - Citations extraction
+
 /// xAI chat model options and configuration.
 pub mod options;
 

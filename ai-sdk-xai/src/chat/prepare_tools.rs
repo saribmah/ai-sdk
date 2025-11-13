@@ -1,3 +1,8 @@
+//! Tool preparation for xAI API calls.
+//!
+//! This module converts AI SDK tools to xAI's OpenAI-compatible format and handles
+//! tool choice mapping.
+
 use ai_sdk_provider::language_model::{
     call_warning::LanguageModelCallWarning, tool::LanguageModelTool,
     tool_choice::LanguageModelToolChoice,
@@ -5,7 +10,9 @@ use ai_sdk_provider::language_model::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// xAI-compatible tool definition
+/// xAI-compatible tool definition.
+///
+/// Represents a function tool in the format expected by xAI's API (OpenAI-compatible).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct XaiTool {
     /// The type of tool (always "function")

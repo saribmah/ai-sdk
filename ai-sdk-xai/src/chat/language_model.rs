@@ -380,7 +380,52 @@ impl LanguageModel for XaiChatLanguageModel {
             body["tool_choice"] = serde_json::to_value(tool_choice)?;
         }
 
-        // TODO: Handle response_format
+        // Handle response_format
+        if let Some(response_format) = &options.response_format {
+            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+
+            let format_json = match response_format {
+                LanguageModelResponseFormat::Text => {
+                    // Text is the default, no need to specify
+                    None
+                }
+                LanguageModelResponseFormat::Json {
+                    schema,
+                    name,
+                    description,
+                } => {
+                    if let Some(schema_value) = schema {
+                        // Structured output with JSON schema
+                        let mut json_schema = serde_json::json!({
+                            "type": "json_schema",
+                            "json_schema": {
+                                "schema": schema_value,
+                                "strict": true
+                            }
+                        });
+
+                        // Add optional name and description
+                        if let Some(name_str) = name {
+                            json_schema["json_schema"]["name"] = serde_json::json!(name_str);
+                        }
+                        if let Some(desc_str) = description {
+                            json_schema["json_schema"]["description"] = serde_json::json!(desc_str);
+                        }
+
+                        Some(json_schema)
+                    } else {
+                        // Simple JSON mode without schema
+                        Some(serde_json::json!({
+                            "type": "json_object"
+                        }))
+                    }
+                }
+            };
+
+            if let Some(format) = format_json {
+                body["response_format"] = format;
+            }
+        }
 
         // Make API request
         let url = format!("{}/chat/completions", self.config.base_url);
@@ -537,7 +582,52 @@ impl LanguageModel for XaiChatLanguageModel {
             body["tool_choice"] = serde_json::to_value(tool_choice)?;
         }
 
-        // TODO: Handle response_format
+        // Handle response_format
+        if let Some(response_format) = &options.response_format {
+            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+
+            let format_json = match response_format {
+                LanguageModelResponseFormat::Text => {
+                    // Text is the default, no need to specify
+                    None
+                }
+                LanguageModelResponseFormat::Json {
+                    schema,
+                    name,
+                    description,
+                } => {
+                    if let Some(schema_value) = schema {
+                        // Structured output with JSON schema
+                        let mut json_schema = serde_json::json!({
+                            "type": "json_schema",
+                            "json_schema": {
+                                "schema": schema_value,
+                                "strict": true
+                            }
+                        });
+
+                        // Add optional name and description
+                        if let Some(name_str) = name {
+                            json_schema["json_schema"]["name"] = serde_json::json!(name_str);
+                        }
+                        if let Some(desc_str) = description {
+                            json_schema["json_schema"]["description"] = serde_json::json!(desc_str);
+                        }
+
+                        Some(json_schema)
+                    } else {
+                        // Simple JSON mode without schema
+                        Some(serde_json::json!({
+                            "type": "json_object"
+                        }))
+                    }
+                }
+            };
+
+            if let Some(format) = format_json {
+                body["response_format"] = format;
+            }
+        }
 
         // Make streaming API request
         let url = format!("{}/chat/completions", self.config.base_url);
