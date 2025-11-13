@@ -130,10 +130,14 @@ pub async fn build_request_args(
     // Build base arguments
     let mut args = json!({
         "model": model_id,
-        "system": _prompt_result.prompt.system,
         "messages": _prompt_result.prompt.messages,
         "max_tokens": max_tokens,
     });
+
+    // Add system message if present
+    if let Some(system) = _prompt_result.prompt.system {
+        args["system"] = json!(system);
+    }
 
     // Add optional parameters
     if let Some(temperature) = options.temperature {
@@ -273,36 +277,51 @@ pub async fn build_request_args(
         }
     }
 
-    // TODO: Prepare tools properly
-    // This requires converting LanguageModelTool to ai_sdk_provider_utils::Tool
-    // For now, we'll skip tool preparation
+    // Prepare tools using the new prepare_language_model_tools function
     let uses_json_response_tool = json_response_tool.is_some();
 
-    // let disable_parallel_tool_use = anthropic_options
-    //     .as_ref()
-    //     .and_then(|opts| opts.disable_parallel_tool_use)
-    //     .unwrap_or(false);
-    //
-    // let prepared = prepare_tools(tools_to_prepare, None, disable_parallel_tool_use);
-    //
-    // warnings.extend(
-    //     prepared
-    //         .warnings
-    //         .iter()
-    //         .map(|w| LanguageModelCallWarning::Other {
-    //             message: format!("{:?}", w),
-    //         }),
-    // );
-    //
-    // betas.extend(prepared.betas);
-    //
-    // if let Some(tools) = prepared.tools {
-    //     args["tools"] = serde_json::to_value(tools)?;
-    // }
-    //
-    // if let Some(tool_choice) = prepared.tool_choice {
-    //     args["tool_choice"] = serde_json::to_value(tool_choice)?;
-    // }
+    let disable_parallel_tool_use = anthropic_options
+        .as_ref()
+        .and_then(|opts| opts.disable_parallel_tool_use)
+        .unwrap_or(false);
+
+    // Prepare tools if present
+    if let Some(ref tools) = options.tools {
+        let prepared = crate::prepare_tools::prepare_language_model_tools(
+            Some(tools.as_slice()),
+            options.tool_choice.as_ref(),
+            disable_parallel_tool_use,
+        );
+
+        // Convert tool warnings to call warnings
+        warnings.extend(prepared.warnings.iter().map(|w| match w {
+            crate::prepare_tools::ToolWarning::UnsupportedTool { tool_id } => {
+                LanguageModelCallWarning::UnsupportedSetting {
+                    setting: "tools".to_string(),
+                    details: Some(format!("Unsupported tool: {}", tool_id)),
+                }
+            }
+            crate::prepare_tools::ToolWarning::UnsupportedFeature { feature } => {
+                LanguageModelCallWarning::UnsupportedSetting {
+                    setting: "tools".to_string(),
+                    details: Some(format!("Unsupported feature: {}", feature)),
+                }
+            }
+        }));
+
+        // Add beta flags from tool preparation
+        betas.extend(prepared.betas);
+
+        // Add tools to args if present
+        if let Some(tools) = prepared.tools {
+            args["tools"] = serde_json::to_value(tools)?;
+        }
+
+        // Add tool choice if present
+        if let Some(tool_choice) = prepared.tool_choice {
+            args["tool_choice"] = serde_json::to_value(tool_choice)?;
+        }
+    }
 
     // Add stream parameter if streaming
     if stream {

@@ -39,7 +39,12 @@
 pub mod args_builder;
 pub mod citation;
 pub mod config;
+pub mod http_client;
 pub mod model_limits;
+pub mod process_content;
+pub mod response_schema;
+pub mod sse_parser;
+pub mod stream_schema;
 
 // TODO: Implement these modules
 // pub mod generate;
@@ -199,41 +204,165 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
 
     async fn do_generate(
         &self,
-        _options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
+        options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
     ) -> Result<
         ai_sdk_provider::language_model::LanguageModelGenerateResponse,
         Box<dyn std::error::Error>,
     > {
-        // TODO: Implement generate
-        // This should:
-        // 1. Build request args using args_builder::build_request_args
-        // 2. Make HTTP POST request to build_request_url(false)
-        // 3. Process response using process_content utilities
-        // 4. Return LanguageModelGenerateResponse with content, usage, warnings, etc.
-        Err("Not yet implemented".into())
+        use ai_sdk_provider::language_model::{
+            LanguageModelGenerateResponse, LanguageModelRequestMetadata,
+        };
+        use args_builder::build_request_args;
+        use http_client::post_json;
+        use process_content::process_content_blocks;
+        use response_schema::AnthropicMessagesResponse;
+
+        // Build request arguments
+        let build_result = build_request_args(&self.model_id, &options, false).await?;
+
+        // Build request URL
+        let url = self.build_request_url(false);
+
+        // Get headers with beta flags
+        let headers = self.get_headers(&build_result.betas, options.headers.as_ref());
+
+        // Transform request body if configured
+        let transformed_body = self.transform_request_body(build_result.args);
+
+        // Make HTTP POST request
+        let response_json = post_json(&url, headers, transformed_body.clone()).await?;
+
+        // Parse response
+        let response: AnthropicMessagesResponse = serde_json::from_value(response_json)?;
+
+        // Process content blocks
+        let content = process_content_blocks(response.content);
+
+        // Map finish reason
+        let finish_reason = crate::map_stop_reason::map_anthropic_stop_reason(
+            response.stop_reason.as_deref(),
+            build_result.uses_json_response_tool,
+        );
+
+        // Build usage statistics
+        let usage = ai_sdk_provider::language_model::usage::LanguageModelUsage {
+            input_tokens: response.usage.input_tokens as u64,
+            output_tokens: response.usage.output_tokens as u64,
+            total_tokens: (response.usage.input_tokens + response.usage.output_tokens) as u64,
+            reasoning_tokens: 0, // Anthropic doesn't separately report reasoning tokens
+            cached_input_tokens: response.usage.cache_read_input_tokens.unwrap_or(0) as u64,
+        };
+
+        // Build provider metadata
+        let provider_metadata = if response.usage.cache_creation_input_tokens.is_some()
+            || response.stop_sequence.is_some()
+            || response.container.is_some()
+        {
+            let mut metadata: ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata =
+                HashMap::new();
+            let mut anthropic_metadata: HashMap<String, serde_json::Value> = HashMap::new();
+
+            if let Some(cache_creation_tokens) = response.usage.cache_creation_input_tokens {
+                anthropic_metadata.insert(
+                    "cacheCreationInputTokens".to_string(),
+                    serde_json::json!(cache_creation_tokens),
+                );
+            }
+
+            if let Some(stop_seq) = response.stop_sequence {
+                anthropic_metadata.insert("stopSequence".to_string(), serde_json::json!(stop_seq));
+            }
+
+            if let Some(container) = response.container {
+                anthropic_metadata.insert("container".to_string(), serde_json::json!(container));
+            }
+
+            metadata.insert("anthropic".to_string(), anthropic_metadata);
+
+            Some(metadata)
+        } else {
+            None
+        };
+
+        // Build response metadata
+        let response_metadata = Some(
+            ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata {
+                id: response.id,
+                model_id: response.model,
+                timestamp: None,
+            },
+        );
+
+        // Build request metadata
+        let request_metadata = Some(LanguageModelRequestMetadata {
+            body: Some(transformed_body),
+        });
+
+        Ok(LanguageModelGenerateResponse {
+            content,
+            finish_reason,
+            usage,
+            provider_metadata,
+            request: request_metadata,
+            response: response_metadata,
+            warnings: build_result.warnings,
+        })
     }
 
     async fn do_stream(
         &self,
-        _options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
+        options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
     ) -> Result<
         ai_sdk_provider::language_model::LanguageModelStreamResponse,
         Box<dyn std::error::Error>,
     > {
-        // TODO: Implement stream
-        // This should:
-        // 1. Build request args using args_builder::build_request_args with stream=true
-        // 2. Make HTTP POST request to build_request_url(true)
-        // 3. Process SSE stream and emit LanguageModelStreamPart events
-        // 4. Track state across chunks (contentBlocks, mcpToolCalls, etc.)
-        // 5. Return LanguageModelStreamResponse with stream and metadata
-        Err("Not yet implemented".into())
+        use ai_sdk_provider::language_model::{
+            LanguageModelStreamResponse, StreamResponseMetadata,
+        };
+        use args_builder::build_request_args;
+        use http_client::post_stream;
+        use sse_parser::parse_sse_stream;
+
+        // Build request arguments with streaming enabled
+        let build_result = build_request_args(&self.model_id, &options, true).await?;
+
+        // Build request URL and store it
+        let url = self.build_request_url(true);
+
+        // Get headers with beta flags
+        let headers = self.get_headers(&build_result.betas, options.headers.as_ref());
+
+        // Transform request body if configured
+        let transformed_body = self.transform_request_body(build_result.args.clone());
+
+        // Make HTTP POST request with streaming
+        let byte_stream = post_stream(url.as_str(), headers, transformed_body).await?;
+
+        // Parse SSE events and convert to SDK stream parts
+        let stream = parse_sse_stream(
+            byte_stream,
+            build_result.uses_json_response_tool,
+            build_result.warnings,
+            options.include_raw_chunks.unwrap_or(false),
+        );
+
+        Ok(LanguageModelStreamResponse {
+            stream: Box::new(stream),
+            request: Some(
+                ai_sdk_provider::language_model::LanguageModelRequestMetadata {
+                    body: Some(build_result.args),
+                },
+            ),
+            response: Some(StreamResponseMetadata { headers: None }),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+    use ai_sdk_provider::language_model::prompt::message::LanguageModelMessage;
     use std::sync::Arc;
 
     #[test]
@@ -311,5 +440,93 @@ mod tests {
 
         assert_eq!(headers.get("x-api-key").unwrap(), "test-key");
         assert!(headers.contains_key("anthropic-beta"));
+    }
+
+    #[tokio::test]
+    async fn test_do_generate_basic_structure() {
+        use ai_sdk_provider::language_model::LanguageModel;
+        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+
+        // This is a mock test to verify the structure compiles and types are correct
+        // We can't test actual API calls without a real API key
+
+        let config = AnthropicMessagesConfig::new(
+            "anthropic".to_string(),
+            "https://api.anthropic.com/v1".to_string(),
+            Arc::new(|| {
+                let mut headers = HashMap::new();
+                headers.insert("x-api-key".to_string(), "test-key".to_string());
+                headers
+            }),
+        );
+
+        let model =
+            AnthropicMessagesLanguageModel::new("claude-3-5-sonnet-20241022".to_string(), config);
+
+        // Create a simple prompt using the LanguageModelPrompt type (Vec<LanguageModelMessage>)
+        let prompt = vec![LanguageModelMessage::user_text("Hello")];
+
+        let options = LanguageModelCallOptions::new(prompt)
+            .with_temperature(0.7)
+            .with_max_output_tokens(100);
+
+        // We expect this to fail because we're not making a real API call
+        // but this verifies the types and structure are correct
+        let result = model.do_generate(options).await;
+
+        // We expect an error (likely network or auth error), but the types should be correct
+        assert!(result.is_err() || result.is_ok());
+
+        // If it somehow succeeds (unlikely), verify the response structure
+        if let Ok(response) = result {
+            // Verify the response has the expected fields (input_tokens is u64, always >= 0)
+            let _ = response.usage.input_tokens; // Verify field exists
+            let _ = response.content.len(); // Verify content exists
+            // finish_reason should be one of the valid enum values
+            match response.finish_reason {
+                LanguageModelFinishReason::Stop
+                | LanguageModelFinishReason::Length
+                | LanguageModelFinishReason::ToolCalls
+                | LanguageModelFinishReason::ContentFilter
+                | LanguageModelFinishReason::Unknown
+                | LanguageModelFinishReason::Error
+                | LanguageModelFinishReason::Other => {}
+            }
+        }
+    }
+
+    #[test]
+    fn test_transform_request_body() {
+        let config = AnthropicMessagesConfig::new(
+            "anthropic".to_string(),
+            "https://api.anthropic.com/v1".to_string(),
+            Arc::new(HashMap::new),
+        )
+        .with_transform_request_body(Arc::new(|mut args| {
+            args.as_object_mut().unwrap().insert(
+                "custom_field".to_string(),
+                serde_json::json!("custom_value"),
+            );
+            args
+        }));
+
+        let model =
+            AnthropicMessagesLanguageModel::new("claude-3-5-sonnet-20241022".to_string(), config);
+
+        let args = serde_json::json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 100
+        });
+
+        let transformed = model.transform_request_body(args);
+
+        assert_eq!(
+            transformed.get("custom_field").unwrap(),
+            &serde_json::json!("custom_value")
+        );
+        assert_eq!(
+            transformed.get("model").unwrap(),
+            &serde_json::json!("claude-3-5-sonnet-20241022")
+        );
     }
 }

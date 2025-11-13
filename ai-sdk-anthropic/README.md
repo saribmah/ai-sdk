@@ -1,0 +1,192 @@
+# AI SDK Anthropic
+
+Anthropic provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete Claude integration with streaming, tools, extended thinking, and citations.
+
+## Features
+
+- **Text Generation**: Generate text using Claude models with the `GenerateText` builder
+- **Streaming**: Stream responses in real-time with `StreamText`
+- **Tool Calling**: Support for both custom tools and Anthropic provider-defined tools
+- **Extended Thinking**: Enable Claude's reasoning process with thinking blocks
+- **Citations**: Enable source citations for generated content
+- **Prompt Caching**: Reduce costs with automatic prompt caching
+- **Vision**: Support for image inputs in prompts
+- **Multiple Models**: Support for all Claude models (Opus, Sonnet, Haiku)
+
+## Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+ai-sdk-anthropic = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
+tokio = { version = "1", features = ["full"] }
+```
+
+## Quick Start
+
+```rust
+use ai_sdk_anthropic::{create_anthropic, AnthropicProviderSettings};
+use ai_sdk_core::{GenerateText, Prompt};
+use ai_sdk_provider::provider::Provider;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider (uses ANTHROPIC_API_KEY env var)
+    let provider = create_anthropic(AnthropicProviderSettings::default());
+    
+    // Create a language model
+    let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
+    
+    // Generate text
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, Claude!"))
+        .temperature(0.7)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
+    
+    println!("{}", result.text);
+    Ok(())
+}
+```
+
+## Configuration
+
+Set your Anthropic API key as an environment variable:
+
+```bash
+export ANTHROPIC_API_KEY=your-api-key
+```
+
+Or configure programmatically:
+
+```rust
+use ai_sdk_anthropic::AnthropicProviderSettings;
+
+let settings = AnthropicProviderSettings::new()
+    .with_api_key("your-api-key")
+    .with_base_url("https://api.anthropic.com/v1")
+    .add_header("Custom-Header", "value");
+
+let provider = create_anthropic(settings);
+```
+
+## Provider-Defined Tools
+
+Anthropic provides several powerful provider-defined tools:
+
+```rust
+use ai_sdk_anthropic::anthropic_tools;
+use ai_sdk_core::ToolSet;
+
+let tools = ToolSet::from_vec(vec![
+    // Execute bash commands
+    anthropic_tools::bash_20250124(None),
+    
+    // Search the web with citations
+    anthropic_tools::web_search_20250305()
+        .max_uses(5)
+        .build(),
+    
+    // Fetch web content
+    anthropic_tools::web_fetch_20250910()
+        .citations(true)
+        .build(),
+    
+    // Execute Python code
+    anthropic_tools::code_execution_20250825(None),
+    
+    // Computer use (screenshots + mouse/keyboard)
+    anthropic_tools::computer_20250124(1920, 1080, None),
+    
+    // Text editor
+    anthropic_tools::text_editor_20250728()
+        .max_characters(10000)
+        .build(),
+    
+    // Persistent memory
+    anthropic_tools::memory_20250818(None),
+]);
+```
+
+## Extended Thinking
+
+Enable Claude's extended reasoning process:
+
+```rust
+use ai_sdk_anthropic::create_anthropic;
+use ai_sdk_core::{GenerateText, Prompt};
+use ai_sdk_provider::provider::Provider;
+
+let provider = create_anthropic(Default::default());
+let model = provider.language_model("claude-3-7-sonnet-20250219".to_string());
+
+let result = GenerateText::new(std::sync::Arc::new(model), 
+    Prompt::text("Solve this complex problem"))
+    .thinking_enabled(true)
+    .thinking_budget(10000) // Optional token budget
+    .execute()
+    .await?;
+
+// Access reasoning
+for output in result.experimental_output.iter() {
+    if let ai_sdk_provider::language_model::Output::Reasoning(reasoning) = output {
+        println!("Reasoning: {}", reasoning.text);
+    }
+}
+```
+
+## Streaming
+
+Stream responses for real-time output:
+
+```rust
+use ai_sdk_anthropic::create_anthropic;
+use ai_sdk_core::{StreamText, Prompt};
+use ai_sdk_provider::provider::Provider;
+use futures_util::StreamExt;
+
+let provider = create_anthropic(Default::default());
+let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
+
+let mut stream = StreamText::new(std::sync::Arc::new(model), 
+    Prompt::text("Write a story"))
+    .temperature(0.8)
+    .execute()
+    .await?;
+
+while let Some(part) = stream.next().await {
+    match part {
+        Ok(ai_sdk_provider::language_model::TextStreamPart::TextDelta { delta, .. }) => {
+            print!("{}", delta);
+        }
+        _ => {}
+    }
+}
+```
+
+## Supported Models
+
+- **Claude 3.5 Sonnet**: `claude-3-5-sonnet-20241022`
+- **Claude 3.7 Sonnet**: `claude-3-7-sonnet-20250219` (extended thinking)
+- **Claude 3 Opus**: `claude-3-opus-20240229`
+- **Claude 3 Sonnet**: `claude-3-sonnet-20240229`
+- **Claude 3 Haiku**: `claude-3-haiku-20240307`
+
+## Documentation
+
+- [API Documentation](https://docs.rs/ai-sdk-anthropic)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [Anthropic API Reference](https://docs.anthropic.com/en/api)
+
+## License
+
+Licensed under :
+
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.
