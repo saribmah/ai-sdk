@@ -8,7 +8,7 @@ use std::collections::HashMap;
 pub struct TogetherAIProviderSettings {
     /// Base URL for the API calls
     ///
-    /// Defaults to "https://api.together.xyz/v1"
+    /// Defaults to `https://api.together.xyz/v1`
     pub base_url: String,
 
     /// API key for authenticating requests

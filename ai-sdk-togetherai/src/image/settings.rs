@@ -1,7 +1,7 @@
 /// Together AI image model identifiers.
 ///
 /// These are the supported image generation models available through Together AI.
-/// For a complete list, see: https://api.together.ai/models
+/// For a complete list, see: <https://api.together.ai/models>
 pub type TogetherAIImageModelId = String;
 
 /// Common Together AI image model IDs

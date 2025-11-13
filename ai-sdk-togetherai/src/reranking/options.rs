@@ -1,7 +1,7 @@
 /// Together AI reranking model identifiers.
 ///
 /// These are the supported reranking models available through Together AI.
-/// For details, see: https://docs.together.ai/docs/serverless-models#rerank-models
+/// For details, see: <https://docs.together.ai/docs/serverless-models#rerank-models>
 pub type TogetherAIRerankingModelId = String;
 
 /// Common Together AI reranking model IDs

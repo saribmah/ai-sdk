@@ -1,7 +1,7 @@
 /// Together AI chat model identifiers.
 ///
 /// These are the supported chat models available through Together AI.
-/// For a complete list of available models, see: https://docs.together.ai/docs/serverless-models#chat-models
+/// For a complete list of available models, see: <https://docs.together.ai/docs/serverless-models#chat-models>
 pub type TogetherAIChatModelId = String;
 
 /// Common Together AI chat model IDs
