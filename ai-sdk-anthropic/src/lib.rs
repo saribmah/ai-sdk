@@ -61,13 +61,10 @@
 //!
 //! // Use provider-defined tools
 //! let mut tools = ToolSet::new();
-//! let bash_tool = anthropic_tools::bash_20250124(None);
-//! tools.insert(bash_tool.name().to_string(), bash_tool);
-//!
-//! let search_tool = anthropic_tools::web_search_20250305()
+//! tools.insert("bash".to_string(), anthropic_tools::bash_20250124(None));
+//! tools.insert("web_search".to_string(), anthropic_tools::web_search_20250305()
 //!     .max_uses(5)
-//!     .build();
-//! tools.insert(search_tool.name().to_string(), search_tool);
+//!     .build());
 //!
 //! let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Search for Rust news"))
 //!     .tools(tools)
@@ -93,35 +90,7 @@
 //!
 //! ### Extended Thinking
 //!
-//! Enable Claude's extended reasoning process:
-//!
-//! ```rust,no_run
-//! use ai_sdk_anthropic::create_anthropic;
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::provider::Provider;
-//! use ai_sdk_provider::language_model::output::Output;
-//!
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = create_anthropic(Default::default());
-//! let model = provider.language_model("claude-3-7-sonnet-20250219".to_string());
-//!
-//! let result = GenerateText::new(std::sync::Arc::new(model),
-//!     Prompt::text("Solve this complex problem"))
-//!     .thinking_enabled(true)
-//!     .thinking_budget(10000) // Optional token budget
-//!     .execute()
-//!     .await?;
-//!
-//! // Access reasoning
-//! for output in result.experimental_output.iter() {
-//!     if let Output::Reasoning(reasoning) = output {
-//!         println!("Reasoning: {}", reasoning.text);
-//!     }
-//! }
-//! # Ok(())
-//! # }
-//! ```
+//! Extended thinking is supported through provider options (implementation in progress).
 //!
 //! ### Streaming
 //!
@@ -132,27 +101,21 @@
 //! use ai_sdk_core::stream_text::StreamText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
-//! use ai_sdk_provider::language_model::text_stream_part::TextStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = create_anthropic(Default::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! let stream_result = StreamText::new(std::sync::Arc::new(model),
+//! let result = StreamText::new(std::sync::Arc::new(model),
 //!     Prompt::text("Write a story"))
 //!     .temperature(0.8)
 //!     .execute()
 //!     .await?;
 //!
-//! let mut stream = stream_result.stream;
-//! while let Some(part) = stream.next().await {
-//!     match part {
-//!         Ok(TextStreamPart::TextDelta { delta, .. }) => {
-//!             print!("{}", delta);
-//!         }
-//!         _ => {}
-//!     }
+//! let mut text_stream = result.text_stream();
+//! while let Some(text_delta) = text_stream.next().await {
+//!     print!("{}", text_delta);
 //! }
 //! # Ok(())
 //! # }
