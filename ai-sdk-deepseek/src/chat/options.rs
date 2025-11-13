@@ -1,6 +1,6 @@
 /// DeepSeek chat model identifier.
 ///
-/// Reference: https://api-docs.deepseek.com/quick_start/pricing
+/// Reference: <https://api-docs.deepseek.com/quick_start/pricing>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeepSeekChatModelId {
     /// DeepSeek Chat model - Main chat model
