@@ -12,6 +12,7 @@ members = [
     "ai-sdk-azure",
     "ai-sdk-elevenlabs",
     "ai-sdk-xai",
+    "ai-sdk-togetherai",
 ]
 
 [workspace.package]
