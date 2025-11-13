@@ -37,3 +37,5 @@ target
 .env
 
 reference-implementation
+
+ai-sdk-*/*-IMPLEMENTATION.md

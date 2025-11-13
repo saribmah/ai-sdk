@@ -170,7 +170,6 @@ mod tests {
 
     #[test]
     fn test_serialize_no_cache_control() {
-        // Verify that cache_control is never serialized (as per TypeScript never type)
         let thinking = AnthropicThinkingContent::new("Thinking...", "sig_1");
         let json = serde_json::to_value(&thinking).unwrap();
 

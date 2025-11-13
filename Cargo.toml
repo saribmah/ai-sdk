@@ -12,6 +12,7 @@ members = [
     "ai-sdk-azure",
     "ai-sdk-deepseek",
     "ai-sdk-elevenlabs",
+    "ai-sdk-groq",
     "ai-sdk-xai",
     "ai-sdk-togetherai",
     "ai-sdk-huggingface",
@@ -45,6 +46,7 @@ ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 ai-sdk-storage = { path = "ai-sdk-storage" }
 ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
 ai-sdk-azure = { path = "ai-sdk-azure" }
+ai-sdk-groq = { path = "ai-sdk-groq" }
 ai-sdk-xai = { path = "ai-sdk-xai" }
 tokio = { version = "1.41", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }

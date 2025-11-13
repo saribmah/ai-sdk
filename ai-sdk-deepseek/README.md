@@ -249,7 +249,6 @@ match GenerateText::new(model, prompt).execute().await {
 For more information about the AI SDK and its capabilities, see:
 
 - [AI SDK Documentation](../README.md)
-- [Provider Implementation Guide](../PROVIDER_IMPLEMENTATION.md)
 - [DeepSeek API Documentation](https://api-docs.deepseek.com/)
 
 ## License
