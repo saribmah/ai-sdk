@@ -215,6 +215,9 @@ pub mod provider;
 /// Settings and configuration for Groq providers.
 pub mod settings;
 
+/// Speech synthesis implementation for Groq text-to-speech models.
+pub mod speech;
+
 /// Transcription implementation for Groq Whisper models.
 pub mod transcription;
 
@@ -228,6 +231,9 @@ pub use client::GroqClient;
 pub use error::{GroqError, GroqErrorData};
 pub use provider::{GroqProvider, create_groq};
 pub use settings::GroqProviderSettings;
+
+// Re-export speech types
+pub use speech::{GroqSpeechConfig, GroqSpeechModel, GroqSpeechOptions};
 
 // Re-export transcription types
 pub use transcription::{

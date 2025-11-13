@@ -9,6 +9,7 @@ Groq provider for the AI SDK - Ultra-fast LLM inference with open-source models.
 - 🌊 Streaming support
 - 🛠️ Tool calling capabilities
 - 🎤 Whisper transcription support
+- 🔊 Text-to-speech (PlayAI models)
 - 📊 Provider-specific metadata (cached tokens)
 - 🖼️ Image URL support
 
@@ -74,6 +75,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - `whisper-large-v3` - Most accurate Whisper model
 - `whisper-large-v3-turbo` - Faster Whisper variant
 - `distil-whisper-large-v3-en` - English-optimized distilled model
+
+### Text-to-Speech Models
+- `playai-tts` - PlayAI text-to-speech model
 
 ### Preview Models
 - `deepseek-r1-distill-llama-70b` - DeepSeek R1 reasoning
@@ -225,6 +229,8 @@ Check the `examples/` directory for more:
 - `groq_basic_chat.rs` - Basic text generation
 - `groq_streaming_chat.rs` - Streaming responses
 - `groq_tool_calling.rs` - Tool/function calling
+- `groq_transcription.rs` - Audio transcription (Whisper)
+- `groq_text_to_speech.rs` - Text-to-speech synthesis
 
 Run an example:
 
@@ -279,4 +285,52 @@ for segment in &result.segments {
     );
 }
 ```
+
+### Text-to-Speech
+
+```rust
+use ai_sdk_groq::{GroqClient, GroqSpeechOptions};
+use ai_sdk_core::GenerateSpeech;
+
+let provider = GroqClient::new()
+    .load_api_key_from_env()
+    .build();
+
+let model = provider.speech_model("playai-tts");
+
+// Configure speech options
+let mut provider_options = std::collections::HashMap::new();
+let mut groq_opts_map = std::collections::HashMap::new();
+let groq_options = GroqSpeechOptions::new()
+    .with_sample_rate(24000);
+
+let groq_value = serde_json::to_value(&groq_options)?;
+if let serde_json::Value::Object(map) = groq_value {
+    for (k, v) in map {
+        groq_opts_map.insert(k, v);
+    }
+}
+provider_options.insert("groq".to_string(), groq_opts_map);
+
+let result = GenerateSpeech::new(
+    model,
+    "Hello! This is a test of text-to-speech.".to_string()
+)
+.voice("Fritz-PlayAI".to_string())
+.output_format("wav".to_string())
+.speed(1.0)
+.provider_options(provider_options)
+.execute()
+.await?;
+
+// Save audio to file
+match &result.audio {
+    ai_sdk_provider::speech_model::AudioData::Binary(bytes) => {
+        std::fs::write("output.wav", bytes)?;
+        println!("Audio saved to output.wav");
+    }
+    _ => {}
+}
+```
+
 

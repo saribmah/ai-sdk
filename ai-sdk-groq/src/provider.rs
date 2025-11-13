@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use crate::chat::language_model::GroqChatLanguageModel;
 use crate::settings::GroqProviderSettings;
+use crate::speech::model::{GroqSpeechConfig, GroqSpeechModel};
 use crate::transcription::model::{GroqTranscriptionConfig, GroqTranscriptionModel};
 use ai_sdk_openai_compatible::OpenAICompatibleChatConfig;
 
@@ -75,6 +76,29 @@ impl GroqProvider {
         Arc::new(GroqTranscriptionModel::new(model_id, config))
     }
 
+    /// Creates a speech synthesis model with the given model ID.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ai_sdk_groq::GroqClient;
+    ///
+    /// let provider = GroqClient::new()
+    ///     .api_key("your-api-key")
+    ///     .build();
+    ///
+    /// let model = provider.speech_model("playai-tts");
+    /// ```
+    pub fn speech_model(
+        &self,
+        model_id: impl Into<String>,
+    ) -> Arc<dyn ai_sdk_provider::SpeechModel> {
+        let model_id = model_id.into();
+        let config = self.create_speech_config();
+
+        Arc::new(GroqSpeechModel::new(model_id, config))
+    }
+
     /// Creates the configuration for chat models.
     pub(crate) fn create_chat_config(&self) -> OpenAICompatibleChatConfig {
         let api_key = self.settings.api_key.clone();
@@ -140,6 +164,33 @@ impl GroqProvider {
         }
     }
 
+    /// Creates the configuration for speech models.
+    fn create_speech_config(&self) -> GroqSpeechConfig {
+        let api_key = self.settings.api_key.clone();
+        let custom_headers = self.settings.headers.clone().unwrap_or_default();
+        let base_url = self.settings.base_url.clone();
+
+        GroqSpeechConfig {
+            provider: "groq.speech".to_string(),
+            base_url,
+            headers: Arc::new(move || {
+                let mut headers = HashMap::new();
+
+                // Add Authorization header if API key is present
+                if let Some(ref key) = api_key {
+                    headers.insert("Authorization".to_string(), format!("Bearer {}", key));
+                }
+
+                // Add custom headers
+                for (key, value) in &custom_headers {
+                    headers.insert(key.clone(), value.clone());
+                }
+
+                headers
+            }),
+        }
+    }
+
     /// Gets the provider base URL.
     pub fn base_url(&self) -> &str {
         &self.settings.base_url
@@ -183,10 +234,7 @@ impl Provider for GroqProvider {
         &self,
         model_id: &str,
     ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
-        Err(ProviderError::no_such_model(
-            model_id,
-            "groq.speech-model-not-supported".to_string(),
-        ))
+        Ok(self.speech_model(model_id))
     }
 
     fn reranking_model(
@@ -288,10 +336,14 @@ mod tests {
         assert_eq!(model.provider(), "groq.chat");
         assert_eq!(model.model_id(), "llama-3.1-8b-instant");
 
+        // Test supported models
+        let speech_model = provider_trait.speech_model("playai-tts").unwrap();
+        assert_eq!(speech_model.provider(), "groq.speech");
+        assert_eq!(speech_model.model_id(), "playai-tts");
+
         // Test unsupported models
         assert!(provider_trait.text_embedding_model("some-model").is_err());
         assert!(provider_trait.image_model("some-model").is_err());
-        assert!(provider_trait.speech_model("some-model").is_err());
         assert!(provider_trait.reranking_model("some-model").is_err());
     }
 
