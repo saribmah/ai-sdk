@@ -30,7 +30,7 @@ impl XaiClient {
 
     /// Sets the base URL for the xAI API.
     ///
-    /// Default: "https://api.x.ai/v1"
+    /// Default: `https://api.x.ai/v1`
     pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
         self.base_url = Some(base_url.into());
         self

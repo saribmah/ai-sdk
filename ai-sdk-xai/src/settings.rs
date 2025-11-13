@@ -3,7 +3,7 @@ use std::collections::HashMap;
 /// Configuration options for creating an xAI provider.
 #[derive(Debug, Clone)]
 pub struct XaiProviderSettings {
-    /// Base URL for the API calls (default: "https://api.x.ai/v1")
+    /// Base URL for the API calls (default: `https://api.x.ai/v1`)
     pub base_url: String,
 
     /// API key for authenticating requests. If specified, adds an `Authorization`

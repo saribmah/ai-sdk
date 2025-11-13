@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// xAI chat model IDs.
 ///
-/// See https://console.x.ai for the full list of available models.
+/// See <https://console.x.ai> for the full list of available models.
 pub type XaiChatModelId = String;
 
 /// xAI-specific provider options.
