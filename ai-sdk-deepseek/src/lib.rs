@@ -85,7 +85,7 @@
 //! .execute()
 //! .await?;
 //!
-//! println!("Response: {:?}", result.output);
+//! println!("Response: {}", result.text);
 //! # Ok(())
 //! # }
 //! ```
@@ -112,17 +112,13 @@
 //! .await?;
 //!
 //! // Access reasoning content if available
-//! for content in &result.output.content {
-//!     match content {
-//!         ai_sdk_core::output::OutputContent::Reasoning { content, .. } => {
-//!             println!("Reasoning: {}", content);
-//!         }
-//!         ai_sdk_core::output::OutputContent::Text { content, .. } => {
-//!             println!("Answer: {}", content);
-//!         }
-//!         _ => {}
+//! if !result.reasoning.is_empty() {
+//!     println!("Reasoning:");
+//!     for reasoning in &result.reasoning {
+//!         println!("{}", reasoning.text);
 //!     }
 //! }
+//! println!("Answer: {}", result.text);
 //! # Ok(())
 //! # }
 //! ```
@@ -133,7 +129,6 @@
 //! use ai_sdk_deepseek::DeepSeekClient;
 //! use ai_sdk_core::{StreamText, prompt::Prompt};
 //! use futures_util::StreamExt;
-//! use std::sync::Arc;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -143,7 +138,7 @@
 //! let model = provider.chat_model("deepseek-chat");
 //!
 //! let result = StreamText::new(
-//!     Arc::from(model),
+//!     model,
 //!     Prompt::text("Tell me a story")
 //! )
 //! .execute()
@@ -178,8 +173,8 @@
 //!     .await?;
 //!
 //! // Access DeepSeek-specific metadata
-//! if let Some(metadata) = &result.metadata {
-//!     if let Some(deepseek) = metadata.get("deepseek") {
+//! if let Some(provider_metadata) = &result.provider_metadata {
+//!     if let Some(deepseek) = provider_metadata.get("deepseek") {
 //!         println!("Prompt cache hit tokens: {:?}",
 //!             deepseek.get("promptCacheHitTokens"));
 //!         println!("Prompt cache miss tokens: {:?}",
