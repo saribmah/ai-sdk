@@ -276,6 +276,8 @@ pub struct GenerateText {
     settings: CallSettings,
     tools: Option<ToolSet>,
     tool_choice: Option<LanguageModelToolChoice>,
+    response_format:
+        Option<ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat>,
     provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
@@ -298,6 +300,7 @@ impl GenerateText {
             settings: CallSettings::default(),
             tools: None,
             tool_choice: None,
+            response_format: None,
             provider_options: None,
             stop_when: None,
             prepare_step: None,
@@ -393,6 +396,15 @@ impl GenerateText {
     /// Sets the tool choice strategy.
     pub fn tool_choice(mut self, choice: LanguageModelToolChoice) -> Self {
         self.tool_choice = Some(choice);
+        self
+    }
+
+    /// Sets the response format (e.g., JSON mode).
+    pub fn with_response_format(
+        mut self,
+        format: ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat,
+    ) -> Self {
+        self.response_format = Some(format);
         self
     }
 
@@ -691,6 +703,11 @@ impl GenerateText {
             }
             if let Some(ref choice) = step_tool_choice {
                 call_options = call_options.with_tool_choice(choice.clone());
+            }
+
+            // Add response format
+            if let Some(ref format) = self.response_format {
+                call_options = call_options.with_response_format(format.clone());
             }
 
             // Add headers and abort signal from settings
