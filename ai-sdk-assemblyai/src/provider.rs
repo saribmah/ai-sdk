@@ -149,9 +149,11 @@ pub fn create_assemblyai(settings: AssemblyAIProviderSettings) -> AssemblyAIProv
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_assemblyai::assemblyai;
+/// use ai_sdk_assemblyai::create_assemblyai;
+/// use ai_sdk_assemblyai::AssemblyAIProviderSettings;
 ///
-/// let model = assemblyai().transcription_model("best");
+/// let provider = create_assemblyai(AssemblyAIProviderSettings::new());
+/// let model = provider.transcription_model("best");
 /// ```
 pub fn assemblyai() -> AssemblyAIProvider {
     create_assemblyai(AssemblyAIProviderSettings::new())

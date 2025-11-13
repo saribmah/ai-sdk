@@ -173,19 +173,29 @@ pub struct CustomSpelling {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::Transcribe;
-/// use ai_sdk_assemblyai::{AssemblyAIClient, AssemblyAITranscriptionOptions};
-/// use ai_sdk_provider::transcription_model::AudioInput;
+/// use ai_sdk_core::{AudioInput, Transcribe};
+/// use ai_sdk_assemblyai::AssemblyAIClient;
+/// use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+/// use ai_sdk_provider_utils::message::DataContent;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let provider = AssemblyAIClient::new().api_key("key").build();
 /// let model = provider.transcription_model("best");
 ///
-/// let result = Transcribe::new(model, AudioInput::Data(vec![]))
-///     .with_provider_options(serde_json::json!({
-///         "speakerLabels": true,
-///         "speakersExpected": 2
-///     }))
+/// let audio_input = AudioInput::Data(DataContent::from(vec![]));
+/// let mut provider_options = SharedProviderOptions::new();
+/// provider_options.insert(
+///     "assemblyai".to_string(),
+///     vec![
+///         ("speakerLabels".to_string(), serde_json::json!(true)),
+///         ("speakersExpected".to_string(), serde_json::json!(2)),
+///     ]
+///     .into_iter()
+///     .collect(),
+/// );
+///
+/// let result = Transcribe::new(model, audio_input)
+///     .provider_options(provider_options)
 ///     .execute()
 ///     .await?;
 /// # Ok(())
