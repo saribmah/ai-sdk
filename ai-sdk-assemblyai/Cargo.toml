@@ -1,0 +1,28 @@
+[package]
+name = "ai-sdk-assemblyai"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+description = "AssemblyAI provider for the AI SDK"
+repository = "https://github.com/saribmah/ai-sdk"
+keywords = ["ai", "assemblyai", "transcription", "speech-to-text"]
+categories = ["api-bindings"]
+
+[dependencies]
+ai-sdk-provider = { path = "../ai-sdk-provider" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
+async-trait = "0.1"
+base64 = "0.22"
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["time"] }
+thiserror = "2.0"
+url = "2.5"
+
+[dev-dependencies]
+ai-sdk-core = { path = "../ai-sdk-core" }
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+dotenvy = "0.15"
+reqwest = "0.12"

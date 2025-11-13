@@ -11,7 +11,7 @@ A unified Rust SDK for building AI-powered applications with multiple model prov
 - **Streaming support**: Stream responses from language models with real-time processing
 - **Tool calling**: Support for function/tool calling with LLMs, both dynamic and type-safe
 - **Multiple capabilities**: Text generation, streaming, embeddings, and image generation
-- **Multiple providers**: OpenAI-compatible APIs (OpenAI, Azure OpenAI, and others)
+- **Multiple providers**: OpenAI-compatible APIs, Hugging Face Responses API, Azure OpenAI, xAI, TogetherAI, and more
 
 ## Project Structure
 
@@ -20,6 +20,11 @@ This is a Cargo workspace with multiple crates:
 - **`ai-sdk-core`**: Core functionality including builder APIs (`GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`), prompt handling, message types, and tool system
 - **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
 - **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
+- **`ai-sdk-huggingface`**: Hugging Face Responses API provider with support for Llama, DeepSeek, Qwen, and more
+- **`ai-sdk-xai`**: xAI (Grok) provider implementation
+- **`ai-sdk-togetherai`**: TogetherAI provider with image generation and reranking
+- **`ai-sdk-anthropic`**: Anthropic (Claude) provider implementation
+- **`ai-sdk-elevenlabs`**: ElevenLabs provider for speech generation and transcription
 - **`ai-sdk-storage`**: Storage trait and types for conversation persistence
 - **`ai-sdk-storage-filesystem`**: Filesystem-based storage provider implementation
 - **`ai-sdk-provider-utils`**: Shared utilities for AI SDK providers
@@ -273,6 +278,77 @@ let custom = OpenAICompatibleClient::new()
     .query_param("version", "2024-01")
     .build();
 ```
+
+## Supported Providers
+
+### Hugging Face
+
+Access powerful open-source models through the Hugging Face Responses API:
+
+```rust
+use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings, LLAMA_3_3_70B_INSTRUCT};
+use ai_sdk_core::{GenerateText, prompt::Prompt};
+
+let provider = create_huggingface(
+    HuggingFaceProviderSettings::new()
+        .load_api_key_from_env()  // Uses HUGGINGFACE_API_KEY
+);
+
+let model = provider.responses(LLAMA_3_3_70B_INSTRUCT);
+
+let result = GenerateText::new(model, Prompt::text("What is Rust?"))
+    .temperature(0.7)
+    .execute()
+    .await?;
+```
+
+**Supported Models:**
+- Meta Llama 3.1/3.3 (8B, 70B, 405B)
+- DeepSeek V3 & R1
+- Qwen 2.5 & 3 (7B, 32B, 72B)
+- Mistral & Mixtral variants
+- Google Gemma 2
+- And many more open-source models
+
+**Features:**
+- ✅ Streaming & non-streaming generation
+- ✅ Tool calling (MCP integration)
+- ✅ Multimodal (images)
+- ✅ Source annotations
+- ✅ Structured output (JSON schema)
+
+See [ai-sdk-huggingface/README.md](ai-sdk-huggingface/README.md) for details.
+
+### OpenAI & Azure OpenAI
+
+Use OpenAI's models or Azure-hosted OpenAI:
+
+```rust
+use ai_sdk_openai_compatible::OpenAICompatibleClient;
+
+// OpenAI
+let openai = OpenAICompatibleClient::new()
+    .base_url("https://api.openai.com/v1")
+    .api_key(api_key)
+    .build();
+
+// Azure OpenAI
+let azure = OpenAICompatibleClient::new()
+    .base_url("https://my-resource.openai.azure.com/openai")
+    .api_key(api_key)
+    .build();
+```
+
+### Other Providers
+
+The SDK also includes providers for:
+
+- **xAI (Grok)**: Access xAI's Grok models
+- **TogetherAI**: High-performance inference with image generation and reranking
+- **Anthropic**: Claude models (coming soon)
+- **ElevenLabs**: Speech generation and transcription
+
+Each provider follows the same unified API pattern, allowing you to switch providers with minimal code changes.
 
 ### Builder Pattern API
 

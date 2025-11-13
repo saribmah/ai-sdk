@@ -5,8 +5,8 @@ edition = "2021"
 rust-version = "1.75"
 license = "Apache-2.0"
 description = "Azure OpenAI provider for AI SDK Rust"
-homepage = "https://github.com/sst/ai-sdk"
-repository = "https://github.com/sst/ai-sdk"
+homepage = "https://github.com/saribmah/ai-sdk"
+repository = "https://github.com/saribmah/ai-sdk"
 keywords = ["ai", "llm", "azure", "openai", "language-model"]
 categories = ["api-bindings", "asynchronous"]
 
