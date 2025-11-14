@@ -151,6 +151,7 @@ version = "0.1.0"
 dependencies = [
  "ai-sdk-azure",
  "ai-sdk-core",
+ "ai-sdk-groq",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
@@ -163,6 +164,26 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "ai-sdk-groq"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-openai-compatible",
+ "ai-sdk-provider",
+ "ai-sdk-provider-utils",
+ "async-trait",
+ "base64",
+ "chrono",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
  "tokio",
 ]
 
