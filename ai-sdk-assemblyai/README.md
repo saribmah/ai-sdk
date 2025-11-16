@@ -268,14 +268,12 @@ match Transcribe::new(model, AudioInput::Data(audio_data))
 
 See the `examples/` directory for complete examples:
 
-- `basic_transcription.rs` - Basic transcription from URL
-- `transcription_with_options.rs` - Using advanced features
+- `transcription.rs` - Provider-only example using `do_generate()` directly
 
-Run examples with:
+Run the example with:
 
 ```bash
-cargo run --example basic_transcription
-cargo run --example transcription_with_options
+cargo run --example transcription -p ai-sdk-assemblyai
 ```
 
 ## Documentation

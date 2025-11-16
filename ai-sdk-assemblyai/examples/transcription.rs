@@ -1,13 +1,20 @@
+// examples/transcription.rs
+//
+// This example demonstrates using AssemblyAI's TranscriptionModel directly
+// with only ai-sdk-provider (no ai-sdk-core).
+//
+// This validates the provider implementation works independently and shows
+// how to use the do_generate() method directly.
+
 use ai_sdk_assemblyai::AssemblyAIClient;
-use ai_sdk_core::{AudioInput, Transcribe};
-use ai_sdk_provider_utils::message::DataContent;
+use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables from .env file
     dotenvy::dotenv().ok();
 
-    // Create provider
+    // Create provider using the builder pattern
     let provider = AssemblyAIClient::new()
         .api_key(std::env::var("ASSEMBLYAI_API_KEY")?)
         .build();
@@ -24,15 +31,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Transcribing audio...");
 
-    // Transcribe the audio
-    let audio_input = AudioInput::Data(DataContent::from(audio_data.to_vec()));
-    let result = Transcribe::new(model, audio_input).execute().await?;
+    // Prepare call options with audio data (using mp3() convenience method)
+    let call_options = TranscriptionModelCallOptions::mp3(audio_data.to_vec());
+
+    // Call do_generate() directly (provider trait method)
+    let result = model.do_generate(call_options).await?;
 
     println!("\n=== Transcription Results ===");
     println!("Text: {}", result.text);
     println!("Segments: {}", result.segments.len());
 
-    if let Some(language) = result.language {
+    if let Some(language) = &result.language {
         println!("Detected Language: {}", language);
     }
 
@@ -53,6 +62,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             );
         }
     }
+
+    println!("\n=== Provider Information ===");
+    println!("Provider: {}", model.provider());
+    println!("Model ID: {}", model.model_id());
 
     Ok(())
 }
