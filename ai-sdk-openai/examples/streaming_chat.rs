@@ -2,7 +2,7 @@
 //!
 //! Run with: cargo run --example streaming_chat
 
-use ai_sdk_openai::openai;
+use ai_sdk_openai::OpenAIClient;
 use ai_sdk_provider::language_model::LanguageModel;
 use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
 use ai_sdk_provider::language_model::prompt::message::LanguageModelMessage;
@@ -11,7 +11,7 @@ use futures_util::StreamExt;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create provider (reads OPENAI_API_KEY from environment)
-    let provider = openai();
+    let provider = OpenAIClient::new().build();
 
     // Create a chat model
     let model = provider.chat("gpt-4o-mini");
