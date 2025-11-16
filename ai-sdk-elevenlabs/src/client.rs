@@ -33,7 +33,9 @@ use std::collections::HashMap;
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct ElevenLabsClient {
-    settings: ElevenLabsProviderSettings,
+    base_url: Option<String>,
+    api_key: Option<String>,
+    headers: HashMap<String, String>,
 }
 
 impl ElevenLabsClient {
@@ -48,7 +50,9 @@ impl ElevenLabsClient {
     /// ```
     pub fn new() -> Self {
         Self {
-            settings: ElevenLabsProviderSettings::new(),
+            base_url: None,
+            api_key: None,
+            headers: HashMap::new(),
         }
     }
 
@@ -66,7 +70,7 @@ impl ElevenLabsClient {
     ///     .api_key("your-api-key");
     /// ```
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
-        self.settings = self.settings.with_api_key(api_key);
+        self.api_key = Some(api_key.into());
         self
     }
 
@@ -83,7 +87,7 @@ impl ElevenLabsClient {
     ///     .base_url("https://custom-api.elevenlabs.io");
     /// ```
     pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
-        self.settings = self.settings.with_base_url(base_url);
+        self.base_url = Some(base_url.into());
         self
     }
 
@@ -98,11 +102,11 @@ impl ElevenLabsClient {
     ///     .header("X-Custom-Header", "custom-value");
     /// ```
     pub fn header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.settings = self.settings.with_header(key, value);
+        self.headers.insert(key.into(), value.into());
         self
     }
 
-    /// Set all headers at once.
+    /// Set multiple custom headers at once.
     ///
     /// # Examples
     ///
@@ -117,7 +121,7 @@ impl ElevenLabsClient {
     ///     .headers(headers);
     /// ```
     pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
-        self.settings = self.settings.with_headers(headers);
+        self.headers.extend(headers);
         self
     }
 
@@ -133,7 +137,21 @@ impl ElevenLabsClient {
     ///     .build();
     /// ```
     pub fn build(self) -> ElevenLabsProvider {
-        ElevenLabsProvider::new(self.settings)
+        let mut settings = ElevenLabsProviderSettings::new();
+
+        if let Some(base_url) = self.base_url {
+            settings = settings.with_base_url(base_url);
+        }
+
+        if let Some(api_key) = self.api_key {
+            settings = settings.with_api_key(api_key);
+        }
+
+        if !self.headers.is_empty() {
+            settings = settings.with_headers(self.headers);
+        }
+
+        ElevenLabsProvider::new(settings)
     }
 }
 
@@ -190,6 +208,20 @@ mod tests {
             .api_key("test-key")
             .base_url("https://custom.api.com")
             .header("X-Custom", "value")
+            .build();
+
+        assert_eq!(provider.specification_version(), "v3");
+    }
+
+    #[test]
+    fn test_builder_with_mixed_headers() {
+        let mut initial_headers = HashMap::new();
+        initial_headers.insert("X-Initial".to_string(), "value".to_string());
+
+        let provider = ElevenLabsClient::new()
+            .api_key("test-key")
+            .headers(initial_headers)
+            .header("X-Additional", "another-value")
             .build();
 
         assert_eq!(provider.specification_version(), "v3");
