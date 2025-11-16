@@ -173,7 +173,6 @@
 //! ```no_run
 //! use ai_sdk_togetherai::TogetherAIClient;
 //! use ai_sdk_core::Rerank;
-//! use ai_sdk_provider::reranking_model::call_options::RerankingDocuments;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = TogetherAIClient::new()
@@ -182,10 +181,10 @@
 //!
 //! let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
 //!
-//! let documents = RerankingDocuments::from_strings(vec![
+//! let documents = vec![
 //!     "Document 1".to_string(),
 //!     "Document 2".to_string(),
-//! ]);
+//! ];
 //!
 //! let result = Rerank::new(model, documents, "search query".to_string())
 //!     .top_n(5)
@@ -193,7 +192,7 @@
 //!     .await?;
 //!
 //! for ranked_doc in result.ranking {
-//!     println!("Index: {}, Score: {}", ranked_doc.index, ranked_doc.relevance_score);
+//!     println!("Score: {}", ranked_doc.score);
 //! }
 //! # Ok(())
 //! # }

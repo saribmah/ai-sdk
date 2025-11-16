@@ -312,9 +312,11 @@ dependencies = [
 name = "ai-sdk-togetherai"
 version = "0.1.0"
 dependencies = [
+ "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "async-trait",
+ "futures-util",
  "reqwest",
  "serde",
  "serde_json",
