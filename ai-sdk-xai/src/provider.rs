@@ -193,51 +193,15 @@ impl Provider for XaiProvider {
     }
 }
 
-/// Creates an xAI provider.
-///
-/// This function creates a provider that can be used with xAI's Grok models.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the provider
-///
-/// # Returns
-///
-/// An `XaiProvider` instance.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_xai::{create_xai, XaiProviderSettings};
-///
-/// // Create an xAI provider and get a chat model
-/// let provider = create_xai(
-///     XaiProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// );
-///
-/// let chat_model = provider.chat_model("grok-4");
-///
-/// // Or chain it directly
-/// let model = create_xai(
-///     XaiProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// )
-/// .chat_model("grok-3-fast");
-/// ```
-pub fn create_xai(settings: XaiProviderSettings) -> XaiProvider {
-    XaiProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_create_xai() {
+    fn test_provider_new() {
         let settings = XaiProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_xai(settings);
+        let provider = XaiProvider::new(settings);
         let model = provider.chat_model("grok-4");
 
         assert_eq!(model.provider(), "xai.chat");
@@ -248,7 +212,7 @@ mod tests {
     fn test_chat_model() {
         let settings = XaiProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_xai(settings);
+        let provider = XaiProvider::new(settings);
         let model = provider.chat_model("grok-3-fast");
 
         assert_eq!(model.provider(), "xai.chat");
@@ -259,7 +223,7 @@ mod tests {
     fn test_image_model() {
         let settings = XaiProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_xai(settings);
+        let provider = XaiProvider::new(settings);
         let model = provider.image_model("grok-2-image");
 
         assert_eq!(model.provider(), "xai.image");
@@ -269,7 +233,7 @@ mod tests {
     #[test]
     fn test_chained_usage() {
         // Test the chained usage pattern
-        let model = create_xai(XaiProviderSettings::new().with_api_key("test-key"))
+        let model = XaiProvider::new(XaiProviderSettings::new().with_api_key("test-key"))
             .chat_model("grok-4-fast-reasoning");
 
         assert_eq!(model.provider(), "xai.chat");
@@ -280,7 +244,7 @@ mod tests {
     fn test_provider_trait_implementation() {
         let settings = XaiProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_xai(settings);
+        let provider = XaiProvider::new(settings);
 
         // Use Provider trait method via trait object
         let provider_trait: &dyn Provider = &provider;
@@ -308,7 +272,7 @@ mod tests {
             .with_api_key("test-key")
             .with_base_url("https://custom.x.ai/v1");
 
-        let provider = create_xai(settings);
+        let provider = XaiProvider::new(settings);
         assert_eq!(provider.base_url(), "https://custom.x.ai/v1");
     }
 }

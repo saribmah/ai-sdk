@@ -18,13 +18,13 @@
 //! let model = provider.chat_model("grok-4");
 //! ```
 //!
-//! ## Alternative: Using Settings
+//! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_xai::{create_xai, XaiProviderSettings};
+//! use ai_sdk_xai::{XaiProvider, XaiProviderSettings};
 //!
-//! // Create a provider using settings
-//! let provider = create_xai(
+//! // Create a provider using settings directly
+//! let provider = XaiProvider::new(
 //!     XaiProviderSettings::new()
 //!         .with_api_key("your-api-key")
 //! );
@@ -143,5 +143,5 @@ pub use chat::{
 
 pub use client::XaiClient;
 pub use error::{XaiErrorData, XaiErrorDetails};
-pub use provider::{XaiProvider, create_xai};
+pub use provider::XaiProvider;
 pub use settings::XaiProviderSettings;
