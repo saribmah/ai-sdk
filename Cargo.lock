@@ -128,7 +128,6 @@ dependencies = [
 name = "ai-sdk-deepseek"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
@@ -185,7 +184,6 @@ dependencies = [
 name = "ai-sdk-groq"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
@@ -205,14 +203,12 @@ dependencies = [
 name = "ai-sdk-huggingface"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
  "async-stream",
  "async-trait",
  "base64",
  "bytes",
- "dotenv",
  "futures-util",
  "regex",
  "reqwest",
@@ -523,12 +519,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "dotenv"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dotenvy"

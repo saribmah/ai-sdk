@@ -68,7 +68,9 @@
 //!
 //! ```no_run
 //! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -77,15 +79,15 @@
 //!
 //! let model = provider.chat_model("deepseek-chat");
 //!
-//! let result = GenerateText::new(
-//!     model,
-//!     Prompt::text("Write a function to calculate factorial")
-//! )
-//! .temperature(0.7)
-//! .execute()
-//! .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Write a function to calculate factorial")];
+//! let options = LanguageModelCallOptions::new(prompt).with_temperature(0.7);
+//! let result = model.do_generate(options).await?;
 //!
-//! println!("Response: {}", result.text);
+//! for content in &result.content {
+//!     if let LanguageModelContent::Text(text) = content {
+//!         println!("Response: {}", text.text);
+//!     }
+//! }
 //! # Ok(())
 //! # }
 //! ```
@@ -94,7 +96,9 @@
 //!
 //! ```no_run
 //! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -104,21 +108,22 @@
 //! // Use the DeepSeek Reasoner (R1) model for advanced reasoning
 //! let model = provider.chat_model("deepseek-reasoner");
 //!
-//! let result = GenerateText::new(
-//!     model,
-//!     Prompt::text("Solve this logic puzzle: ...")
-//! )
-//! .execute()
-//! .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Solve this logic puzzle: ...")];
+//! let options = LanguageModelCallOptions::new(prompt);
+//! let result = model.do_generate(options).await?;
 //!
-//! // Access reasoning content if available
-//! if !result.reasoning.is_empty() {
-//!     println!("Reasoning:");
-//!     for reasoning in &result.reasoning {
-//!         println!("{}", reasoning.text);
+//! // Access reasoning and text content
+//! for content in &result.content {
+//!     match content {
+//!         LanguageModelContent::Reasoning(reasoning) => {
+//!             println!("Reasoning: {}", reasoning.text);
+//!         }
+//!         LanguageModelContent::Text(text) => {
+//!             println!("Answer: {}", text.text);
+//!         }
+//!         _ => {}
 //!     }
 //! }
-//! println!("Answer: {}", result.text);
 //! # Ok(())
 //! # }
 //! ```
@@ -127,7 +132,9 @@
 //!
 //! ```no_run
 //! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_core::{StreamText, prompt::Prompt};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -137,17 +144,15 @@
 //!
 //! let model = provider.chat_model("deepseek-chat");
 //!
-//! let result = StreamText::new(
-//!     model,
-//!     Prompt::text("Tell me a story")
-//! )
-//! .execute()
-//! .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Tell me a story")];
+//! let options = LanguageModelCallOptions::new(prompt);
+//! let mut result = model.do_stream(options).await?;
 //!
 //! // Stream text deltas
-//! let mut text_stream = result.text_stream();
-//! while let Some(delta) = text_stream.next().await {
-//!     print!("{}", delta);
+//! while let Some(part) = result.stream.next().await {
+//!     if let LanguageModelStreamPart::TextDelta(delta) = part {
+//!         print!("{}", delta.delta);
+//!     }
 //! }
 //! # Ok(())
 //! # }
@@ -159,7 +164,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -168,9 +174,9 @@
 //!
 //! let model = provider.chat_model("deepseek-chat");
 //!
-//! let result = GenerateText::new(model, Prompt::text("Hello"))
-//!     .execute()
-//!     .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Hello")];
+//! let options = LanguageModelCallOptions::new(prompt);
+//! let result = model.do_generate(options).await?;
 //!
 //! // Access DeepSeek-specific metadata
 //! if let Some(provider_metadata) = &result.provider_metadata {

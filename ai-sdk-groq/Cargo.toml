@@ -27,4 +27,3 @@ base64 = "0.22"
 
 [dev-dependencies]
 tokio = { version = "1.41", features = ["macros", "rt-multi-thread"] }
-ai-sdk-core = { path = "../ai-sdk-core" }
