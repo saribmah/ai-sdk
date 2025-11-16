@@ -1,0 +1,41 @@
+[package]
+name = "ai-sdk-baseten"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["AI SDK Team"]
+description = "Baseten provider for AI SDK Rust"
+license = "Apache-2.0"
+repository = "https://github.com/vercel/ai-sdk-rust"
+keywords = ["ai", "ml", "baseten", "llm"]
+categories = ["api-bindings", "web-programming"]
+
+[dependencies]
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
+ai-sdk-core = { path = "../ai-sdk-core", version = "0.1.0" }
+futures-util = "0.3"
+
+[[example]]
+name = "baseten_basic_chat"
+path = "examples/baseten_basic_chat.rs"
+
+[[example]]
+name = "baseten_custom_chat"
+path = "examples/baseten_custom_chat.rs"
+
+[[example]]
+name = "baseten_embeddings"
+path = "examples/baseten_embeddings.rs"
+
+[[example]]
+name = "baseten_streaming"
+path = "examples/baseten_streaming.rs"
