@@ -100,7 +100,7 @@ impl HuggingFaceClient {
     ///
     /// # Arguments
     ///
-    /// * `base_url` - The base URL (e.g., "https://router.huggingface.co/v1")
+    /// * `base_url` - The base URL (e.g., "<https://router.huggingface.co/v1>")
     ///
     /// # Examples
     ///

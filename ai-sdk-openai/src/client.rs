@@ -83,7 +83,7 @@ impl OpenAIClient {
     ///
     /// # Arguments
     ///
-    /// * `base_url` - The base URL (e.g., "https://api.openai.com/v1")
+    /// * `base_url` - The base URL (e.g., "<https://api.openai.com/v1>")
     ///
     /// # Examples
     ///

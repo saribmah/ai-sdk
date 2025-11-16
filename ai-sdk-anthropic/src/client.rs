@@ -67,7 +67,7 @@ impl AnthropicClient {
     ///
     /// # Arguments
     ///
-    /// * `base_url` - The base URL (e.g., "https://api.anthropic.com/v1")
+    /// * `base_url` - The base URL (e.g., "<https://api.anthropic.com/v1>")
     ///
     /// # Examples
     ///

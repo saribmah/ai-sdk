@@ -112,7 +112,7 @@ impl AzureClient {
     ///
     /// # Arguments
     ///
-    /// * `base_url` - The base URL (e.g., "https://my-resource.openai.azure.com/openai")
+    /// * `base_url` - The base URL (e.g., "<https://my-resource.openai.azure.com/openai>")
     ///
     /// # Examples
     ///
