@@ -31,7 +31,7 @@ use std::collections::HashMap;
 ///     .build();
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ElevenLabsClient {
     settings: ElevenLabsProviderSettings,
 }

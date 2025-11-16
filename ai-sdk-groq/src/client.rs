@@ -25,6 +25,7 @@ use std::collections::HashMap;
 ///     .base_url("https://custom.groq.com/openai/v1")
 ///     .build();
 /// ```
+#[derive(Debug, Clone, Default)]
 pub struct GroqClient {
     base_url: Option<String>,
     api_key: Option<String>,
@@ -69,6 +70,26 @@ impl GroqClient {
         self
     }
 
+    /// Sets multiple custom headers at once.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ai_sdk_groq::GroqClient;
+    /// use std::collections::HashMap;
+    ///
+    /// let mut headers = HashMap::new();
+    /// headers.insert("X-Header-1".to_string(), "value1".to_string());
+    /// headers.insert("X-Header-2".to_string(), "value2".to_string());
+    ///
+    /// let client = GroqClient::new()
+    ///     .headers(headers);
+    /// ```
+    pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
+        self.headers.extend(headers);
+        self
+    }
+
     /// Builds the Groq provider.
     pub fn build(self) -> GroqProvider {
         let mut settings = GroqProviderSettings::new();
@@ -86,12 +107,6 @@ impl GroqClient {
         }
 
         GroqProvider::new(settings)
-    }
-}
-
-impl Default for GroqClient {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -123,6 +138,34 @@ mod tests {
             .api_key("test-key")
             .header("X-Custom-1", "value-1")
             .header("X-Custom-2", "value-2")
+            .build();
+
+        assert_eq!(provider.name(), "groq");
+    }
+
+    #[test]
+    fn test_client_with_headers_method() {
+        let mut headers = HashMap::new();
+        headers.insert("X-Header-1".to_string(), "value1".to_string());
+        headers.insert("X-Header-2".to_string(), "value2".to_string());
+
+        let provider = GroqClient::new()
+            .api_key("test-key")
+            .headers(headers)
+            .build();
+
+        assert_eq!(provider.name(), "groq");
+    }
+
+    #[test]
+    fn test_client_with_mixed_headers() {
+        let mut initial_headers = HashMap::new();
+        initial_headers.insert("X-Initial".to_string(), "value".to_string());
+
+        let provider = GroqClient::new()
+            .api_key("test-key")
+            .headers(initial_headers)
+            .header("X-Additional", "another-value")
             .build();
 
         assert_eq!(provider.name(), "groq");

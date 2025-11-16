@@ -25,6 +25,7 @@ use std::collections::HashMap;
 ///     .base_url("https://custom.deepseek.com/v1")
 ///     .build();
 /// ```
+#[derive(Debug, Clone, Default)]
 pub struct DeepSeekClient {
     base_url: Option<String>,
     api_key: Option<String>,
@@ -69,6 +70,26 @@ impl DeepSeekClient {
         self
     }
 
+    /// Sets multiple custom headers at once.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ai_sdk_deepseek::DeepSeekClient;
+    /// use std::collections::HashMap;
+    ///
+    /// let mut headers = HashMap::new();
+    /// headers.insert("X-Header-1".to_string(), "value1".to_string());
+    /// headers.insert("X-Header-2".to_string(), "value2".to_string());
+    ///
+    /// let client = DeepSeekClient::new()
+    ///     .headers(headers);
+    /// ```
+    pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
+        self.headers.extend(headers);
+        self
+    }
+
     /// Builds the DeepSeek provider.
     pub fn build(self) -> DeepSeekProvider {
         let mut settings = DeepSeekProviderSettings::new();
@@ -86,12 +107,6 @@ impl DeepSeekClient {
         }
 
         DeepSeekProvider::new(settings)
-    }
-}
-
-impl Default for DeepSeekClient {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -123,6 +138,34 @@ mod tests {
             .api_key("test-key")
             .header("X-Custom-1", "value-1")
             .header("X-Custom-2", "value-2")
+            .build();
+
+        assert_eq!(provider.name(), "deepseek");
+    }
+
+    #[test]
+    fn test_client_with_headers_method() {
+        let mut headers = HashMap::new();
+        headers.insert("X-Header-1".to_string(), "value1".to_string());
+        headers.insert("X-Header-2".to_string(), "value2".to_string());
+
+        let provider = DeepSeekClient::new()
+            .api_key("test-key")
+            .headers(headers)
+            .build();
+
+        assert_eq!(provider.name(), "deepseek");
+    }
+
+    #[test]
+    fn test_client_with_mixed_headers() {
+        let mut initial_headers = HashMap::new();
+        initial_headers.insert("X-Initial".to_string(), "value".to_string());
+
+        let provider = DeepSeekClient::new()
+            .api_key("test-key")
+            .headers(initial_headers)
+            .header("X-Additional", "another-value")
             .build();
 
         assert_eq!(provider.name(), "deepseek");

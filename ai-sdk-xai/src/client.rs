@@ -15,7 +15,7 @@ use std::collections::HashMap;
 ///
 /// let model = provider.chat_model("grok-4");
 /// ```
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct XaiClient {
     base_url: Option<String>,
     api_key: Option<String>,
