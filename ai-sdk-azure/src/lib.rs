@@ -13,21 +13,20 @@
 //! - **Azure-specific Authentication**: Uses `api-key` header
 //! - **Flexible URL Formats**: Supports both v1 API and deployment-based URLs
 //!
-//! ## Usage
+//! ## Quick Start (Recommended: Builder Pattern)
 //!
 //! ```no_run
-//! use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
+//! use ai_sdk_azure::AzureClient;
 //! use ai_sdk_core::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Create Azure OpenAI provider
-//!     let provider = create_azure(
-//!         AzureOpenAIProviderSettings::new()
-//!             .with_resource_name("my-azure-resource")
-//!             .with_api_key("your-api-key")
-//!     );
+//!     // Create Azure OpenAI provider using the builder
+//!     let provider = AzureClient::new()
+//!         .resource_name("my-azure-resource")
+//!         .api_key("your-api-key")
+//!         .build();
 //!
 //!     // Get a chat model using your deployment name
 //!     let model = provider.chat_model("gpt-4-deployment");
@@ -43,42 +42,90 @@
 //! }
 //! ```
 //!
-//! ## Configuration
-//!
-//! The provider can be configured using `AzureOpenAIProviderSettings`:
+//! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
+//! use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+//! use ai_sdk_core::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
 //!
-//! // Using resource name (constructs URL automatically)
-//! let provider = create_azure(
-//!     AzureOpenAIProviderSettings::new()
-//!         .with_resource_name("my-resource")
-//!         .with_api_key("key")
-//! );
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Create provider with settings
+//!     let provider = AzureOpenAIProvider::new(
+//!         AzureOpenAIProviderSettings::new()
+//!             .with_resource_name("my-azure-resource")
+//!             .with_api_key("your-api-key")
+//!     );
 //!
-//! // Using custom base URL
-//! let provider = create_azure(
-//!     AzureOpenAIProviderSettings::new()
-//!         .with_base_url("https://my-resource.openai.azure.com/openai")
-//!         .with_api_key("key")
-//! );
+//!     let model = provider.chat_model("gpt-4-deployment");
+//!     let result = GenerateText::new(model, Prompt::text("Hello, Azure!"))
+//!         .execute()
+//!         .await?;
 //!
-//! // With custom API version
-//! let provider = create_azure(
-//!     AzureOpenAIProviderSettings::new()
-//!         .with_resource_name("my-resource")
-//!         .with_api_key("key")
-//!         .with_api_version("2024-02-15-preview")
-//! );
+//!     println!("Response: {}", result.text);
+//!     Ok(())
+//! }
+//! ```
 //!
-//! // With deployment-based URLs (legacy format)
-//! let provider = create_azure(
-//!     AzureOpenAIProviderSettings::new()
-//!         .with_resource_name("my-resource")
-//!         .with_api_key("key")
-//!         .with_use_deployment_based_urls(true)
-//! );
+//! ## Configuration Options
+//!
+//! ### Using Resource Name
+//!
+//! ```no_run
+//! use ai_sdk_azure::AzureClient;
+//!
+//! let provider = AzureClient::new()
+//!     .resource_name("my-resource")
+//!     .api_key("key")
+//!     .build();
+//! ```
+//!
+//! ### Using Custom Base URL
+//!
+//! ```no_run
+//! use ai_sdk_azure::AzureClient;
+//!
+//! let provider = AzureClient::new()
+//!     .base_url("https://my-resource.openai.azure.com/openai")
+//!     .api_key("key")
+//!     .build();
+//! ```
+//!
+//! ### With Custom API Version
+//!
+//! ```no_run
+//! use ai_sdk_azure::AzureClient;
+//!
+//! let provider = AzureClient::new()
+//!     .resource_name("my-resource")
+//!     .api_key("key")
+//!     .api_version("2024-02-15-preview")
+//!     .build();
+//! ```
+//!
+//! ### With Custom Headers
+//!
+//! ```no_run
+//! use ai_sdk_azure::AzureClient;
+//!
+//! let provider = AzureClient::new()
+//!     .resource_name("my-resource")
+//!     .api_key("key")
+//!     .header("X-Custom-Header", "value")
+//!     .build();
+//! ```
+//!
+//! ### With Deployment-Based URLs (Legacy Format)
+//!
+//! ```no_run
+//! use ai_sdk_azure::AzureClient;
+//!
+//! let provider = AzureClient::new()
+//!     .resource_name("my-resource")
+//!     .api_key("key")
+//!     .use_deployment_based_urls(true)
+//!     .build();
 //! ```
 //!
 //! ## URL Formats
@@ -109,107 +156,60 @@
 //! ### Chat Models
 //! Use `.chat_model()` or `.model()` for conversational AI:
 //! ```no_run
-//! # use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-//! # let provider = create_azure(AzureOpenAIProviderSettings::new().with_resource_name("test").with_api_key("key"));
+//! # use ai_sdk_azure::AzureClient;
+//! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.chat_model("gpt-4-deployment");
 //! ```
 //!
 //! ### Completion Models
 //! Use `.completion_model()` for text completion:
 //! ```no_run
-//! # use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-//! # let provider = create_azure(AzureOpenAIProviderSettings::new().with_resource_name("test").with_api_key("key"));
+//! # use ai_sdk_azure::AzureClient;
+//! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.completion_model("gpt-35-turbo-instruct");
 //! ```
 //!
 //! ### Embedding Models
 //! Use `.text_embedding_model()` for embeddings:
 //! ```no_run
-//! # use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-//! # let provider = create_azure(AzureOpenAIProviderSettings::new().with_resource_name("test").with_api_key("key"));
+//! # use ai_sdk_azure::AzureClient;
+//! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.text_embedding_model("text-embedding-ada-002");
 //! ```
 //!
 //! ### Image Models
 //! Use `.image_model()` for image generation:
 //! ```no_run
-//! # use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-//! # let provider = create_azure(AzureOpenAIProviderSettings::new().with_resource_name("test").with_api_key("key"));
+//! # use ai_sdk_azure::AzureClient;
+//! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.image_model("dall-e-3");
 //! ```
 
+mod client;
 mod provider;
 mod settings;
 
-pub use provider::{create_azure, AzureOpenAIProvider};
+pub use client::AzureClient;
+pub use provider::AzureOpenAIProvider;
 pub use settings::AzureOpenAIProviderSettings;
-
-/// Default Azure OpenAI provider instance.
-///
-/// Creates a provider using environment variables:
-/// - `AZURE_RESOURCE_NAME` or `AZURE_BASE_URL`
-/// - `AZURE_API_KEY`
-///
-/// # Panics
-///
-/// Panics if required environment variables are not set.
-///
-/// # Example
-///
-/// ```no_run
-/// use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-/// use ai_sdk_core::GenerateText;
-/// use ai_sdk_core::prompt::Prompt;
-///
-/// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     // Create Azure OpenAI provider
-///     let provider = create_azure(
-///         AzureOpenAIProviderSettings::new()
-///             .with_resource_name("my-azure-resource")
-///             .with_api_key("your-api-key")
-///     );
-///
-///     // Get a chat model using your deployment name
-///     let model = provider.chat_model("gpt-4-deployment");
-///
-///     // Generate text
-///     let result = GenerateText::new(model, Prompt::text("Hello, Azure!"))
-///         .execute()
-///         .await?;
-///
-///     println!("Response: {}", result.text);
-///
-///     Ok(())
-/// }
-/// ```
-pub fn azure() -> AzureOpenAIProvider {
-    let resource_name = std::env::var("AZURE_RESOURCE_NAME").ok();
-    let base_url = std::env::var("AZURE_BASE_URL").ok();
-    let api_key = std::env::var("AZURE_API_KEY").ok();
-
-    let mut settings = AzureOpenAIProviderSettings::new();
-
-    if let Some(name) = resource_name {
-        settings = settings.with_resource_name(name);
-    } else if let Some(url) = base_url {
-        settings = settings.with_base_url(url);
-    }
-
-    if let Some(key) = api_key {
-        settings = settings.with_api_key(key);
-    }
-
-    create_azure(settings)
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_create_azure() {
-        let provider = create_azure(
+    fn test_azure_client_builder() {
+        let provider = AzureClient::new()
+            .resource_name("test-resource")
+            .api_key("test-key")
+            .build();
+
+        assert_eq!(provider.name(), "azure");
+    }
+
+    #[test]
+    fn test_provider_direct_instantiation() {
+        let provider = AzureOpenAIProvider::new(
             AzureOpenAIProviderSettings::new()
                 .with_resource_name("test-resource")
                 .with_api_key("test-key"),
@@ -220,11 +220,10 @@ mod tests {
 
     #[test]
     fn test_provider_methods() {
-        let provider = create_azure(
-            AzureOpenAIProviderSettings::new()
-                .with_resource_name("test-resource")
-                .with_api_key("test-key"),
-        );
+        let provider = AzureClient::new()
+            .resource_name("test-resource")
+            .api_key("test-key")
+            .build();
 
         // Test chat model
         let chat_model = provider.chat_model("gpt-4");

@@ -21,17 +21,30 @@ use crate::settings::AzureOpenAIProviderSettings;
 ///
 /// # Examples
 ///
-/// ```no_run
-/// use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
+/// ## Using Builder Pattern (Recommended)
 ///
-/// // Create provider with resource name
-/// let provider = create_azure(
+/// ```no_run
+/// use ai_sdk_azure::AzureClient;
+///
+/// let provider = AzureClient::new()
+///     .resource_name("my-azure-resource")
+///     .api_key("your-api-key")
+///     .build();
+///
+/// let model = provider.chat_model("gpt-4-deployment");
+/// ```
+///
+/// ## Direct Instantiation (Alternative)
+///
+/// ```no_run
+/// use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+///
+/// let provider = AzureOpenAIProvider::new(
 ///     AzureOpenAIProviderSettings::new()
 ///         .with_resource_name("my-azure-resource")
 ///         .with_api_key("your-api-key")
 /// );
 ///
-/// // Get a chat model using a deployment name
 /// let model = provider.chat_model("gpt-4-deployment");
 /// ```
 pub struct AzureOpenAIProvider {
@@ -355,46 +368,12 @@ impl Provider for AzureOpenAIProvider {
     }
 }
 
-/// Creates an Azure OpenAI provider.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_azure::{create_azure, AzureOpenAIProviderSettings};
-///
-/// // Using resource name
-/// let provider = create_azure(
-///     AzureOpenAIProviderSettings::new()
-///         .with_resource_name("my-azure-resource")
-///         .with_api_key("your-api-key")
-/// );
-///
-/// // Using custom base URL
-/// let provider = create_azure(
-///     AzureOpenAIProviderSettings::new()
-///         .with_base_url("https://my-resource.openai.azure.com/openai")
-///         .with_api_key("your-api-key")
-/// );
-///
-/// // With custom API version and deployment-based URLs
-/// let provider = create_azure(
-///     AzureOpenAIProviderSettings::new()
-///         .with_resource_name("my-azure-resource")
-///         .with_api_key("your-api-key")
-///         .with_api_version("2024-02-15-preview")
-///         .with_use_deployment_based_urls(true)
-/// );
-/// ```
-pub fn create_azure(settings: AzureOpenAIProviderSettings) -> AzureOpenAIProvider {
-    AzureOpenAIProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn create_test_provider() -> AzureOpenAIProvider {
-        create_azure(
+        AzureOpenAIProvider::new(
             AzureOpenAIProviderSettings::new()
                 .with_resource_name("test-resource")
                 .with_api_key("test-key"),
@@ -505,7 +484,7 @@ mod tests {
 
     #[test]
     fn test_with_base_url() {
-        let provider = create_azure(
+        let provider = AzureOpenAIProvider::new(
             AzureOpenAIProviderSettings::new()
                 .with_base_url("https://custom.endpoint.com/openai")
                 .with_api_key("test-key"),
@@ -517,7 +496,7 @@ mod tests {
 
     #[test]
     fn test_with_custom_api_version() {
-        let provider = create_azure(
+        let provider = AzureOpenAIProvider::new(
             AzureOpenAIProviderSettings::new()
                 .with_resource_name("test-resource")
                 .with_api_key("test-key")
@@ -530,7 +509,7 @@ mod tests {
 
     #[test]
     fn test_with_deployment_based_urls() {
-        let provider = create_azure(
+        let provider = AzureOpenAIProvider::new(
             AzureOpenAIProviderSettings::new()
                 .with_resource_name("test-resource")
                 .with_api_key("test-key")
@@ -544,6 +523,6 @@ mod tests {
     #[test]
     #[should_panic(expected = "Invalid Azure OpenAI provider settings")]
     fn test_provider_without_url_or_resource_panics() {
-        create_azure(AzureOpenAIProviderSettings::new().with_api_key("test-key"));
+        AzureOpenAIProvider::new(AzureOpenAIProviderSettings::new().with_api_key("test-key"));
     }
 }
