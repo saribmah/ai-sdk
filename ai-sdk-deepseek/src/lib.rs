@@ -26,13 +26,13 @@
 //! let model = provider.chat_model("deepseek-chat");
 //! ```
 //!
-//! ## Alternative: Using Settings
+//! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::{create_deepseek, DeepSeekProviderSettings};
+//! use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
 //!
 //! // Create a provider using settings
-//! let provider = create_deepseek(
+//! let provider = DeepSeekProvider::new(
 //!     DeepSeekProviderSettings::new()
 //!         .with_api_key("your-api-key")
 //! );
@@ -208,7 +208,7 @@ pub use chat::{
 
 pub use client::DeepSeekClient;
 pub use error::DeepSeekError;
-pub use provider::{DeepSeekProvider, create_deepseek};
+pub use provider::DeepSeekProvider;
 pub use settings::DeepSeekProviderSettings;
 
 // Re-export error data type
