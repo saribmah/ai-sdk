@@ -81,6 +81,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-baseten"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-core",
+ "ai-sdk-openai-compatible",
+ "ai-sdk-provider",
+ "async-trait",
+ "futures-util",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "ai-sdk-core"
 version = "0.1.0"
 dependencies = [

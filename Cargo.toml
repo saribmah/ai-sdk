@@ -17,6 +17,7 @@ members = [
     "ai-sdk-togetherai",
     "ai-sdk-huggingface",
     "ai-sdk-assemblyai",
+    "ai-sdk-baseten",
 ]
 
 [workspace.package]
