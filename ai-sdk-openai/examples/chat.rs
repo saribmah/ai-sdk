@@ -1,6 +1,8 @@
 //! Basic chat completion example using OpenAI provider
 //!
-//! Run with: cargo run --example basic_chat
+//! This example demonstrates using do_generate() directly with ai-sdk-provider.
+//!
+//! Run with: cargo run --example chat -p ai-sdk-openai
 
 use ai_sdk_openai::OpenAIClient;
 use ai_sdk_provider::language_model::LanguageModel;

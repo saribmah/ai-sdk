@@ -84,7 +84,6 @@ dependencies = [
 name = "ai-sdk-baseten"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "async-trait",
