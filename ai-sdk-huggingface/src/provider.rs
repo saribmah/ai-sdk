@@ -32,6 +32,11 @@ impl HuggingFaceProvider {
         self.responses(model_id)
     }
 
+    /// Returns the base URL for the provider.
+    pub fn base_url(&self) -> &str {
+        &self.settings.base_url
+    }
+
     /// Creates the client configuration for models.
     fn create_client_config(&self) -> HuggingFaceClientConfig {
         let api_key = self.settings.api_key.clone();
@@ -116,24 +121,6 @@ impl Provider for HuggingFaceProvider {
     }
 }
 
-/// Creates a Hugging Face provider.
-///
-/// # Example
-///
-/// ```no_run
-/// use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings};
-///
-/// let provider = create_huggingface(
-///     HuggingFaceProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// );
-///
-/// let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
-/// ```
-pub fn create_huggingface(settings: HuggingFaceProviderSettings) -> HuggingFaceProvider {
-    HuggingFaceProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -141,8 +128,7 @@ mod tests {
     #[test]
     fn test_create_provider() {
         let settings = HuggingFaceProviderSettings::new().with_api_key("test-key");
-
-        let provider = create_huggingface(settings);
+        let provider = HuggingFaceProvider::new(settings);
 
         // Test unsupported models
         assert!(provider.text_embedding_model("model").is_err());
@@ -150,5 +136,15 @@ mod tests {
         assert!(provider.transcription_model("model").is_err());
         assert!(provider.speech_model("model").is_err());
         assert!(provider.reranking_model("model").is_err());
+    }
+
+    #[test]
+    fn test_base_url_getter() {
+        let settings = HuggingFaceProviderSettings::new()
+            .with_api_key("test-key")
+            .with_base_url("https://custom.api.com/v1");
+        let provider = HuggingFaceProvider::new(settings);
+
+        assert_eq!(provider.base_url(), "https://custom.api.com/v1");
     }
 }

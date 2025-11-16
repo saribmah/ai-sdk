@@ -25,16 +25,41 @@ tokio = { version = "1", features = ["full"] }
 
 ## Quick Start
 
-### Basic Chat
+### Using the Client Builder (Recommended)
 
 ```rust
 use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings, LLAMA_3_1_8B_INSTRUCT};
+use ai_sdk_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create provider (API key from HUGGINGFACE_API_KEY env var)
-    let provider = create_huggingface(
+    let provider = HuggingFaceClient::new().build();
+    
+    // Create model
+    let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);
+    
+    // Generate text
+    let result = GenerateText::new(model, Prompt::text("What is Rust?"))
+        .temperature(0.7)
+        .execute()
+        .await?;
+    
+    println!("{}", result.text);
+    Ok(())
+}
+```
+
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_core::{GenerateText, prompt::Prompt};
+use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings, LLAMA_3_1_8B_INSTRUCT};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider using settings
+    let provider = HuggingFaceProvider::new(
         HuggingFaceProviderSettings::new()
             .load_api_key_from_env()
     );
@@ -57,8 +82,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use ai_sdk_core::{StreamText, prompt::Prompt};
-use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings};
+use ai_sdk_huggingface::HuggingFaceClient;
 use futures_util::StreamExt;
+
+// Create provider
+let provider = HuggingFaceClient::new().build();
+let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
 
 let result = StreamText::new(model, Prompt::text("Tell me a story"))
     .temperature(0.8)
@@ -105,10 +134,18 @@ Set your API key via environment variable:
 export HUGGINGFACE_API_KEY=your-api-key
 ```
 
-Or provide it directly:
+Or provide it directly using the builder:
 
 ```rust
-let provider = create_huggingface(
+let provider = HuggingFaceClient::new()
+    .api_key("your-api-key")
+    .build();
+```
+
+Or using settings:
+
+```rust
+let provider = HuggingFaceProvider::new(
     HuggingFaceProviderSettings::new()
         .with_api_key("your-api-key")
 );
@@ -116,21 +153,43 @@ let provider = create_huggingface(
 
 ### Custom Base URL
 
+Using the builder:
+
 ```rust
-let provider = create_huggingface(
+let provider = HuggingFaceClient::new()
+    .base_url("https://custom-endpoint.example.com/v1")
+    .api_key("your-api-key")
+    .build();
+```
+
+Using settings:
+
+```rust
+let provider = HuggingFaceProvider::new(
     HuggingFaceProviderSettings::new()
         .with_base_url("https://custom-endpoint.example.com/v1")
-        .with_api_key("key")
+        .with_api_key("your-api-key")
 );
 ```
 
 ### Custom Headers
 
+Using the builder:
+
 ```rust
-let provider = create_huggingface(
+let provider = HuggingFaceClient::new()
+    .api_key("your-api-key")
+    .header("X-Custom-Header", "value")
+    .build();
+```
+
+Using settings:
+
+```rust
+let provider = HuggingFaceProvider::new(
     HuggingFaceProviderSettings::new()
         .with_header("X-Custom-Header", "value")
-        .with_api_key("key")
+        .with_api_key("your-api-key")
 );
 ```
 

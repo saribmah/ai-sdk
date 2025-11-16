@@ -1,5 +1,5 @@
 use ai_sdk_core::{StreamText, prompt::Prompt};
-use ai_sdk_huggingface::{HuggingFaceProviderSettings, LLAMA_3_1_8B_INSTRUCT, create_huggingface};
+use ai_sdk_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
 use futures_util::StreamExt;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     // Create the Hugging Face provider
-    let provider = create_huggingface(HuggingFaceProviderSettings::new().load_api_key_from_env());
+    let provider = HuggingFaceClient::new().build();
 
     // Create a model
     let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);
