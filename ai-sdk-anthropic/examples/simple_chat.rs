@@ -5,7 +5,7 @@
 /// export ANTHROPIC_API_KEY="your-api-key"
 /// cargo run --example simple_chat
 /// ```
-use ai_sdk_anthropic::{AnthropicProviderSettings, create_anthropic};
+use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 use ai_sdk_core::GenerateText;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_provider::language_model::LanguageModel;
@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create Anthropic provider
     let settings = AnthropicProviderSettings::new().with_api_key(api_key);
-    let provider = create_anthropic(settings);
+    let provider = AnthropicProvider::new(settings);
     let model = Arc::new(provider.language_model("claude-3-haiku-20240307".to_string()));
 
     println!("✓ Model loaded: {}\n", model.model_id());

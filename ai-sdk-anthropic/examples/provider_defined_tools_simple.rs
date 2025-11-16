@@ -7,7 +7,7 @@
 /// export ANTHROPIC_API_KEY="your-api-key"
 /// cargo run --example provider_defined_tools_simple -p ai-sdk-anthropic
 /// ```
-use ai_sdk_anthropic::{AnthropicProviderSettings, anthropic_tools, create_anthropic};
+use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, anthropic_tools};
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::{GenerateText, ToolSet};
 use ai_sdk_provider::language_model::LanguageModel;
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create Anthropic provider
     let settings = AnthropicProviderSettings::new().with_api_key(api_key);
-    let provider = create_anthropic(settings);
+    let provider = AnthropicProvider::new(settings);
     // Note: Provider-defined tools require Claude 3 Opus or Claude 3.5 Sonnet
     let model = Arc::new(provider.language_model("claude-3-opus-20240229".to_string()));
 
