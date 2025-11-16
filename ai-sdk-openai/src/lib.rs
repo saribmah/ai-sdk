@@ -141,12 +141,12 @@ pub mod chat;
 /// Client builder for creating OpenAI providers
 pub mod client;
 /// OpenAI provider implementation
-pub mod openai_provider;
+pub mod provider;
 /// Settings and configuration for OpenAI providers
 pub mod settings;
 
 // Re-export main types for convenience
 pub use chat::{OpenAIChatLanguageModel, OpenAIChatLanguageModelOptions, OpenAIChatModelId};
 pub use client::OpenAIClient;
-pub use openai_provider::OpenAIProvider;
+pub use provider::OpenAIProvider;
 pub use settings::OpenAIProviderSettings;

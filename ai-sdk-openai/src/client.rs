@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::openai_provider::OpenAIProvider;
+use crate::provider::OpenAIProvider;
 use crate::settings::OpenAIProviderSettings;
 
 /// Builder for creating an OpenAI client.
