@@ -337,54 +337,6 @@ impl Provider for OpenAICompatibleProvider {
     }
 }
 
-/// Creates an OpenAI-compatible provider.
-///
-/// This function creates a provider that can be used with OpenAI-compatible APIs,
-/// including OpenAI, Azure OpenAI, and other compatible services.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the provider
-///
-/// # Returns
-///
-/// An `OpenAICompatibleProvider` instance.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
-///
-/// // Create an OpenAI provider and get a chat model
-/// let provider = create_openai_compatible(
-///     OpenAICompatibleProviderSettings::new(
-///         "https://api.openai.com/v1",
-///         "openai"
-///     )
-///     .with_api_key("your-api-key")
-/// );
-///
-/// let chat_model = provider.chat_model("gpt-4");
-///
-/// // Or get a completion model
-/// let completion_model = provider.completion_model("gpt-3.5-turbo-instruct");
-///
-/// // Or chain it directly
-/// let model = create_openai_compatible(
-///     OpenAICompatibleProviderSettings::new(
-///         "https://api.example.com/v1",
-///         "example"
-///     )
-///     .with_api_key("your-api-key")
-/// )
-/// .chat_model("meta-llama/Llama-3-70b-chat-hf");
-/// ```
-pub fn create_openai_compatible(
-    settings: OpenAICompatibleProviderSettings,
-) -> OpenAICompatibleProvider {
-    OpenAICompatibleProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -395,7 +347,7 @@ mod tests {
             .with_api_key("test-key")
             .with_organization("test-org");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.chat_model("gpt-4");
 
         assert_eq!(model.provider(), "openai.chat");
@@ -410,7 +362,7 @@ mod tests {
         )
         .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.chat_model("gpt-4");
 
         assert_eq!(model.provider(), "azure-openai.chat");
@@ -422,7 +374,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.completion_model("gpt-3.5-turbo-instruct");
 
         assert_eq!(model.provider(), "openai.completion");
@@ -434,7 +386,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.text_embedding_model("text-embedding-3-small");
 
         assert_eq!(model.provider(), "openai.embedding");
@@ -446,7 +398,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.image_model("dall-e-3");
 
         assert_eq!(model.provider(), "openai.image");
@@ -458,7 +410,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model_result = provider.language_model("gpt-4");
         let model = model_result.unwrap();
 
@@ -469,7 +421,7 @@ mod tests {
     #[test]
     fn test_chained_usage() {
         // Test the chained usage pattern
-        let model = create_openai_compatible(
+        let model = OpenAICompatibleProvider::new(
             OpenAICompatibleProviderSettings::new("https://api.example.com/v1", "example")
                 .with_api_key("test-key"),
         )
@@ -511,7 +463,7 @@ mod tests {
         let settings =
             OpenAICompatibleProviderSettings::new("https://api.example.com/v1", "example");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         assert_eq!(provider.name(), "example");
         assert_eq!(provider.base_url(), "https://api.example.com/v1");
     }
@@ -521,7 +473,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
 
         // Use Provider trait method via trait object
         let provider_trait: &dyn Provider = &provider;
@@ -550,7 +502,7 @@ mod tests {
             OpenAICompatibleProviderSettings::new("https://api.example.com/v1", "example")
                 .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
 
         // Test chat model
         let model1 = provider.chat_model("model-1");
@@ -594,7 +546,7 @@ mod tests {
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
 
-        let provider = create_openai_compatible(settings);
+        let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.chat_model("gpt-4");
 
         // Create a simple text prompt

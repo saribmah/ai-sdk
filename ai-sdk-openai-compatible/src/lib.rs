@@ -19,13 +19,13 @@
 //! let model = provider.chat_model("gpt-4");
 //! ```
 //!
-//! ## Alternative: Using Settings (Legacy)
+//! ## Alternative: Using Settings Directly
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::{create_openai_compatible, OpenAICompatibleProviderSettings};
+//! use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
 //!
 //! // Create a provider using settings
-//! let provider = create_openai_compatible(
+//! let provider = OpenAICompatibleProvider::new(
 //!     OpenAICompatibleProviderSettings::new(
 //!         "https://api.openai.com/v1",
 //!         "openai"
@@ -175,5 +175,5 @@ pub use image::{
 
 pub use client::OpenAICompatibleClient;
 pub use error::*;
-pub use provider::{OpenAICompatibleProvider, create_openai_compatible};
+pub use provider::OpenAICompatibleProvider;
 pub use settings::OpenAICompatibleProviderSettings;
