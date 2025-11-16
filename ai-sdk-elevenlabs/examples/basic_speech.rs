@@ -1,7 +1,7 @@
 /// Basic text-to-speech example with ElevenLabs.
 ///
 /// This example shows how to:
-/// - Create an ElevenLabs provider from environment variables
+/// - Create an ElevenLabs provider using the builder pattern
 /// - Use a speech model to convert text to audio
 /// - Save the generated audio to a file
 ///
@@ -11,7 +11,7 @@
 /// cargo run --example basic_speech -p ai-sdk-elevenlabs
 /// ```
 use ai_sdk_core::GenerateSpeech;
-use ai_sdk_elevenlabs::create_elevenlabs;
+use ai_sdk_elevenlabs::ElevenLabsClient;
 use ai_sdk_provider::Provider;
 use std::env;
 use std::fs;
@@ -26,8 +26,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ API key loaded from environment\n");
 
-    // Create ElevenLabs provider
-    let provider = create_elevenlabs();
+    // Create ElevenLabs provider using builder pattern
+    let provider = ElevenLabsClient::new().build();
     println!("✓ ElevenLabs provider created");
 
     // Create speech model

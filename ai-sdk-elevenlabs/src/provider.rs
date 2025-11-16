@@ -130,29 +130,19 @@ impl Provider for ElevenLabsProvider {
     }
 }
 
-/// Create an ElevenLabs provider with default settings.
-pub fn create_elevenlabs() -> ElevenLabsProvider {
-    ElevenLabsProvider::new(ElevenLabsProviderSettings::default())
-}
-
-/// Create an ElevenLabs provider with custom settings.
-pub fn create_elevenlabs_with_settings(settings: ElevenLabsProviderSettings) -> ElevenLabsProvider {
-    ElevenLabsProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_provider_creation() {
-        let provider = create_elevenlabs();
+        let provider = ElevenLabsProvider::new(ElevenLabsProviderSettings::default());
         assert_eq!(provider.specification_version(), "v3");
     }
 
     #[test]
     fn test_unsupported_models() {
-        let provider = create_elevenlabs();
+        let provider = ElevenLabsProvider::new(ElevenLabsProviderSettings::default());
 
         // Language models not supported
         assert!(provider.language_model("test").is_err());
