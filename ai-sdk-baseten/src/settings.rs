@@ -3,7 +3,7 @@ use std::collections::HashMap;
 /// Configuration options for creating a Baseten provider.
 #[derive(Debug, Clone)]
 pub struct BasetenProviderSettings {
-    /// Base URL for the Model APIs. Default: 'https://inference.baseten.co/v1'
+    /// Base URL for the Model APIs. (default: "<https://inference.baseten.co/v1>")
     pub base_url: String,
 
     /// API key for authenticating requests. If not specified, will be loaded
