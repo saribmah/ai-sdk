@@ -1,39 +1,39 @@
-use crate::provider::DeepSeekProvider;
-use crate::settings::DeepSeekProviderSettings;
+use crate::provider::TogetherAIProvider;
+use crate::settings::TogetherAIProviderSettings;
 use std::collections::HashMap;
 
-/// Builder for creating a DeepSeek provider.
+/// Builder for creating a Together AI provider.
 ///
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_deepseek::DeepSeekClient;
+/// use ai_sdk_togetherai::TogetherAIClient;
 ///
 /// // Basic usage
-/// let provider = DeepSeekClient::new()
+/// let provider = TogetherAIClient::new()
 ///     .api_key("your-api-key")
 ///     .build();
 ///
 /// // With environment variable
-/// let provider = DeepSeekClient::new()
+/// let provider = TogetherAIClient::new()
 ///     .load_api_key_from_env()
 ///     .build();
 ///
 /// // With custom base URL
-/// let provider = DeepSeekClient::new()
+/// let provider = TogetherAIClient::new()
 ///     .api_key("your-api-key")
-///     .base_url("https://custom.deepseek.com/v1")
+///     .base_url("https://custom.together.xyz/v1")
 ///     .build();
 /// ```
 #[derive(Debug, Clone, Default)]
-pub struct DeepSeekClient {
+pub struct TogetherAIClient {
     base_url: Option<String>,
     api_key: Option<String>,
     headers: HashMap<String, String>,
 }
 
-impl DeepSeekClient {
-    /// Creates a new DeepSeek client builder.
+impl TogetherAIClient {
+    /// Creates a new Together AI client builder.
     pub fn new() -> Self {
         Self {
             base_url: None,
@@ -44,7 +44,7 @@ impl DeepSeekClient {
 
     /// Sets the base URL for API calls.
     ///
-    /// Default: `https://api.deepseek.com/v1`
+    /// Default: `https://api.together.xyz/v1`
     pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
         self.base_url = Some(base_url.into());
         self
@@ -56,9 +56,9 @@ impl DeepSeekClient {
         self
     }
 
-    /// Loads the API key from the `DEEPSEEK_API_KEY` environment variable.
+    /// Loads the API key from the `TOGETHER_AI_API_KEY` environment variable.
     pub fn load_api_key_from_env(mut self) -> Self {
-        if let Ok(api_key) = std::env::var("DEEPSEEK_API_KEY") {
+        if let Ok(api_key) = std::env::var("TOGETHER_AI_API_KEY") {
             self.api_key = Some(api_key);
         }
         self
@@ -75,14 +75,14 @@ impl DeepSeekClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_deepseek::DeepSeekClient;
+    /// use ai_sdk_togetherai::TogetherAIClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
     /// headers.insert("X-Header-1".to_string(), "value1".to_string());
     /// headers.insert("X-Header-2".to_string(), "value2".to_string());
     ///
-    /// let client = DeepSeekClient::new()
+    /// let client = TogetherAIClient::new()
     ///     .headers(headers);
     /// ```
     pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
@@ -90,9 +90,9 @@ impl DeepSeekClient {
         self
     }
 
-    /// Builds the DeepSeek provider.
-    pub fn build(self) -> DeepSeekProvider {
-        let mut settings = DeepSeekProviderSettings::new();
+    /// Builds the Together AI provider.
+    pub fn build(self) -> TogetherAIProvider {
+        let mut settings = TogetherAIProviderSettings::new();
 
         if let Some(base_url) = self.base_url {
             settings = settings.with_base_url(base_url);
@@ -106,7 +106,7 @@ impl DeepSeekClient {
             settings = settings.with_headers(self.headers);
         }
 
-        DeepSeekProvider::new(settings)
+        TogetherAIProvider::new(settings)
     }
 }
 
@@ -116,31 +116,31 @@ mod tests {
 
     #[test]
     fn test_client_builder() {
-        let client = DeepSeekClient::new()
+        let client = TogetherAIClient::new()
             .api_key("test-key")
-            .base_url("https://custom.deepseek.com/v1")
+            .base_url("https://custom.together.xyz/v1")
             .header("X-Custom", "value");
 
         let provider = client.build();
-        assert_eq!(provider.base_url(), "https://custom.deepseek.com/v1");
+        assert_eq!(provider.base_url(), "https://custom.together.xyz/v1");
     }
 
     #[test]
     fn test_default_client() {
-        let client = DeepSeekClient::default();
+        let client = TogetherAIClient::default();
         let provider = client.build();
-        assert_eq!(provider.base_url(), "https://api.deepseek.com/v1");
+        assert_eq!(provider.base_url(), "https://api.together.xyz/v1");
     }
 
     #[test]
     fn test_client_with_custom_headers() {
-        let provider = DeepSeekClient::new()
+        let provider = TogetherAIClient::new()
             .api_key("test-key")
             .header("X-Custom-1", "value-1")
             .header("X-Custom-2", "value-2")
             .build();
 
-        assert_eq!(provider.name(), "deepseek");
+        assert_eq!(provider.name(), "togetherai");
     }
 
     #[test]
@@ -149,12 +149,12 @@ mod tests {
         headers.insert("X-Header-1".to_string(), "value1".to_string());
         headers.insert("X-Header-2".to_string(), "value2".to_string());
 
-        let provider = DeepSeekClient::new()
+        let provider = TogetherAIClient::new()
             .api_key("test-key")
             .headers(headers)
             .build();
 
-        assert_eq!(provider.name(), "deepseek");
+        assert_eq!(provider.name(), "togetherai");
     }
 
     #[test]
@@ -162,12 +162,12 @@ mod tests {
         let mut initial_headers = HashMap::new();
         initial_headers.insert("X-Initial".to_string(), "value".to_string());
 
-        let provider = DeepSeekClient::new()
+        let provider = TogetherAIClient::new()
             .api_key("test-key")
             .headers(initial_headers)
             .header("X-Additional", "another-value")
             .build();
 
-        assert_eq!(provider.name(), "deepseek");
+        assert_eq!(provider.name(), "togetherai");
     }
 }

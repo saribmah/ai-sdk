@@ -45,13 +45,13 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
-//! use ai_sdk_anthropic::create_anthropic;
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 //! use ai_sdk_core::generate_text::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = create_anthropic(Default::default());
+//! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! match GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello"))

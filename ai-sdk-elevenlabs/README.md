@@ -24,17 +24,17 @@ ai-sdk-elevenlabs = "0.1"
 
 ## Quick Start
 
-### Text-to-Speech
+### Recommended: Builder Pattern
 
 ```rust
 use ai_sdk_core::GenerateSpeech;
-use ai_sdk_elevenlabs::create_elevenlabs;
+use ai_sdk_elevenlabs::ElevenLabsClient;
 use ai_sdk_provider::Provider;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider (reads ELEVENLABS_API_KEY from environment)
-    let provider = create_elevenlabs();
+    // Create provider using builder (reads ELEVENLABS_API_KEY from environment)
+    let provider = ElevenLabsClient::new().build();
     let model = provider.speech_model("eleven_multilingual_v2")?;
 
     // Generate speech
@@ -50,23 +50,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Alternative: Direct Instantiation
+
+```rust
+use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
+use ai_sdk_provider::Provider;
+
+let provider = ElevenLabsProvider::new(
+    ElevenLabsProviderSettings::new()
+        .with_api_key("your-api-key")
+);
+```
+
+## Usage Examples
+
+### Text-to-Speech
+
+```rust
+use ai_sdk_core::GenerateSpeech;
+use ai_sdk_elevenlabs::ElevenLabsClient;
+use ai_sdk_provider::Provider;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let provider = ElevenLabsClient::new().build();
+    let model = provider.speech_model("eleven_multilingual_v2")?;
+
+    let result = GenerateSpeech::new(model, "Hello, world!".to_string())
+        .voice("21m00Tcm4TlvDq8ikWAM")
+        .output_format("mp3")
+        .execute()
+        .await?;
+
+    std::fs::write("output.mp3", result.audio.bytes())?;
+    Ok(())
+}
+```
+
 ### Speech-to-Text Transcription
 
 ```rust
 use ai_sdk_core::Transcribe;
-use ai_sdk_elevenlabs::create_elevenlabs;
+use ai_sdk_elevenlabs::ElevenLabsClient;
 use ai_sdk_provider::Provider;
 use ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = create_elevenlabs();
+    let provider = ElevenLabsClient::new().build();
     let model = provider.transcription_model("scribe_v1")?;
 
-    // Read audio file
     let audio_bytes = std::fs::read("audio.mp3")?;
-
-    // Transcribe
     let result = Transcribe::new(model, TranscriptionAudioData::Binary(audio_bytes))
         .media_type("audio/mpeg")
         .execute()
@@ -79,16 +113,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Configuration
 
-### Provider Settings
+### Builder Pattern
 
 ```rust
-use ai_sdk_elevenlabs::ElevenLabsProviderSettings;
+use ai_sdk_elevenlabs::ElevenLabsClient;
+
+// With API key
+let provider = ElevenLabsClient::new()
+    .api_key("your-api-key")
+    .build();
+
+// With custom base URL
+let provider = ElevenLabsClient::new()
+    .api_key("your-api-key")
+    .base_url("https://custom-api.elevenlabs.io")
+    .build();
+
+// With custom headers
+let provider = ElevenLabsClient::new()
+    .api_key("your-api-key")
+    .header("X-Custom-Header", "custom-value")
+    .build();
+```
+
+### Direct Instantiation
+
+```rust
+use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
 
 let settings = ElevenLabsProviderSettings::new()
     .with_api_key("your-api-key")
     .with_base_url("https://api.elevenlabs.io");
 
-let provider = create_elevenlabs_with_settings(settings);
+let provider = ElevenLabsProvider::new(settings);
 ```
 
 ### Voice Settings

@@ -114,51 +114,6 @@ impl Provider for AssemblyAIProvider {
     }
 }
 
-/// Creates an AssemblyAI provider.
-///
-/// This function creates a provider that can be used with AssemblyAI's transcription API.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the provider
-///
-/// # Returns
-///
-/// An `AssemblyAIProvider` instance.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_assemblyai::{create_assemblyai, AssemblyAIProviderSettings};
-///
-/// let provider = create_assemblyai(
-///     AssemblyAIProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// );
-///
-/// let model = provider.transcription_model("best");
-/// ```
-pub fn create_assemblyai(settings: AssemblyAIProviderSettings) -> AssemblyAIProvider {
-    AssemblyAIProvider::new(settings)
-}
-
-/// Default AssemblyAI provider instance.
-///
-/// Uses the `ASSEMBLYAI_API_KEY` environment variable for authentication.
-///
-/// # Example
-///
-/// ```no_run
-/// use ai_sdk_assemblyai::create_assemblyai;
-/// use ai_sdk_assemblyai::AssemblyAIProviderSettings;
-///
-/// let provider = create_assemblyai(AssemblyAIProviderSettings::new());
-/// let model = provider.transcription_model("best");
-/// ```
-pub fn assemblyai() -> AssemblyAIProvider {
-    create_assemblyai(AssemblyAIProviderSettings::new())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -166,14 +121,14 @@ mod tests {
     #[test]
     fn test_create_provider() {
         let settings = AssemblyAIProviderSettings::new().with_api_key("test-key");
-        let provider = create_assemblyai(settings);
+        let provider = AssemblyAIProvider::new(settings);
         assert_eq!(provider.base_url(), "https://api.assemblyai.com");
     }
 
     #[test]
     fn test_transcription_model() {
         let settings = AssemblyAIProviderSettings::new().with_api_key("test-key");
-        let provider = create_assemblyai(settings);
+        let provider = AssemblyAIProvider::new(settings);
         let model = provider.transcription_model("best");
 
         assert_eq!(model.provider(), "assemblyai.transcription");
@@ -183,7 +138,7 @@ mod tests {
     #[test]
     fn test_unsupported_models() {
         let settings = AssemblyAIProviderSettings::new();
-        let provider = create_assemblyai(settings);
+        let provider = AssemblyAIProvider::new(settings);
 
         assert!(provider.language_model("test").is_err());
         assert!(provider.text_embedding_model("test").is_err());

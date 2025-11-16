@@ -57,19 +57,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ## Supported Models
 
 ### Chat Models
-#### Production Models
 - `llama-3.1-8b-instant` - Fast Llama 3.1 8B model
 - `llama-3.3-70b-versatile` - Llama 3.3 70B model
 - `gemma2-9b-it` - Google's Gemma 2 9B
+- `deepseek-r1-distill-llama-70b` - DeepSeek R1 reasoning model
 - `meta-llama/llama-guard-4-12b` - Content moderation
-- And more...
-
-#### Preview Models
-- `deepseek-r1-distill-llama-70b` - DeepSeek R1 reasoning
-- `meta-llama/llama-4-maverick-17b-128e-instruct`
-- `qwen/qwen3-32b`
-- `mixtral-8x7b-32768`
-- And more...
+- `meta-llama/llama-4-maverick-17b-128e-instruct` - Llama 4 Maverick
+- `meta-llama/llama-4-scout-17b-16e-instruct` - Llama 4 Scout
+- `qwen/qwen3-32b` - Qwen 3 32B model
+- `mixtral-8x7b-32768` - Mixtral mixture-of-experts model
 
 ### Transcription Models (Whisper)
 - `whisper-large-v3` - Most accurate Whisper model
@@ -78,14 +74,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Text-to-Speech Models
 - `playai-tts` - PlayAI text-to-speech model
-
-### Preview Models
-- `deepseek-r1-distill-llama-70b` - DeepSeek R1 reasoning
-- `meta-llama/llama-4-maverick-17b-128e-instruct`
-- `meta-llama/llama-4-scout-17b-16e-instruct`
-- `qwen/qwen3-32b`
-- `mixtral-8x7b-32768`
-- And more...
 
 See [Groq's model documentation](https://console.groq.com/docs/models) for the full list.
 
@@ -199,19 +187,45 @@ let provider = GroqClient::new()
 
 ## API Reference
 
-### Client Builder
+### Client Builder (Recommended)
 
+```rust
+use ai_sdk_groq::GroqClient;
+
+let provider = GroqClient::new()
+    .api_key("your-api-key")
+    .base_url("https://api.groq.com/openai/v1")  // optional
+    .header("X-Custom-Header", "value")          // optional
+    .build();
+```
+
+**Builder Methods:**
 - `GroqClient::new()` - Create new client builder
 - `.api_key(key)` - Set API key
 - `.load_api_key_from_env()` - Load from `GROQ_API_KEY` env var
-- `.base_url(url)` - Set custom base URL
+- `.base_url(url)` - Set custom base URL (default: `https://api.groq.com/openai/v1`)
 - `.header(key, value)` - Add custom header
 - `.build()` - Build the provider
 
-### Provider
+### Alternative: Direct Instantiation
+
+```rust
+use ai_sdk_groq::{GroqProvider, GroqProviderSettings};
+
+let provider = GroqProvider::new(
+    GroqProviderSettings::new()
+        .with_api_key("your-api-key")
+        .with_base_url("https://api.groq.com/openai/v1")  // optional
+        .with_header("X-Custom-Header", "value")          // optional
+);
+```
+
+### Provider Methods
 
 - `provider.chat_model(id)` - Create chat model
 - `provider.model(id)` - Alias for `chat_model`
+- `provider.transcription_model(id)` - Create transcription model
+- `provider.speech_model(id)` - Create speech synthesis model
 
 ### Provider Options
 
@@ -241,96 +255,5 @@ cargo run --example groq_basic_chat
 ## License
 
 MIT
-
-### Transcription
-
-```rust
-use ai_sdk_groq::{GroqClient, GroqTranscriptionOptions};
-use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
-use ai_sdk_provider::TranscriptionModel;
-
-let provider = GroqClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.transcription_model("whisper-large-v3");
-
-// Read audio file
-let audio_data = std::fs::read("audio.mp3")?;
-
-// Configure transcription options
-let mut provider_options = std::collections::HashMap::new();
-let groq_options = GroqTranscriptionOptions::new()
-    .with_language("en")
-    .with_verbose_json() // Get segments
-    .with_temperature(0.0);
-
-provider_options.insert(
-    "groq".to_string(),
-    serde_json::to_value(&groq_options)?,
-);
-
-let options = TranscriptionModelCallOptions::mp3(audio_data)
-    .with_provider_options(provider_options);
-
-let result = model.do_generate(options).await?;
-println!("Transcription: {}", result.text);
-
-// Access segments if verbose_json was used
-for segment in &result.segments {
-    println!("[{:.2}s - {:.2}s]: {}", 
-        segment.start_second, 
-        segment.end_second, 
-        segment.text
-    );
-}
-```
-
-### Text-to-Speech
-
-```rust
-use ai_sdk_groq::{GroqClient, GroqSpeechOptions};
-use ai_sdk_core::GenerateSpeech;
-
-let provider = GroqClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.speech_model("playai-tts");
-
-// Configure speech options
-let mut provider_options = std::collections::HashMap::new();
-let mut groq_opts_map = std::collections::HashMap::new();
-let groq_options = GroqSpeechOptions::new()
-    .with_sample_rate(24000);
-
-let groq_value = serde_json::to_value(&groq_options)?;
-if let serde_json::Value::Object(map) = groq_value {
-    for (k, v) in map {
-        groq_opts_map.insert(k, v);
-    }
-}
-provider_options.insert("groq".to_string(), groq_opts_map);
-
-let result = GenerateSpeech::new(
-    model,
-    "Hello! This is a test of text-to-speech.".to_string()
-)
-.voice("Fritz-PlayAI".to_string())
-.output_format("wav".to_string())
-.speed(1.0)
-.provider_options(provider_options)
-.execute()
-.await?;
-
-// Save audio to file
-match &result.audio {
-    ai_sdk_provider::speech_model::AudioData::Binary(bytes) => {
-        std::fs::write("output.wav", bytes)?;
-        println!("Audio saved to output.wav");
-    }
-    _ => {}
-}
-```
 
 

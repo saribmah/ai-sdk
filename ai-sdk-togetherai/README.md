@@ -33,10 +33,22 @@ export TOGETHER_AI_API_KEY="your-api-key"
 
 ### 2. Direct Configuration
 
-```rust
-use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+#### Builder Pattern (Recommended)
 
-let provider = create_togetherai(
+```rust
+use ai_sdk_togetherai::TogetherAIClient;
+
+let provider = TogetherAIClient::new()
+    .api_key("your-api-key")
+    .build();
+```
+
+#### Direct Instantiation
+
+```rust
+use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+
+let provider = TogetherAIProvider::new(
     TogetherAIProviderSettings::new()
         .with_api_key("your-api-key")
 );
@@ -44,14 +56,18 @@ let provider = create_togetherai(
 
 ## Quick Start
 
+### Builder Pattern (Recommended)
+
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::{GenerateText, prompt::Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create provider (reads TOGETHER_AI_API_KEY from environment)
-    let provider = togetherai();
+    let provider = TogetherAIClient::new()
+        .load_api_key_from_env()
+        .build();
 
     // Create a chat model
     let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
@@ -66,15 +82,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Chained Usage
+
+```rust
+use ai_sdk_togetherai::TogetherAIClient;
+
+let model = TogetherAIClient::new()
+    .api_key("your-api-key")
+    .build()
+    .chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
+```
+
 ## Usage Examples
 
 ### Chat Model
 
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::{GenerateText, prompt::Prompt};
 
-let provider = togetherai();
+let provider = TogetherAIClient::new()
+    .load_api_key_from_env()
+    .build();
+
 let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 
 let result = GenerateText::new(model, Prompt::text("Hello!"))
@@ -89,31 +119,36 @@ println!("{}", result.text);
 ### Streaming Chat
 
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::{StreamText, prompt::Prompt};
 use futures_util::StreamExt;
 
-let provider = togetherai();
+let provider = TogetherAIClient::new()
+    .load_api_key_from_env()
+    .build();
+
 let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 
-let mut stream = StreamText::new(model, Prompt::text("Tell me a story"))
+let result = StreamText::new(model, Prompt::text("Tell me a story"))
     .execute()
     .await?;
 
-while let Some(part) = stream.next().await {
-    if let Some(text) = part.text_delta {
-        print!("{}", text);
-    }
+let mut text_stream = result.text_stream();
+while let Some(delta) = text_stream.next().await {
+    print!("{}", delta);
 }
 ```
 
 ### Text Embeddings
 
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::Embed;
 
-let provider = togetherai();
+let provider = TogetherAIClient::new()
+    .load_api_key_from_env()
+    .build();
+
 let model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
 
 let result = Embed::new(model, "Hello world".to_string())
@@ -126,10 +161,13 @@ println!("Embedding vector length: {}", result.embedding.len());
 ### Image Generation
 
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::GenerateImage;
 
-let provider = togetherai();
+let provider = TogetherAIClient::new()
+    .load_api_key_from_env()
+    .build();
+
 let model = provider.image_model("black-forest-labs/FLUX.1-schnell");
 
 let result = GenerateImage::new(model, "A serene mountain landscape".to_string())
@@ -147,11 +185,14 @@ for image in result.images {
 ### Document Reranking
 
 ```rust
-use ai_sdk_togetherai::togetherai;
+use ai_sdk_togetherai::TogetherAIClient;
 use ai_sdk_core::Rerank;
 use ai_sdk_provider::reranking_model::call_options::RerankingDocuments;
 
-let provider = togetherai();
+let provider = TogetherAIClient::new()
+    .load_api_key_from_env()
+    .build();
+
 let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
 
 let documents = RerankingDocuments::from_strings(vec![
@@ -209,14 +250,28 @@ For a complete list of available models, see the [Together AI documentation](htt
 
 ## Configuration Options
 
+### Builder Pattern
+
 ```rust
-use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+use ai_sdk_togetherai::TogetherAIClient;
+
+let provider = TogetherAIClient::new()
+    .api_key("your-api-key")
+    .base_url("https://api.together.xyz/v1")  // Custom base URL
+    .header("X-Custom-Header", "value")        // Add custom header
+    .build();
+```
+
+### Direct Instantiation
+
+```rust
+use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
 use std::collections::HashMap;
 
 let mut headers = HashMap::new();
 headers.insert("X-Custom-Header".to_string(), "value".to_string());
 
-let provider = create_togetherai(
+let provider = TogetherAIProvider::new(
     TogetherAIProviderSettings::new()
         .with_api_key("your-api-key")
         .with_base_url("https://api.together.xyz/v1")  // Custom base URL

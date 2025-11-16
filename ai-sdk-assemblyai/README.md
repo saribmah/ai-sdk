@@ -24,7 +24,7 @@ ai-sdk-core = "*"
 
 ## Provider Instance
 
-You can create a provider instance using the client builder:
+### Recommended: Using the Client Builder
 
 ```rust
 use ai_sdk_assemblyai::AssemblyAIClient;
@@ -34,12 +34,23 @@ let provider = AssemblyAIClient::new()
     .build();
 ```
 
-Or use the environment variable `ASSEMBLYAI_API_KEY`:
+If you don't provide an API key, it will be loaded from the `ASSEMBLYAI_API_KEY` environment variable:
 
 ```rust
-use ai_sdk_assemblyai::assemblyai;
+use ai_sdk_assemblyai::AssemblyAIClient;
 
-let provider = assemblyai();
+let provider = AssemblyAIClient::new().build();
+```
+
+### Alternative: Direct Instantiation
+
+```rust
+use ai_sdk_assemblyai::{AssemblyAIProvider, AssemblyAIProviderSettings};
+
+let provider = AssemblyAIProvider::new(
+    AssemblyAIProviderSettings::new()
+        .with_api_key("your-api-key")
+);
 ```
 
 ## Basic Example

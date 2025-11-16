@@ -25,9 +25,9 @@ use crate::settings::TogetherAIProviderSettings;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+/// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
 ///
-/// let provider = create_togetherai(
+/// let provider = TogetherAIProvider::new(
 ///     TogetherAIProviderSettings::new()
 ///         .with_api_key("your-api-key")
 /// );
@@ -48,6 +48,16 @@ impl TogetherAIProvider {
         Self { settings }
     }
 
+    /// Returns the provider name.
+    pub fn name(&self) -> &str {
+        "togetherai"
+    }
+
+    /// Returns the base URL.
+    pub fn base_url(&self) -> &str {
+        &self.settings.base_url
+    }
+
     /// Creates a language model with the given model ID (alias for `chat_model`).
     ///
     /// # Arguments
@@ -57,9 +67,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
     /// ```
     pub fn model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
@@ -75,9 +85,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
     /// ```
     pub fn chat_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
@@ -96,9 +106,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.completion_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
     /// ```
     pub fn completion_model(&self, model_id: impl Into<String>) -> Arc<dyn LanguageModel> {
@@ -119,9 +129,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
     /// ```
     pub fn text_embedding_model(
@@ -143,9 +153,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.image_model("black-forest-labs/FLUX.1-schnell");
     /// ```
     pub fn image_model(&self, model_id: impl Into<String>) -> Arc<dyn ImageModel> {
@@ -164,9 +174,9 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
+    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
-    /// let provider = create_togetherai(TogetherAIProviderSettings::new());
+    /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
     /// ```
     pub fn reranking_model(&self, model_id: impl Into<String>) -> Arc<dyn RerankingModel> {
@@ -360,51 +370,6 @@ impl Provider for TogetherAIProvider {
     }
 }
 
-/// Creates a Together AI provider.
-///
-/// This function creates a provider that can be used to access Together AI models.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the provider
-///
-/// # Returns
-///
-/// A `TogetherAIProvider` instance.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_togetherai::{create_togetherai, TogetherAIProviderSettings};
-///
-/// // Create a provider with API key
-/// let provider = create_togetherai(
-///     TogetherAIProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// );
-///
-/// let chat_model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
-/// ```
-pub fn create_togetherai(settings: TogetherAIProviderSettings) -> TogetherAIProvider {
-    TogetherAIProvider::new(settings)
-}
-
-/// Creates a Together AI provider with default settings.
-///
-/// Uses the `TOGETHER_AI_API_KEY` environment variable for authentication.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_togetherai::togetherai;
-///
-/// let provider = togetherai();
-/// let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
-/// ```
-pub fn togetherai() -> TogetherAIProvider {
-    create_togetherai(TogetherAIProviderSettings::default())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -413,7 +378,7 @@ mod tests {
     fn test_create_togetherai() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 
         assert_eq!(model.provider(), "togetherai.chat");
@@ -424,7 +389,7 @@ mod tests {
     fn test_completion_model() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let model = provider.completion_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 
         assert_eq!(model.provider(), "togetherai.completion");
@@ -435,7 +400,7 @@ mod tests {
     fn test_text_embedding_model() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
 
         assert_eq!(model.provider(), "togetherai.embedding");
@@ -446,7 +411,7 @@ mod tests {
     fn test_image_model() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let model = provider.image_model("black-forest-labs/FLUX.1-schnell");
 
         assert_eq!(model.provider(), "togetherai.image");
@@ -457,7 +422,7 @@ mod tests {
     fn test_reranking_model() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
 
         assert_eq!(model.provider(), "togetherai.reranking");
@@ -468,7 +433,7 @@ mod tests {
     fn test_provider_trait_implementation() {
         let settings = TogetherAIProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_togetherai(settings);
+        let provider = TogetherAIProvider::new(settings);
         let provider_trait: &dyn Provider = &provider;
 
         // Test language model

@@ -1,5 +1,5 @@
 use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_huggingface::{HuggingFaceProviderSettings, LLAMA_3_1_8B_INSTRUCT, create_huggingface};
+use ai_sdk_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create the Hugging Face provider
     // API key is loaded from HUGGINGFACE_API_KEY environment variable
-    let provider = create_huggingface(HuggingFaceProviderSettings::new().load_api_key_from_env());
+    let provider = HuggingFaceClient::new().build();
 
     // Create a model (using the Llama 3.1 8B Instruct model)
     let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);

@@ -14,16 +14,20 @@
 //! - Provider-specific options (logprobs, reasoning effort, service tiers, etc.)
 //! - Type-safe configuration
 //!
-//! ## Example
+//! ## Quick Start
+//!
+//! ### Using the Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_openai::{openai, OpenAIProviderSettings};
+//! use ai_sdk_openai::OpenAIClient;
 //! use ai_sdk_provider::language_model::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Create an OpenAI provider (reads OPENAI_API_KEY from environment)
-//!     let provider = openai();
+//!     // Create provider using the client builder
+//!     let provider = OpenAIClient::new()
+//!         .api_key("your-api-key")  // Or use OPENAI_API_KEY env var
+//!         .build();
 //!
 //!     // Get a language model
 //!     let model = provider.chat("gpt-4o");
@@ -32,6 +36,59 @@
 //!     println!("Provider: {}", model.provider());
 //!     Ok(())
 //! }
+//! ```
+//!
+//! ### Using Settings Directly (Alternative)
+//!
+//! ```no_run
+//! use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
+//! use ai_sdk_provider::language_model::LanguageModel;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Create provider (uses OPENAI_API_KEY from environment)
+//!     let provider = OpenAIProvider::new(OpenAIProviderSettings::default());
+//!
+//!     // Get a language model
+//!     let model = provider.chat("gpt-4o");
+//!
+//!     println!("Model: {}", model.model_id());
+//!     println!("Provider: {}", model.provider());
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ## Configuration
+//!
+//! ### Using the Client Builder
+//!
+//! ```rust
+//! use ai_sdk_openai::OpenAIClient;
+//!
+//! let provider = OpenAIClient::new()
+//!     .api_key("your-api-key")
+//!     .base_url("https://api.openai.com/v1")
+//!     .organization("org-123")
+//!     .project("proj-456")
+//!     .header("Custom-Header", "value")
+//!     .name("my-openai-provider")
+//!     .build();
+//! ```
+//!
+//! ### Using Settings Directly
+//!
+//! ```rust
+//! use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
+//!
+//! let settings = OpenAIProviderSettings::new()
+//!     .with_api_key("your-api-key")
+//!     .with_base_url("https://api.openai.com/v1")
+//!     .with_organization("org-123")
+//!     .with_project("proj-456")
+//!     .add_header("Custom-Header", "value")
+//!     .with_name("my-openai-provider");
+//!
+//! let provider = OpenAIProvider::new(settings);
 //! ```
 //!
 //! ## Architecture
@@ -81,9 +138,15 @@
 
 /// Chat completion API implementation
 pub mod chat;
+/// Client builder for creating OpenAI providers
+pub mod client;
 /// OpenAI provider implementation
-pub mod openai_provider;
+pub mod provider;
+/// Settings and configuration for OpenAI providers
+pub mod settings;
 
 // Re-export main types for convenience
 pub use chat::{OpenAIChatLanguageModel, OpenAIChatLanguageModelOptions, OpenAIChatModelId};
-pub use openai_provider::{OpenAIProvider, OpenAIProviderSettings, create_openai, openai};
+pub use client::OpenAIClient;
+pub use provider::OpenAIProvider;
+pub use settings::OpenAIProviderSettings;

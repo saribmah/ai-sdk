@@ -11,18 +11,21 @@
 //! - **Speaker Diarization**: Identify different speakers in transcriptions
 //! - **Multiple Languages**: Support for 29+ languages
 //!
-//! # Examples
+//! # Quick Start
 //!
-//! ## Basic Text-to-Speech
+//! ## Recommended: Using the Builder Pattern
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::{create_elevenlabs, ElevenLabsProviderSettings};
+//! use ai_sdk_elevenlabs::ElevenLabsClient;
 //! use ai_sdk_provider::Provider;
 //! use ai_sdk_core::GenerateSpeech;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! // Create provider
-//! let provider = create_elevenlabs();
+//! // Create provider using builder
+//! let provider = ElevenLabsClient::new()
+//!     .api_key("your-api-key")
+//!     .build();
+//!
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
 //! // Generate speech
@@ -37,24 +40,62 @@
 //! # }
 //! ```
 //!
+//! ## Alternative: Direct Instantiation
+//!
+//! ```no_run
+//! use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
+//! use ai_sdk_provider::Provider;
+//!
+//! let provider = ElevenLabsProvider::new(
+//!     ElevenLabsProviderSettings::new()
+//!         .with_api_key("your-api-key")
+//! );
+//! ```
+//!
+//! # Examples
+//!
+//! ## Text-to-Speech
+//!
+//! ```no_run
+//! use ai_sdk_elevenlabs::ElevenLabsClient;
+//! use ai_sdk_provider::Provider;
+//! use ai_sdk_core::GenerateSpeech;
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let provider = ElevenLabsClient::new()
+//!     .api_key("your-api-key")
+//!     .build();
+//!
+//! let model = provider.speech_model("eleven_multilingual_v2")?;
+//!
+//! let result = GenerateSpeech::new(model, "Hello, world!".to_string())
+//!     .voice("21m00Tcm4TlvDq8ikWAM")
+//!     .output_format("mp3")
+//!     .execute()
+//!     .await?;
+//!
+//! std::fs::write("output.mp3", result.audio.bytes())?;
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! ## Speech-to-Text Transcription
 //!
 //! ```ignore
-//! use ai_sdk_elevenlabs::{create_elevenlabs, ElevenLabsProviderSettings};
+//! use ai_sdk_elevenlabs::ElevenLabsClient;
 //! use ai_sdk_provider::Provider;
 //! use ai_sdk_core::{Transcribe, AudioInput};
 //! use ai_sdk_provider_utils::DataContent;
 //! use std::fs;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! // Create provider
-//! let provider = create_elevenlabs();
+//! let provider = ElevenLabsClient::new()
+//!     .api_key("your-api-key")
+//!     .build();
+//!
 //! let model = provider.transcription_model("scribe_v1")?;
 //!
-//! // Read audio file
 //! let audio_bytes = fs::read("audio.mp3")?;
-//!
-//! // Transcribe
 //! let result = Transcribe::new(
 //!     model,
 //!     AudioInput::Data(DataContent::from_bytes(audio_bytes, "audio/mpeg"))
@@ -65,30 +106,32 @@
 //! # }
 //! ```
 //!
-//! ## Custom Provider Settings
+//! ## Custom Configuration
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::ElevenLabsProviderSettings;
-//! use ai_sdk_elevenlabs::create_elevenlabs_with_settings;
+//! use ai_sdk_elevenlabs::ElevenLabsClient;
 //!
-//! let settings = ElevenLabsProviderSettings::new()
-//!     .with_api_key("your-api-key")
-//!     .with_base_url("https://api.elevenlabs.io");
-//!
-//! let provider = create_elevenlabs_with_settings(settings);
+//! let provider = ElevenLabsClient::new()
+//!     .api_key("your-api-key")
+//!     .base_url("https://custom-api.elevenlabs.io")
+//!     .header("X-Custom-Header", "custom-value")
+//!     .build();
 //! ```
 //!
 //! ## Provider-Specific Options
 //!
 //! ```ignore
-//! use ai_sdk_elevenlabs::{create_elevenlabs, speech::ElevenLabsSpeechProviderOptions};
+//! use ai_sdk_elevenlabs::ElevenLabsClient;
 //! use ai_sdk_provider::Provider;
 //! use ai_sdk_core::GenerateSpeech;
 //! use std::collections::HashMap;
 //! use serde_json::json;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = create_elevenlabs();
+//! let provider = ElevenLabsClient::new()
+//!     .api_key("your-api-key")
+//!     .build();
+//!
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
 //! // Provider options with voice settings
@@ -117,6 +160,9 @@
 //! # }
 //! ```
 
+/// Builder for creating ElevenLabs provider.
+pub mod client;
+
 /// Configuration for ElevenLabs models.
 pub mod config;
 
@@ -136,7 +182,8 @@ pub mod speech;
 pub mod transcription;
 
 // Re-export main types
-pub use provider::{ElevenLabsProvider, create_elevenlabs, create_elevenlabs_with_settings};
+pub use client::ElevenLabsClient;
+pub use provider::ElevenLabsProvider;
 pub use settings::ElevenLabsProviderSettings;
 
 // Re-export speech types

@@ -248,51 +248,15 @@ impl Provider for GroqProvider {
     }
 }
 
-/// Creates a Groq provider.
-///
-/// This function creates a provider that can be used with Groq's chat models.
-///
-/// # Arguments
-///
-/// * `settings` - Configuration settings for the provider
-///
-/// # Returns
-///
-/// A `GroqProvider` instance.
-///
-/// # Examples
-///
-/// ```no_run
-/// use ai_sdk_groq::{create_groq, GroqProviderSettings};
-///
-/// // Create a Groq provider and get a chat model
-/// let provider = create_groq(
-///     GroqProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// );
-///
-/// let chat_model = provider.chat_model("llama-3.1-8b-instant");
-///
-/// // Or chain it directly
-/// let model = create_groq(
-///     GroqProviderSettings::new()
-///         .with_api_key("your-api-key")
-/// )
-/// .chat_model("llama-3.3-70b-versatile");
-/// ```
-pub fn create_groq(settings: GroqProviderSettings) -> GroqProvider {
-    GroqProvider::new(settings)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_create_groq() {
+    fn test_provider_new() {
         let settings = GroqProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_groq(settings);
+        let provider = GroqProvider::new(settings);
         let model = provider.chat_model("llama-3.1-8b-instant");
 
         assert_eq!(model.provider(), "groq.chat");
@@ -303,7 +267,7 @@ mod tests {
     fn test_chat_model() {
         let settings = GroqProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_groq(settings);
+        let provider = GroqProvider::new(settings);
         let model = provider.chat_model("llama-3.3-70b-versatile");
 
         assert_eq!(model.provider(), "groq.chat");
@@ -313,7 +277,7 @@ mod tests {
     #[test]
     fn test_chained_usage() {
         // Test the chained usage pattern
-        let model = create_groq(GroqProviderSettings::new().with_api_key("test-key"))
+        let model = GroqProvider::new(GroqProviderSettings::new().with_api_key("test-key"))
             .chat_model("gemma2-9b-it");
 
         assert_eq!(model.provider(), "groq.chat");
@@ -324,7 +288,7 @@ mod tests {
     fn test_provider_trait_implementation() {
         let settings = GroqProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_groq(settings);
+        let provider = GroqProvider::new(settings);
 
         // Use Provider trait method via trait object
         let provider_trait: &dyn Provider = &provider;
@@ -353,7 +317,7 @@ mod tests {
             .with_api_key("test-key")
             .with_base_url("https://custom.groq.com/openai/v1");
 
-        let provider = create_groq(settings);
+        let provider = GroqProvider::new(settings);
         assert_eq!(provider.base_url(), "https://custom.groq.com/openai/v1");
     }
 
@@ -361,7 +325,7 @@ mod tests {
     fn test_default_base_url() {
         let settings = GroqProviderSettings::new().with_api_key("test-key");
 
-        let provider = create_groq(settings);
+        let provider = GroqProvider::new(settings);
         assert_eq!(provider.base_url(), "https://api.groq.com/openai/v1");
     }
 }

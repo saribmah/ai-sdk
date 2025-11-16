@@ -18,8 +18,39 @@
 //!
 //! ## Quick Start
 //!
+//! ### Using the Client Builder (Recommended)
+//!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{create_anthropic, AnthropicProviderSettings};
+//! use ai_sdk_anthropic::AnthropicClient;
+//! use ai_sdk_core::generate_text::GenerateText;
+//! use ai_sdk_core::prompt::Prompt;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Create provider using the client builder
+//!     let provider = AnthropicClient::new()
+//!         .api_key("your-api-key")
+//!         .build();
+//!     
+//!     // Create a language model
+//!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
+//!     
+//!     // Generate text
+//!     let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, Claude!"))
+//!         .temperature(0.7)
+//!         .max_output_tokens(100)
+//!         .execute()
+//!         .await?;
+//!     
+//!     println!("{}", result.text);
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ### Using Settings Directly (Alternative)
+//!
+//! ```rust,no_run
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 //! use ai_sdk_core::generate_text::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
@@ -27,7 +58,7 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Create provider (uses ANTHROPIC_API_KEY env var)
-//!     let provider = create_anthropic(AnthropicProviderSettings::default());
+//!     let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //!     
 //!     // Create a language model
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
@@ -49,14 +80,14 @@
 //! The Anthropic provider supports both custom tools and provider-defined tools:
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{create_anthropic, anthropic_tools};
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, anthropic_tools};
 //! use ai_sdk_core::generate_text::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_core::tool::tool_set::ToolSet;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = create_anthropic(Default::default());
+//! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! // Use provider-defined tools
@@ -97,14 +128,14 @@
 //! Stream responses for real-time output:
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::create_anthropic;
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 //! use ai_sdk_core::stream_text::StreamText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = create_anthropic(Default::default());
+//! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! let result = StreamText::new(std::sync::Arc::new(model),
@@ -123,10 +154,23 @@
 //!
 //! ## Configuration
 //!
-//! Configure the provider with custom settings:
+//! ### Using the Client Builder (Recommended)
 //!
 //! ```rust
-//! use ai_sdk_anthropic::{AnthropicProviderSettings, create_anthropic};
+//! use ai_sdk_anthropic::AnthropicClient;
+//!
+//! let provider = AnthropicClient::new()
+//!     .api_key("your-api-key")
+//!     .base_url("https://api.anthropic.com/v1")
+//!     .header("Custom-Header", "value")
+//!     .name("my-anthropic-provider")
+//!     .build();
+//! ```
+//!
+//! ### Using Settings Directly (Alternative)
+//!
+//! ```rust
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 //! use std::collections::HashMap;
 //!
 //! let settings = AnthropicProviderSettings::new()
@@ -135,7 +179,7 @@
 //!     .add_header("Custom-Header", "value")
 //!     .with_name("my-anthropic-provider");
 //!
-//! let provider = create_anthropic(settings);
+//! let provider = AnthropicProvider::new(settings);
 //! ```
 //!
 //! ## Environment Variables
@@ -148,13 +192,13 @@
 //! The provider uses the `AnthropicError` type for error handling:
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{create_anthropic, AnthropicError};
+//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, AnthropicError};
 //! use ai_sdk_core::generate_text::GenerateText;
 //! use ai_sdk_core::prompt::Prompt;
 //! use ai_sdk_provider::provider::Provider;
 //!
 //! # async fn example() {
-//! let provider = create_anthropic(Default::default());
+//! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! match GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello"))
@@ -169,6 +213,8 @@
 
 /// Anthropic provider-defined tools namespace.
 pub mod anthropic_tools;
+/// Client builder for creating Anthropic providers.
+pub mod client;
 /// Internal module for converting prompts to Anthropic message format.
 mod convert_to_message_prompt;
 /// Error types for Anthropic provider.
@@ -191,11 +237,15 @@ pub mod provider;
 pub mod provider_metadata_utils;
 /// Provider-defined tool factory functions.
 pub mod provider_tool;
+/// Settings and configuration for Anthropic providers.
+pub mod settings;
 
 // Re-export main types for convenience
+pub use client::AnthropicClient;
 pub use error::{AnthropicError, AnthropicErrorData, AnthropicErrorDetails, parse_anthropic_error};
 pub use language_model::{
     response_schema::{AnthropicMessagesResponse, ContentBlock, Usage},
     stream_schema::{AnthropicChunk, ContentBlockDelta, ContentBlockStart},
 };
-pub use provider::{AnthropicProvider, AnthropicProviderSettings, anthropic, create_anthropic};
+pub use provider::AnthropicProvider;
+pub use settings::AnthropicProviderSettings;

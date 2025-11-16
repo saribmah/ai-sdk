@@ -12,18 +12,44 @@
 //! - Source annotations
 //! - Structured output (JSON schema)
 //!
-//! ## Example
+//! ## Quick Start
+//!
+//! ### Using the Client Builder (Recommended)
 //!
 //! ```ignore
-//! use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings};
+//! use ai_sdk_huggingface::HuggingFaceClient;
 //! use ai_sdk_core::{GenerateText, prompt::Prompt};
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let provider = create_huggingface(
+//!     // Create provider using the client builder
+//!     let provider = HuggingFaceClient::new()
+//!         .api_key("your-api-key")
+//!         .build();
+//!
+//!     let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
+//!
+//!     let result = GenerateText::new(model, Prompt::text("Hello!"))
+//!         .execute()
+//!         .await
+//!         .unwrap();
+//!
+//!     println!("{}", result.text);
+//! }
+//! ```
+//!
+//! ### Using Settings Directly (Alternative)
+//!
+//! ```ignore
+//! use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
+//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     // Create provider using settings
+//!     let provider = HuggingFaceProvider::new(
 //!         HuggingFaceProviderSettings::new()
 //!             .with_api_key("your-api-key")
-//!             .load_api_key_from_env()
 //!     );
 //!
 //!     let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
@@ -44,8 +70,9 @@ pub mod responses;
 pub mod settings;
 
 // Re-exports
+pub use client::HuggingFaceClient;
 pub use error::{HuggingFaceErrorData, HuggingFaceErrorDetail};
-pub use provider::{HuggingFaceProvider, create_huggingface};
+pub use provider::HuggingFaceProvider;
 pub use responses::{
     HuggingFaceResponsesModelId, HuggingFaceResponsesSettings, HuggingFaceResponsesTool,
     HuggingFaceResponsesToolChoice,

@@ -11,7 +11,7 @@
 /// - Set AZURE_RESOURCE_NAME or AZURE_BASE_URL environment variable
 /// - Set AZURE_API_KEY environment variable
 /// - Deploy models in Azure OpenAI (e.g., gpt-4, text-embedding-ada-002)
-use ai_sdk_azure::{AzureOpenAIProviderSettings, create_azure};
+use ai_sdk_azure::AzureClient;
 use ai_sdk_core::prompt::Prompt;
 use ai_sdk_core::{Embed, GenerateText};
 
@@ -39,9 +39,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("==========================");
     example_embeddings().await?;
 
-    // Example 5: Using default provider from environment
-    println!("\nExample 5: Using default provider");
-    println!("==================================");
+    // Example 5: Using environment variables
+    println!("\nExample 5: Using environment variables");
+    println!("=======================================");
     example_default_provider().await?;
 
     Ok(())
@@ -55,14 +55,13 @@ async fn example_with_resource_name() -> Result<(), Box<dyn std::error::Error>> 
     let api_key =
         std::env::var("AZURE_API_KEY").expect("AZURE_API_KEY environment variable not set");
 
-    // Create provider with resource name
+    // Create provider with resource name using builder pattern
     // This constructs URL: https://{resource_name}.openai.azure.com/openai/v1
-    let provider = create_azure(
-        AzureOpenAIProviderSettings::new()
-            .with_resource_name(resource_name)
-            .with_api_key(api_key)
-            .with_api_version("2024-02-15-preview"), // Optional: specify API version
-    );
+    let provider = AzureClient::new()
+        .resource_name(resource_name)
+        .api_key(api_key)
+        .api_version("2024-02-15-preview") // Optional: specify API version
+        .build();
 
     // Get a chat model using your deployment name
     // Replace "gpt-4" with your actual deployment name in Azure
@@ -99,11 +98,10 @@ async fn example_with_base_url() -> Result<(), Box<dyn std::error::Error>> {
         format!("https://{}.openai.azure.com/openai", resource_name)
     });
 
-    let provider = create_azure(
-        AzureOpenAIProviderSettings::new()
-            .with_base_url(base_url)
-            .with_api_key(api_key),
-    );
+    let provider = AzureClient::new()
+        .base_url(base_url)
+        .api_key(api_key)
+        .build();
 
     let model = provider.chat_model("gpt-4");
 
@@ -125,12 +123,11 @@ async fn example_with_deployment_based_urls() -> Result<(), Box<dyn std::error::
 
     // Enable deployment-based URLs
     // Format: https://{resource}.openai.azure.com/openai/deployments/{deployment}/chat/completions
-    let provider = create_azure(
-        AzureOpenAIProviderSettings::new()
-            .with_resource_name(resource_name)
-            .with_api_key(api_key)
-            .with_use_deployment_based_urls(true), // Enable legacy format
-    );
+    let provider = AzureClient::new()
+        .resource_name(resource_name)
+        .api_key(api_key)
+        .use_deployment_based_urls(true) // Enable legacy format
+        .build();
 
     let model = provider.chat_model("gpt-4");
 
@@ -150,11 +147,10 @@ async fn example_embeddings() -> Result<(), Box<dyn std::error::Error>> {
     let api_key =
         std::env::var("AZURE_API_KEY").expect("AZURE_API_KEY environment variable not set");
 
-    let provider = create_azure(
-        AzureOpenAIProviderSettings::new()
-            .with_resource_name(resource_name)
-            .with_api_key(api_key),
-    );
+    let provider = AzureClient::new()
+        .resource_name(resource_name)
+        .api_key(api_key)
+        .build();
 
     // Use your embedding model deployment name
     let embedding_model = provider.text_embedding_model("text-embedding-ada-002");
@@ -178,12 +174,11 @@ async fn example_embeddings() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Example 5: Using the default provider from environment variables
+/// Example 5: Using environment variables with builder
 async fn example_default_provider() -> Result<(), Box<dyn std::error::Error>> {
     // This reads AZURE_RESOURCE_NAME/AZURE_BASE_URL and AZURE_API_KEY from environment
-    use ai_sdk_azure::azure;
-
-    let provider = azure();
+    // The builder automatically falls back to env vars if not explicitly set
+    let provider = AzureClient::new().build();
     let model = provider.chat_model("gpt-4");
 
     let result = GenerateText::new(model, Prompt::text("What's 2+2?"))

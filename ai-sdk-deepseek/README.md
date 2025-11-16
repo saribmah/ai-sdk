@@ -146,12 +146,12 @@ let provider = DeepSeekClient::new()
     .build();
 ```
 
-#### Using Settings
+#### Direct Instantiation
 
 ```rust
-use ai_sdk_deepseek::{create_deepseek, DeepSeekProviderSettings};
+use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
 
-let provider = create_deepseek(
+let provider = DeepSeekProvider::new(
     DeepSeekProviderSettings::new()
         .with_api_key("your-api-key")
         .with_base_url("https://api.deepseek.com/v1")

@@ -2,6 +2,8 @@
 
 Anthropic provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete Claude integration with streaming, tools, extended thinking, and citations.
 
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
+
 ## Features
 
 - **Text Generation**: Generate text using Claude models with the `GenerateText` builder
@@ -27,15 +29,18 @@ tokio = { version = "1", features = ["full"] }
 
 ## Quick Start
 
+### Using the Client Builder (Recommended)
+
 ```rust
-use ai_sdk_anthropic::{create_anthropic, AnthropicProviderSettings};
+use ai_sdk_anthropic::AnthropicClient;
 use ai_sdk_core::{GenerateText, Prompt};
-use ai_sdk_provider::provider::Provider;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider (uses ANTHROPIC_API_KEY env var)
-    let provider = create_anthropic(AnthropicProviderSettings::default());
+    // Create provider using the client builder
+    let provider = AnthropicClient::new()
+        .api_key("your-api-key")  // Or use ANTHROPIC_API_KEY env var
+        .build();
     
     // Create a language model
     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
@@ -52,26 +57,76 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+use ai_sdk_core::{GenerateText, Prompt};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
+    
+    let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
+    
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, Claude!"))
+        .execute()
+        .await?;
+    
+    println!("{}", result.text);
+    Ok(())
+}
+```
+
 ## Configuration
+
+### Environment Variables
 
 Set your Anthropic API key as an environment variable:
 
 ```bash
 export ANTHROPIC_API_KEY=your-api-key
+export ANTHROPIC_BASE_URL=https://api.anthropic.com/v1  # Optional
 ```
 
-Or configure programmatically:
+### Using the Client Builder
 
 ```rust
-use ai_sdk_anthropic::AnthropicProviderSettings;
+use ai_sdk_anthropic::AnthropicClient;
+
+let provider = AnthropicClient::new()
+    .api_key("your-api-key")
+    .base_url("https://api.anthropic.com/v1")
+    .header("Custom-Header", "value")
+    .name("my-anthropic-provider")
+    .build();
+```
+
+### Using Settings Directly
+
+```rust
+use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 
 let settings = AnthropicProviderSettings::new()
     .with_api_key("your-api-key")
     .with_base_url("https://api.anthropic.com/v1")
-    .add_header("Custom-Header", "value");
+    .add_header("Custom-Header", "value")
+    .with_name("my-anthropic-provider");
 
-let provider = create_anthropic(settings);
+let provider = AnthropicProvider::new(settings);
 ```
+
+### Builder Methods
+
+The `AnthropicClient` builder supports:
+
+- `.api_key(key)` - Set the API key
+- `.base_url(url)` - Set custom base URL
+- `.name(name)` - Set provider name
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.build()` - Build the provider
 
 ## Provider-Defined Tools
 
@@ -116,11 +171,10 @@ let tools = ToolSet::from_vec(vec![
 Enable Claude's extended reasoning process:
 
 ```rust
-use ai_sdk_anthropic::create_anthropic;
+use ai_sdk_anthropic::AnthropicClient;
 use ai_sdk_core::{GenerateText, Prompt};
-use ai_sdk_provider::provider::Provider;
 
-let provider = create_anthropic(Default::default());
+let provider = AnthropicClient::new().build();
 let model = provider.language_model("claude-3-7-sonnet-20250219".to_string());
 
 let result = GenerateText::new(std::sync::Arc::new(model), 
@@ -143,27 +197,22 @@ for output in result.experimental_output.iter() {
 Stream responses for real-time output:
 
 ```rust
-use ai_sdk_anthropic::create_anthropic;
+use ai_sdk_anthropic::AnthropicClient;
 use ai_sdk_core::{StreamText, Prompt};
-use ai_sdk_provider::provider::Provider;
 use futures_util::StreamExt;
 
-let provider = create_anthropic(Default::default());
+let provider = AnthropicClient::new().build();
 let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 
-let mut stream = StreamText::new(std::sync::Arc::new(model), 
+let result = StreamText::new(std::sync::Arc::new(model), 
     Prompt::text("Write a story"))
     .temperature(0.8)
     .execute()
     .await?;
 
-while let Some(part) = stream.next().await {
-    match part {
-        Ok(ai_sdk_provider::language_model::TextStreamPart::TextDelta { delta, .. }) => {
-            print!("{}", delta);
-        }
-        _ => {}
-    }
+let mut text_stream = result.text_stream();
+while let Some(text_delta) = text_stream.next().await {
+    print!("{}", text_delta);
 }
 ```
 

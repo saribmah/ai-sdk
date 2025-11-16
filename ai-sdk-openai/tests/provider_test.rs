@@ -3,7 +3,7 @@ use ai_sdk_provider::language_model::LanguageModel;
 
 fn test_provider() -> OpenAIProvider {
     let settings = OpenAIProviderSettings::default().with_api_key("test-key");
-    create_openai(settings)
+    OpenAIProvider::new(settings)
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn test_custom_settings() {
         .with_base_url("https://custom.openai.com")
         .with_api_key("custom-key");
 
-    let provider = create_openai(settings);
+    let provider = OpenAIProvider::new(settings);
     let model = provider.chat("gpt-4o");
     assert_eq!(model.provider(), "openai.chat");
 }
