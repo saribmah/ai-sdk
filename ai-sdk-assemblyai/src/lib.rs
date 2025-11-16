@@ -93,7 +93,7 @@ pub mod transcription;
 // Re-export main types
 pub use client::AssemblyAIClient;
 pub use error::AssemblyAIError;
-pub use provider::{create_assemblyai, AssemblyAIProvider};
+pub use provider::AssemblyAIProvider;
 pub use settings::AssemblyAIProviderSettings;
 pub use transcription::{
     AssemblyAITranscriptionModel, AssemblyAITranscriptionModelId, AssemblyAITranscriptionOptions,
