@@ -28,13 +28,13 @@
 //! let model = provider.chat_model("llama-3.1-8b-instant");
 //! ```
 //!
-//! ## Alternative: Using Settings
+//! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_groq::{create_groq, GroqProviderSettings};
+//! use ai_sdk_groq::{GroqProvider, GroqProviderSettings};
 //!
 //! // Create a provider using settings
-//! let provider = create_groq(
+//! let provider = GroqProvider::new(
 //!     GroqProviderSettings::new()
 //!         .with_api_key("your-api-key")
 //! );
@@ -229,7 +229,7 @@ pub use chat::{
 
 pub use client::GroqClient;
 pub use error::{GroqError, GroqErrorData};
-pub use provider::{GroqProvider, create_groq};
+pub use provider::GroqProvider;
 pub use settings::GroqProviderSettings;
 
 // Re-export speech types
