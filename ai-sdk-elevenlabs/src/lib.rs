@@ -17,7 +17,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
+//! use ai_sdk_provider::Provider;
+//! use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! // Create provider using builder
@@ -28,13 +29,21 @@
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
 //! // Generate speech
-//! let settings = SpeechSettings::default()
-//!     .with_voice("21m00Tcm4TlvDq8ikWAM")  // Rachel voice
-//!     .with_output_format("mp3");
+//! let options = SpeechModelCallOptions {
+//!     text: "Hello, how are you?".to_string(),
+//!     voice: Some("21m00Tcm4TlvDq8ikWAM".to_string()),  // Rachel voice
+//!     output_format: Some("mp3_44100_128".to_string()),
+//!     speed: None,
+//!     language: None,
+//!     instructions: None,
+//!     headers: None,
+//!     provider_options: None,
+//!     abort_signal: None,
+//! };
 //!
-//! let result = model.do_generate("Hello, how are you?", settings).await?;
+//! let result = model.do_generate(options).await?;
 //!
-//! println!("Generated {} bytes of audio", result.audio.bytes().len());
+//! println!("Generated {} bytes of audio", result.audio.len());
 //! # Ok(())
 //! # }
 //! ```
@@ -57,7 +66,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
+//! use ai_sdk_provider::Provider;
+//! use ai_sdk_provider::speech_model::{AudioData, call_options::SpeechModelCallOptions};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = ElevenLabsClient::new()
@@ -66,13 +76,30 @@
 //!
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
-//! let settings = SpeechSettings::default()
-//!     .with_voice("21m00Tcm4TlvDq8ikWAM")
-//!     .with_output_format("mp3");
+//! let options = SpeechModelCallOptions {
+//!     text: "Hello, world!".to_string(),
+//!     voice: Some("21m00Tcm4TlvDq8ikWAM".to_string()),
+//!     output_format: Some("mp3_44100_128".to_string()),
+//!     speed: None,
+//!     language: None,
+//!     instructions: None,
+//!     headers: None,
+//!     provider_options: None,
+//!     abort_signal: None,
+//! };
 //!
-//! let result = model.do_generate("Hello, world!", settings).await?;
+//! let result = model.do_generate(options).await?;
 //!
-//! std::fs::write("output.mp3", result.audio.bytes())?;
+//! // Extract audio bytes from the AudioData enum
+//! let audio_bytes = match result.audio {
+//!     AudioData::Binary(bytes) => bytes,
+//!     AudioData::Base64(base64_str) => {
+//!         use base64::{Engine as _, engine::general_purpose};
+//!         general_purpose::STANDARD.decode(base64_str)?
+//!     }
+//! };
+//!
+//! std::fs::write("output.mp3", audio_bytes)?;
 //! # Ok(())
 //! # }
 //! ```

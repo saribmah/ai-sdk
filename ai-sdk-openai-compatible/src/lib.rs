@@ -84,7 +84,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_provider::{EmbeddingModel, EmbeddingSettings};
+//! use ai_sdk_provider::EmbeddingModel;
+//! use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
@@ -94,11 +95,15 @@
 //!
 //! let model = provider.text_embedding_model("text-embedding-3-small");
 //!
-//! let result = model.do_embed(
-//!     "The capital of France is Paris.",
-//!     EmbeddingSettings::default()
-//! ).await?;
-//! println!("Embedding: {:?}", result.embedding);
+//! let options = EmbeddingModelCallOptions {
+//!     values: vec!["The capital of France is Paris.".to_string()],
+//!     headers: None,
+//!     provider_options: None,
+//!     abort_signal: None,
+//! };
+//!
+//! let result = model.do_embed(options).await?;
+//! println!("Embeddings: {:?}", result.embeddings);
 //! # Ok(())
 //! # }
 //! ```
@@ -107,7 +112,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_provider::{ImageModel, ImageSettings};
+//! use ai_sdk_provider::ImageModel;
+//! use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
@@ -117,10 +123,18 @@
 //!
 //! let model = provider.image_model("dall-e-3");
 //!
-//! let result = model.do_generate(
-//!     "A beautiful sunset over the ocean",
-//!     ImageSettings::default()
-//! ).await?;
+//! let options = ImageModelCallOptions {
+//!     prompt: "A beautiful sunset over the ocean".to_string(),
+//!     n: 1,
+//!     size: None,
+//!     aspect_ratio: None,
+//!     seed: None,
+//!     headers: None,
+//!     provider_options: None,
+//!     abort_signal: None,
+//! };
+//!
+//! let result = model.do_generate(options).await?;
 //!
 //! println!("Generated {} image(s)", result.images.len());
 //! # Ok(())
