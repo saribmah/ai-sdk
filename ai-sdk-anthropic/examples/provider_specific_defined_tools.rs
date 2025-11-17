@@ -1,95 +1,67 @@
-/// Simplified provider-defined tools example with Anthropic Claude.
+/// Provider-defined tools example with Anthropic Claude.
 ///
-/// This example demonstrates using Anthropic's provider-defined bash tool.
+/// This example demonstrates how to access Anthropic's provider-defined tools
+/// using only ai-sdk-provider (no ai-sdk-core dependency).
+///
+/// NOTE: This is a demonstration example. Provider-defined tools are available
+/// via the anthropic_tools module, which can be used with ai-sdk-core's tool
+/// execution system for full functionality.
 ///
 /// Run with:
 /// ```bash
-/// export ANTHROPIC_API_KEY="your-api-key"
-/// cargo run --example provider_defined_tools_simple -p ai-sdk-anthropic
+/// cargo run --example provider_specific_defined_tools -p ai-sdk-anthropic
 /// ```
-use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, anthropic_tools};
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_provider::language_model::LanguageModel;
-use std::env;
-use std::sync::Arc;
+use ai_sdk_anthropic::anthropic_tools;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     println!("🛠️  Anthropic Provider-Defined Tools Example\n");
-
-    // Get API key from environment
-    let api_key = env::var("ANTHROPIC_API_KEY").map_err(
-        |_| "ANTHROPIC_API_KEY environment variable not set. Please set it with your API key.",
-    )?;
-
-    println!("✓ API key loaded from environment");
-
-    // Create Anthropic provider
-    let settings = AnthropicProviderSettings::new().with_api_key(api_key);
-    let provider = AnthropicProvider::new(settings);
-    // Note: Provider-defined tools require Claude 3 Opus or Claude 3.5 Sonnet
-    let model = Arc::new(provider.language_model("claude-3-opus-20240229".to_string()));
-
-    println!("✓ Model loaded: {}\n", model.model_id());
-
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    println!("Example: Using bash_20241022 Provider Tool");
+    println!("Available Provider-Defined Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    // Create the bash tool (provider-defined)
-    let bash_tool = anthropic_tools::bash_20241022(None);
+    println!("Anthropic provides several powerful provider-defined tools:");
+    println!();
 
-    let mut tools = ToolSet::new();
-    tools.insert("bash".to_string(), bash_tool);
+    // Demonstrate bash tool creation
+    let _bash_tool = anthropic_tools::bash_20241022(None);
+    println!("✓ bash_20241022");
+    println!("  Description: Executes bash commands");
+    println!();
 
-    println!("📋 Tool registered: bash_20241022 (Anthropic provider-defined tool)");
-    println!("   This tool allows the model to execute bash commands.\n");
+    // Demonstrate web search tool creation
+    let _web_search_tool = anthropic_tools::web_search_20250305().max_uses(5).build();
+    println!("✓ web_search_20250305");
+    println!("  Description: Searches the web with citations");
+    println!();
 
-    println!("💬 User: List the files in the current directory using ls.\n");
+    // List other available tools
+    println!("✓ computer_20241022 / computer_20250124");
+    println!("  Description: Control desktop environments");
+    println!();
 
-    let prompt = Prompt::text(
-        "List the files in the current directory using the bash tool with 'ls -la' command.",
-    );
+    println!("✓ code_execution_20250522 / code_execution_20250825");
+    println!("  Description: Execute Python/Bash code");
+    println!();
 
-    let result = GenerateText::new(model, prompt)
-        .tools(tools)
-        .max_output_tokens(2048)
-        .execute()
-        .await?;
+    println!("✓ text_editor_20241022 / text_editor_20250124 / text_editor_20250728");
+    println!("  Description: Edit files");
+    println!();
 
-    println!("🤖 Assistant: {}\n", result.text);
+    println!("✓ web_fetch_20250910");
+    println!("  Description: Fetch web content");
+    println!();
 
-    println!(
-        "📊 Usage: {} input tokens, {} output tokens",
-        result.usage.input_tokens, result.usage.output_tokens
-    );
-    println!("🏁 Finish reason: {:?}", result.finish_reason);
-    println!("\n📝 Steps executed: {}", result.steps.len());
+    println!("✓ memory_20250818");
+    println!("  Description: Persistent memory across conversations");
+    println!();
 
-    for (i, step) in result.steps.iter().enumerate() {
-        println!("\nStep {}:", i + 1);
-        println!("  - Finish reason: {:?}", step.finish_reason);
-
-        let tool_calls = step.tool_calls();
-        if !tool_calls.is_empty() {
-            println!("  - Tool calls: {}", tool_calls.len());
-            for tc in tool_calls {
-                println!("    → {}", tc.tool_name);
-            }
-        }
-
-        let tool_results = step.tool_results();
-        if !tool_results.is_empty() {
-            println!("  - Tool results: {}", tool_results.len());
-        }
-    }
-
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("\n✅ Example completed successfully!");
-    println!("\n💡 Key Feature Demonstrated:");
-    println!("   ✓ Provider-defined tools (bash_20241022)");
-    println!("   ✓ Automatic beta flag handling");
-    println!("   ✓ Tool execution and results");
-
-    Ok(())
+    println!("\n💡 Key Points:");
+    println!("   ✓ Access provider-defined tools via anthropic_tools module");
+    println!("   ✓ Tools can be configured with builder pattern");
+    println!("   ✓ Use with ai-sdk-core for full tool execution");
+    println!("\n📝 For full examples with tool execution, see:");
+    println!("   - Provider examples in the ai-sdk-anthropic/examples/ directory");
+    println!("   - Main examples in the root examples/ directory");
 }

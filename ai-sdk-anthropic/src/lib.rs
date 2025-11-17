@@ -22,8 +22,7 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::AnthropicClient;
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
+//! use ai_sdk_provider::{LanguageModel, CallSettings, Prompt};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,11 +35,10 @@
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!     
 //!     // Generate text
-//!     let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, Claude!"))
-//!         .temperature(0.7)
-//!         .max_output_tokens(100)
-//!         .execute()
-//!         .await?;
+//!     let result = model.do_generate(
+//!         Prompt::from_text("Hello, Claude!"),
+//!         CallSettings::default().with_temperature(0.7).with_max_output_tokens(100)
+//!     ).await?;
 //!     
 //!     println!("{}", result.text);
 //!     Ok(())
@@ -51,9 +49,7 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -64,11 +60,10 @@
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!     
 //!     // Generate text
-//!     let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, Claude!"))
-//!         .temperature(0.7)
-//!         .max_output_tokens(100)
-//!         .execute()
-//!         .await?;
+//!     let result = model.do_generate(
+//!         Prompt::from_text("Hello, Claude!"),
+//!         CallSettings::default().with_temperature(0.7).with_max_output_tokens(100)
+//!     ).await?;
 //!     
 //!     println!("{}", result.text);
 //!     Ok(())
@@ -81,26 +76,24 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, anthropic_tools};
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_core::tool::tool_set::ToolSet;
-//! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
+//! use std::collections::HashMap;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
 //! // Use provider-defined tools
-//! let mut tools = ToolSet::new();
+//! let mut tools = HashMap::new();
 //! tools.insert("bash".to_string(), anthropic_tools::bash_20250124(None));
 //! tools.insert("web_search".to_string(), anthropic_tools::web_search_20250305()
 //!     .max_uses(5)
 //!     .build());
 //!
-//! let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Search for Rust news"))
-//!     .tools(tools)
-//!     .execute()
-//!     .await?;
+//! let result = model.do_generate(
+//!     Prompt::from_text("Search for Rust news"),
+//!     CallSettings::default().with_tools(tools)
+//! ).await?;
 //! # Ok(())
 //! # }
 //! ```
@@ -129,24 +122,23 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_core::stream_text::StreamText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! let result = StreamText::new(std::sync::Arc::new(model),
-//!     Prompt::text("Write a story"))
-//!     .temperature(0.8)
-//!     .execute()
-//!     .await?;
+//! let result = model.do_stream(
+//!     Prompt::from_text("Write a story"),
+//!     CallSettings::default().with_temperature(0.8)
+//! ).await?;
 //!
-//! let mut text_stream = result.text_stream();
-//! while let Some(text_delta) = text_stream.next().await {
-//!     print!("{}", text_delta);
+//! let mut stream = result.stream;
+//! while let Some(part) = stream.next().await {
+//!     if let Ok(part) = part {
+//!         // Handle stream part
+//!     }
 //! }
 //! # Ok(())
 //! # }
@@ -193,18 +185,13 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, AnthropicError};
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
 //!
 //! # async fn example() {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! match GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello"))
-//!     .execute()
-//!     .await
-//! {
+//! match model.do_generate(Prompt::from_text("Hello"), CallSettings::default()).await {
 //!     Ok(result) => println!("{}", result.text),
 //!     Err(e) => eprintln!("Error: {}", e),
 //! }

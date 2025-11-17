@@ -17,8 +17,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_core::GenerateSpeech;
+//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! // Create provider using builder
@@ -29,11 +28,11 @@
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
 //! // Generate speech
-//! let result = GenerateSpeech::new(model, "Hello, how are you?".to_string())
-//!     .voice("21m00Tcm4TlvDq8ikWAM")  // Rachel voice
-//!     .output_format("mp3")
-//!     .execute()
-//!     .await?;
+//! let settings = SpeechSettings::default()
+//!     .with_voice("21m00Tcm4TlvDq8ikWAM")  // Rachel voice
+//!     .with_output_format("mp3");
+//!
+//! let result = model.do_generate("Hello, how are you?", settings).await?;
 //!
 //! println!("Generated {} bytes of audio", result.audio.bytes().len());
 //! # Ok(())
@@ -58,8 +57,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_core::GenerateSpeech;
+//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = ElevenLabsClient::new()
@@ -68,11 +66,11 @@
 //!
 //! let model = provider.speech_model("eleven_multilingual_v2")?;
 //!
-//! let result = GenerateSpeech::new(model, "Hello, world!".to_string())
-//!     .voice("21m00Tcm4TlvDq8ikWAM")
-//!     .output_format("mp3")
-//!     .execute()
-//!     .await?;
+//! let settings = SpeechSettings::default()
+//!     .with_voice("21m00Tcm4TlvDq8ikWAM")
+//!     .with_output_format("mp3");
+//!
+//! let result = model.do_generate("Hello, world!", settings).await?;
 //!
 //! std::fs::write("output.mp3", result.audio.bytes())?;
 //! # Ok(())
@@ -83,8 +81,7 @@
 //!
 //! ```ignore
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_core::{Transcribe, AudioInput};
+//! use ai_sdk_provider::{Provider, TranscriptionModel, TranscriptionInput, TranscriptionSettings};
 //! use ai_sdk_provider_utils::DataContent;
 //! use std::fs;
 //!
@@ -96,10 +93,8 @@
 //! let model = provider.transcription_model("scribe_v1")?;
 //!
 //! let audio_bytes = fs::read("audio.mp3")?;
-//! let result = Transcribe::new(
-//!     model,
-//!     AudioInput::Data(DataContent::from_bytes(audio_bytes, "audio/mpeg"))
-//! ).execute().await?;
+//! let input = TranscriptionInput::Data(DataContent::from_bytes(audio_bytes, "audio/mpeg"));
+//! let result = model.do_transcribe(input, TranscriptionSettings::default()).await?;
 //!
 //! println!("Transcription: {}", result.text);
 //! # Ok(())
@@ -122,8 +117,7 @@
 //!
 //! ```ignore
 //! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_core::GenerateSpeech;
+//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
 //! use std::collections::HashMap;
 //! use serde_json::json;
 //!
@@ -152,10 +146,8 @@
 //!     .clone(),
 //! );
 //!
-//! let result = GenerateSpeech::new(model, "Hello with custom voice settings!".to_string())
-//!     .provider_options(provider_options)
-//!     .execute()
-//!     .await?;
+//! let settings = SpeechSettings::default().with_provider_options(provider_options);
+//! let result = model.do_generate("Hello with custom voice settings!", settings).await?;
 //! # Ok(())
 //! # }
 //! ```

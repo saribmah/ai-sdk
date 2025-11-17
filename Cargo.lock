@@ -29,7 +29,6 @@ dependencies = [
 name = "ai-sdk-anthropic"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
  "async-stream",
@@ -69,7 +68,6 @@ dependencies = [
 name = "ai-sdk-azure"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-openai-compatible",
  "ai-sdk-provider",
  "async-trait",
@@ -145,7 +143,6 @@ dependencies = [
 name = "ai-sdk-elevenlabs"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-provider",
  "ai-sdk-provider-utils",
  "async-trait",
@@ -242,7 +239,6 @@ dependencies = [
 name = "ai-sdk-openai-compatible"
 version = "0.1.0"
 dependencies = [
- "ai-sdk-core",
  "ai-sdk-provider",
  "async-stream",
  "async-trait",

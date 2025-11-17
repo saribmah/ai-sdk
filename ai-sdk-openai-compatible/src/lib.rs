@@ -84,7 +84,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_core::EmbedMany;
+//! use ai_sdk_provider::{EmbeddingModel, EmbeddingSettings};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
@@ -94,12 +94,11 @@
 //!
 //! let model = provider.text_embedding_model("text-embedding-3-small");
 //!
-//! let texts = vec![
-//!     "The capital of France is Paris.".to_string(),
-//!     "The capital of Germany is Berlin.".to_string(),
-//! ];
-//! let result = EmbedMany::new(model, texts).execute().await?;
-//! println!("Embeddings: {:?}", result.embeddings);
+//! let result = model.do_embed(
+//!     "The capital of France is Paris.",
+//!     EmbeddingSettings::default()
+//! ).await?;
+//! println!("Embedding: {:?}", result.embedding);
 //! # Ok(())
 //! # }
 //! ```
@@ -108,7 +107,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_core::GenerateImage;
+//! use ai_sdk_provider::{ImageModel, ImageSettings};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
@@ -118,10 +117,10 @@
 //!
 //! let model = provider.image_model("dall-e-3");
 //!
-//! let result = GenerateImage::new(
-//!     model,
-//!     "A beautiful sunset over the ocean".to_string(),
-//! ).execute().await?;
+//! let result = model.do_generate(
+//!     "A beautiful sunset over the ocean",
+//!     ImageSettings::default()
+//! ).await?;
 //!
 //! println!("Generated {} image(s)", result.images.len());
 //! # Ok(())

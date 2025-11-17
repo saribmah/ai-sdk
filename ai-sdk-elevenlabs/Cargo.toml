@@ -23,7 +23,6 @@ urlencoding = "2.1"
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full", "test-util"] }
-ai-sdk-core = { path = "../ai-sdk-core" }
 
 [[example]]
 name = "speech_generation"
