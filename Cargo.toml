@@ -10,6 +10,7 @@ members = [
     "ai-sdk-storage-filesystem",
     "ai-sdk-anthropic",
     "ai-sdk-azure",
+    "ai-sdk-cerebras",
     "ai-sdk-deepseek",
     "ai-sdk-elevenlabs",
     "ai-sdk-groq",
@@ -47,6 +48,7 @@ ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
 ai-sdk-storage = { path = "ai-sdk-storage" }
 ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
 ai-sdk-azure = { path = "ai-sdk-azure" }
+ai-sdk-cerebras = { path = "ai-sdk-cerebras" }
 ai-sdk-groq = { path = "ai-sdk-groq" }
 ai-sdk-xai = { path = "ai-sdk-xai" }
 tokio = { version = "1.41", features = ["full"] }
@@ -56,6 +58,7 @@ futures-util = "0.3"
 async-trait = "0.1"
 schemars = "0.8"
 chrono = "0.4"
+dotenvy = "0.15"
 
 [[example]]
 name = "agent_generate"
@@ -137,6 +140,22 @@ required-features = ["storage"]
 [[example]]
 name = "azure_basic"
 path = "examples/azure_basic.rs"
+
+[[example]]
+name = "cerebras_basic_chat"
+path = "examples/cerebras_basic_chat.rs"
+
+[[example]]
+name = "cerebras_streaming_chat"
+path = "examples/cerebras_streaming_chat.rs"
+
+[[example]]
+name = "cerebras_tool_calling"
+path = "examples/cerebras_tool_calling.rs"
+
+[[example]]
+name = "cerebras_reasoning"
+path = "examples/cerebras_reasoning.rs"
 
 [[example]]
 name = "xai_basic_chat"
