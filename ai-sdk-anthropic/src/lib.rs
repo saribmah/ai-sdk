@@ -22,7 +22,10 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::AnthropicClient;
-//! use ai_sdk_provider::{LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::LanguageModel;
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::content::LanguageModelContent;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,12 +38,20 @@
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!     
 //!     // Generate text
-//!     let result = model.do_generate(
-//!         Prompt::from_text("Hello, Claude!"),
-//!         CallSettings::default().with_temperature(0.7).with_max_output_tokens(100)
-//!     ).await?;
+//!     let options = LanguageModelCallOptions::new(
+//!         vec![LanguageModelMessage::user_text("Hello, Claude!")]
+//!     )
+//!     .with_temperature(0.7)
+//!     .with_max_output_tokens(100);
 //!     
-//!     println!("{}", result.text);
+//!     let result = model.do_generate(options).await?;
+//!     
+//!     // Print the first text content
+//!     for content in &result.content {
+//!         if let LanguageModelContent::Text(text_content) = content {
+//!             println!("{}", text_content.text);
+//!         }
+//!     }
 //!     Ok(())
 //! }
 //! ```
@@ -49,7 +60,10 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::{Provider, LanguageModel};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::content::LanguageModelContent;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,43 +74,29 @@
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!     
 //!     // Generate text
-//!     let result = model.do_generate(
-//!         Prompt::from_text("Hello, Claude!"),
-//!         CallSettings::default().with_temperature(0.7).with_max_output_tokens(100)
-//!     ).await?;
+//!     let options = LanguageModelCallOptions::new(
+//!         vec![LanguageModelMessage::user_text("Hello, Claude!")]
+//!     )
+//!     .with_temperature(0.7)
+//!     .with_max_output_tokens(100);
 //!     
-//!     println!("{}", result.text);
+//!     let result = model.do_generate(options).await?;
+//!     
+//!     // Print the first text content
+//!     for content in &result.content {
+//!         if let LanguageModelContent::Text(text_content) = content {
+//!             println!("{}", text_content.text);
+//!         }
+//!     }
 //!     Ok(())
 //! }
 //! ```
 //!
 //! ## Tool Calling
 //!
-//! The Anthropic provider supports both custom tools and provider-defined tools:
-//!
-//! ```rust,no_run
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, anthropic_tools};
-//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
-//! use std::collections::HashMap;
-//!
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
-//! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
-//!
-//! // Use provider-defined tools
-//! let mut tools = HashMap::new();
-//! tools.insert("bash".to_string(), anthropic_tools::bash_20250124(None));
-//! tools.insert("web_search".to_string(), anthropic_tools::web_search_20250305()
-//!     .max_uses(5)
-//!     .build());
-//!
-//! let result = model.do_generate(
-//!     Prompt::from_text("Search for Rust news"),
-//!     CallSettings::default().with_tools(tools)
-//! ).await?;
-//! # Ok(())
-//! # }
-//! ```
+//! The Anthropic provider supports both custom tools and provider-defined tools.
+//! For tool calling examples, see the `anthropic_tools` module documentation and
+//! the high-level `GenerateText` API from `ai-sdk-core`.
 //!
 //! ## Provider-Defined Tools
 //!
@@ -122,23 +122,25 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::{Provider, LanguageModel};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! let result = model.do_stream(
-//!     Prompt::from_text("Write a story"),
-//!     CallSettings::default().with_temperature(0.8)
-//! ).await?;
+//! let options = LanguageModelCallOptions::new(
+//!     vec![LanguageModelMessage::user_text("Write a story")]
+//! )
+//! .with_temperature(0.8);
+//!
+//! let result = model.do_stream(options).await?;
 //!
 //! let mut stream = result.stream;
 //! while let Some(part) = stream.next().await {
-//!     if let Ok(part) = part {
-//!         // Handle stream part
-//!     }
+//!     // Handle stream part
 //! }
 //! # Ok(())
 //! # }
@@ -185,14 +187,27 @@
 //!
 //! ```rust,no_run
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, AnthropicError};
-//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::{Provider, LanguageModel};
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! match model.do_generate(Prompt::from_text("Hello"), CallSettings::default()).await {
-//!     Ok(result) => println!("{}", result.text),
+//! let options = LanguageModelCallOptions::new(
+//!     vec![LanguageModelMessage::user_text("Hello")]
+//! );
+//!
+//! match model.do_generate(options).await {
+//!     Ok(result) => {
+//!         for content in &result.content {
+//!             if let LanguageModelContent::Text(text_content) = content {
+//!                 println!("{}", text_content.text);
+//!             }
+//!         }
+//!     },
 //!     Err(e) => eprintln!("Error: {}", e),
 //! }
 //! # }
