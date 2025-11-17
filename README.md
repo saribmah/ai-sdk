@@ -2,590 +2,418 @@
 
 A unified Rust SDK for building AI-powered applications with multiple model providers. Build with type safety, async/await, and ergonomic APIs designed for the Rust ecosystem.
 
+> **Status**: All 12 providers standardized with comprehensive documentation and examples. Ready for production use.
+
 ## Features
 
-- **Provider-agnostic API**: Write once, switch providers easily
-- **Type-safe**: Leverages Rust's type system for compile-time safety
-- **Type-safe Tools**: Define tools with compile-time checked inputs/outputs using the `TypeSafeTool` trait
-- **Async/await**: Built on Tokio for efficient async operations
-- **Streaming support**: Stream responses from language models with real-time processing
-- **Tool calling**: Support for function/tool calling with LLMs, both dynamic and type-safe
-- **Multiple capabilities**: Text generation, streaming, embeddings, and image generation
-- **Multiple providers**: OpenAI-compatible APIs, Hugging Face Responses API, Azure OpenAI, xAI, TogetherAI, and more
-
-## Project Structure
-
-This is a Cargo workspace with multiple crates:
-
-- **`ai-sdk-core`**: Core functionality including builder APIs (`GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`), prompt handling, message types, and tool system
-- **`ai-sdk-provider`**: Provider interface and traits for implementing new providers
-- **`ai-sdk-openai-compatible`**: OpenAI-compatible provider implementation (supports OpenAI, Azure OpenAI, and compatible APIs)
-- **`ai-sdk-huggingface`**: Hugging Face Responses API provider with support for Llama, DeepSeek, Qwen, and more
-- **`ai-sdk-xai`**: xAI (Grok) provider implementation
-- **`ai-sdk-togetherai`**: TogetherAI provider with image generation and reranking
-- **`ai-sdk-anthropic`**: Anthropic (Claude) provider implementation
-- **`ai-sdk-elevenlabs`**: ElevenLabs provider for speech generation and transcription
-- **`ai-sdk-storage`**: Storage trait and types for conversation persistence
-- **`ai-sdk-storage-filesystem`**: Filesystem-based storage provider implementation
-- **`ai-sdk-provider-utils`**: Shared utilities for AI SDK providers
-
-## Installation
-
-```toml
-[dependencies]
-ai-sdk-core = { path = "ai-sdk-core" }
-ai-sdk-openai-compatible = { path = "ai-sdk-openai-compatible" }
-tokio = { version = "1.41", features = ["full"] }
-```
+- **Unified Interface**: Single API for all providers - write once, switch providers easily
+- **Multiple Providers**: 12 standardized providers including OpenAI, Anthropic, Azure, Groq, DeepSeek, and more
+- **Builder Pattern APIs**: Ergonomic, fluent APIs for all operations
+- **Type Safety**: Leverages Rust's type system for compile-time safety
+- **Async/Await**: Built on Tokio for efficient async operations
+- **Streaming Support**: Real-time streaming with callbacks and transforms
+- **Tool Calling**: Dynamic and type-safe tool integration for function calling
+- **Multi-step Execution**: Automatic tool execution with multiple reasoning steps
+- **Agent System**: Reusable AI agents with persistent configuration
+- **Storage Integration**: Persistent conversation history with automatic loading
+- **Multiple Capabilities**: Text generation, embeddings, images, speech, transcription, reranking
 
 ## Quick Start
 
-### Basic Text Generation
+### Installation
 
-The SDK provides a fluent builder API for ergonomic text generation:
+Add the core library and a provider to your `Cargo.toml`:
+
+```toml
+[dependencies]
+ai-sdk-core = "0.1"
+ai-sdk-openai = "0.1"  # Or any other provider
+tokio = { version = "1", features = ["full"] }
+```
+
+### Basic Example
 
 ```rust
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_core::{GenerateText, prompt::Prompt};
+use ai_sdk_openai::OpenAIClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create an OpenAI provider
-    let provider = OpenAICompatibleClient::new()
-        .base_url("https://api.openai.com/v1")
+    // Create provider
+    let provider = OpenAIClient::new()
         .api_key(std::env::var("OPENAI_API_KEY")?)
         .build();
-
-    // Get a language model
-    let model = provider.chat_model("gpt-4");
-
-    // Generate text using the builder pattern
-    let result = GenerateText::new(model, Prompt::text("What is the capital of France?"))
+    
+    // Get model
+    let model = provider.chat_model("gpt-4o-mini");
+    
+    // Generate text
+    let result = GenerateText::new(model, Prompt::text("What is Rust?"))
         .temperature(0.7)
         .max_output_tokens(100)
         .execute()
         .await?;
-
-    println!("Response: {:?}", result);
+    
+    println!("Response: {}", result.text);
     Ok(())
 }
-```
-
-### Type-Safe Tools
-
-The SDK provides a `TypeSafeTool` trait for defining tools with compile-time type checking:
-
-```rust
-use ai_sdk_core::tool::TypeSafeTool;
-use async_trait::async_trait;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-// Define typed input/output structures
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-struct WeatherInput {
-    city: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct WeatherOutput {
-    temperature: f64,
-    conditions: String,
-}
-
-// Implement the type-safe tool
-struct WeatherTool;
-
-#[async_trait]
-impl TypeSafeTool for WeatherTool {
-    type Input = WeatherInput;
-    type Output = WeatherOutput;
-
-    fn name(&self) -> &str { "get_weather" }
-    fn description(&self) -> &str { "Get weather for a city" }
-
-    async fn execute(&self, input: Self::Input) -> Result<Self::Output, String> {
-        Ok(WeatherOutput {
-            temperature: 72.0,
-            conditions: format!("Sunny in {}", input.city),
-        })
-    }
-}
-
-// Convert to untyped Tool for use with LLMs
-let weather_tool = WeatherTool.into_tool();
-```
-
-**Benefits:**
-- ✅ Compile-time type checking - catch errors before runtime
-- ✅ Automatic JSON schema generation from Rust types
-- ✅ IDE support - autocomplete, go-to-definition, refactoring
-- ✅ Can be used with LLMs or called directly in your code
-- ✅ Impossible to pass wrong types or forget required fields
-
-See the `type_safe_tools` example for a complete demonstration.
-
-### Agents
-
-The Agent API provides a higher-level abstraction for building AI agents with persistent tool configurations:
-
-```rust
-use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-use ai_sdk_core::tool::ToolSet;
-use std::sync::Arc;
-
-// 1. Create tools once
-let mut tools = ToolSet::new();
-tools.insert("weather".to_string(), weather_tool);
-tools.insert("calculator".to_string(), calculator_tool);
-
-// 2. Configure agent with tools and settings
-let settings = AgentSettings::new(model)
-    .with_tools(tools)              // Tools configured once
-    .with_temperature(0.7)
-    .with_max_tokens(500);
-
-let agent = Agent::new(settings);
-
-// 3. Call agent multiple times with different prompts
-let result1 = agent.generate(AgentCallParameters::from_text("What's the weather?"))?
-    .execute()
-    .await?;
-
-let result2 = agent.generate(AgentCallParameters::from_messages(messages))?
-    .temperature(0.9)  // Can override settings per call
-    .execute()
-    .await?;
-
-// 4. Streaming is also supported
-let stream_result = agent.stream(AgentCallParameters::from_text("Tell me a story"))?
-    .execute()
-    .await?;
-
-let mut text_stream = stream_result.text_stream();
-while let Some(delta) = text_stream.next().await {
-    print!("{}", delta);
-}
-```
-
-**Benefits:**
-- ✅ **Reusable configuration** - Create once, use many times
-- ✅ **Tool persistence** - Tools cloneable and shared across calls
-- ✅ **Builder pattern** - Returns `GenerateText`/`StreamText` for customization
-- ✅ **Clean separation** - Agent handles configuration, builders handle execution
-
-See `agent_generate.rs` and `agent_stream.rs` examples for complete demonstrations.
-
-### Conversation Storage
-
-Store and retrieve conversation history automatically with persistent storage:
-
-```rust
-use ai_sdk_storage_filesystem::FilesystemStorage;
-use std::sync::Arc;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = OpenAICompatibleClient::new()
-        .base_url("https://api.openai.com/v1")
-        .api_key(std::env::var("OPENAI_API_KEY")?)
-        .build();
-    
-    let model = provider.chat_model("gpt-4");
-    
-    // Initialize storage
-    let storage = Arc::new(FilesystemStorage::new("./storage")?);
-    storage.initialize().await?;
-    let session_id = storage.generate_session_id();
-    
-    // First message - no history yet
-    GenerateText::new(model.clone(), Prompt::text("What is Rust?"))
-        .with_storage(storage.clone())
-        .with_session_id(session_id.clone())
-        .without_history()  // Important for first message!
-        .execute()
-        .await?;
-    
-    // Subsequent messages - history loaded automatically
-    GenerateText::new(model, Prompt::text("Why should I learn it?"))
-        .with_storage(storage)
-        .with_session_id(session_id)
-        .execute()
-        .await?;  // Previous messages included as context
-    
-    Ok(())
-}
-```
-
-**Key Features:**
-- ✅ **Automatic history loading** - Previous messages automatically included as context
-- ✅ **Hierarchical storage** - Session → Message → Part architecture
-- ✅ **Type-safe parts** - Text, images, files, tool calls, reasoning all strongly typed
-- ✅ **Multiple providers** - Filesystem (built-in), MongoDB/PostgreSQL (future)
-- ✅ **Multimodal support** - Store conversations with images and files
-- ✅ **Tool call tracking** - Automatically stores tool invocations and results
-
-**Storage Methods:**
-- `.with_storage(storage)` - Enable storage for a generation
-- `.with_session_id(session_id)` - Set the session to store/load messages from
-- `.without_history()` - Disable automatic history loading (use for first message)
-
-**Available Storage Providers:**
-
-To use storage, enable the `storage` feature:
-```toml
-[dependencies]
-ai-sdk-core = { path = "ai-sdk-core", features = ["storage"] }
-ai-sdk-storage = { path = "ai-sdk-storage" }
-ai-sdk-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
-```
-
-**Filesystem Storage:**
-```rust
-use ai_sdk_storage_filesystem::FilesystemStorage;
-
-let storage = FilesystemStorage::new("./my-storage")?;
-storage.initialize().await?;
-```
-
-See `examples/storage_conversation_full.rs` for a complete example demonstrating multi-turn conversations with automatic history.
-
-### Using Different Providers
-
-The SDK supports any OpenAI-compatible API through the flexible client builder:
-
-```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-
-// OpenAI
-let openai = OpenAICompatibleClient::new()
-    .base_url("https://api.openai.com/v1")
-    .api_key(api_key)
-    .build();
-
-// Azure OpenAI
-let azure = OpenAICompatibleClient::new()
-    .base_url("https://my-resource.openai.azure.com/openai")
-    .api_key(api_key)
-    .build();
-
-// Custom provider with headers and query parameters
-let custom = OpenAICompatibleClient::new()
-    .base_url("https://api.custom-provider.com/v1")
-    .api_key(api_key)
-    .header("X-Custom-Header", "value")
-    .query_param("version", "2024-01")
-    .build();
 ```
 
 ## Supported Providers
 
-### Hugging Face
+All providers follow the same standardized builder pattern and API:
 
-Access powerful open-source models through the Hugging Face Responses API:
+| Provider | Chat | Embed | Image | Speech | Transcription | Reranking | Status |
+|----------|------|-------|-------|--------|---------------|-----------|--------|
+| [OpenAI](ai-sdk-openai/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Anthropic](ai-sdk-anthropic/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Azure](ai-sdk-azure/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Groq](ai-sdk-groq/) | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
+| [DeepSeek](ai-sdk-deepseek/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [xAI](ai-sdk-xai/) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [TogetherAI](ai-sdk-togetherai/) | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ Standardized |
+| [Baseten](ai-sdk-baseten/) | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Hugging Face](ai-sdk-huggingface/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [ElevenLabs](ai-sdk-elevenlabs/) | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
+| [AssemblyAI](ai-sdk-assemblyai/) | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ Standardized |
+| [OpenAI-Compatible](ai-sdk-openai-compatible/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
 
-```rust
-use ai_sdk_huggingface::{create_huggingface, HuggingFaceProviderSettings, LLAMA_3_3_70B_INSTRUCT};
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+**Legend:**
+- ✅ = Feature supported and implemented
+- ❌ = Feature not supported by provider
 
-let provider = create_huggingface(
-    HuggingFaceProviderSettings::new()
-        .load_api_key_from_env()  // Uses HUGGINGFACE_API_KEY
-);
+### Using Different Providers
 
-let model = provider.responses(LLAMA_3_3_70B_INSTRUCT);
-
-let result = GenerateText::new(model, Prompt::text("What is Rust?"))
-    .temperature(0.7)
-    .execute()
-    .await?;
-```
-
-**Supported Models:**
-- Meta Llama 3.1/3.3 (8B, 70B, 405B)
-- DeepSeek V3 & R1
-- Qwen 2.5 & 3 (7B, 32B, 72B)
-- Mistral & Mixtral variants
-- Google Gemma 2
-- And many more open-source models
-
-**Features:**
-- ✅ Streaming & non-streaming generation
-- ✅ Tool calling (MCP integration)
-- ✅ Multimodal (images)
-- ✅ Source annotations
-- ✅ Structured output (JSON schema)
-
-See [ai-sdk-huggingface/README.md](ai-sdk-huggingface/README.md) for details.
-
-### OpenAI & Azure OpenAI
-
-Use OpenAI's models or Azure-hosted OpenAI:
+All providers use the same builder pattern:
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-
 // OpenAI
-let openai = OpenAICompatibleClient::new()
-    .base_url("https://api.openai.com/v1")
-    .api_key(api_key)
+use ai_sdk_openai::OpenAIClient;
+let provider = OpenAIClient::new()
+    .api_key("your-key")
+    .build();
+
+// Anthropic (Claude)
+use ai_sdk_anthropic::AnthropicClient;
+let provider = AnthropicClient::new()
+    .api_key("your-key")
     .build();
 
 // Azure OpenAI
-let azure = OpenAICompatibleClient::new()
-    .base_url("https://my-resource.openai.azure.com/openai")
-    .api_key(api_key)
+use ai_sdk_azure::AzureClient;
+let provider = AzureClient::new()
+    .api_key("your-key")
+    .resource_name("your-resource")
+    .deployment_id("your-deployment")
     .build();
+
+// Groq (ultra-fast inference)
+use ai_sdk_groq::GroqClient;
+let provider = GroqClient::new()
+    .api_key("your-key")
+    .build();
+
+// DeepSeek (reasoning models)
+use ai_sdk_deepseek::DeepSeekClient;
+let provider = DeepSeekClient::new()
+    .api_key("your-key")
+    .build();
+
+// And more...
 ```
 
-### Other Providers
+Switch providers by changing just 2-3 lines of code. The rest of your application remains the same.
 
-The SDK also includes providers for:
+## Core Capabilities
 
-- **xAI (Grok)**: Access xAI's Grok models
-- **TogetherAI**: High-performance inference with image generation and reranking
-- **Anthropic**: Claude models (coming soon)
-- **ElevenLabs**: Speech generation and transcription
+### Text Generation
 
-Each provider follows the same unified API pattern, allowing you to switch providers with minimal code changes.
-
-### Builder Pattern API
-
-Both `GenerateText` and `StreamText` provide fluent, chainable APIs for configuring text generation and streaming:
-
-#### Text Generation
+Generate text with comprehensive configuration options:
 
 ```rust
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::prompt::Prompt;
+use ai_sdk_core::{GenerateText, prompt::Prompt};
 
-let result = GenerateText::new(&*model, Prompt::text("Tell me a joke"))
-    .temperature(0.7)            // Creativity control
-    .max_output_tokens(100)      // Response length limit
-    .top_p(0.9)                  // Nucleus sampling
-    .presence_penalty(0.6)       // Discourage repetition
-    .frequency_penalty(0.5)      // Vary word choice
-    .seed(42)                    // Deterministic generation
-    .max_retries(3)              // Retry on failures
-    .execute()
-    .await?;
-```
-
-#### Available Builder Methods
-
-- **Sampling Parameters:**
-  - `.temperature(f64)` - Controls randomness (0.0 to 2.0)
-  - `.top_p(f64)` - Nucleus sampling threshold
-  - `.top_k(u32)` - Top-K sampling parameter
-  - `.presence_penalty(f64)` - Penalizes token presence
-  - `.frequency_penalty(f64)` - Penalizes token frequency
-
-- **Output Control:**
-  - `.max_output_tokens(u32)` - Maximum tokens to generate
-  - `.stop_sequences(Vec<String>)` - Stop generation at sequences
-  - `.seed(u32)` - Seed for deterministic output
-
-- **Tools and Advanced:**
-  - `.tools(ToolSet)` - Add function calling tools
-  - `.tool_choice(LanguageModelToolChoice)` - Control tool selection
-  - `.stop_when(Vec<Box<dyn StopCondition>>)` - Multi-step stop conditions
-  - `.prepare_step(Box<dyn PrepareStep>)` - Customize each generation step
-  - `.on_step_finish(Box<dyn OnStepFinish>)` - Callback after each step
-  - `.on_finish(Box<dyn OnFinish>)` - Callback when complete
-
-- **Configuration:**
-  - `.max_retries(u32)` - Maximum retry attempts
-  - `.headers(HashMap<String, String>)` - Custom HTTP headers
-  - `.abort_signal(CancellationToken)` - Cancellation support
-  - `.provider_options(SharedProviderOptions)` - Provider-specific options
-  - `.settings(CallSettings)` - Set all settings at once
-
-#### Text Streaming
-
-The `StreamText` provides similar functionality for streaming responses:
-
-```rust
-use ai_sdk_core::StreamText;
-use ai_sdk_core::prompt::Prompt;
-use futures_util::StreamExt;
-use std::sync::Arc;
-
-let result = StreamText::new(Arc::from(model), Prompt::text("Tell me a story"))
+let result = GenerateText::new(model, Prompt::text("Write a poem"))
     .temperature(0.8)
     .max_output_tokens(500)
-    .include_raw_chunks(true)
-    .on_chunk(Box::new(|event| {
-        Box::pin(async move {
-            // Process each chunk as it arrives
-        })
-    }))
-    .on_finish(Box::new(|event| {
-        Box::pin(async move {
-            println!("Total tokens: {}", event.total_usage.total_tokens);
-        })
-    }))
+    .top_p(0.9)
+    .frequency_penalty(0.5)
+    .presence_penalty(0.5)
+    .seed(42)
     .execute()
     .await?;
 
-// Stream text deltas in real-time
-let mut text_stream = result.text_stream();
-while let Some(delta) = text_stream.next().await {
-    print!("{}", delta);
+println!("Response: {}", result.text);
+```
+
+### Streaming
+
+Stream responses in real-time:
+
+```rust
+use ai_sdk_core::{StreamText, prompt::Prompt};
+use futures::StreamExt;
+
+let result = StreamText::new(model, Prompt::text("Tell me a story"))
+    .temperature(0.8)
+    .on_chunk(|chunk| {
+        println!("Chunk: {:?}", chunk);
+    })
+    .execute()
+    .await?;
+
+let mut stream = result.text_stream();
+while let Some(text) = stream.next().await {
+    print!("{}", text);
 }
 ```
 
-**Additional StreamText Methods:**
-- `.include_raw_chunks(bool)` - Include raw provider chunks
-- `.transforms(Vec<Box<dyn StreamTransform>>)` - Apply stream transformations
-- `.on_chunk(OnChunkCallback)` - Callback for each chunk
-- `.on_error(OnErrorCallback)` - Error handling callback
+### Tool Calling
+
+Define tools with dynamic or type-safe APIs:
+
+**Dynamic Tools:**
+
+```rust
+use ai_sdk_core::{GenerateText, ToolSet};
+use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+use serde_json::json;
+use std::sync::Arc;
+
+let tool = Tool::function(json!({
+    "type": "object",
+    "properties": {
+        "city": {"type": "string", "description": "City name"}
+    },
+    "required": ["city"]
+}))
+.with_description("Get weather for a city")
+.with_execute(Arc::new(|input, _opts| {
+    ToolExecutionOutput::Single(Box::pin(async move {
+        Ok(json!({"temperature": 72, "conditions": "Sunny"}))
+    }))
+}));
+
+let mut tools = ToolSet::new();
+tools.insert("get_weather".to_string(), tool);
+
+let result = GenerateText::new(model, Prompt::text("What's the weather in Paris?"))
+    .tools(tools)
+    .execute()
+    .await?;
+```
+
+**Type-Safe Tools:**
+
+```rust
+use ai_sdk_core::tool::TypeSafeTool;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize, JsonSchema)]
+struct WeatherInput {
+    city: String,
+}
+
+#[derive(Serialize)]
+struct WeatherOutput {
+    temperature: i32,
+    conditions: String,
+}
+
+impl TypeSafeTool for WeatherInput {
+    type Output = WeatherOutput;
+    
+    fn description() -> String {
+        "Get weather for a city".to_string()
+    }
+    
+    async fn execute(self) -> Result<Self::Output, String> {
+        Ok(WeatherOutput {
+            temperature: 72,
+            conditions: format!("Sunny in {}", self.city),
+        })
+    }
+}
+```
+
+### Agent System
+
+Create reusable AI agents with persistent configuration:
+
+```rust
+use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
+use ai_sdk_core::agent::AgentInterface;
+
+// Configure agent once
+let settings = AgentSettings::new(model)
+    .with_tools(tools)
+    .with_temperature(0.7)
+    .with_max_output_tokens(500);
+
+let agent = Agent::new(settings);
+
+// Use multiple times
+let result1 = agent.generate(AgentCallParameters::from_text("Hello"))?
+    .execute()
+    .await?;
+
+let result2 = agent.generate(AgentCallParameters::from_text("Follow-up"))?
+    .temperature(0.9)  // Override settings per call
+    .execute()
+    .await?;
+
+// Streaming also supported
+let stream_result = agent.stream(AgentCallParameters::from_text("Tell a story"))?
+    .execute()
+    .await?;
+```
+
+### Conversation Storage
+
+Persist conversation history with automatic loading:
+
+```rust
+use ai_sdk_storage_filesystem::FilesystemStorage;
+use ai_sdk_storage::Storage;
+use std::sync::Arc;
+
+let storage: Arc<dyn Storage> = Arc::new(FilesystemStorage::new("./storage")?);
+storage.initialize().await?;
+let session_id = storage.generate_session_id();
+
+// First message - no history
+GenerateText::new(model.clone(), Prompt::text("What is Rust?"))
+    .with_storage(storage.clone())
+    .with_session_id(session_id.clone())
+    .without_history()  // Important!
+    .execute()
+    .await?;
+
+// Follow-up - history loaded automatically
+GenerateText::new(model, Prompt::text("Why should I learn it?"))
+    .with_storage(storage)
+    .with_session_id(session_id)
+    .execute()
+    .await?;  // Previous messages included
+```
+
+**Enable storage feature:**
+
+```toml
+ai-sdk-core = { version = "0.1", features = ["storage"] }
+ai-sdk-storage = "0.1"
+ai-sdk-storage-filesystem = "0.1"
+```
 
 ### Embeddings
 
-Generate embeddings for text using the builder pattern:
+Generate embeddings for single or multiple texts:
 
 ```rust
-use ai_sdk_core::EmbedMany;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_core::{Embed, EmbedMany};
 
-let provider = OpenAICompatibleClient::new()
-    .base_url("https://api.openai.com/v1")
-    .api_key(api_key)
-    .build();
+// Single embedding
+let result = Embed::new(embedding_model.clone(), "Hello world".to_string())
+    .execute()
+    .await?;
 
-let embedding_model = provider.text_embedding_model("text-embedding-3-small");
-
-let result = EmbedMany::new(
-    embedding_model,
-    vec!["Hello world".to_string(), "AI is awesome".to_string()],
-)
-    .max_retries(3)
+// Batch embeddings
+let texts = vec!["text1".to_string(), "text2".to_string()];
+let results = EmbedMany::new(embedding_model, texts)
     .max_parallel_calls(5)
     .execute()
     .await?;
-
-println!("Embeddings: {:?}", result.embeddings);
-```
-
-For embedding a single value, use `Embed`:
-
-```rust
-use ai_sdk_core::Embed;
-
-let result = Embed::new(embedding_model, "Hello world".to_string())
-    .max_retries(3)
-    .execute()
-    .await?;
-
-println!("Embedding: {:?}", result.embedding);
 ```
 
 ### Image Generation
 
-Generate images from text prompts using the builder pattern:
+Generate images from text prompts:
 
 ```rust
 use ai_sdk_core::GenerateImage;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
 
-let provider = OpenAICompatibleClient::new()
-    .base_url("https://api.openai.com/v1")
-    .api_key(api_key)
-    .build();
-
-let image_model = provider.image_model("dall-e-3");
-
-let result = GenerateImage::new(
-    image_model,
-    "A serene landscape with mountains".to_string(),
-)
-    .n(1)
+let result = GenerateImage::new(image_model, "A serene landscape".to_string())
+    .n(2)
     .size("1024x1024")
-    .max_retries(3)
+    .seed(42)
+    .execute()
+    .await?;
+```
+
+### Speech & Transcription
+
+Convert between text and speech:
+
+```rust
+use ai_sdk_core::{GenerateSpeech, Transcribe, AudioInput};
+
+// Text to speech
+let result = GenerateSpeech::new(speech_model, "Hello world".to_string())
+    .voice("alloy")
+    .output_format("mp3")
+    .speed(1.0)
     .execute()
     .await?;
 
-println!("Generated {} images", result.images.len());
+// Speech to text
+let result = Transcribe::new(transcription_model, AudioInput::Data(audio_data))
+    .execute()
+    .await?;
 ```
 
-### Provider Trait API
+### Reranking
 
-For advanced use cases, you can work with the Provider trait directly:
+Rerank documents based on relevance:
 
 ```rust
-use ai_sdk_provider::Provider;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use ai_sdk_core::Rerank;
 
-let provider = OpenAICompatibleClient::new()
-    .base_url("https://api.openai.com/v1")
-    .api_key(api_key)
-    .build();
-
-let provider_trait: &dyn Provider = &provider;
-
-// Get different model types through the trait
-let language_model = provider_trait.language_model("gpt-4")?;
-let embedding_model = provider_trait.embedding_model("text-embedding-3-small")?;
-let image_model = provider_trait.image_model("dall-e-3")?;
+let documents = vec!["doc1".to_string(), "doc2".to_string()];
+let result = Rerank::new(reranking_model, documents, "search query".to_string())
+    .top_n(5)
+    .execute()
+    .await?;
 ```
 
-## Architecture
+## Project Structure
 
-The SDK follows a layered architecture:
+This is a Cargo workspace organized into layers:
 
-### Core Layer (`ai-sdk-core`)
-- Builder pattern APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`
-- Prompt standardization and validation
-- Message type conversions
-- Tool execution and management
-- Error handling
+### Core Layer
 
-### Provider Layer (`ai-sdk-provider`)
-- `Provider` trait for implementing new providers
-- `LanguageModel` trait with `do_generate()` and `do_stream()` methods
-- `EmbeddingModel` trait for embeddings
-- `ImageModel` trait for image generation
-- Standardized types: `CallOptions`, `Content`, `FinishReason`, `Usage`
-- Tool calling interfaces
+- **[ai-sdk-core](ai-sdk-core/)** - Core functionality with builder APIs, agent system, tool integration, and storage
+- **[ai-sdk-provider](ai-sdk-provider/)** - Provider interface and traits for implementing new providers
+- **[ai-sdk-provider-utils](ai-sdk-provider-utils/)** - Shared utilities for providers
 
-### Implementation Layer (`ai-sdk-openai-compatible`)
-- Concrete provider implementations
-- API-specific request/response handling
-- HTTP client management
-- Format conversions (provider format ↔ OpenAI format)
-- Support for chat, completion, embedding, and image endpoints
+### Storage Layer
 
-## Current Status
+- **[ai-sdk-storage](ai-sdk-storage/)** - Storage trait and types for conversation persistence
+- **[ai-sdk-storage-filesystem](ai-sdk-storage-filesystem/)** - Filesystem-based storage implementation
 
-✅ **Implemented:**
-- Text generation with `GenerateText`
-- Text streaming with `StreamText`
-- Embedding generation with `Embed` and `EmbedMany`
-- Image generation with `GenerateImage`
-- Conversation storage with automatic history loading
-- Filesystem storage provider
-- Prompt handling and standardization
-- Message type system with support for text, images, files, tool calls, and tool results
-- Provider trait system
-- OpenAI-compatible provider with `do_generate()` and `do_stream()`
-- Tool calling support (both dynamic and type-safe)
-- Multi-step tool execution
-- Stream transforms (filtering, throttling, batching)
-- Response format options (text/JSON)
-- Usage tracking with extended token details
-- Custom headers and query parameters
-- Cancellation support with abort signals
+### Provider Implementations
 
-🚧 **Future Enhancements:**
-- Additional providers (Anthropic, Cohere, etc.)
-- Speech generation and transcription
-- Reranking support
-- Vision model support
+**Language Model Providers:**
+- **[ai-sdk-openai](ai-sdk-openai/)** - OpenAI (GPT models)
+- **[ai-sdk-anthropic](ai-sdk-anthropic/)** - Anthropic (Claude models) with extended thinking and citations
+- **[ai-sdk-deepseek](ai-sdk-deepseek/)** - DeepSeek (reasoning models)
+- **[ai-sdk-huggingface](ai-sdk-huggingface/)** - Hugging Face Inference API (Llama, Mistral, Qwen, and more)
+- **[ai-sdk-xai](ai-sdk-xai/)** - xAI (Grok models)
+
+**Multi-Feature Providers:**
+- **[ai-sdk-azure](ai-sdk-azure/)** - Azure OpenAI (chat, embeddings, images)
+- **[ai-sdk-groq](ai-sdk-groq/)** - Groq (ultra-fast chat, speech, transcription)
+- **[ai-sdk-togetherai](ai-sdk-togetherai/)** - TogetherAI (chat, embeddings, images, reranking)
+- **[ai-sdk-baseten](ai-sdk-baseten/)** - Baseten (chat, embeddings)
+- **[ai-sdk-openai-compatible](ai-sdk-openai-compatible/)** - Base for OpenAI-compatible APIs
+
+**Specialized Providers:**
+- **[ai-sdk-elevenlabs](ai-sdk-elevenlabs/)** - ElevenLabs (speech generation, transcription)
+- **[ai-sdk-assemblyai](ai-sdk-assemblyai/)** - AssemblyAI (transcription)
 
 ## Examples
 
-The project includes real-world examples that you can run with your own API key:
+The repository includes 29 comprehensive examples demonstrating all features:
 
 ### Setup
 
@@ -596,67 +424,111 @@ cp .env.example .env
 
 2. Add your API key to `.env`:
 ```
-OPENAI_API_KEY=sk-your-actual-api-key-here
+OPENAI_API_KEY=your-api-key-here
 ```
 
 ### Running Examples
 
 ```bash
+# Set API key
 export OPENAI_API_KEY="your-api-key"
 
-# Text Generation
+# Basic Examples
 cargo run --example basic_chat              # Simple text generation
-cargo run --example conversation            # System messages and temperature settings
+cargo run --example basic_stream            # Streaming responses
+cargo run --example basic_embedding         # Text embeddings
+cargo run --example basic_image             # Image generation
+cargo run --example conversation            # Multi-turn conversations
 
-# Agents
-cargo run --example agent_generate          # Reusable agent with tool calling (non-streaming)
-cargo run --example agent_stream            # Reusable agent with streaming
+# Agent Examples
+cargo run --example agent_generate          # Reusable agents (non-streaming)
+cargo run --example agent_stream            # Reusable agents (streaming)
+cargo run --example agent_storage_conversation --features storage  # Agents with storage
 
-# Tool Calling
-cargo run --example tool_calling            # Function calling with a weather tool
-cargo run --example type_safe_tools         # Compile-time type checking for tools
-cargo run --example multi_step_tools        # Iterative tool calling
+# Tool Calling Examples
+cargo run --example tool_calling            # Basic tool calling
+cargo run --example type_safe_tools         # Type-safe tools
+cargo run --example multi_step_tools        # Multi-step execution
+cargo run --example stream_tool_calling     # Streaming with tools
 
-# Streaming
-cargo run --example basic_stream            # Stream responses in real-time
-cargo run --example stream_tool_calling     # Streaming with tool calls
-cargo run --example stream_transforms       # Stream filtering and transformations
+# Streaming Examples
+cargo run --example stream_transforms       # Stream filtering and batching
 cargo run --example partial_output          # Partial JSON parsing
 
-# Embeddings & Images
-cargo run --example basic_embedding         # Generate text embeddings
-cargo run --example basic_image             # Generate images from text prompts
+# Storage Examples (require --features storage)
+cargo run --example storage_basic --features storage
+cargo run --example storage_filesystem_basic --features storage
+cargo run --example storage_filesystem_conversation --features storage
+cargo run --example storage_conversation_full --features storage
 
-# Storage (requires --features storage)
-cargo run --example storage_basic --features storage                    # Basic storage operations
-cargo run --example storage_filesystem_basic --features storage         # Filesystem provider basics
-cargo run --example storage_filesystem_conversation --features storage  # Multi-turn with filesystem
-cargo run --example storage_conversation_full --features storage        # Full integration example
+# Provider-Specific Examples
+cargo run --example azure_basic             # Azure OpenAI
+cargo run --example groq_basic_chat         # Groq
+cargo run --example groq_text_to_speech     # Groq TTS
+cargo run --example groq_transcription      # Groq transcription
+cargo run --example xai_basic_chat          # xAI
 ```
 
-The examples demonstrate:
-- Creating providers with environment variables
-- Text generation with `GenerateText` and real API calls
-- **Agent pattern** with reusable configuration and persistent tools (see `agent_generate.rs` and `agent_stream.rs`)
-- **Conversation storage** with automatic history loading (see `storage_conversation_full.rs`)
-- Streaming responses with `StreamText` in real-time
-- Generating embeddings with `Embed` and `EmbedMany`
-- Image generation with `GenerateImage`
-- Handling responses and metadata
-- System messages and temperature settings
-- Token usage tracking
-- Tool/function calling and handling tool call responses
-- **Type-safe tools** with compile-time type checking (see `type_safe_tools.rs`)
-- Multi-step tool execution with iterative calls
-- Stream transforms for filtering and batching
-- Partial output parsing for structured data
-- Persistent conversation management with filesystem storage
+See the [`examples/`](examples/) directory for all available examples.
+
+## Architecture
+
+The SDK follows a three-layer architecture:
+
+### 1. Core Layer (`ai-sdk-core`)
+
+Provides builder pattern APIs and core functionality:
+- **Builders**: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`
+- **Agent System**: Reusable AI agents with persistent configuration
+- **Tool System**: Dynamic and type-safe tool integration
+- **Prompt Management**: Standardized message types and conversions
+- **Storage Integration**: Conversation persistence
+
+### 2. Provider Layer (`ai-sdk-provider`)
+
+Defines traits for implementing providers:
+- **`Provider` trait**: Top-level provider interface
+- **Model traits**: `LanguageModel`, `EmbeddingModel`, `ImageModel`, `SpeechModel`, `TranscriptionModel`, `RerankingModel`
+- **Standardized types**: `CallOptions`, `Content`, `FinishReason`, `Usage`, `ToolCall`
+
+### 3. Implementation Layer (Provider Crates)
+
+Concrete implementations for each provider:
+- API-specific request/response handling
+- HTTP client management
+- Format conversions
+- Provider-specific features
+
+## Documentation
+
+- **[Core Library Documentation](ai-sdk-core/README.md)** - Builder APIs, agent system, tools
+- **[Provider Implementation Guide](PROVIDER-IMPLEMENTATION.md)** - How to implement new providers
+- **[Provider Standardization](PROVIDER-STANDARDIZATION.md)** - Provider standardization process
+- **[Provider Examples Guide](PROVIDER_EXAMPLES.md)** - Required examples for each provider
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- **[Development Guide](DEVELOPMENT.md)** - Development workflow and tools
+
+### Provider Documentation
+
+Each provider has comprehensive README documentation:
+- [OpenAI](ai-sdk-openai/README.md)
+- [Anthropic](ai-sdk-anthropic/README.md)
+- [Azure](ai-sdk-azure/README.md)
+- [Groq](ai-sdk-groq/README.md)
+- [DeepSeek](ai-sdk-deepseek/README.md)
+- [xAI](ai-sdk-xai/README.md)
+- [TogetherAI](ai-sdk-togetherai/README.md)
+- [Baseten](ai-sdk-baseten/README.md)
+- [Hugging Face](ai-sdk-huggingface/README.md)
+- [ElevenLabs](ai-sdk-elevenlabs/README.md)
+- [AssemblyAI](ai-sdk-assemblyai/README.md)
+- [OpenAI-Compatible](ai-sdk-openai-compatible/README.md)
 
 ## Development
 
 ### Prerequisites
 
-This project uses [just](https://github.com/casey/just) as a command runner. Install it with:
+This project uses [just](https://github.com/casey/just) as a command runner:
 
 ```bash
 cargo install just
@@ -664,25 +536,23 @@ cargo install just
 
 ### Pre-Commit Hooks
 
-We use pre-commit hooks to ensure code quality. Install them with:
+Install pre-commit hooks for automatic code quality checks:
 
 ```bash
 just install-hooks
 ```
 
-This will automatically:
-- ✅ Format your code with `rustfmt` (auto-fixes)
-- ✅ Run `clippy` to catch common mistakes (blocks commit if issues found)
-- ✅ Verify code compiles with `cargo check`
+This automatically runs:
+- ✅ `rustfmt` - Code formatting (auto-fixes)
+- ✅ `clippy` - Linting (blocks commit if issues found)
+- ✅ `cargo check` - Compilation verification
 
-### Available Just Commands
-
-We use [just](https://github.com/casey/just) as a command runner. Install it with `cargo install just`.
+### Available Commands
 
 ```bash
 just                # List all available commands
 just install-hooks  # Install git pre-commit hooks
-just fmt            # Format code (auto-fix)
+just fmt            # Format code
 just clippy         # Run clippy linter
 just check          # Quick compile check
 just test           # Run all tests
@@ -691,8 +561,6 @@ just doc            # Build documentation
 just pre-commit     # Run all pre-commit checks
 just ci             # Run all CI checks locally
 ```
-
-Run `just --list` to see all available commands.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 
@@ -704,11 +572,14 @@ cargo test
 
 # Run tests for a specific crate
 cargo test -p ai-sdk-core
-cargo test -p ai-sdk-provider
-cargo test -p ai-sdk-openai-compatible
+cargo test -p ai-sdk-openai
+cargo test -p ai-sdk-anthropic
 
 # Run with output
 cargo test -- --nocapture
+
+# Run storage tests
+cargo test -p ai-sdk-core --features storage
 ```
 
 ### Building
@@ -720,21 +591,62 @@ cargo build
 # Build in release mode
 cargo build --release
 
-# Check without building
+# Check without building (faster)
 cargo check
 
 # Check examples
 cargo check --examples
 ```
 
+## Project Status
+
+### ✅ Completed
+
+**Core Functionality:**
+- ✅ Builder APIs: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`
+- ✅ Agent system with persistent configuration
+- ✅ Tool calling (dynamic and type-safe)
+- ✅ Multi-step tool execution
+- ✅ Streaming with callbacks and transforms
+- ✅ Conversation storage with automatic history loading
+- ✅ Message types (text, images, files, tool calls, reasoning)
+- ✅ Error handling with retry logic
+- ✅ Cancellation support
+
+**Providers:**
+- ✅ All 12 providers standardized
+- ✅ Comprehensive README documentation for all providers
+- ✅ 54/54 provider examples implemented (100%)
+- ✅ Consistent builder pattern across all providers
+- ✅ Provider-specific features documented
+
+**Testing & Documentation:**
+- ✅ 1,500+ unit tests across all crates
+- ✅ 29 working examples in main repository
+- ✅ 54 provider-specific examples
+- ✅ Comprehensive documentation
+
+### 🚧 Future Enhancements
+
+- Additional storage providers (MongoDB, PostgreSQL)
+- Performance optimizations
+- Additional streaming transforms
+- Batch processing utilities
+- Rate limiting and token management
+- Caching strategies
+
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see the [Contributing Guide](CONTRIBUTING.md) for:
+- Code style guidelines
+- Pull request process
+- Testing requirements
+- Documentation standards
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
+## Acknowledgments
 
 <sub>Inspired by [Vercel's AI SDK](https://github.com/vercel/ai)</sub>
