@@ -1,16 +1,19 @@
-# AI SDK Hugging Face Provider
+# AI SDK Hugging Face
 
-Hugging Face provider for AI SDK Rust, supporting the [Hugging Face Responses API](https://router.huggingface.co/v1).
+Hugging Face provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete integration with the Hugging Face Responses API for chat models with advanced features.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- ✅ Text generation (streaming and non-streaming)
-- ✅ Tool calling (function calling)
-- ✅ Multimodal inputs (text + images)
-- ✅ Provider-executed tools (MCP integration)
-- ✅ Source annotations
-- ✅ Structured output (JSON schema)
-- ✅ Reasoning content support
+- **Text Generation**: Generate text using Hugging Face models via the Responses API
+- **Streaming**: Stream responses in real-time with support for tool calls
+- **Tool Calling**: Support for function calling with automatic execution
+- **Multi-modal**: Support for text and image inputs
+- **Provider-Executed Tools**: MCP (Model Context Protocol) integration for server-side tool execution
+- **Source Annotations**: Automatic source citations in responses
+- **Structured Output**: JSON schema support for constrained generation
+- **Reasoning Content**: Support for models with reasoning capabilities
 
 ## Installation
 
@@ -20,6 +23,7 @@ Add this to your `Cargo.toml`:
 [dependencies]
 ai-sdk-huggingface = "0.1"
 ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -28,24 +32,21 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
+use ai_sdk_huggingface::HuggingFaceClient;
+use ai_sdk_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider (API key from HUGGINGFACE_API_KEY env var)
-    let provider = HuggingFaceClient::new().build();
+    // Create provider using the client builder
+    let provider = HuggingFaceClient::new()
+        .api_key("your-api-key")  // Or use HUGGINGFACE_API_KEY env var
+        .build();
     
-    // Create model
-    let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);
+    // Create a language model
+    let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
     
-    // Generate text
-    let result = GenerateText::new(model, Prompt::text("What is Rust?"))
-        .temperature(0.7)
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
     Ok(())
 }
 ```
@@ -53,190 +54,102 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings, LLAMA_3_1_8B_INSTRUCT};
+use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
+use ai_sdk_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider using settings
+    // Create provider with settings
     let provider = HuggingFaceProvider::new(
         HuggingFaceProviderSettings::new()
-            .load_api_key_from_env()
+            .with_api_key("your-api-key")
     );
     
-    // Create model
-    let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);
+    let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
     
-    // Generate text
-    let result = GenerateText::new(model, Prompt::text("What is Rust?"))
-        .temperature(0.7)
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
     Ok(())
 }
 ```
 
-### Streaming
-
-```rust
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use ai_sdk_huggingface::HuggingFaceClient;
-use futures_util::StreamExt;
-
-// Create provider
-let provider = HuggingFaceClient::new().build();
-let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
-
-let result = StreamText::new(model, Prompt::text("Tell me a story"))
-    .temperature(0.8)
-    .execute()
-    .await?;
-
-// Stream text deltas in real-time
-let mut text_stream = result.text_stream();
-while let Some(text_delta) = text_stream.next().await {
-    print!("{}", text_delta);
-}
-```
-
-## Available Models
-
-The provider includes constants for common models:
-
-```rust
-use ai_sdk_huggingface::{
-    LLAMA_3_1_8B_INSTRUCT,
-    LLAMA_3_1_70B_INSTRUCT,
-    LLAMA_3_3_70B_INSTRUCT,
-    DEEPSEEK_V3_1,
-    DEEPSEEK_R1,
-    QWEN3_32B,
-    GEMMA_2_9B_IT,
-    // ... and more
-};
-```
-
-You can also use any model ID as a string:
-
-```rust
-let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
-```
-
 ## Configuration
 
-### API Key
+### Environment Variables
 
-Set your API key via environment variable:
+Set your Hugging Face API key as an environment variable:
 
 ```bash
 export HUGGINGFACE_API_KEY=your-api-key
 ```
 
-Or provide it directly using the builder:
+### Using the Client Builder
 
 ```rust
+use ai_sdk_huggingface::HuggingFaceClient;
+
 let provider = HuggingFaceClient::new()
     .api_key("your-api-key")
+    .base_url("https://router.huggingface.co/v1")
+    .header("Custom-Header", "value")
+    .name("my-huggingface")
     .build();
 ```
 
-Or using settings:
+### Builder Methods
+
+The `HuggingFaceClient` builder supports:
+
+- `.api_key(key)` - Set the API key (overrides `HUGGINGFACE_API_KEY` environment variable)
+- `.base_url(url)` - Set custom base URL (default: `https://router.huggingface.co/v1`)
+- `.name(name)` - Set provider name (optional)
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.build()` - Build the provider
+
+## Provider-Specific Options
+
+### Provider-Executed Tools (MCP)
+
+Hugging Face Responses API supports Model Context Protocol (MCP), allowing tools to be executed on the provider side:
 
 ```rust
-let provider = HuggingFaceProvider::new(
-    HuggingFaceProviderSettings::new()
-        .with_api_key("your-api-key")
-);
-```
+use ai_sdk_core::{GenerateText, prompt::Prompt, tool::ToolSet};
 
-### Custom Base URL
-
-Using the builder:
-
-```rust
-let provider = HuggingFaceClient::new()
-    .base_url("https://custom-endpoint.example.com/v1")
-    .api_key("your-api-key")
-    .build();
-```
-
-Using settings:
-
-```rust
-let provider = HuggingFaceProvider::new(
-    HuggingFaceProviderSettings::new()
-        .with_base_url("https://custom-endpoint.example.com/v1")
-        .with_api_key("your-api-key")
-);
-```
-
-### Custom Headers
-
-Using the builder:
-
-```rust
-let provider = HuggingFaceClient::new()
-    .api_key("your-api-key")
-    .header("X-Custom-Header", "value")
-    .build();
-```
-
-Using settings:
-
-```rust
-let provider = HuggingFaceProvider::new(
-    HuggingFaceProviderSettings::new()
-        .with_header("X-Custom-Header", "value")
-        .with_api_key("your-api-key")
-);
-```
-
-## Advanced Features
-
-### Tool Calling
-
-```rust
-use ai_sdk_core::tool::{Tool, ToolSet};
-
-let tools = ToolSet::new(vec![
-    Tool::new("get_weather", |args| async move {
-        // Tool implementation
-        Ok("Sunny, 72°F".to_string())
-    })
-    .with_description("Get current weather")
-    .with_parameters(json!({
-        "type": "object",
-        "properties": {
-            "location": { "type": "string" }
-        }
-    }))
-]);
-
+// When tools are called, check if they were executed by the provider
 let result = GenerateText::new(model, Prompt::text("What's the weather?"))
-    .tools(tools)
+    .tools(tool_set)
     .execute()
     .await?;
+
+for content in result.content {
+    if let LanguageModelContent::ToolCall(call) = content {
+        if call.provider_executed == Some(true) {
+            println!("Tool executed by provider: {}", call.tool_name);
+        }
+    }
+}
 ```
 
-### Multimodal (Images)
+### Source Annotations
+
+The API automatically returns source citations as separate content items:
 
 ```rust
-use ai_sdk_core::prompt::{Prompt, ImagePart};
-
-let prompt = Prompt::new()
-    .add_text("What's in this image?")
-    .add_image("https://example.com/image.jpg");
-
-let result = GenerateText::new(model, prompt)
-    .execute()
-    .await?;
+for content in result.content {
+    if let LanguageModelContent::Source(source) = content {
+        println!("Source: {} - {}", source.url, source.title);
+    }
+}
 ```
 
 ### Structured Output
 
+Use JSON schema to constrain model output:
+
 ```rust
+use ai_sdk_core::response_format::ResponseFormat;
+use serde_json::json;
+
 let result = GenerateText::new(model, Prompt::text("Generate a person"))
     .response_format(ResponseFormat::json_schema(
         json!({
@@ -251,21 +164,49 @@ let result = GenerateText::new(model, Prompt::text("Generate a person"))
     .await?;
 ```
 
-## Examples
+### Multi-modal Inputs
 
-Run the examples:
+Include images in your prompts:
 
-```bash
-# Basic chat
-HUGGINGFACE_API_KEY=your-key cargo run --example basic_chat -p ai-sdk-huggingface
+```rust
+use ai_sdk_core::prompt::Prompt;
 
-# Streaming chat
-HUGGINGFACE_API_KEY=your-key cargo run --example streaming_chat -p ai-sdk-huggingface
+let prompt = Prompt::new()
+    .add_text("What's in this image?")
+    .add_image("https://example.com/image.jpg");
+
+let result = GenerateText::new(model, prompt)
+    .execute()
+    .await?;
 ```
 
-Available examples:
-- `basic_chat.rs` - Simple text generation with usage stats
-- `streaming_chat.rs` - Real-time streaming with on_finish callback
+## Supported Models
+
+The provider includes constants for popular models:
+
+```rust
+use ai_sdk_huggingface::{
+    LLAMA_3_1_8B_INSTRUCT,
+    LLAMA_3_1_70B_INSTRUCT,
+    LLAMA_3_3_70B_INSTRUCT,
+    DEEPSEEK_V3_1,
+    DEEPSEEK_R1,
+    QWEN3_32B,
+    QWEN2_5_7B_INSTRUCT,
+    GEMMA_2_9B_IT,
+    KIMI_K2_INSTRUCT,
+};
+
+let model = provider.responses(LLAMA_3_1_8B_INSTRUCT);
+```
+
+All models available via the Hugging Face Responses API are supported. You can also use any model ID as a string:
+
+```rust
+let model = provider.responses("meta-llama/Llama-3.1-8B-Instruct");
+```
+
+For a complete list of available models, see the [Hugging Face Responses API documentation](https://router.huggingface.co/v1).
 
 ## Supported Settings
 
@@ -274,7 +215,7 @@ Available examples:
 | `temperature` | ✅ | Temperature for sampling |
 | `top_p` | ✅ | Nucleus sampling |
 | `max_output_tokens` | ✅ | Maximum tokens to generate |
-| `tools` | ✅ | Function calling |
+| `tools` | ✅ | Function calling with MCP support |
 | `tool_choice` | ✅ | `auto`, `required`, specific tool |
 | `response_format` | ✅ | JSON schema support |
 | `top_k` | ❌ | Not supported by API |
@@ -283,50 +224,36 @@ Available examples:
 | `frequency_penalty` | ❌ | Not supported by API |
 | `stop_sequences` | ❌ | Not supported by API |
 
-## Provider-Specific Features
+## Examples
 
-### Provider-Executed Tools (MCP)
+See the `examples/` directory for complete examples:
 
-Hugging Face Responses API can execute tools on the provider side (Model Context Protocol):
+- `chat.rs` - Basic chat completion with usage statistics
+- `stream.rs` - Streaming responses with real-time output
+- `chat_tool_calling.rs` - Tool calling with function definitions
+- `stream_tool_calling.rs` - Streaming with tool calls
 
-```rust
-// Tool calls with `provider_executed: true` are handled by the API
-for content in result.content {
-    if let LanguageModelContent::ToolCall(call) = content {
-        if call.provider_executed == Some(true) {
-            println!("Tool executed by provider: {}", call.tool_name);
-        }
-    }
-}
+Run examples with:
+
+```bash
+export HUGGINGFACE_API_KEY=your-api-key
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example stream_tool_calling
 ```
 
-### Source Annotations
+## Documentation
 
-The API returns source citations as separate content items:
-
-```rust
-for content in result.content {
-    if let LanguageModelContent::Source(source) = content {
-        println!("Source: {} - {}", source.url, source.title);
-    }
-}
-```
-
-## Error Handling
-
-```rust
-match GenerateText::new(model, prompt).execute().await {
-    Ok(result) => println!("{}", result.text),
-    Err(e) => eprintln!("Error: {}", e),
-}
-```
-
-## API Reference
-
-For detailed API documentation, see:
-- [Hugging Face Responses API Docs](https://router.huggingface.co/v1)
-- [AI SDK Core Documentation](../ai-sdk-core/README.md)
+- [API Documentation](https://docs.rs/ai-sdk-huggingface)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [Hugging Face Responses API Reference](https://router.huggingface.co/v1)
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 
 ## License
 
 MIT
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.

@@ -17,7 +17,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_azure::AzureClient;
-//! use ai_sdk_provider::{LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,13 +30,8 @@
 //!     // Get a chat model using your deployment name
 //!     let model = provider.chat_model("gpt-4-deployment");
 //!
-//!     // Generate text
-//!     let result = model.do_generate(
-//!         Prompt::from_text("Hello, Azure!"),
-//!         CallSettings::default()
-//!     ).await?;
-//!
-//!     println!("Response: {}", result.text);
+//!     println!("Model: {}", model.model_id());
+//!     println!("Provider: {}", model.provider());
 //!
 //!     Ok(())
 //! }
@@ -46,7 +41,7 @@
 //!
 //! ```no_run
 //! use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
+//! use ai_sdk_provider::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -58,12 +53,8 @@
 //!     );
 //!
 //!     let model = provider.chat_model("gpt-4-deployment");
-//!     let result = model.do_generate(
-//!         Prompt::from_text("Hello, Azure!"),
-//!         CallSettings::default()
-//!     ).await?;
-//!
-//!     println!("Response: {}", result.text);
+//!     
+//!     println!("Model: {}", model.model_id());
 //!     Ok(())
 //! }
 //! ```

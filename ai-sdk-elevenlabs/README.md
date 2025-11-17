@@ -1,156 +1,138 @@
-# AI SDK ElevenLabs Provider
+# AI SDK ElevenLabs
 
-ElevenLabs provider for the AI SDK, supporting text-to-speech (TTS) and speech-to-text (STT) models.
+ElevenLabs provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - High-quality text-to-speech and speech-to-text with natural-sounding voices and advanced voice customization.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- ✅ **Text-to-Speech (TTS)**: Convert text to natural-sounding speech
-- ✅ **Speech-to-Text (STT)**: Transcribe audio files to text with timestamps
-- ✅ **Multiple Voices**: Support for 9+ default voices
-- ✅ **Voice Settings**: Fine-tune stability, similarity, style, and speed
-- ✅ **Speaker Diarization**: Identify different speakers in transcriptions
-- ✅ **29+ Languages**: Multilingual support
-- ✅ **Multiple Audio Formats**: MP3, PCM, WAV, and more
+- **Text-to-Speech**: Convert text to natural-sounding speech with 9+ default voices
+- **Speech-to-Text**: Transcribe audio files to text with word-level timestamps
+- **Voice Settings**: Fine-tune stability, similarity boost, style, and speaker boost
+- **Speaker Diarization**: Identify different speakers in transcriptions
+- **Multilingual**: Support for 29+ languages
+- **Multiple Audio Formats**: MP3, PCM, WAV, and more
 
 ## Installation
 
-Add to your `Cargo.toml`:
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-core = "0.1"
 ai-sdk-elevenlabs = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
+tokio = { version = "1", features = ["full"] }
 ```
 
 ## Quick Start
 
-### Recommended: Builder Pattern
+### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_core::GenerateSpeech;
 use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::Provider;
+use ai_sdk_provider::{Provider, SpeechModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider using builder (reads ELEVENLABS_API_KEY from environment)
-    let provider = ElevenLabsClient::new().build();
+    // Create provider using the client builder
+    let provider = ElevenLabsClient::new()
+        .api_key("your-api-key")  // Or use ELEVENLABS_API_KEY env var
+        .build();
+    
+    // Create a speech model
     let model = provider.speech_model("eleven_multilingual_v2")?;
-
-    // Generate speech
-    let result = GenerateSpeech::new(model, "Hello, world!".to_string())
-        .voice("21m00Tcm4TlvDq8ikWAM") // Rachel voice
-        .output_format("mp3")
-        .execute()
-        .await?;
-
-    // Save audio
-    std::fs::write("output.mp3", result.audio.bytes())?;
+    
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
     Ok(())
 }
 ```
 
-### Alternative: Direct Instantiation
+### Using Settings Directly (Alternative)
 
 ```rust
 use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
-use ai_sdk_provider::Provider;
-
-let provider = ElevenLabsProvider::new(
-    ElevenLabsProviderSettings::new()
-        .with_api_key("your-api-key")
-);
-```
-
-## Usage Examples
-
-### Text-to-Speech
-
-```rust
-use ai_sdk_core::GenerateSpeech;
-use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::Provider;
+use ai_sdk_provider::{Provider, SpeechModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = ElevenLabsClient::new().build();
+    // Create provider with settings
+    let provider = ElevenLabsProvider::new(ElevenLabsProviderSettings::default());
+    
     let model = provider.speech_model("eleven_multilingual_v2")?;
-
-    let result = GenerateSpeech::new(model, "Hello, world!".to_string())
-        .voice("21m00Tcm4TlvDq8ikWAM")
-        .output_format("mp3")
-        .execute()
-        .await?;
-
-    std::fs::write("output.mp3", result.audio.bytes())?;
+    
+    println!("Model: {}", model.model_id());
     Ok(())
 }
 ```
 
-### Speech-to-Text Transcription
 
-```rust
-use ai_sdk_core::Transcribe;
-use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::Provider;
-use ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = ElevenLabsClient::new().build();
-    let model = provider.transcription_model("scribe_v1")?;
-
-    let audio_bytes = std::fs::read("audio.mp3")?;
-    let result = Transcribe::new(model, TranscriptionAudioData::Binary(audio_bytes))
-        .media_type("audio/mpeg")
-        .execute()
-        .await?;
-
-    println!("Transcription: {}", result.text);
-    Ok(())
-}
-```
 
 ## Configuration
 
-### Builder Pattern
+### Environment Variables
+
+Set your ElevenLabs API key as an environment variable:
+
+```bash
+export ELEVENLABS_API_KEY=your-api-key
+```
+
+### Using the Client Builder
 
 ```rust
 use ai_sdk_elevenlabs::ElevenLabsClient;
 
-// With API key
 let provider = ElevenLabsClient::new()
     .api_key("your-api-key")
-    .build();
-
-// With custom base URL
-let provider = ElevenLabsClient::new()
-    .api_key("your-api-key")
-    .base_url("https://custom-api.elevenlabs.io")
-    .build();
-
-// With custom headers
-let provider = ElevenLabsClient::new()
-    .api_key("your-api-key")
-    .header("X-Custom-Header", "custom-value")
+    .base_url("https://api.elevenlabs.io")
+    .header("X-Custom-Header", "value")
+    .name("my-elevenlabs-provider")
     .build();
 ```
 
-### Direct Instantiation
+### Builder Methods
+
+The `ElevenLabsClient` builder supports:
+
+- `.api_key(key)` - Set the API key
+- `.base_url(url)` - Set custom base URL
+- `.name(name)` - Set provider name
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.build()` - Build the provider
+
+## Supported Models
+
+### Text-to-Speech Models
+
+- **`eleven_multilingual_v2`**: Multilingual model supporting 29+ languages
+- **`eleven_turbo_v2`**: Faster, lower-latency model
+- **`eleven_monolingual_v1`**: English-only model with high quality
+
+### Speech-to-Text Models
+
+- **`scribe_v1`**: High-accuracy transcription model with speaker diarization
 
 ```rust
-use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
+// Text-to-speech model
+let tts_model = provider.speech_model("eleven_multilingual_v2")?;
 
-let settings = ElevenLabsProviderSettings::new()
-    .with_api_key("your-api-key")
-    .with_base_url("https://api.elevenlabs.io");
-
-let provider = ElevenLabsProvider::new(settings);
+// Speech-to-text model
+let stt_model = provider.transcription_model("scribe_v1")?;
 ```
 
-### Voice Settings
+## Provider-Specific Options
+
+ElevenLabs supports advanced features through provider options for both speech generation and transcription.
+
+### Voice Settings (Text-to-Speech)
+
+Customize voice characteristics:
 
 ```rust
+use ai_sdk_core::GenerateSpeech;
 use std::collections::HashMap;
 use serde_json::json;
 
@@ -159,48 +141,109 @@ provider_options.insert(
     "elevenlabs".to_string(),
     json!({
         "voiceSettings": {
-            "stability": 0.7,
-            "similarityBoost": 0.8,
-            "style": 0.5,
-            "useSpeakerBoost": true
-        }
+            "stability": 0.7,          // 0.0-1.0: Higher = more consistent
+            "similarityBoost": 0.8,    // 0.0-1.0: Higher = closer to original voice
+            "style": 0.5,              // 0.0-1.0: Voice style/expression
+            "useSpeakerBoost": true    // Enhance voice clarity
+        },
+        "seed": 12345                  // For reproducible output
     }).as_object().unwrap().clone(),
 );
 
-let result = GenerateSpeech::new(model, "Text with custom voice settings".to_string())
+let result = GenerateSpeech::new(model, "Hello with custom voice!".to_string())
     .provider_options(provider_options)
     .execute()
     .await?;
 ```
 
-## Available Voices
+### Available Voices
 
-The crate provides constants for common voices:
+Common ElevenLabs voices:
+
+- **`21m00Tcm4TlvDq8ikWAM`** - Rachel (American, Female)
+- **`AZnzlk1XvdvUeBnXmlld`** - Domi (American, Female)
+- **`EXAVITQu4vr4xnSDxMaL`** - Bella (American, Female)
+- **`ErXwobaYiN019PkySvjV`** - Antoni (American, Male)
+- **`TxGEqnHWrfWFTfGW9XjX`** - Josh (American, Male)
+- **`VR6AewLTigWG4xSOukaG`** - Arnold (American, Male)
+- **`pNInz6obpgDQGcFmaJgB`** - Adam (American, Male)
+- **`yoZ06aMxZJJ28mfd3POQ`** - Sam (American, Male)
+
+Or use your own custom voices from your ElevenLabs account.
+
+### Speaker Diarization (Speech-to-Text)
+
+Identify different speakers in transcriptions:
 
 ```rust
-use ai_sdk_elevenlabs::speech::options::voices;
+use ai_sdk_core::Transcribe;
+use ai_sdk_provider::transcription_model::AudioInput;
+use std::collections::HashMap;
+use serde_json::json;
 
-// Use predefined voice constants
-let result = GenerateSpeech::new(model, "Hello!".to_string())
-    .voice(voices::RACHEL)  // or DOMI, BELLA, ANTONI, JOSH, etc.
+let mut provider_options = HashMap::new();
+provider_options.insert(
+    "elevenlabs".to_string(),
+    json!({
+        "diarize": true,                          // Enable speaker diarization
+        "languageCode": "en",                     // Specify language
+        "tagAudioEvents": true,                   // Tag non-speech events
+        "timestampsGranularity": "word"          // word or segment
+    }).as_object().unwrap().clone(),
+);
+
+let result = Transcribe::new(model, AudioInput::Data(audio_bytes))
+    .provider_options(provider_options)
     .execute()
     .await?;
 ```
 
+### Available Provider Options
+
+**Text-to-Speech Options:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `voiceSettings.stability` | `f64` | Voice consistency (0.0-1.0) |
+| `voiceSettings.similarityBoost` | `f64` | Voice similarity to original (0.0-1.0) |
+| `voiceSettings.style` | `f64` | Voice style/expression (0.0-1.0) |
+| `voiceSettings.useSpeakerBoost` | `bool` | Enhance voice clarity |
+| `seed` | `i32` | Seed for reproducible output |
+
+**Speech-to-Text Options:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `diarize` | `bool` | Enable speaker diarization |
+| `languageCode` | `string` | Language code (e.g., 'en', 'es', 'fr') |
+| `tagAudioEvents` | `bool` | Tag non-speech audio events |
+| `timestampsGranularity` | `string` | 'word' or 'segment' level timestamps |
+
 ## Examples
 
-Run the included examples:
+See the `examples/` directory for complete examples:
+
+- `speech_generation.rs` - Text-to-speech using `do_generate()` directly
+- `transcription.rs` - Speech-to-text using `do_generate()` directly
+
+Run examples with:
 
 ```bash
-# Text-to-Speech
 export ELEVENLABS_API_KEY="your-api-key"
-cargo run --example basic_speech -p ai-sdk-elevenlabs
+cargo run --example speech_generation
+cargo run --example transcription
 ```
 
-## API Reference
+## Documentation
 
-See the [API documentation](https://docs.rs/ai-sdk-elevenlabs) for detailed information.
+- [API Documentation](https://docs.rs/ai-sdk-elevenlabs)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [ElevenLabs API Reference](https://elevenlabs.io/docs/api-reference)
 
 ## License
 
 MIT
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.

@@ -1,14 +1,18 @@
-# Together AI Provider for AI SDK
+# AI SDK Together AI
 
-This crate provides a Together AI provider implementation for the AI SDK, enabling access to Together AI's extensive collection of open-source models.
+Together AI provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete integration with Together AI's extensive collection of open-source models.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- **Chat Models**: Access to Llama, Mistral, Qwen, DeepSeek, and more
-- **Completion Models**: Traditional text completion interface
-- **Embedding Models**: Text embedding models for semantic search
-- **Image Generation**: FLUX and Stable Diffusion models
-- **Reranking**: Document reranking for improved search results
+- **Text Generation**: Generate text using Llama, Mistral, Qwen, DeepSeek, and more
+- **Streaming**: Stream responses in real-time with support for tool calls
+- **Tool Calling**: Support for function calling with chat models
+- **Text Embedding**: Generate embeddings for semantic search and similarity
+- **Image Generation**: Create images with FLUX and Stable Diffusion models
+- **Reranking**: Improve search results with document reranking models
+- **Multiple Model Families**: Access to Llama, Mistral, Qwen, DeepSeek, Gemma, and more
 
 ## Installation
 
@@ -16,187 +20,198 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-togetherai = "0.1.0"
-ai-sdk-provider = "0.1.0"
+ai-sdk-togetherai = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
-## API Key Setup
+## Quick Start
 
-Get your API key from [Together AI](https://api.together.xyz/) and set it up in one of two ways:
+### Using the Client Builder (Recommended)
 
-### 1. Environment Variable (Recommended)
+```rust
+use ai_sdk_togetherai::TogetherAIClient;
+use ai_sdk_provider::language_model::LanguageModel;
 
-```bash
-export TOGETHER_AI_API_KEY="your-api-key"
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider using the client builder
+    let provider = TogetherAIClient::new()
+        .api_key("your-api-key")  // Or use TOGETHER_AI_API_KEY env var
+        .build();
+    
+    // Create a language model
+    let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
+    
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
+    Ok(())
+}
 ```
 
-### 2. Direct Configuration
+### Using Settings Directly (Alternative)
 
-#### Builder Pattern (Recommended)
+```rust
+use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+use ai_sdk_provider::language_model::LanguageModel;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = TogetherAIProvider::new(
+        TogetherAIProviderSettings::new()
+            .with_api_key("your-api-key")
+    );
+    
+    let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
+    
+    println!("Model: {}", model.model_id());
+    Ok(())
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Set your Together AI API key as an environment variable:
+
+```bash
+export TOGETHER_AI_API_KEY=your-api-key
+```
+
+### Using the Client Builder
 
 ```rust
 use ai_sdk_togetherai::TogetherAIClient;
 
 let provider = TogetherAIClient::new()
     .api_key("your-api-key")
+    .base_url("https://api.together.xyz/v1")
+    .header("Custom-Header", "value")
+    .name("my-togetherai")
     .build();
 ```
 
-#### Direct Instantiation
+### Builder Methods
 
-```rust
-use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+The `TogetherAIClient` builder supports:
 
-let provider = TogetherAIProvider::new(
-    TogetherAIProviderSettings::new()
-        .with_api_key("your-api-key")
-);
-```
+- `.api_key(key)` - Set the API key (overrides `TOGETHER_AI_API_KEY` environment variable)
+- `.base_url(url)` - Set custom base URL (default: `https://api.together.xyz/v1`)
+- `.name(name)` - Set provider name (optional)
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.load_api_key_from_env()` - Explicitly load API key from environment variable
+- `.build()` - Build the provider
 
-## Quick Start
+## Supported Models
 
-### Builder Pattern (Recommended)
+### Chat Models
+
+All Together AI chat models are supported, including:
+
+- **Llama**: `meta-llama/Llama-3.3-70B-Instruct-Turbo`, `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`, `meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo`, `meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo`
+- **Qwen**: `Qwen/Qwen2.5-Coder-32B-Instruct`, `Qwen/Qwen2.5-7B-Instruct-Turbo`, `Qwen/Qwen2.5-72B-Instruct-Turbo`
+- **DeepSeek**: `deepseek-ai/DeepSeek-V3`
+- **Mistral**: `mistralai/Mistral-7B-Instruct-v0.3`, `mistralai/Mixtral-8x7B-Instruct-v0.1`, `mistralai/Mixtral-8x22B-Instruct-v0.1`
+- **Gemma**: `google/gemma-2-9b-it`, `google/gemma-2-27b-it`
+
+### Embedding Models
+
+- **WhereIsAI**: `WhereIsAI/UAE-Large-V1`
+- **BAAI**: `BAAI/bge-large-en-v1.5`, `BAAI/bge-base-en-v1.5`
+- **Sentence Transformers**: `sentence-transformers/msmarco-bert-base-dot-v5`
+
+### Image Models
+
+- **FLUX**: `black-forest-labs/FLUX.1-schnell`, `black-forest-labs/FLUX.1-dev`, `black-forest-labs/FLUX.1.1-pro`
+- **Stable Diffusion**: `stabilityai/stable-diffusion-xl-base-1.0`, `stabilityai/stable-diffusion-2-1`
+
+### Reranking Models
+
+- **Salesforce**: `Salesforce/Llama-Rank-v1`
+- **Mixedbread**: `mixedbread-ai/Mxbai-Rerank-Large-V2`
+
+For a complete list of available models, see the [Together AI Models documentation](https://docs.together.ai/docs/serverless-models).
+
+## Provider-Specific Options
+
+### Chained Model Creation
+
+Together AI provider supports convenient chained model creation:
 
 ```rust
 use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_provider::LanguageModel;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider (reads TOGETHER_AI_API_KEY from environment)
-    let provider = TogetherAIClient::new()
-        .load_api_key_from_env()
-        .build();
-
-    // Create a chat model
-    let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
-
-    // Generate text using provider traits
-    let prompt = vec![LanguageModelMessage::user_text("What is Rust?")];
-    let options = LanguageModelCallOptions::new(prompt);
-    let result = model.do_generate(options).await?;
-
-    println!("{:?}", result.content);
-    Ok(())
-}
-```
-
-### Chained Usage
-
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-
+// Create model directly from builder
 let model = TogetherAIClient::new()
     .api_key("your-api-key")
     .build()
     .chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 ```
 
-## Usage Examples
+### Multiple Model Types
 
-See the `examples/` directory for comprehensive usage examples:
-
-- `chat.rs` - Basic chat using `LanguageModel::do_generate()`
-- `stream.rs` - Streaming chat using `LanguageModel::do_stream()`
-- `chat_tool_calling.rs` - Tool calling with `do_generate()`
-- `stream_tool_calling.rs` - Streaming tool calling
-- `text_embedding.rs` - Text embeddings using `EmbeddingModel::do_embed()`
-- `image_generation.rs` - Image generation using `ImageModel::do_generate()`
-- `reranking.rs` - Document reranking using `RerankingModel::do_rerank()`
-
-Run examples with:
-```bash
-cargo run --example chat -p ai-sdk-togetherai
-```
-
-## Available Models
-
-### Chat Models
-
-- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`
-- `meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo`
-- `meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo`
-- `Qwen/Qwen2.5-Coder-32B-Instruct`
-- `Qwen/Qwen2.5-7B-Instruct-Turbo`
-- `Qwen/Qwen2.5-72B-Instruct-Turbo`
-- `deepseek-ai/DeepSeek-V3`
-- `mistralai/Mistral-7B-Instruct-v0.3`
-- `mistralai/Mixtral-8x7B-Instruct-v0.1`
-- `mistralai/Mixtral-8x22B-Instruct-v0.1`
-- And many more...
-
-### Embedding Models
-
-- `WhereIsAI/UAE-Large-V1`
-- `BAAI/bge-large-en-v1.5`
-- `BAAI/bge-base-en-v1.5`
-
-### Image Models
-
-- `black-forest-labs/FLUX.1-schnell`
-- `black-forest-labs/FLUX.1-dev`
-- `black-forest-labs/FLUX.1.1-pro`
-- `stabilityai/stable-diffusion-xl-base-1.0`
-
-### Reranking Models
-
-- `Salesforce/Llama-Rank-v1`
-- `mixedbread-ai/Mxbai-Rerank-Large-V2`
-
-For a complete list of available models, see the [Together AI documentation](https://docs.together.ai/docs/serverless-models).
-
-## Configuration Options
-
-### Builder Pattern
+Together AI supports multiple model types in a single provider:
 
 ```rust
 use ai_sdk_togetherai::TogetherAIClient;
 
 let provider = TogetherAIClient::new()
     .api_key("your-api-key")
-    .base_url("https://api.together.xyz/v1")  // Custom base URL
-    .header("X-Custom-Header", "value")        // Add custom header
     .build();
+
+// Chat models
+let chat_model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
+
+// Embedding models
+let embedding_model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
+
+// Image models
+let image_model = provider.image_model("black-forest-labs/FLUX.1-schnell");
+
+// Reranking models
+let reranking_model = provider.reranking_model("Salesforce/Llama-Rank-v1");
 ```
 
-### Direct Instantiation
+## Examples
 
-```rust
-use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
-use std::collections::HashMap;
+See the `examples/` directory for complete examples:
 
-let mut headers = HashMap::new();
-headers.insert("X-Custom-Header".to_string(), "value".to_string());
+- `chat.rs` - Basic chat completion
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with function definitions
+- `stream_tool_calling.rs` - Streaming with tool calls
+- `text_embedding.rs` - Text embeddings for semantic search
+- `image_generation.rs` - Image generation with FLUX and Stable Diffusion
+- `reranking.rs` - Document reranking for improved search
 
-let provider = TogetherAIProvider::new(
-    TogetherAIProviderSettings::new()
-        .with_api_key("your-api-key")
-        .with_base_url("https://api.together.xyz/v1")  // Custom base URL
-        .with_headers(headers)                          // Custom headers
-);
+Run examples with:
+
+```bash
+export TOGETHER_AI_API_KEY=your-api-key
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example stream_tool_calling
+cargo run --example text_embedding
+cargo run --example image_generation
+cargo run --example reranking
 ```
 
-## Error Handling
+## Documentation
 
-All async operations return `Result<T, Box<dyn std::error::Error>>`. Handle errors appropriately:
-
-```rust
-match GenerateText::new(model, prompt).execute().await {
-    Ok(result) => println!("Success: {}", result.text),
-    Err(e) => eprintln!("Error: {}", e),
-}
-```
+- [API Documentation](https://docs.rs/ai-sdk-togetherai)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [Together AI API Reference](https://docs.together.ai/)
+- [Together AI Models](https://docs.together.ai/docs/serverless-models)
 
 ## License
 
 Apache-2.0
 
-## Links
+## Contributing
 
-- [Together AI API Documentation](https://docs.together.ai/)
-- [AI SDK Documentation](https://github.com/yourusername/ai-sdk)
-- [Together AI Models](https://api.together.ai/models)
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.

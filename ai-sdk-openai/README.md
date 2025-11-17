@@ -127,46 +127,132 @@ The `OpenAIClient` builder supports:
 
 All OpenAI chat models are supported, including:
 
-- **GPT-4 family**: `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
-- **GPT-3.5**: `gpt-3.5-turbo`
-- **Reasoning models**: `o1`, `o1-preview`, `o1-mini`, `o3-mini`
-- **GPT-5 family** (when available)
+### GPT-4 Family
+- `gpt-4` - Most capable GPT-4 model
+- `gpt-4-turbo` - Faster GPT-4 variant
+- `gpt-4o` - Optimized GPT-4 model
+- `gpt-4o-mini` - Smaller, faster GPT-4o variant
 
-## Reasoning Models
+### GPT-3.5 Family
+- `gpt-3.5-turbo` - Fast and efficient model
 
-Reasoning models (o1, o3, etc.) have special handling:
+### Reasoning Models
+- `o1` - Latest reasoning model
+- `o1-preview` - Preview version of o1
+- `o1-mini` - Smaller o1 variant
+- `o3-mini` - Next-generation reasoning model
 
-- System messages use "developer" role instead of "system"
-- Unsupported settings (temperature, top_p, etc.) are automatically removed
-- Uses `max_completion_tokens` instead of `max_tokens`
+### GPT-5 Family
+- Future models will be supported as they become available
 
-## Provider-Specific Options
+For a complete list of available models, see the [OpenAI Models documentation](https://platform.openai.com/docs/models).
 
-OpenAI-specific options can be passed through `provider_options`:
+## OpenAI-Specific Features
+
+### Reasoning Models
+
+OpenAI reasoning models (o1, o1-preview, o1-mini, o3-mini) have special handling:
+
+- **Developer role**: System messages automatically use the "developer" role instead of "system"
+- **Parameter filtering**: Unsupported settings (temperature, top_p, presence_penalty, frequency_penalty, etc.) are automatically removed
+- **Token limits**: Uses `max_completion_tokens` instead of `max_tokens`
+
+These adjustments happen automatically when you use a reasoning model, so you don't need to make any code changes.
+
+### Provider-Specific Options
+
+OpenAI supports additional options beyond the standard AI SDK parameters:
+
+#### Reasoning Effort
+
+Control the computational effort for reasoning models:
 
 ```rust
-use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::*};
+use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ReasoningEffort};
 
 let options = OpenAIChatLanguageModelOptions {
     reasoning_effort: Some(ReasoningEffort::High),
-    logprobs: Some(LogprobsOption::Number(5)),
+    ..Default::default()
+};
+```
+
+Available values:
+- `ReasoningEffort::Low` - Faster, less thorough reasoning
+- `ReasoningEffort::Medium` - Balanced reasoning
+- `ReasoningEffort::High` - More thorough, slower reasoning
+
+#### Logprobs
+
+Request log probabilities for generated tokens:
+
+```rust
+use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::LogprobsOption};
+
+let options = OpenAIChatLanguageModelOptions {
+    logprobs: Some(LogprobsOption::Number(5)),  // Top 5 token probabilities
+    ..Default::default()
+};
+```
+
+#### Service Tier
+
+Select the service tier for processing:
+
+```rust
+use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ServiceTier};
+
+let options = OpenAIChatLanguageModelOptions {
     service_tier: Some(ServiceTier::Auto),
     ..Default::default()
 };
 ```
 
+Available values:
+- `ServiceTier::Auto` - Automatic tier selection
+- `ServiceTier::Default` - Standard processing tier
+
+#### Organization and Project
+
+Configure organization and project IDs:
+
+```rust
+let provider = OpenAIClient::new()
+    .api_key("your-api-key")
+    .organization("org-123")
+    .project("proj-456")
+    .build();
+```
+
+## Usage Examples
+
+### Basic Text Generation
+
+See `examples/chat.rs` for a complete example.
+
+### Streaming Responses
+
+See `examples/stream.rs` for a complete example.
+
+### Tool Calling
+
+OpenAI supports function calling for tool integration. See `examples/chat_tool_calling.rs` for a complete example.
+
 ## Examples
 
 See the `examples/` directory for complete examples:
 
-- `basic_chat.rs` - Basic chat completion
-- `streaming_chat.rs` - Streaming responses
+- `chat.rs` - Basic chat completion
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with chat models
+- `stream_tool_calling.rs` - Streaming with tool calling
 
 Run examples with:
 
 ```bash
-cargo run --example basic_chat
-cargo run --example streaming_chat
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example stream_tool_calling
 ```
 
 ## Documentation

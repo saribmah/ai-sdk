@@ -1,200 +1,215 @@
-# AI SDK - Baseten Provider
+# AI SDK Baseten
 
-The **Baseten provider** for the AI SDK contains language model and embedding model support for the [Baseten](https://baseten.co) platform.
+Baseten provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete integration with Baseten's Model APIs and custom model deployments.
 
-## Setup
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
-The Baseten provider is available in the `ai-sdk-baseten` crate. You can add it to your project with:
+## Features
+
+- **Text Generation**: Generate text using Baseten-hosted models or custom deployments
+- **Streaming**: Stream responses in real-time with support for tool calls
+- **Tool Calling**: Support for function calling with both hosted and custom models
+- **Text Embedding**: Generate embeddings using custom model deployments
+- **Model APIs**: Access to hosted models like DeepSeek V3, Kimi K2, and Qwen 3
+- **Custom Deployments**: Support for dedicated model deployments with custom URLs
+
+## Installation
+
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-baseten = "0.1.0"
-ai-sdk-core = "0.1.0"
+ai-sdk-baseten = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
+tokio = { version = "1", features = ["full"] }
 ```
 
-## Provider Instance
+## Quick Start
 
-You can import the provider functions from `ai-sdk-baseten`:
-
-```rust
-use ai_sdk_baseten::{BasetenClient, baseten};
-```
-
-## Language Model Example (Model APIs)
-
-The simplest way to use Baseten is with the Model APIs, which provide access to hosted models:
+### Using the Client Builder (Recommended)
 
 ```rust
 use ai_sdk_baseten::BasetenClient;
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use ai_sdk_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // API key loaded from BASETEN_API_KEY environment variable
-    let provider = BasetenClient::new().build();
+    // Create provider using the client builder
+    let provider = BasetenClient::new()
+        .api_key("your-api-key")  // Or use BASETEN_API_KEY env var
+        .build();
+    
+    // Create a language model
+    let model = provider.chat_model(Some("deepseek-ai/DeepSeek-V3-0324"));
+    
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
+    Ok(())
+}
+```
+
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_baseten::{BasetenProvider, BasetenProviderSettings};
+use ai_sdk_provider::language_model::LanguageModel;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = BasetenProvider::new(BasetenProviderSettings::default());
     
     let model = provider.chat_model(Some("deepseek-ai/DeepSeek-V3-0324"));
     
-    let result = GenerateText::new(model, Prompt::text("What is the meaning of life?"))
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
     Ok(())
 }
 ```
 
-## Custom Model URL
+## Configuration
 
-For dedicated model deployments, you can specify a custom model URL:
+### Environment Variables
+
+Set your Baseten API key as an environment variable:
+
+```bash
+export BASETEN_API_KEY=your-api-key
+```
+
+### Using the Client Builder
 
 ```rust
 use ai_sdk_baseten::BasetenClient;
-use ai_sdk_core::{GenerateText, prompt::Prompt};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = BasetenClient::new()
-        .api_key("your-api-key")
-        .model_url("https://model-{id}.api.baseten.co/environments/production/sync/v1")
-        .build();
-    
-    // model_id is optional when using custom URL
-    let model = provider.chat_model(None);
-    
-    let result = GenerateText::new(model, Prompt::text("Hello!"))
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
-    Ok(())
-}
+let provider = BasetenClient::new()
+    .api_key("your-api-key")
+    .base_url("https://inference.baseten.co/v1")
+    .header("Custom-Header", "value")
+    .build();
 ```
 
-## Text Embeddings
+### Builder Methods
+
+The `BasetenClient` builder supports:
+
+- `.api_key(key)` - Set the API key (overrides `BASETEN_API_KEY` environment variable)
+- `.base_url(url)` - Set the base URL for Model APIs (default: `https://inference.baseten.co/v1`)
+- `.model_url(url)` - Set a custom model URL for dedicated deployments
+- `.name(name)` - Set provider name (optional)
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.build()` - Build the provider
+
+## Provider-Specific Options
+
+### Model APIs vs Custom Deployments
+
+Baseten supports two deployment modes:
+
+#### Model APIs (Hosted Models)
+
+Use the default base URL to access Baseten's hosted models:
+
+```rust
+use ai_sdk_baseten::BasetenClient;
+
+let provider = BasetenClient::new()
+    .api_key("your-api-key")
+    .build();
+
+// Specify model ID from hosted models
+let model = provider.chat_model(Some("deepseek-ai/DeepSeek-V3-0324"));
+```
+
+#### Custom Model Deployments
+
+For dedicated deployments, specify a custom model URL:
+
+```rust
+use ai_sdk_baseten::BasetenClient;
+
+let provider = BasetenClient::new()
+    .api_key("your-api-key")
+    .model_url("https://model-{id}.api.baseten.co/environments/production/sync/v1")
+    .build();
+
+// Model ID is optional when using custom URL
+let model = provider.chat_model(None);
+```
+
+**Important:** 
+- Chat models require `/sync/v1` endpoints
+- Embedding models require `/sync` or `/sync/v1` endpoints
+
+### Text Embeddings
 
 Embeddings require a custom model URL and are not available via Model APIs:
 
 ```rust
 use ai_sdk_baseten::BasetenClient;
-use ai_sdk_core::EmbedMany;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = BasetenClient::new()
-        .api_key("your-api-key")
-        .model_url("https://model-{id}.api.baseten.co/environments/production/sync")
-        .build();
-    
-    let model = provider.text_embedding_model(None);
-    
-    let texts = vec![
-        "The capital of France is Paris.".to_string(),
-        "The capital of Germany is Berlin.".to_string(),
-    ];
-    
-    let result = EmbedMany::new(model, texts).execute().await?;
-    
-    println!("Embeddings: {} vectors of dimension {}", 
-        result.embeddings.len(), 
-        result.embeddings[0].len()
-    );
-    Ok(())
-}
-```
+let provider = BasetenClient::new()
+    .api_key("your-api-key")
+    .model_url("https://model-{id}.api.baseten.co/environments/production/sync")
+    .build();
 
-## Streaming Text Generation
-
-```rust
-use ai_sdk_baseten::BasetenClient;
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use futures_util::StreamExt;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = BasetenClient::new().build();
-    let model = provider.chat_model(Some("deepseek-ai/DeepSeek-V3-0324"));
-    
-    let mut result = StreamText::new(model, Prompt::text("Write a haiku."))
-        .execute()
-        .await?;
-    
-    while let Some(part) = result.stream.next().await {
-        use ai_sdk_core::text_stream::TextStreamPart;
-        
-        match part {
-            TextStreamPart::TextDelta(delta) => print!("{}", delta.text_delta),
-            TextStreamPart::Finish(finish) => {
-                println!("\nUsage: {:?}", finish.usage);
-            }
-            _ => {}
-        }
-    }
-    
-    Ok(())
-}
+let model = provider.text_embedding_model(None);
 ```
 
 ## Supported Models
 
 ### Model APIs (Hosted Models)
 
-When using the default Model APIs, the following models are available:
+All Baseten Model API models are supported, including:
 
-- `deepseek-ai/DeepSeek-R1-0528` - DeepSeek R1 with reasoning
-- `deepseek-ai/DeepSeek-V3-0324` - DeepSeek V3
-- `deepseek-ai/DeepSeek-V3.1` - DeepSeek V3.1
-- `moonshotai/Kimi-K2-Instruct-0905` - Kimi K2
-- `Qwen/Qwen3-235B-A22B-Instruct-2507` - Qwen 3
-- `Qwen/Qwen3-Coder-480B-A35B-Instruct` - Qwen 3 Coder
-- `openai/gpt-oss-120b` - GPT OSS
-- `zai-org/GLM-4.6` - GLM 4.6
+- **DeepSeek**: `deepseek-ai/DeepSeek-R1-0528`, `deepseek-ai/DeepSeek-V3-0324`, `deepseek-ai/DeepSeek-V3.1`
+- **Kimi**: `moonshotai/Kimi-K2-Instruct-0905`
+- **Qwen**: `Qwen/Qwen3-235B-A22B-Instruct-2507`, `Qwen/Qwen3-Coder-480B-A35B-Instruct`
+- **OpenAI**: `openai/gpt-oss-120b`
+- **GLM**: `zai-org/GLM-4.6`
 
 ### Custom Models
 
-For custom model deployments, use the `model_url` option:
+Any model deployed on Baseten can be used with a custom model URL. Supported model types:
 
-- **Chat models**: Must use `/sync/v1` endpoints
-- **Embedding models**: Must use `/sync` or `/sync/v1` endpoints
+- **Chat Models** - Text generation with optional tool calling
+- **Embedding Models** - Text embeddings for similarity search
 
-## Environment Variables
-
-- `BASETEN_API_KEY` - Your Baseten API key
-
-## Configuration Options
-
-### `BasetenClient` Builder
-
-- `.api_key(key)` - Set the API key (overrides `BASETEN_API_KEY`)
-- `.base_url(url)` - Set the base URL for Model APIs (default: `https://inference.baseten.co/v1`)
-- `.model_url(url)` - Set a custom model URL for dedicated deployments
-- `.header(key, value)` - Add a custom header
-- `.headers(map)` - Add multiple custom headers
+For a complete list of available hosted models, see the [Baseten Model APIs documentation](https://docs.baseten.co/development/model-apis/overview).
 
 ## Examples
 
 See the `examples/` directory for complete examples:
 
-- `baseten_basic_chat.rs` - Basic chat with Model APIs
-- `baseten_custom_chat.rs` - Chat with custom model URL
-- `baseten_embeddings.rs` - Text embeddings
-- `baseten_streaming.rs` - Streaming text generation
+- `chat.rs` - Basic chat completion with Model APIs
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with function definitions
+- `stream_tool_calling.rs` - Streaming with tool calls
+- `text_embedding.rs` - Text embeddings with custom deployments
 
-Run an example with:
+Run examples with:
 
 ```bash
 export BASETEN_API_KEY=your-api-key
-cargo run --example baseten_basic_chat
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example stream_tool_calling
+cargo run --example text_embedding
 ```
 
 ## Documentation
 
-For more information, visit:
-
-- [Baseten Documentation](https://docs.baseten.co/)
+- [API Documentation](https://docs.rs/ai-sdk-baseten)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [Baseten API Reference](https://docs.baseten.co/)
 - [Baseten Model APIs](https://docs.baseten.co/development/model-apis/overview)
-- [AI SDK Rust Documentation](https://github.com/vercel/ai-sdk-rust)
 
 ## License
 
 Apache-2.0
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.
