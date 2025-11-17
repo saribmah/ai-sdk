@@ -17,7 +17,7 @@ Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
 ai-sdk-togetherai = "0.1.0"
-ai-sdk-core = "0.1.0"
+ai-sdk-provider = "0.1.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -60,7 +60,9 @@ let provider = TogetherAIProvider::new(
 
 ```rust
 use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use ai_sdk_provider::LanguageModel;
+use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,12 +74,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a chat model
     let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
 
-    // Generate text
-    let result = GenerateText::new(model, Prompt::text("What is Rust?"))
-        .execute()
-        .await?;
+    // Generate text using provider traits
+    let prompt = vec![LanguageModelMessage::user_text("What is Rust?")];
+    let options = LanguageModelCallOptions::new(prompt);
+    let result = model.do_generate(options).await?;
 
-    println!("{}", result.text);
+    println!("{:?}", result.content);
     Ok(())
 }
 ```
@@ -95,120 +97,19 @@ let model = TogetherAIClient::new()
 
 ## Usage Examples
 
-### Chat Model
+See the `examples/` directory for comprehensive usage examples:
 
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+- `chat.rs` - Basic chat using `LanguageModel::do_generate()`
+- `stream.rs` - Streaming chat using `LanguageModel::do_stream()`
+- `chat_tool_calling.rs` - Tool calling with `do_generate()`
+- `stream_tool_calling.rs` - Streaming tool calling
+- `text_embedding.rs` - Text embeddings using `EmbeddingModel::do_embed()`
+- `image_generation.rs` - Image generation using `ImageModel::do_generate()`
+- `reranking.rs` - Document reranking using `RerankingModel::do_rerank()`
 
-let provider = TogetherAIClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
-
-let result = GenerateText::new(model, Prompt::text("Hello!"))
-    .temperature(0.7)
-    .max_output_tokens(100)
-    .execute()
-    .await?;
-
-println!("{}", result.text);
-```
-
-### Streaming Chat
-
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use futures_util::StreamExt;
-
-let provider = TogetherAIClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
-
-let result = StreamText::new(model, Prompt::text("Tell me a story"))
-    .execute()
-    .await?;
-
-let mut text_stream = result.text_stream();
-while let Some(delta) = text_stream.next().await {
-    print!("{}", delta);
-}
-```
-
-### Text Embeddings
-
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::Embed;
-
-let provider = TogetherAIClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
-
-let result = Embed::new(model, "Hello world".to_string())
-    .execute()
-    .await?;
-
-println!("Embedding vector length: {}", result.embedding.len());
-```
-
-### Image Generation
-
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::GenerateImage;
-
-let provider = TogetherAIClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.image_model("black-forest-labs/FLUX.1-schnell");
-
-let result = GenerateImage::new(model, "A serene mountain landscape".to_string())
-    .size("1024x1024")
-    .n(1)
-    .execute()
-    .await?;
-
-// Images are returned as base64 encoded strings
-for image in result.images {
-    // Save or process image
-}
-```
-
-### Document Reranking
-
-```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_core::Rerank;
-use ai_sdk_provider::reranking_model::call_options::RerankingDocuments;
-
-let provider = TogetherAIClient::new()
-    .load_api_key_from_env()
-    .build();
-
-let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
-
-let documents = RerankingDocuments::from_strings(vec![
-    "The capital of France is Paris".to_string(),
-    "Python is a programming language".to_string(),
-    "Paris is known for the Eiffel Tower".to_string(),
-]);
-
-let result = Rerank::new(model, documents, "What is the capital of France?".to_string())
-    .top_n(2)
-    .execute()
-    .await?;
-
-for ranked_doc in result.ranking {
-    println!("Index: {}, Score: {}", ranked_doc.index, ranked_doc.relevance_score);
-}
+Run examples with:
+```bash
+cargo run --example chat -p ai-sdk-togetherai
 ```
 
 ## Available Models
