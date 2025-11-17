@@ -1,14 +1,17 @@
-# AI SDK - DeepSeek Provider
+# AI SDK DeepSeek
 
-The **DeepSeek provider** for the [AI SDK](https://github.com/yourusername/ai-sdk) contains language model support for the [DeepSeek](https://www.deepseek.com) platform.
+DeepSeek provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete integration with DeepSeek's chat and reasoning models.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- ✅ **Chat Completions** - Standard chat with `deepseek-chat`
-- ✅ **Advanced Reasoning** - Reasoning model with `deepseek-reasoner` (R1)
-- ✅ **Streaming Support** - Real-time response streaming
-- ✅ **Tool Calling** - Function/tool calling support
-- ✅ **Cache Metadata** - Prompt cache hit/miss token tracking
+- **Text Generation**: Generate text using DeepSeek models (deepseek-chat, deepseek-reasoner)
+- **Streaming**: Stream responses in real-time for immediate feedback
+- **Tool Calling**: Support for function/tool calling with custom tools
+- **Reasoning Models**: Advanced reasoning capabilities with deepseek-reasoner (R1)
+- **Prompt Caching**: Automatic prompt caching with cache hit/miss token tracking
+- **Cache Metadata**: Track prompt cache efficiency for optimization
 
 ## Installation
 
@@ -16,149 +19,101 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-core = { path = "../ai-sdk-core" }
-ai-sdk-deepseek = { path = "../ai-sdk-deepseek" }
-tokio = { version = "1.41", features = ["full"] }
+ai-sdk-deepseek = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
+tokio = { version = "1", features = ["full"] }
 ```
 
-## Setup
+## Quick Start
 
-### API Key
+### Using the Client Builder (Recommended)
 
-Get your API key from [DeepSeek](https://platform.deepseek.com/) and set it as an environment variable:
+```rust
+use ai_sdk_deepseek::DeepSeekClient;
+use ai_sdk_core::{GenerateText, Prompt};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider using the client builder
+    let provider = DeepSeekClient::new()
+        .api_key("your-api-key")  // Or use DEEPSEEK_API_KEY env var
+        .build();
+    
+    // Create a language model
+    let model = provider.chat_model("deepseek-chat");
+    
+    // Generate text
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, DeepSeek!"))
+        .temperature(0.7)
+        .max_output_tokens(100)
+        .execute()
+        .await?;
+    
+    println!("{}", result.text);
+    Ok(())
+}
+```
+
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
+use ai_sdk_core::{GenerateText, Prompt};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = DeepSeekProvider::new(DeepSeekProviderSettings::default());
+    
+    let model = provider.chat_model("deepseek-chat");
+    
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, DeepSeek!"))
+        .execute()
+        .await?;
+    
+    println!("{}", result.text);
+    Ok(())
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Set your DeepSeek API key as an environment variable:
 
 ```bash
-export DEEPSEEK_API_KEY=your-api-key-here
+export DEEPSEEK_API_KEY=your-api-key
+export DEEPSEEK_BASE_URL=https://api.deepseek.com/v1  # Optional
 ```
 
-## Usage
-
-### Basic Text Generation
-
-```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_deepseek::DeepSeekClient;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = DeepSeekClient::new()
-        .load_api_key_from_env()
-        .build();
-
-    let model = provider.chat_model("deepseek-chat");
-
-    let result = GenerateText::new(
-        model,
-        Prompt::text("Write a Rust function to calculate factorial")
-    )
-    .temperature(0.7)
-    .execute()
-    .await?;
-
-    println!("{}", result.output.text());
-    Ok(())
-}
-```
-
-### Streaming Responses
-
-```rust
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use ai_sdk_deepseek::DeepSeekClient;
-use futures_util::StreamExt;
-use std::sync::Arc;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = DeepSeekClient::new()
-        .load_api_key_from_env()
-        .build();
-
-    let model = provider.chat_model("deepseek-chat");
-
-    let result = StreamText::new(
-        Arc::from(model),
-        Prompt::text("Tell me a story")
-    )
-    .execute()
-    .await?;
-
-    let mut text_stream = result.text_stream();
-    while let Some(delta) = text_stream.next().await {
-        print!("{}", delta);
-    }
-
-    Ok(())
-}
-```
-
-### Advanced Reasoning
-
-Use the `deepseek-reasoner` model (R1) for complex reasoning tasks:
-
-```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt, output::OutputContent};
-use ai_sdk_deepseek::DeepSeekClient;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let provider = DeepSeekClient::new()
-        .load_api_key_from_env()
-        .build();
-
-    let model = provider.chat_model("deepseek-reasoner");
-
-    let result = GenerateText::new(
-        model,
-        Prompt::text("Solve this logic puzzle: ...")
-    )
-    .execute()
-    .await?;
-
-    // Access reasoning and answer separately
-    for content in &result.output.content {
-        match content {
-            OutputContent::Reasoning { content, .. } => {
-                println!("Reasoning: {}", content);
-            }
-            OutputContent::Text { content, .. } => {
-                println!("Answer: {}", content);
-            }
-            _ => {}
-        }
-    }
-
-    Ok(())
-}
-```
-
-### Configuration Options
-
-#### Using Client Builder (Recommended)
+### Using the Client Builder
 
 ```rust
 use ai_sdk_deepseek::DeepSeekClient;
 
 let provider = DeepSeekClient::new()
     .api_key("your-api-key")
-    .base_url("https://api.deepseek.com/v1")  // Optional, this is the default
-    .header("X-Custom-Header", "value")        // Optional custom headers
+    .base_url("https://api.deepseek.com/v1")
+    .header("Custom-Header", "value")
     .build();
 ```
 
-#### Direct Instantiation
+### Using Settings Directly
 
 ```rust
 use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
 
-let provider = DeepSeekProvider::new(
-    DeepSeekProviderSettings::new()
-        .with_api_key("your-api-key")
-        .with_base_url("https://api.deepseek.com/v1")
-);
+let settings = DeepSeekProviderSettings::new()
+    .with_api_key("your-api-key")
+    .with_base_url("https://api.deepseek.com/v1")
+    .add_header("Custom-Header", "value");
+
+let provider = DeepSeekProvider::new(settings);
 ```
 
-#### Loading from Environment
+### Loading from Environment
 
 ```rust
 use ai_sdk_deepseek::DeepSeekClient;
@@ -169,23 +124,101 @@ let provider = DeepSeekClient::new()
     .build();
 ```
 
-## Available Models
+### Builder Methods
 
-| Model ID | Description |
-|----------|-------------|
-| `deepseek-chat` | Main chat model for general tasks |
-| `deepseek-reasoner` | Advanced reasoning model (R1) |
+The `DeepSeekClient` builder supports:
 
-## DeepSeek-Specific Features
+- `.api_key(key)` - Set the API key
+- `.base_url(url)` - Set custom base URL
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.load_api_key_from_env()` - Load API key from DEEPSEEK_API_KEY environment variable
+- `.build()` - Build the provider
+
+## Reasoning Models
+
+DeepSeek's reasoner model (R1) provides advanced reasoning capabilities for complex problem-solving:
+
+```rust
+use ai_sdk_deepseek::DeepSeekClient;
+use ai_sdk_core::{GenerateText, Prompt};
+
+let provider = DeepSeekClient::new()
+    .load_api_key_from_env()
+    .build();
+
+let model = provider.chat_model("deepseek-reasoner");
+
+let result = GenerateText::new(std::sync::Arc::new(model), 
+    Prompt::text("Solve this complex logic puzzle: ..."))
+    .execute()
+    .await?;
+
+// Access reasoning and answer separately
+for output in result.experimental_output.iter() {
+    if let ai_sdk_provider::language_model::Output::Reasoning(reasoning) = output {
+        println!("Reasoning: {}", reasoning.text);
+    }
+}
+
+println!("Answer: {}", result.text);
+```
+
+## Streaming
+
+Stream responses for real-time output:
+
+```rust
+use ai_sdk_deepseek::DeepSeekClient;
+use ai_sdk_core::{StreamText, Prompt};
+use futures_util::StreamExt;
+
+let provider = DeepSeekClient::new()
+    .load_api_key_from_env()
+    .build();
+
+let model = provider.chat_model("deepseek-chat");
+
+let result = StreamText::new(std::sync::Arc::new(model), 
+    Prompt::text("Write a story"))
+    .temperature(0.8)
+    .execute()
+    .await?;
+
+let mut text_stream = result.text_stream();
+while let Some(text_delta) = text_stream.next().await {
+    print!("{}", text_delta);
+}
+```
+
+## Supported Models
+
+All DeepSeek models are supported, including:
+
+- **deepseek-chat** - Main chat model for general tasks and conversations
+- **deepseek-reasoner** - Advanced reasoning model (R1) for complex problem-solving and logic tasks
+
+For a complete list of available models, see the [DeepSeek documentation](https://api-docs.deepseek.com/quick_start/pricing).
+
+## Provider-Specific Features
 
 ### Prompt Cache Statistics
 
-DeepSeek provides information about prompt cache hits and misses:
+DeepSeek provides detailed information about prompt cache hits and misses to help optimize performance:
 
 ```rust
-let result = GenerateText::new(model, prompt).execute().await?;
+use ai_sdk_deepseek::DeepSeekClient;
+use ai_sdk_core::{GenerateText, Prompt};
 
-if let Some(metadata) = result.metadata {
+let provider = DeepSeekClient::new().build();
+let model = provider.chat_model("deepseek-chat");
+
+let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello!"))
+    .execute()
+    .await?;
+
+// Access cache metadata
+if let Some(metadata) = result.provider_metadata {
     if let Some(deepseek) = metadata.get("deepseek") {
         println!("Cache hit tokens: {:?}", 
             deepseek.get("promptCacheHitTokens"));
@@ -195,62 +228,41 @@ if let Some(metadata) = result.metadata {
 }
 ```
 
-This helps you understand cache efficiency and optimize your prompts for better performance.
+This helps you understand cache efficiency and optimize your prompts for better performance and cost savings.
 
 ## Examples
 
-Run the examples with:
+See the `examples/` directory for complete examples:
+
+- `chat.rs` - Basic chat completion with DeepSeek
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with custom tools
+- `stream_tool_calling.rs` - Streaming with tool calls
+- `reasoning.rs` - Using the deepseek-reasoner model for complex reasoning
+
+Run examples with:
 
 ```bash
-# Basic chat
-cargo run --example basic_chat
-
-# Streaming
-cargo run --example streaming_chat
-
-# Reasoning model
+cargo run --example chat
+cargo run --example stream
 cargo run --example reasoning
+cargo run --example chat_tool_calling
 ```
 
 Make sure to set your `DEEPSEEK_API_KEY` environment variable first.
 
-## Provider Trait Implementation
-
-The DeepSeek provider implements the `Provider` trait:
-
-```rust
-use ai_sdk_provider::Provider;
-
-let provider_trait: &dyn Provider = &provider;
-let model = provider_trait.language_model("deepseek-chat")?;
-```
-
-**Supported Models:**
-- ✅ `language_model()` - Chat models
-- ❌ `text_embedding_model()` - Not supported
-- ❌ `image_model()` - Not supported
-- ❌ `transcription_model()` - Not supported
-- ❌ `speech_model()` - Not supported
-- ❌ `reranking_model()` - Not supported
-
-## Error Handling
-
-```rust
-use ai_sdk_core::GenerateText;
-
-match GenerateText::new(model, prompt).execute().await {
-    Ok(result) => println!("{}", result.output.text()),
-    Err(e) => eprintln!("Error: {}", e),
-}
-```
-
 ## Documentation
 
-For more information about the AI SDK and its capabilities, see:
-
-- [AI SDK Documentation](../README.md)
-- [DeepSeek API Documentation](https://api-docs.deepseek.com/)
+- [API Documentation](https://docs.rs/ai-sdk-deepseek)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [DeepSeek API Reference](https://api-docs.deepseek.com/)
 
 ## License
 
-MIT
+Licensed under:
+
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.

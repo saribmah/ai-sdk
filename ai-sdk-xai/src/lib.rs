@@ -56,69 +56,73 @@
 //! ## Tool Calling
 //!
 //! ```no_run
+//! use ai_sdk_provider::LanguageModel;
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::tool::LanguageModelTool;
+//! use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 //! use ai_sdk_xai::XaiClient;
-//! use ai_sdk_core::{GenerateText, ToolSet, prompt::Prompt};
-//! use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
 //! use serde_json::json;
-//! use std::sync::Arc;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = XaiClient::new()
 //!     .api_key("your-api-key")
 //!     .build();
 //!
-//! let model = provider.chat_model("grok-2-latest");
+//! let model = provider.chat_model("grok-beta");
 //!
-//! // Define a tool
-//! let weather_tool = Tool::function(json!({
-//!     "type": "object",
-//!     "properties": {
-//!         "city": {"type": "string", "description": "The city name"}
-//!     },
-//!     "required": ["city"]
-//! }))
-//! .with_description("Get the current weather")
-//! .with_execute(Arc::new(|input, _| {
-//!     let result = json!({"temperature": 72, "conditions": "sunny"});
-//!     ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
-//! }));
-//!
-//! let mut tools = ToolSet::new();
-//! tools.insert("get_weather".to_string(), weather_tool);
-//!
-//! let result = GenerateText::new(
-//!     model,
-//!     Prompt::text("What's the weather in Tokyo?")
+//! // Define a tool using ai-sdk-provider types
+//! let weather_tool = LanguageModelFunctionTool::new(
+//!     "get_weather",
+//!     json!({
+//!         "type": "object",
+//!         "properties": {
+//!             "city": {"type": "string", "description": "The city name"}
+//!         },
+//!         "required": ["city"]
+//!     }),
 //! )
-//! .tools(tools)
-//! .execute()
-//! .await?;
+//! .with_description("Get the current weather");
+//!
+//! let tools = vec![LanguageModelTool::Function(weather_tool)];
+//!
+//! let prompt = vec![LanguageModelMessage::user_text("What's the weather in Tokyo?")];
+//! let options = LanguageModelCallOptions::new(prompt).with_tools(tools);
+//!
+//! let result = model.do_generate(options).await?;
 //! # Ok(())
 //! # }
 //! ```
 //!
+//! For full tool execution with ai-sdk-core, see the examples directory.
+//!
 //! ## Image Generation
 //!
 //! ```no_run
+//! use ai_sdk_provider::ImageModel;
+//! use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
 //! use ai_sdk_xai::XaiClient;
-//! use ai_sdk_core::GenerateImage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = XaiClient::new()
 //!     .api_key("your-api-key")
 //!     .build();
 //!
-//! let model = provider.image_model("grok-2-image");
+//! let model = provider.image_model("grok-2-vision-1212");
 //!
-//! let result = GenerateImage::new(
-//!     model,
+//! let options = ImageModelCallOptions::new(
 //!     "A futuristic cityscape at sunset".to_string(),
-//! ).execute().await?;
+//!     1
+//! );
+//!
+//! let result = model.do_generate(options).await?;
 //!
 //! println!("Generated {} image(s)", result.images.len());
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! For more image generation examples with ai-sdk-core, see the examples directory.
 
 /// Chat completion implementation for xAI models.
 pub mod chat;

@@ -6,15 +6,16 @@ OpenAI-compatible provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk)
 
 ## Features
 
-- **Multiple Model Types**: Support for chat, completion, embedding, and image generation models
-- **OpenAI Compatible**: Works with OpenAI API and any compatible service (Together AI, Perplexity, etc.)
-- **Azure OpenAI**: Full support for Azure OpenAI deployments
-- **Text Generation**: Generate text with chat and completion models
-- **Streaming**: Real-time streaming responses
-- **Embeddings**: Generate text embeddings
+- **Text Generation**: Generate text with chat and completion models (GPT-4, GPT-3.5, and compatible)
+- **Streaming**: Real-time streaming responses for immediate feedback
+- **Tool Calling**: Support for function/tool calling with compatible models
+- **Text Embedding**: Generate embeddings with OpenAI embedding models
 - **Image Generation**: Create images with DALL-E and compatible models
-- **Custom Headers & Query Parameters**: Full control over HTTP requests
+- **Multi-Provider Support**: Works with OpenAI, Azure OpenAI, Together AI, Perplexity, and any OpenAI-compatible API
+- **Azure OpenAI**: Full support for Azure OpenAI deployments with query parameters
+- **Custom Headers & Query Parameters**: Complete control over HTTP requests for custom APIs
 - **Structured Outputs**: Support for structured response formats
+- **Organization & Project**: OpenAI organization and project ID support
 
 ## Installation
 
@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("gpt-4");
     
     // Generate text
-    let result = GenerateText::new(model, Prompt::text("Hello, GPT!"))
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, GPT!"))
         .temperature(0.7)
         .max_output_tokens(100)
         .execute()
@@ -76,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider = OpenAICompatibleProvider::new(settings);
     let model = provider.chat_model("gpt-4");
     
-    let result = GenerateText::new(model, Prompt::text("Hello, GPT!"))
+    let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello, GPT!"))
         .execute()
         .await?;
     
@@ -86,6 +87,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 ## Configuration
+
+### Environment Variables
+
+You can set environment variables for your API keys:
+
+```bash
+export OPENAI_API_KEY=your-api-key
+export AZURE_API_KEY=your-azure-key
+export TOGETHER_API_KEY=your-together-key
+```
+
+Note: This provider does not automatically load environment variables. Use the builder's `.api_key()` method to set keys explicitly.
 
 ### OpenAI
 
@@ -176,7 +189,7 @@ let provider = OpenAICompatibleClient::new()
 
 let model = provider.chat_model("gpt-4");
 
-let result = GenerateText::new(model, Prompt::text("Hello!"))
+let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello!"))
     .execute()
     .await?;
 ```
@@ -193,7 +206,7 @@ let provider = OpenAICompatibleClient::new()
 
 let model = provider.completion_model("gpt-3.5-turbo-instruct");
 
-let result = GenerateText::new(model, Prompt::text("Complete this:"))
+let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Complete this:"))
     .execute()
     .await?;
 ```
@@ -215,7 +228,7 @@ let texts = vec![
     "The capital of Germany is Berlin.".to_string(),
 ];
 
-let result = EmbedMany::new(model, texts).execute().await?;
+let result = EmbedMany::new(std::sync::Arc::new(model), texts).execute().await?;
 println!("Generated {} embeddings", result.embeddings.len());
 ```
 
@@ -232,7 +245,7 @@ let provider = OpenAICompatibleClient::new()
 let model = provider.image_model("dall-e-3");
 
 let result = GenerateImage::new(
-    model,
+    std::sync::Arc::new(model),
     "A beautiful sunset over the ocean".to_string(),
 )
 .size("1024x1024")
@@ -258,7 +271,7 @@ let provider = OpenAICompatibleClient::new()
 
 let model = provider.chat_model("gpt-4");
 
-let result = StreamText::new(model, Prompt::text("Write a story"))
+let result = StreamText::new(std::sync::Arc::new(model), Prompt::text("Write a story"))
     .temperature(0.8)
     .execute()
     .await?;
@@ -288,7 +301,7 @@ let tools = ToolSet::from_vec(vec![
     // Your tools here
 ]);
 
-let result = GenerateText::new(model, Prompt::text("What's the weather?"))
+let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("What's the weather?"))
     .tools(tools)
     .execute()
     .await?;
@@ -334,7 +347,7 @@ let model = OpenAICompatibleClient::new()
     .build()
     .chat_model("gpt-4");
 
-let result = GenerateText::new(model, Prompt::text("Hello!"))
+let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello!"))
     .execute()
     .await?;
 ```
@@ -371,6 +384,26 @@ This provider works with any OpenAI-compatible API, including:
 - **Groq** - https://groq.com (also has dedicated `ai-sdk-groq` provider)
 - **Local LLMs** - LocalAI, Ollama (with OpenAI compatibility), LM Studio
 
+## Examples
+
+See the `examples/` directory for complete examples:
+
+- `chat.rs` - Basic chat completion
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with custom tools
+- `stream_tool_calling.rs` - Streaming with tool calls
+- `text_embedding.rs` - Text embedding generation
+- `image_generation.rs` - Image generation with DALL-E
+
+Run examples with:
+
+```bash
+cargo run --example chat
+cargo run --example stream
+cargo run --example text_embedding
+cargo run --example image_generation
+```
+
 ## Documentation
 
 - [API Documentation](https://docs.rs/ai-sdk-openai-compatible)
@@ -380,7 +413,9 @@ This provider works with any OpenAI-compatible API, including:
 
 ## License
 
-Licensed under MIT license ([LICENSE-MIT](LICENSE-MIT))
+Licensed under:
+
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
 
 ## Contributing
 

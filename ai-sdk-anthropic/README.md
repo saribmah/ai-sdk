@@ -6,14 +6,14 @@ Anthropic provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Compl
 
 ## Features
 
-- **Text Generation**: Generate text using Claude models with the `GenerateText` builder
-- **Streaming**: Stream responses in real-time with `StreamText`
+- **Text Generation**: Generate text using Claude models (Opus, Sonnet, Haiku)
+- **Streaming**: Stream responses in real-time for immediate feedback
 - **Tool Calling**: Support for both custom tools and Anthropic provider-defined tools
-- **Extended Thinking**: Enable Claude's reasoning process with thinking blocks
-- **Citations**: Enable source citations for generated content
-- **Prompt Caching**: Reduce costs with automatic prompt caching
-- **Vision**: Support for image inputs in prompts
-- **Multiple Models**: Support for all Claude models (Opus, Sonnet, Haiku)
+- **Multi-modal**: Support for text and image inputs (vision)
+- **Extended Thinking**: Enable Claude's reasoning process with thinking blocks for complex problem-solving
+- **Citations**: Enable source citations for generated content with web search and fetch tools
+- **Prompt Caching**: Reduce costs and latency with automatic prompt caching
+- **Provider-Defined Tools**: Bash execution, web search, web fetch, code execution, computer use, text editor, and persistent memory
 
 ## Installation
 
@@ -218,11 +218,71 @@ while let Some(text_delta) = text_stream.next().await {
 
 ## Supported Models
 
-- **Claude 3.5 Sonnet**: `claude-3-5-sonnet-20241022`
-- **Claude 3.7 Sonnet**: `claude-3-7-sonnet-20250219` (extended thinking)
-- **Claude 3 Opus**: `claude-3-opus-20240229`
-- **Claude 3 Sonnet**: `claude-3-sonnet-20240229`
-- **Claude 3 Haiku**: `claude-3-haiku-20240307`
+All Claude models are supported, including:
+
+- **Claude 3.5 Sonnet**: `claude-3-5-sonnet-20241022` - Most intelligent model with extended thinking
+- **Claude 3.7 Sonnet**: `claude-3-7-sonnet-20250219` - Latest model with enhanced extended thinking capabilities
+- **Claude 3 Opus**: `claude-3-opus-20240229` - Powerful model for complex tasks
+- **Claude 3 Sonnet**: `claude-3-sonnet-20240229` - Balanced performance and speed
+- **Claude 3 Haiku**: `claude-3-haiku-20240307` - Fastest model for simple tasks
+
+For a complete list of available models, see the [Anthropic documentation](https://docs.anthropic.com/en/docs/models-overview).
+
+## Provider-Specific Options
+
+Anthropic-specific options can be passed through `provider_options`:
+
+```rust
+use ai_sdk_anthropic::language_model::{ProviderChatLanguageModelOptions, provider_chat_options::*};
+use ai_sdk_core::{GenerateText, Prompt};
+
+let options = ProviderChatLanguageModelOptions {
+    thinking: Some(Thinking {
+        type_: ThinkingType::Enabled,
+        budget_tokens: Some(10000),
+    }),
+    citations: Some(Citations {
+        type_: CitationsType::Enabled,
+    }),
+    ..Default::default()
+};
+
+let result = GenerateText::new(model, prompt)
+    .provider_options(options)
+    .execute()
+    .await?;
+```
+
+### Available Provider Options
+
+- **`thinking`** - Control extended thinking behavior:
+  - `ThinkingType::Enabled` - Enable extended thinking
+  - `ThinkingType::Disabled` - Disable extended thinking
+  - `budget_tokens` - Optional token limit for thinking
+
+- **`citations`** - Control citation generation:
+  - `CitationsType::Enabled` - Enable citations
+  - `CitationsType::Disabled` - Disable citations
+
+## Examples
+
+See the `examples/` directory for complete examples:
+
+- `chat.rs` - Basic chat completion with Claude
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with custom tools
+- `stream_tool_calling.rs` - Streaming with tool calls
+- `provider_specific_bash_tool.rs` - Using Anthropic's bash tool
+- `provider_specific_defined_tools.rs` - Using all provider-defined tools
+
+Run examples with:
+
+```bash
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example provider_specific_defined_tools
+```
 
 ## Documentation
 
@@ -232,7 +292,7 @@ while let Some(text_delta) = text_stream.next().await {
 
 ## License
 
-Licensed under :
+Licensed under:
 
 - MIT license ([LICENSE-MIT](LICENSE-MIT))
 

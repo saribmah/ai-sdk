@@ -6,11 +6,14 @@ Azure OpenAI provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Co
 
 ## Features
 
-- **Chat Models**: GPT-4, GPT-3.5-turbo, and other chat models
-- **Completion Models**: GPT-3.5-turbo-instruct and other completion models
-- **Embedding Models**: text-embedding-ada-002 and other embedding models
-- **Image Models**: DALL-E 3 and other image generation models
-- **Azure-specific Authentication**: Uses `api-key` header
+- **Text Generation**: Generate text using GPT-4, GPT-3.5-turbo, and other Azure OpenAI chat models
+- **Streaming**: Stream responses in real-time for interactive applications
+- **Tool Calling**: Support for function calling with Azure OpenAI models
+- **Text Embedding**: Generate embeddings with text-embedding-ada-002 and other embedding models
+- **Image Generation**: Create images using DALL-E 3 and other image generation models
+- **Multi-modal**: Support for text and images in conversations
+- **Completion Models**: Access to GPT-3.5-turbo-instruct and other completion models
+- **Azure-specific Authentication**: Uses `api-key` header for Azure authentication
 - **Flexible URL Formats**: Supports both v1 API and deployment-based URLs
 - **Multiple API Versions**: Configure API version for different Azure OpenAI endpoints
 
@@ -32,7 +35,7 @@ tokio = { version = "1", features = ["full"] }
 
 ```rust
 use ai_sdk_azure::AzureClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use ai_sdk_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,14 +48,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get a chat model using your deployment name
     let model = provider.chat_model("gpt-4-deployment");
     
-    // Generate text
-    let result = GenerateText::new(model, Prompt::text("Hello, Azure!"))
-        .temperature(0.7)
-        .max_output_tokens(100)
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
     Ok(())
 }
 ```
@@ -61,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
-use ai_sdk_core::{GenerateText, Prompt};
+use ai_sdk_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -74,11 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let model = provider.chat_model("gpt-4-deployment");
     
-    let result = GenerateText::new(model, Prompt::text("Hello, Azure!"))
-        .execute()
-        .await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
     Ok(())
 }
 ```
@@ -154,7 +147,9 @@ The `AzureClient` builder supports:
 - `.use_deployment_based_urls(bool)` - Use legacy deployment-based URL format
 - `.build()` - Build the provider
 
-## URL Formats
+## Azure-Specific Features
+
+### URL Formats
 
 Azure OpenAI supports two URL formats:
 
@@ -172,7 +167,69 @@ https://{resource}.openai.azure.com/openai/deployments/{deployment}{path}?api-ve
 
 Enable this format with `.use_deployment_based_urls(true)`.
 
-## Model Types
+### API Versions
+
+Azure OpenAI supports multiple API versions. Common versions include:
+
+- `"v1"` - Default, recommended version
+- `"2023-05-15"` - Stable release
+- `"2024-02-15-preview"` - Preview features
+- `"2024-08-01-preview"` - Latest preview
+
+Set the API version using the builder:
+
+```rust
+let provider = AzureClient::new()
+    .resource_name("my-resource")
+    .api_key("your-api-key")
+    .api_version("2024-02-15-preview")
+    .build();
+```
+
+### Prerequisites
+
+To use this provider, you need:
+
+1. An Azure subscription
+2. An Azure OpenAI resource
+3. Deployed models in your Azure OpenAI resource
+4. API key from Azure portal
+
+## Supported Models
+
+Azure OpenAI supports various model types through deployments. You must first deploy models in your Azure OpenAI resource before using them.
+
+### Chat Models
+
+GPT-4 and GPT-3.5 models for conversational AI:
+- `gpt-4` - Most capable model
+- `gpt-4-turbo` - Faster GPT-4 variant
+- `gpt-35-turbo` - Fast and efficient
+- And other chat models available in your Azure deployment
+
+### Embedding Models
+
+Text embedding models:
+- `text-embedding-ada-002` - Standard embedding model
+- `text-embedding-3-small` - Smaller embedding model
+- `text-embedding-3-large` - Larger embedding model
+
+### Image Models
+
+Image generation models:
+- `dall-e-3` - Latest DALL-E model
+- `dall-e-2` - Previous generation
+
+### Completion Models
+
+Text completion models:
+- `gpt-35-turbo-instruct` - Instruction-tuned completion model
+
+**Note:** Model availability depends on your Azure OpenAI resource region and deployment. Use your deployment name (not the base model name) when creating models.
+
+## Usage Examples
+
+### Model Types
 
 ### Chat Models
 
@@ -208,15 +265,7 @@ let model = provider.completion_model("gpt-35-turbo-instruct");
 Use `.text_embedding_model()` for embeddings:
 
 ```rust
-use ai_sdk_core::Embed;
-
 let model = provider.text_embedding_model("text-embedding-ada-002");
-
-let result = Embed::new(model, "Hello, world!".to_string())
-    .execute()
-    .await?;
-
-println!("Embedding dimensions: {}", result.embedding.len());
 ```
 
 ### Image Models
@@ -224,70 +273,43 @@ println!("Embedding dimensions: {}", result.embedding.len());
 Use `.image_model()` for image generation:
 
 ```rust
-use ai_sdk_core::GenerateImage;
-
 let model = provider.image_model("dall-e-3");
-
-let result = GenerateImage::new(model, "A serene landscape".to_string())
-    .size("1024x1024")
-    .execute()
-    .await?;
 ```
 
-## Streaming
+### Streaming
 
-Stream responses for real-time output:
+Stream responses for real-time output. See `examples/stream.rs` for a complete example.
 
-```rust
-use ai_sdk_azure::AzureClient;
-use ai_sdk_core::{StreamText, Prompt};
-use futures_util::StreamExt;
+### Tool Calling
 
-let provider = AzureClient::new()
-    .resource_name("my-resource")
-    .api_key("your-api-key")
-    .build();
+Azure OpenAI supports function calling for tool integration. See `examples/chat_tool_calling.rs` for a complete example.
 
-let model = provider.chat_model("gpt-4-deployment");
+## Examples
 
-let result = StreamText::new(model, Prompt::text("Write a story"))
-    .temperature(0.8)
-    .execute()
-    .await?;
+See the `examples/` directory for complete examples:
 
-let mut text_stream = result.text_stream();
-while let Some(text_delta) = text_stream.next().await {
-    print!("{}", text_delta);
-}
+- `chat.rs` - Basic chat completion
+- `stream.rs` - Streaming responses
+- `chat_tool_calling.rs` - Tool calling with chat models
+- `stream_tool_calling.rs` - Streaming with tool calling
+- `text_embedding.rs` - Text embeddings
+- `image_generation.rs` - Image generation with DALL-E
+
+Run examples with:
+
+```bash
+cargo run --example chat
+cargo run --example stream
+cargo run --example chat_tool_calling
+cargo run --example text_embedding
+cargo run --example image_generation
 ```
-
-## Common API Versions
-
-- `"v1"` - Default, recommended version
-- `"2023-05-15"` - Stable release
-- `"2024-02-15-preview"` - Preview features
-- `"2024-08-01-preview"` - Latest preview
-
-## Prerequisites
-
-To use this provider, you need:
-
-1. An Azure subscription
-2. An Azure OpenAI resource
-3. Deployed models in your Azure OpenAI resource
-4. API key from Azure portal
 
 ## Documentation
 
 - [API Documentation](https://docs.rs/ai-sdk-azure)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-
-## Examples
-
-See the [examples directory](../examples/) for complete examples:
-
-- `azure_basic.rs` - Comprehensive examples of all features
 
 ## License
 

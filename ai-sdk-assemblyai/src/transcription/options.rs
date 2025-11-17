@@ -168,21 +168,20 @@ pub struct CustomSpelling {
 
 /// AssemblyAI-specific transcription options.
 ///
-/// These options can be passed via provider options in the Transcribe builder.
+/// These options can be passed via provider options when calling do_generate().
 ///
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::{AudioInput, Transcribe};
 /// use ai_sdk_assemblyai::AssemblyAIClient;
+/// use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
 /// use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-/// use ai_sdk_provider_utils::message::DataContent;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let provider = AssemblyAIClient::new().api_key("key").build();
 /// let model = provider.transcription_model("best");
 ///
-/// let audio_input = AudioInput::Data(DataContent::from(vec![]));
+/// let audio_data = vec![]; // Your audio data
 /// let mut provider_options = SharedProviderOptions::new();
 /// provider_options.insert(
 ///     "assemblyai".to_string(),
@@ -194,10 +193,10 @@ pub struct CustomSpelling {
 ///     .collect(),
 /// );
 ///
-/// let result = Transcribe::new(model, audio_input)
-///     .provider_options(provider_options)
-///     .execute()
-///     .await?;
+/// let call_options = TranscriptionModelCallOptions::mp3(audio_data)
+///     .with_provider_options(provider_options);
+///
+/// let result = model.do_generate(call_options).await?;
 /// # Ok(())
 /// # }
 /// ```

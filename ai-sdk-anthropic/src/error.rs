@@ -46,18 +46,13 @@
 //! ```rust,no_run
 //! use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
 //! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_core::generate_text::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::provider::Provider;
+//! use ai_sdk_provider::{Provider, LanguageModel, CallSettings, Prompt};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 //! let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
 //!
-//! match GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello"))
-//!     .execute()
-//!     .await
-//! {
+//! match model.do_generate(Prompt::from_text("Hello"), CallSettings::default()).await {
 //!     Ok(result) => println!("{}", result.text),
 //!     Err(e) => {
 //!         // Errors are automatically converted to ProviderError

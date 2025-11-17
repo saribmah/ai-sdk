@@ -49,7 +49,8 @@
 //!
 //! ```no_run
 //! use ai_sdk_baseten::BasetenClient;
-//! use ai_sdk_core::EmbedMany;
+//! use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+//! use ai_sdk_provider::EmbeddingModel;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = BasetenClient::new()
@@ -63,7 +64,8 @@
 //!     "The capital of France is Paris.".to_string(),
 //!     "The capital of Germany is Berlin.".to_string(),
 //! ];
-//! let result = EmbedMany::new(model, texts).execute().await?;
+//! let options = EmbeddingModelCallOptions::new(texts);
+//! let result = model.do_embed(options).await?;
 //! println!("Embeddings: {:?}", result.embeddings);
 //! # Ok(())
 //! # }

@@ -70,7 +70,9 @@
 //!
 //! ```no_run
 //! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use ai_sdk_provider::LanguageModel;
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = GroqClient::new()
@@ -79,15 +81,26 @@
 //!
 //! let model = provider.chat_model("llama-3.1-8b-instant");
 //!
-//! let result = GenerateText::new(
-//!     model,
-//!     Prompt::text("Explain quantum computing in simple terms")
-//! )
-//! .temperature(0.7)
-//! .execute()
-//! .await?;
+//! let prompt = vec![LanguageModelMessage::user_text(
+//!     "Explain quantum computing in simple terms"
+//! )];
 //!
-//! println!("Response: {}", result.text);
+//! let options = LanguageModelCallOptions::new(prompt)
+//!     .with_temperature(0.7)
+//!     .with_max_output_tokens(500);
+//!
+//! let result = model.do_generate(options).await?;
+//!
+//! // Extract text from content
+//! let text = result.content.iter()
+//!     .filter_map(|c| match c {
+//!         ai_sdk_provider::language_model::content::LanguageModelContent::Text(t) => Some(t.text.clone()),
+//!         _ => None,
+//!     })
+//!     .collect::<Vec<_>>()
+//!     .join("");
+//!
+//! println!("Response: {}", text);
 //! # Ok(())
 //! # }
 //! ```
@@ -96,7 +109,10 @@
 //!
 //! ```no_run
 //! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_core::{StreamText, prompt::Prompt};
+//! use ai_sdk_provider::LanguageModel;
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -106,17 +122,17 @@
 //!
 //! let model = provider.chat_model("llama-3.1-8b-instant");
 //!
-//! let result = StreamText::new(
-//!     model,
-//!     Prompt::text("Tell me a story")
-//! )
-//! .execute()
-//! .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Tell me a story")];
+//! let options = LanguageModelCallOptions::new(prompt);
+//!
+//! let result = model.do_stream(options).await?;
+//! let mut stream = result.stream;
 //!
 //! // Stream text deltas
-//! let mut text_stream = result.text_stream();
-//! while let Some(delta) = text_stream.next().await {
-//!     print!("{}", delta);
+//! while let Some(part) = stream.next().await {
+//!     if let LanguageModelStreamPart::TextDelta(delta) = part {
+//!         print!("{}", delta.delta);
+//!     }
 //! }
 //! # Ok(())
 //! # }
@@ -124,8 +140,8 @@
 //!
 //! ## Tool Calling
 //!
-//! Groq supports tool/function calling. See the `examples/groq_tool_calling.rs`  
-//! example for a complete working implementation.
+//! Groq supports tool/function calling. See the `examples/chat_tool_calling.rs`  
+//! and `examples/stream_tool_calling.rs` examples for complete working implementations.
 //!
 //! ## Groq-Specific Metadata
 //!
@@ -133,7 +149,9 @@
 //!
 //! ```no_run
 //! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use ai_sdk_provider::LanguageModel;
+//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = GroqClient::new()
@@ -142,9 +160,10 @@
 //!
 //! let model = provider.chat_model("llama-3.1-8b-instant");
 //!
-//! let result = GenerateText::new(model, Prompt::text("Hello"))
-//!     .execute()
-//!     .await?;
+//! let prompt = vec![LanguageModelMessage::user_text("Hello")];
+//! let options = LanguageModelCallOptions::new(prompt);
+//!
+//! let result = model.do_generate(options).await?;
 //!
 //! // Access Groq-specific metadata
 //! if let Some(provider_metadata) = &result.provider_metadata {

@@ -1,96 +1,145 @@
-# AI SDK - AssemblyAI Provider
+# AI SDK AssemblyAI
 
-The **AssemblyAI provider** for the [AI SDK](https://github.com/saribmah/ai-sdk) provides transcription model support for the AssemblyAI API.
+AssemblyAI provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - High-quality speech-to-text transcription with advanced features like speaker diarization, sentiment analysis, and PII redaction.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- 🎙️ High-quality speech-to-text transcription
-- 🗣️ Speaker diarization (identify different speakers)
-- 😊 Sentiment analysis
-- 📝 Auto-chapters and highlights
-- 🔒 PII redaction
-- 🌍 100+ language support
-- ⚡ Two models: `best` (highest accuracy) and `nano` (faster, lower cost)
+- **Transcription**: High-quality speech-to-text transcription with 100+ language support
+- **Speaker Diarization**: Identify and label different speakers in audio
+- **Sentiment Analysis**: Analyze sentiment of transcribed text
+- **Auto-Chapters and Highlights**: Automatically generate chapters and key highlights
+- **PII Redaction**: Redact personally identifiable information from transcripts
+- **Language Detection**: Automatic language detection for audio files
+- **Two Models**: `best` (highest accuracy) and `nano` (faster, lower cost)
 
-## Setup
+## Installation
 
-The AssemblyAI provider is available in the `ai-sdk-assemblyai` crate. You can add it to your project with:
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 ai-sdk-assemblyai = "0.1"
-ai-sdk-core = "*"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
+tokio = { version = "1", features = ["full"] }
 ```
 
-## Provider Instance
+## Quick Start
 
-### Recommended: Using the Client Builder
+### Using the Client Builder (Recommended)
+
+```rust
+use ai_sdk_assemblyai::AssemblyAIClient;
+use ai_sdk_provider::TranscriptionModel;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider using the client builder
+    let provider = AssemblyAIClient::new()
+        .api_key("your-api-key")  // Or use ASSEMBLYAI_API_KEY env var
+        .build();
+    
+    // Create a transcription model
+    let model = provider.transcription_model("best");
+    
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
+    Ok(())
+}
+```
+
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_assemblyai::{AssemblyAIProvider, AssemblyAIProviderSettings};
+use ai_sdk_provider::TranscriptionModel;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = AssemblyAIProvider::new(AssemblyAIProviderSettings::default());
+    
+    let model = provider.transcription_model("best");
+    
+    println!("Model: {}", model.model_id());
+    Ok(())
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Set your AssemblyAI API key as an environment variable:
+
+```bash
+export ASSEMBLYAI_API_KEY=your-api-key
+```
+
+### Using the Client Builder
 
 ```rust
 use ai_sdk_assemblyai::AssemblyAIClient;
 
 let provider = AssemblyAIClient::new()
     .api_key("your-api-key")
+    .header("Custom-Header", "value")
+    .polling_interval_ms(5000)  // Check transcription status every 5s
+    .name("my-assemblyai-provider")
     .build();
 ```
 
-If you don't provide an API key, it will be loaded from the `ASSEMBLYAI_API_KEY` environment variable:
+### Builder Methods
+
+The `AssemblyAIClient` builder supports:
+
+- `.api_key(key)` - Set the API key
+- `.name(name)` - Set provider name
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.polling_interval_ms(ms)` - Set polling interval for transcription status (default: 3000ms)
+- `.build()` - Build the provider
+
+## Supported Models
+
+AssemblyAI provides two transcription models:
+
+- **`best`**: Highest accuracy model (default)
+- **`nano`**: Faster processing with lower cost
 
 ```rust
-use ai_sdk_assemblyai::AssemblyAIClient;
+// Use the best model
+let model = provider.transcription_model("best");
 
-let provider = AssemblyAIClient::new().build();
+// Or use the nano model for faster processing
+let model = provider.transcription_model("nano");
 ```
 
-### Alternative: Direct Instantiation
+## Provider-Specific Options
+
+AssemblyAI supports advanced transcription features through provider options. These can be passed using the `ai-sdk-core` API or through the provider's direct interface.
+
+### Using Provider Options
 
 ```rust
-use ai_sdk_assemblyai::{AssemblyAIProvider, AssemblyAIProviderSettings};
-
-let provider = AssemblyAIProvider::new(
-    AssemblyAIProviderSettings::new()
-        .with_api_key("your-api-key")
-);
-```
-
-## Basic Example
-
-```rust
-use ai_sdk_assemblyai::{AssemblyAIClient, AssemblyAIProvider};
 use ai_sdk_core::Transcribe;
 use ai_sdk_provider::transcription_model::AudioInput;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create a provider
-    let provider = AssemblyAIClient::new()
-        .api_key("your-api-key")
-        .build();
-
-    let model = provider.transcription_model("best");
-
-    // Download audio file
-    let audio_url = "https://example.com/audio.mp3";
-    let audio_data = reqwest::get(audio_url).await?.bytes().await?;
-
-    // Transcribe
-    let result = Transcribe::new(model, AudioInput::Data(audio_data.to_vec()))
-        .execute()
-        .await?;
-
-    println!("Transcription: {}", result.text);
-    println!("Detected language: {:?}", result.language);
-    println!("Duration: {:?} seconds", result.duration_in_seconds);
-
-    Ok(())
-}
+// Enable speaker diarization
+let result = Transcribe::new(model, AudioInput::Data(audio_data))
+    .with_provider_options(serde_json::json!({
+        "speakerLabels": true,
+        "speakersExpected": 2
+    }))
+    .execute()
+    .await?;
 ```
 
-## Advanced Features
+### Advanced Features
 
-AssemblyAI supports many advanced features through provider options:
-
-### Speaker Diarization
+#### Speaker Diarization
 
 Identify different speakers in the audio:
 
@@ -104,9 +153,9 @@ let result = Transcribe::new(model, AudioInput::Data(audio_data))
     .await?;
 ```
 
-### Sentiment Analysis
+#### Sentiment Analysis
 
-Analyze the sentiment of the transcribed text:
+Analyze the sentiment of transcribed text:
 
 ```rust
 let result = Transcribe::new(model, AudioInput::Data(audio_data))
@@ -117,7 +166,7 @@ let result = Transcribe::new(model, AudioInput::Data(audio_data))
     .await?;
 ```
 
-### PII Redaction
+#### PII Redaction
 
 Redact personally identifiable information:
 
@@ -131,7 +180,7 @@ let result = Transcribe::new(model, AudioInput::Data(audio_data))
     .await?;
 ```
 
-### Auto Chapters and Highlights
+#### Auto-Chapters and Highlights
 
 Generate chapters and highlights automatically:
 
@@ -145,7 +194,7 @@ let result = Transcribe::new(model, AudioInput::Data(audio_data))
     .await?;
 ```
 
-### Language Detection
+#### Language Detection
 
 Automatically detect the language:
 
@@ -158,7 +207,7 @@ let result = Transcribe::new(model, AudioInput::Data(audio_data))
     .await?;
 ```
 
-## Provider Options
+### Available Provider Options
 
 All available provider options:
 
@@ -197,91 +246,30 @@ All available provider options:
 | `webhookUrl` | `string` | Webhook URL for notifications |
 | `wordBoost` | `array` | Words to boost recognition for |
 
-## Models
 
-AssemblyAI provides two transcription models:
-
-- **`best`**: Highest accuracy model (default)
-- **`nano`**: Faster processing, lower cost
-
-```rust
-// Use the best model
-let model = provider.transcription_model("best");
-
-// Or use the nano model for faster processing
-let model = provider.transcription_model("nano");
-```
-
-## Configuration
-
-### API Key
-
-Set your AssemblyAI API key either directly or via environment variable:
-
-```rust
-// Direct
-let provider = AssemblyAIClient::new()
-    .api_key("your-api-key")
-    .build();
-
-// Or use ASSEMBLYAI_API_KEY environment variable
-let provider = AssemblyAIClient::new().build();
-```
-
-### Custom Headers
-
-Add custom headers to requests:
-
-```rust
-let provider = AssemblyAIClient::new()
-    .api_key("your-api-key")
-    .header("X-Custom-Header", "value")
-    .build();
-```
-
-### Polling Interval
-
-Configure how often to check transcription status (default 3000ms):
-
-```rust
-let provider = AssemblyAIClient::new()
-    .api_key("your-api-key")
-    .polling_interval_ms(5000)  // Check every 5 seconds
-    .build();
-```
-
-## Error Handling
-
-The provider returns detailed error information:
-
-```rust
-match Transcribe::new(model, AudioInput::Data(audio_data))
-    .execute()
-    .await
-{
-    Ok(result) => println!("Success: {}", result.text),
-    Err(e) => eprintln!("Transcription error: {}", e),
-}
-```
 
 ## Examples
 
 See the `examples/` directory for complete examples:
 
-- `basic_transcription.rs` - Basic transcription from URL
-- `transcription_with_options.rs` - Using advanced features
+- `transcription.rs` - Basic transcription using `do_generate()` directly
 
 Run examples with:
 
 ```bash
-cargo run --example basic_transcription
-cargo run --example transcription_with_options
+cargo run --example transcription
 ```
 
 ## Documentation
 
-For more information, see the [AssemblyAI API documentation](https://www.assemblyai.com/docs).
+- [API Documentation](https://docs.rs/ai-sdk-assemblyai)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [AssemblyAI API Reference](https://www.assemblyai.com/docs)
 
 ## License
 
 Apache-2.0
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.

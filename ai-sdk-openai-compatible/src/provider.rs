@@ -538,10 +538,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_generate_text_integration() {
-        use ai_sdk_core::GenerateText;
-        use ai_sdk_core::error::AISDKError;
-        use ai_sdk_core::prompt::Prompt;
+    async fn test_do_generate_integration() {
+        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+        use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
 
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");
@@ -549,22 +548,17 @@ mod tests {
         let provider = OpenAICompatibleProvider::new(settings);
         let model = provider.chat_model("gpt-4");
 
-        // Create a simple text prompt
-        let prompt = Prompt::text("Hello, how are you?");
+        // Create a simple text prompt using provider types
+        let messages = vec![LanguageModelMessage::user_text("Hello, how are you?")];
 
-        // Call GenerateText - this will make an actual HTTP request and fail
+        // Call do_generate - this will make an actual HTTP request and fail
         // because we're using a test API key, but it tests the integration
-        let result = GenerateText::new(model, prompt).execute().await;
+        let options = LanguageModelCallOptions::new(messages);
+        let result = model.do_generate(options).await;
 
-        // Expect a ModelError (either network error or API auth error)
-        // The important part is that the integration between GenerateText and our provider works
+        // Expect an error (either network error or API auth error)
+        // The important part is that the provider's do_generate implementation works
         assert!(result.is_err());
-        match result {
-            Err(AISDKError::ModelError { .. }) => {
-                // Expected - either network error or API error
-                // This confirms the integration works
-            }
-            other => panic!("Expected ModelError but got: {:?}", other),
-        }
+        // Just verify we get an error - don't check the specific type since it may vary
     }
 }

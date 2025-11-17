@@ -21,21 +21,4 @@ async-trait = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }
-ai-sdk-core = { path = "../ai-sdk-core", version = "0.1.0" }
 futures-util = "0.3"
-
-[[example]]
-name = "baseten_basic_chat"
-path = "examples/baseten_basic_chat.rs"
-
-[[example]]
-name = "baseten_custom_chat"
-path = "examples/baseten_custom_chat.rs"
-
-[[example]]
-name = "baseten_embeddings"
-path = "examples/baseten_embeddings.rs"
-
-[[example]]
-name = "baseten_streaming"
-path = "examples/baseten_streaming.rs"

@@ -1,16 +1,19 @@
-# ai-sdk-xai
+# AI SDK xAI
 
-xAI (Grok) provider implementation for the AI SDK in Rust.
+xAI (Grok) provider for [AI SDK Rust](https://github.com/saribmah/ai-sdk) - Complete integration with xAI's Grok models featuring reasoning capabilities, integrated search, and image generation.
+
+> **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 
 ## Features
 
-- 🤖 **Chat Completions** - Full support for xAI's Grok models
-- 🎨 **Image Generation** - Create images with grok-2-image
-- 🧠 **Reasoning Mode** - Access model reasoning with reasoning_effort parameter
-- 🔍 **Integrated Search** - Web, X (Twitter), news, and RSS search capabilities
-- 📚 **Citations** - Automatic citation extraction from search results
-- 🛠️ **Tool Calling** - Full tool/function calling support
-- ⚡ **Async/Await** - Built on Tokio for high performance
+- **Text Generation**: Full support for Grok models with streaming and tool calling
+- **Streaming**: Real-time response streaming with Server-Sent Events
+- **Tool Calling**: Complete function calling support with tool execution
+- **Image Generation**: Create images with grok-2-image model
+- **Reasoning Mode**: Access model reasoning with configurable effort levels
+- **Integrated Search**: Web, X (Twitter), news, and RSS search capabilities
+- **Citations**: Automatic citation extraction from search results
+- **Response Format**: JSON mode and structured outputs with JSON schema
 
 ## Installation
 
@@ -18,39 +21,65 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-xai = "0.1.0"
-ai-sdk-core = "0.1.0"
+ai-sdk-xai = "0.1"
+ai-sdk-core = "0.1"
+ai-sdk-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ## Quick Start
 
-### Basic Chat
+### Using the Client Builder (Recommended)
 
 ```rust
 use ai_sdk_xai::XaiClient;
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use ai_sdk_provider::{Provider, LanguageModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create provider (reads XAI_API_KEY from environment)
-    let provider = XaiClient::new().build();
+    // Create provider using the client builder
+    let provider = XaiClient::new()
+        .api_key("your-api-key")  // Or use XAI_API_KEY env var
+        .build();
     
-    // Get a chat model
-    let model = provider.chat_model("grok-3-fast");
+    // Create a language model
+    let model = provider.chat_model("grok-4");
     
-    // Generate text
-    let result = GenerateText::new(
-        model,
-        Prompt::text("What is the capital of France?")
-    ).execute().await?;
-    
-    println!("{}", result.text);
+    println!("Model: {}", model.model_id());
+    println!("Provider: {}", model.provider());
     Ok(())
 }
 ```
 
-### With Custom Configuration
+### Using Settings Directly (Alternative)
+
+```rust
+use ai_sdk_xai::{XaiProvider, XaiProviderSettings};
+use ai_sdk_provider::{Provider, LanguageModel};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create provider with settings
+    let provider = XaiProvider::new(XaiProviderSettings::default());
+    
+    let model = provider.chat_model("grok-4");
+    
+    println!("Model: {}", model.model_id());
+    Ok(())
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Set your xAI API key as an environment variable:
+
+```bash
+export XAI_API_KEY=your-api-key
+```
+
+### Using the Client Builder
 
 ```rust
 use ai_sdk_xai::XaiClient;
@@ -59,147 +88,126 @@ let provider = XaiClient::new()
     .api_key("your-api-key")
     .base_url("https://api.x.ai/v1")
     .header("X-Custom-Header", "value")
+    .name("my-xai-provider")
     .build();
-
-let model = provider.chat_model("grok-4");
 ```
 
-### Streaming
+### Builder Methods
 
-```rust
-use ai_sdk_xai::XaiClient;
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use futures_util::StreamExt;
+The `XaiClient` builder supports:
 
-let provider = XaiClient::new().build();
-let model = provider.chat_model("grok-2-1212");
+- `.api_key(key)` - Set the API key
+- `.base_url(url)` - Set custom base URL
+- `.name(name)` - Set provider name
+- `.header(key, value)` - Add a single custom header
+- `.headers(map)` - Add multiple custom headers
+- `.build()` - Build the provider
 
-let result = StreamText::new(model, Prompt::text("Tell me a story"))
-    .temperature(0.8)
-    .execute()
-    .await?;
-
-let mut text_stream = result.text_stream();
-while let Some(text_delta) = text_stream.next().await {
-    print!("{}", text_delta);
-}
-```
-
-### Image Generation
-
-```rust
-use ai_sdk_xai::XaiClient;
-use ai_sdk_core::GenerateImage;
-
-let provider = XaiClient::new().build();
-let model = provider.image_model("grok-2-image");
-
-let result = GenerateImage::new(
-    model,
-    "A futuristic cityscape at sunset".to_string(),
-)
-.n(2)
-.execute()
-.await?;
-
-println!("Generated {} images", result.images.len());
-```
-
-## Available Models
+## Supported Models
 
 ### Chat Models
 
-- `grok-4-fast-non-reasoning` - Fast model without reasoning
-- `grok-4-fast-reasoning` - Fast model with reasoning capabilities
-- `grok-code-fast-1` - Optimized for code generation
-- `grok-4` - Latest Grok-4 model
-- `grok-3` - Grok-3 model
-- `grok-3-fast` - Faster Grok-3 variant
-- `grok-3-mini` - Smaller, efficient model
-- `grok-2-vision-1212` - Vision-capable model
-- And more...
+- **`grok-4`** - Latest Grok-4 model with advanced capabilities
+- **`grok-4-fast-reasoning`** - Fast model with reasoning capabilities
+- **`grok-4-fast-non-reasoning`** - Fast model without reasoning
+- **`grok-code-fast-1`** - Optimized for code generation
+- **`grok-3`** - Grok-3 base model
+- **`grok-3-fast`** - Faster Grok-3 variant
+- **`grok-3-mini`** - Smaller, efficient model
+- **`grok-2-vision-1212`** - Vision-capable model
+- **`grok-2-1212`** - Grok-2 model with December 2024 updates
+- **`grok-beta`** - Beta model with latest features
+
+```rust
+// Create a chat model
+let model = provider.chat_model("grok-4");
+```
 
 ### Image Models
 
-- `grok-2-image` - Image generation model
-
-## xAI-Specific Features
-
-### Tool Calling
+- **`grok-2-image`** - Image generation model
 
 ```rust
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_provider_utils::tool::Tool;
-use serde_json::json;
-use std::sync::Arc;
-
-// Define a tool
-let weather_tool = Tool::function(json!({
-    "type": "object",
-    "properties": {
-        "city": {"type": "string", "description": "The city name"}
-    },
-    "required": ["city"]
-}))
-.with_description("Get the current weather for a city")
-.with_execute(Arc::new(|input, _| {
-    // Tool execution logic
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
-    let result = json!({"temperature": 72, "conditions": "sunny"});
-    ToolExecutionOutput::Single(Box::pin(async move { Ok(result) }))
-}));
-
-// Create tool set
-let mut tools = ToolSet::new();
-tools.insert("get_weather".to_string(), weather_tool);
-
-// Use with GenerateText
-let result = GenerateText::new(model, prompt)
-    .tools(tools)
-    .execute()
-    .await?;
+// Create an image model
+let model = provider.image_model("grok-2-image");
 ```
+
+## Provider-Specific Options
+
+xAI supports advanced features through provider options that can be passed using the `ai-sdk-core` API.
 
 ### Reasoning Mode
 
-```rust
-use ai_sdk_xai::{XaiClient, XaiProviderOptions};
-use serde_json::json;
+Control the model's reasoning effort level:
 
-let provider = XaiClient::new().build();
-let model = provider.chat_model("grok-2-1212");
+```rust
+use ai_sdk_core::GenerateText;
+use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
     .provider_options(json!({
-        "reasoningEffort": "high"
+        "reasoningEffort": "high"  // "low", "medium", or "high"
     }))
     .execute()
     .await?;
 ```
 
-### Integrated Search
+Access reasoning content in the response:
 
 ```rust
-use ai_sdk_xai::{XaiClient, SearchParameters, SearchSource};
-use serde_json::json;
+// Reasoning content is automatically extracted to result.content
+for content in result.content {
+    if let ai_sdk_core::output::Output::Reasoning(reasoning) = content {
+        println!("Model reasoning: {}", reasoning.text);
+    }
+}
+```
 
-let provider = XaiClient::new().build();
-let model = provider.chat_model("grok-2-1212");
+### Integrated Search
+
+Enable web, X (Twitter), news, or RSS search:
+
+```rust
+use ai_sdk_core::GenerateText;
+use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
     .provider_options(json!({
         "searchParameters": {
-            "recencyFilter": "day",
-            "sources": [{"type": "web"}]
+            "recencyFilter": "day",  // "hour", "day", "week", "month", "year"
+            "sources": [
+                {"type": "web"},
+                {"type": "x"},       // X (Twitter) search
+                {"type": "news"},
+                {"type": "rss", "url": "https://example.com/feed.xml"}
+            ]
         }
     }))
     .execute()
     .await?;
 ```
 
-### Response Format (JSON Mode)
+### Citations
+
+Citations are automatically extracted from search results:
 
 ```rust
+let result = GenerateText::new(model, prompt).execute().await?;
+
+// Citations available in result.content
+for content in result.content {
+    if let ai_sdk_core::output::Output::Source(source) = content {
+        println!("Source: {} - {}", source.title, source.url);
+    }
+}
+```
+
+### Response Format (JSON Mode)
+
+Force structured JSON outputs:
+
+```rust
+use ai_sdk_core::GenerateText;
 use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
 use serde_json::json;
 
@@ -233,62 +241,62 @@ let result = GenerateText::new(model, prompt)
     .await?;
 ```
 
-### Citations
+### Parallel Function Calling
 
-Citations are automatically extracted and included in the response:
+Control parallel tool execution:
 
 ```rust
-let result = GenerateText::new(model, prompt).execute().await?;
+use ai_sdk_core::GenerateText;
+use serde_json::json;
 
-// Citations available in result.content
-for content in result.content {
-    if let ai_sdk_core::output::Output::Source(source) = content {
-        println!("Source: {}", source.url);
-    }
-}
+let result = GenerateText::new(model, prompt)
+    .tools(tools)
+    .provider_options(json!({
+        "parallelFunctionCalling": true
+    }))
+    .execute()
+    .await?;
 ```
 
-## Environment Variables
+### Available Provider Options
 
-- `XAI_API_KEY` - Your xAI API key (automatically used if not provided explicitly)
+| Option | Type | Description |
+|--------|------|-------------|
+| `reasoningEffort` | `string` | Reasoning effort level: "low", "medium", "high" |
+| `searchParameters.recencyFilter` | `string` | Time filter: "hour", "day", "week", "month", "year" |
+| `searchParameters.sources` | `array` | Search sources: web, x, news, rss |
+| `parallelFunctionCalling` | `bool` | Enable parallel tool execution |
 
 ## Examples
 
-See the `examples/` directory for more:
+See the `examples/` directory for complete examples:
 
-- `xai_basic_chat.rs` - Simple chat completion
-- `xai_streaming_chat.rs` - Streaming response
-- `xai_provider_options.rs` - Provider-specific options (reasoning effort, search parameters)
-- `xai_tool_calling.rs` - Tool/function calling with xAI models
-- `xai_response_format.rs` - JSON mode and structured outputs
+- `chat.rs` - Basic chat completion using `do_generate()` directly
+- `stream.rs` - Streaming responses using `do_stream()` directly
+- `chat_tool_calling.rs` - Tool calling using `do_generate()` directly
+- `stream_tool_calling.rs` - Streaming with tools using `do_stream()` directly
+- `image_generation.rs` - Image generation using `do_generate()` directly
 
-## Status
+Run examples with:
 
-### ✅ Implemented
-- Chat completions (non-streaming & streaming)
-- Streaming with Server-Sent Events (SSE)
-- Text, reasoning, and tool call deltas
-- Image generation  
-- Error handling
-- Multiple model support
-- Basic configuration
-- Citations extraction
-- Reasoning content support
-- Usage tracking (including reasoning tokens)
-- **Provider-specific options** (reasoning_effort, search_parameters, parallel_function_calling)
-- **Tool calling** (function tools with full lifecycle support)
-- **Response format** (JSON mode, structured outputs with JSON schema)
+```bash
+export XAI_API_KEY="your-api-key"
+cargo run --example chat
+cargo run --example stream
+cargo run --example image_generation
+```
 
-### 🚧 Coming Soon
-- Responses API (agentic mode)
-- Provider-defined tools (webSearch, xSearch, etc.)
+## Documentation
+
+- [API Documentation](https://docs.rs/ai-sdk-xai)
+- [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
+- [xAI API Reference](https://docs.x.ai/)
+- [xAI Console](https://console.x.ai/)
 
 ## License
 
 MIT
 
-## Links
+## Contributing
 
-- [xAI API Documentation](https://docs.x.ai/)
-- [xAI Console](https://console.x.ai/)
-- [AI SDK Rust Documentation](https://github.com/your-repo)
+Contributions are welcome! Please see the [Contributing Guide](../CONTRIBUTING.md) for more details.
