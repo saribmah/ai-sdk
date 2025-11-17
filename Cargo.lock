@@ -93,6 +93,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-sdk-cerebras"
+version = "0.1.0"
+dependencies = [
+ "ai-sdk-openai-compatible",
+ "ai-sdk-provider",
+ "ai-sdk-provider-utils",
+ "async-trait",
+ "dotenvy",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "ai-sdk-core"
 version = "0.1.0"
 dependencies = [
@@ -160,6 +175,7 @@ name = "ai-sdk-examples"
 version = "0.1.0"
 dependencies = [
  "ai-sdk-azure",
+ "ai-sdk-cerebras",
  "ai-sdk-core",
  "ai-sdk-groq",
  "ai-sdk-openai-compatible",
@@ -170,6 +186,7 @@ dependencies = [
  "ai-sdk-xai",
  "async-trait",
  "chrono",
+ "dotenvy",
  "futures-util",
  "schemars",
  "serde",
