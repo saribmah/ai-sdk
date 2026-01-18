@@ -9,7 +9,7 @@ description = "Filesystem storage provider for AI SDK Rust"
 
 [dependencies]
 # Workspace dependencies
-ai-sdk-storage = { path = "../ai-sdk-storage" }
+ai-sdk-storage = { path = "../ai-sdk-storage", version = "0.1.0" }
 
 # Async trait support
 async-trait = "0.1"

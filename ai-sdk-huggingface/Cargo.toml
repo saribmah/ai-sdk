@@ -10,8 +10,8 @@ keywords = ["ai", "llm", "huggingface", "language-model"]
 categories = ["api-bindings"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 
 # Async runtime
 tokio = { version = "1.42", features = ["full"] }

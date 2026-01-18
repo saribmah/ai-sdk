@@ -10,8 +10,8 @@ keywords = ["ai", "assemblyai", "transcription", "speech-to-text"]
 categories = ["api-bindings"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 async-trait = "0.1"
 base64 = "0.22"
 reqwest = { version = "0.12", features = ["json", "multipart"] }

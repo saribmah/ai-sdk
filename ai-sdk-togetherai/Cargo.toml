@@ -8,8 +8,8 @@ keywords = ["ai", "llm", "togetherai"]
 categories = ["api-bindings"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider" }
-ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible" }
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
 async-trait = "0.1"
 reqwest = { version = "0.12", features = ["json", "stream"] }
 serde = { version = "1.0", features = ["derive"] }

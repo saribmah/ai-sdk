@@ -11,7 +11,7 @@ categories = ["api-bindings", "asynchronous"]
 readme = "../README.md"
 
 [dependencies]
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }  # Provider utils types and traits
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }  # Provider utils types and traits
 tokio = { version = "1.41", features = ["time"] }  # For async runtime and sleep
 tokio-util = "0.7.16"  # For CancellationToken (equivalent to AbortSignal)
 thiserror = "2.0.9"    # For error handling
@@ -21,8 +21,8 @@ serde_json = "1.0.145" # For JSON values
 serde_bytes = "0.11"   # For efficient byte array serialization
 schemars = "0.8"       # For JSON schema generation from Rust types
 url = "2.5.7"          # For URL parsing
-ai-sdk-provider = { path = "../ai-sdk-provider" }  # Provider types and traits
-ai-sdk-storage = { path = "../ai-sdk-storage", optional = true }  # Optional storage functionality
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }  # Provider types and traits
+ai-sdk-storage = { path = "../ai-sdk-storage", version = "0.1.0", optional = true }  # Optional storage functionality
 async-stream = "0.3"   # For async generators
 futures-util = "0.3"   # For Stream trait and StreamExt
 async-trait = "0.1.89" # For async trait implementations
@@ -41,5 +41,5 @@ storage = ["ai-sdk-storage", "chrono"]  # Enable storage functionality
 tokio = { version = "1.41", features = ["macros", "rt"] }  # For async tests
 async-trait = "0.1.89"  # For async trait implementations in tests
 regex = "1.12.2"  # For Regex in tests
-ai-sdk-storage-filesystem = { path = "../ai-sdk-storage-filesystem" }  # For storage tests
+ai-sdk-storage-filesystem = { path = "../ai-sdk-storage-filesystem", version = "0.1.0" }  # For storage tests
 tempfile = "3.0"  # For temporary directories in storage tests

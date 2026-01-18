@@ -12,8 +12,8 @@ readme = "README.md"
 documentation = "https://docs.rs/ai-sdk-anthropic"
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils" }
+ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 async-trait = "0.1"
 base64 = "0.22.1"
 regex = "1.11"
