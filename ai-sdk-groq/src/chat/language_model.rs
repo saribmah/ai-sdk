@@ -1,4 +1,4 @@
-use ai_sdk_openai_compatible::OpenAICompatibleChatLanguageModel;
+use llm_kit_openai_compatible::OpenAICompatibleChatLanguageModel;
 
 /// Groq chat language model implementation.
 ///
@@ -6,4 +6,4 @@ use ai_sdk_openai_compatible::OpenAICompatibleChatLanguageModel;
 pub type GroqChatLanguageModel = OpenAICompatibleChatLanguageModel;
 
 // Re-export config type for consistency
-pub use ai_sdk_openai_compatible::OpenAICompatibleChatConfig as GroqChatConfig;
+pub use llm_kit_openai_compatible::OpenAICompatibleChatConfig as GroqChatConfig;

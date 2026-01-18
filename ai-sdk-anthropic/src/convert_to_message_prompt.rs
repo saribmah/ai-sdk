@@ -9,14 +9,14 @@ use crate::prompt::message::content::tool_result::{
 };
 use crate::prompt::message::user::{AnthropicUserMessage, UserMessageContent};
 use crate::provider_metadata_utils::{get_document_metadata, should_enable_citations};
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::prompt::message::{
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessage, LanguageModelDataContent, LanguageModelSystemMessage,
     LanguageModelToolMessage, LanguageModelToolResultContentItem, LanguageModelToolResultOutput,
     LanguageModelUserMessage,
 };
-use ai_sdk_provider::language_model::prompt::{LanguageModelMessage, LanguageModelPrompt};
+use llm_kit_provider::language_model::prompt::{LanguageModelMessage, LanguageModelPrompt};
 use std::collections::HashSet;
 
 /// A block of system messages
@@ -72,13 +72,13 @@ impl Block {
 /// Helper to extract provider_options from user message part
 #[allow(dead_code)]
 fn get_part_provider_options(
-    part: &ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessagePart,
-) -> &Option<ai_sdk_provider::shared::provider_options::SharedProviderOptions> {
+    part: &llm_kit_provider::language_model::prompt::message::LanguageModelUserMessagePart,
+) -> &Option<llm_kit_provider::shared::provider_options::SharedProviderOptions> {
     match part {
-        ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessagePart::Text(
+        llm_kit_provider::language_model::prompt::message::LanguageModelUserMessagePart::Text(
             text_part,
         ) => &text_part.provider_options,
-        ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessagePart::File(
+        llm_kit_provider::language_model::prompt::message::LanguageModelUserMessagePart::File(
             file_part,
         ) => &file_part.provider_options,
     }
@@ -87,22 +87,22 @@ fn get_part_provider_options(
 /// Helper to extract provider_options from assistant message part
 #[allow(dead_code)]
 fn get_assistant_part_provider_options(
-    part: &ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart,
-) -> &Option<ai_sdk_provider::shared::provider_options::SharedProviderOptions> {
+    part: &llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart,
+) -> &Option<llm_kit_provider::shared::provider_options::SharedProviderOptions> {
     match part {
-        ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Text(text_part) => {
+        llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Text(text_part) => {
             &text_part.provider_options
         }
-        ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::File(file_part) => {
+        llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::File(file_part) => {
             &file_part.provider_options
         }
-        ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Reasoning(reasoning_part) => {
+        llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Reasoning(reasoning_part) => {
             &reasoning_part.provider_options
         }
-        ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
+        llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
             &tool_call_part.provider_options
         }
-        ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolResult(tool_result_part) => {
+        llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolResult(tool_result_part) => {
             &tool_result_part.provider_options
         }
     }
@@ -265,9 +265,9 @@ pub struct ConvertToMessagePromptResult {
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_anthropic::convert_to_message_prompt::{convert_to_message_prompt, ConvertToMessagePromptResult};
-/// use ai_sdk_anthropic::get_cache_control::CacheControlValidator;
-/// use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+/// use llm_kit_anthropic::convert_to_message_prompt::{convert_to_message_prompt, ConvertToMessagePromptResult};
+/// use llm_kit_anthropic::get_cache_control::CacheControlValidator;
+/// use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 ///
 /// let prompt = vec![
 ///     LanguageModelMessage::user_text("Hello!"),
@@ -366,7 +366,7 @@ pub fn convert_to_message_prompt(
                             });
 
                         match part {
-                            ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Text(text_part) => {
+                            llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Text(text_part) => {
                                 let text = if _is_last_block && is_last_message && is_last_content_part {
                                     // Trim the last text part if it's the last message in the block
                                     // because Anthropic does not allow trailing whitespace
@@ -382,7 +382,7 @@ pub fn convert_to_message_prompt(
                                 }
                                 anthropic_content.push(text_content.into());
                             }
-                            ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Reasoning(reasoning_part) => {
+                            llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::Reasoning(reasoning_part) => {
                                 if _send_reasoning {
                                     if let Some(reasoning_metadata) = crate::provider_metadata_utils::get_reasoning_metadata(
                                         reasoning_part.provider_options.as_ref()
@@ -432,7 +432,7 @@ pub fn convert_to_message_prompt(
                                     ));
                                 }
                             }
-                            ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
+                            llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolCall(tool_call_part) => {
                                 // Handle provider-executed tool calls
                                 if tool_call_part.provider_executed.unwrap_or(false) {
                                     // Check if this is an MCP tool use
@@ -538,14 +538,14 @@ pub fn convert_to_message_prompt(
                                 }
                                 anthropic_content.push(tool_call.into());
                             }
-                            ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolResult(_tool_result_part) => {
+                            llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::ToolResult(_tool_result_part) => {
                                 // Tool results in assistant messages will be handled in the next part
                                 // For now, we'll add a placeholder warning
                                 _warnings.push(LanguageModelCallWarning::other(
                                     "tool result conversion in assistant messages not yet implemented".to_string()
                                 ));
                             }
-                            ai_sdk_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::File(_file_part) => {
+                            llm_kit_provider::language_model::prompt::message::LanguageModelAssistantMessagePart::File(_file_part) => {
                                 // Files in assistant messages are not directly supported
                                 _warnings.push(LanguageModelCallWarning::other(
                                     "file content in assistant messages is not supported by Anthropic".to_string()
@@ -591,14 +591,14 @@ pub fn convert_to_message_prompt(
                                     });
 
                                 match part {
-                                    ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessagePart::Text(text_part) => {
+                                    llm_kit_provider::language_model::prompt::message::LanguageModelUserMessagePart::Text(text_part) => {
                                         let mut text_content = AnthropicTextContent::new(&text_part.text);
                                         if let Some(cc) = cache_control {
                                             text_content = text_content.with_cache_control(cc);
                                         }
                                         anthropic_content.push(text_content.into());
                                     }
-                                    ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessagePart::File(file_part) => {
+                                    llm_kit_provider::language_model::prompt::message::LanguageModelUserMessagePart::File(file_part) => {
                                         // Handle different file types based on media type
                                         if file_part.media_type.starts_with("image/") {
                                             // Image file
@@ -875,7 +875,7 @@ pub fn convert_to_message_prompt(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::prompt::message::LanguageModelSystemMessage;
+    use llm_kit_provider::language_model::prompt::message::LanguageModelSystemMessage;
 
     #[test]
     fn test_convert_single_system_message() {

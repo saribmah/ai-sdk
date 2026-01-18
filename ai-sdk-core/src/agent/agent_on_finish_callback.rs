@@ -1,5 +1,5 @@
 use crate::generate_text::StepResult;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -67,7 +67,7 @@ impl AgentFinishEvent {
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::AgentOnFinishCallback;
+/// use llm_kit_core::agent::AgentOnFinishCallback;
 /// use std::sync::Arc;
 ///
 /// let on_finish: AgentOnFinishCallback = Arc::new(|event| {
@@ -93,7 +93,7 @@ mod tests {
     use super::*;
     use crate::generate_text::{RequestMetadata, StepResponseMetadata};
     use crate::output::{Output, TextOutput};
-    use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+    use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 
     fn create_test_step(usage: LanguageModelUsage) -> StepResult {
         StepResult::new(

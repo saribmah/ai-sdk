@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
 
-use ai_sdk_provider_utils::tool::{Tool, ToolExecuteFunction, ToolExecutionOutput};
+use llm_kit_provider_utils::tool::{Tool, ToolExecuteFunction, ToolExecutionOutput};
 
 #[cfg(test)]
-use ai_sdk_provider_utils::tool::ToolExecuteOptions;
+use llm_kit_provider_utils::tool::ToolExecuteOptions;
 
 /// A trait for defining type-safe tools with compile-time checked input and output types.
 ///
@@ -22,7 +22,7 @@ use ai_sdk_provider_utils::tool::ToolExecuteOptions;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::tool::TypeSafeTool;
+/// use llm_kit_core::tool::TypeSafeTool;
 /// use serde::{Deserialize, Serialize};
 /// use schemars::JsonSchema;
 /// use async_trait::async_trait;
@@ -149,7 +149,7 @@ pub trait TypeSafeTool: Send + Sync {
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::create_tool;
+/// use llm_kit_core::create_tool;
 /// # use serde::{Deserialize, Serialize};
 /// # use schemars::JsonSchema;
 /// # #[derive(Serialize, Deserialize, JsonSchema)]

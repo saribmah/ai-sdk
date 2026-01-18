@@ -26,7 +26,7 @@ impl McpNestedTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::McpNestedTextContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::McpNestedTextContent;
     ///
     /// let text = McpNestedTextContent::new("MCP tool result text");
     /// ```
@@ -90,7 +90,7 @@ impl From<Vec<McpNestedTextContent>> for McpToolResultContentType {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::{
 ///     AnthropicMcpToolResultContent, McpToolResultContentType
 /// };
 ///
@@ -140,7 +140,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::{
     ///     AnthropicMcpToolResultContent, McpToolResultContentType
     /// };
     ///
@@ -175,7 +175,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
     ///
     /// let result = AnthropicMcpToolResultContent::from_string(
     ///     "mcp_toolu_123",
@@ -206,7 +206,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::{
     ///     AnthropicMcpToolResultContent, McpNestedTextContent
     /// };
     ///
@@ -238,7 +238,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
     ///
     /// let result = AnthropicMcpToolResultContent::success(
     ///     "mcp_toolu_123",
@@ -259,7 +259,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
     ///
     /// let result = AnthropicMcpToolResultContent::error(
     ///     "mcp_toolu_123",
@@ -279,7 +279,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
     ///
     /// let result = AnthropicMcpToolResultContent::success("old_id", "Success")
     ///     .with_tool_use_id("new_id");
@@ -299,7 +299,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
     ///
     /// let result = AnthropicMcpToolResultContent::success("id", "Success")
     ///     .with_error(true);
@@ -319,7 +319,7 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::{
     ///     AnthropicMcpToolResultContent, McpToolResultContentType
     /// };
     ///
@@ -340,8 +340,8 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicMcpToolResultContent::success("id", "Success")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -356,8 +356,8 @@ impl AnthropicMcpToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_result::AnthropicMcpToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicMcpToolResultContent::success("id", "Success")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))

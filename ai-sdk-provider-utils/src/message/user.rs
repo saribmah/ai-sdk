@@ -1,5 +1,5 @@
 use super::content_parts::{FilePart, ImagePart, TextPart};
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content of a user message. It can be a string or an array of text, image, and file parts.

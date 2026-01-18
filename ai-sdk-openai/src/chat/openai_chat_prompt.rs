@@ -2,14 +2,14 @@
 //!
 //! Converts SDK prompt messages to OpenAI chat API format.
 
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::prompt::LanguageModelPrompt;
-use ai_sdk_provider::language_model::prompt::message::{
+use base64::Engine;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::prompt::LanguageModelPrompt;
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessage, LanguageModelAssistantMessagePart, LanguageModelMessage,
     LanguageModelSystemMessage, LanguageModelToolMessage, LanguageModelUserMessage,
     LanguageModelUserMessagePart,
 };
-use base64::Engine;
 use serde_json::{Value as JsonValue, json};
 
 /// OpenAI chat prompt is an array of messages.
@@ -134,13 +134,13 @@ fn convert_user_message(
                     };
 
                     let url = match &file_part.data {
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Url(url) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Url(url) => {
                             url.to_string()
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
                             format!("data:{};base64,{}", actual_media_type, base64_str)
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
                             let base64_str = base64::engine::general_purpose::STANDARD.encode(bytes);
                             format!("data:{};base64,{}", actual_media_type, base64_str)
                         }
@@ -155,12 +155,12 @@ fn convert_user_message(
                 } else if media_type.starts_with("audio/") {
                     // Handle audio
                     match &file_part.data {
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Url(_) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Url(_) => {
                             warnings.push(LanguageModelCallWarning::other(
                                 "audio file parts with URLs are not supported"
                             ));
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
                             let format = match media_type.as_str() {
                                 "audio/wav" => "wav",
                                 "audio/mp3" | "audio/mpeg" => "mp3",
@@ -180,7 +180,7 @@ fn convert_user_message(
                                 }
                             }));
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
                             let base64_str = base64::engine::general_purpose::STANDARD.encode(bytes);
                             let format = match media_type.as_str() {
                                 "audio/wav" => "wav",
@@ -205,12 +205,12 @@ fn convert_user_message(
                 } else if media_type == "application/pdf" {
                     // Handle PDF files
                     match &file_part.data {
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Url(_) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Url(_) => {
                             warnings.push(LanguageModelCallWarning::other(
                                 "PDF file parts with URLs are not supported"
                             ));
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Base64(base64_str) => {
                             // Check if it's a file ID
                             if base64_str.starts_with("file-") {
                                 content_parts.push(json!({
@@ -231,7 +231,7 @@ fn convert_user_message(
                                 }));
                             }
                         }
-                        ai_sdk_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
+                        llm_kit_provider::language_model::prompt::message::LanguageModelDataContent::Bytes(bytes) => {
                             let base64_str = base64::engine::general_purpose::STANDARD.encode(bytes);
                             let filename = file_part.filename.clone()
                                 .unwrap_or_else(|| format!("part-{}.pdf", index));
@@ -300,19 +300,19 @@ fn convert_assistant_message(msg: &LanguageModelAssistantMessage, messages: &mut
 fn convert_tool_message(msg: &LanguageModelToolMessage, messages: &mut OpenAIChatPrompt) {
     for tool_response in &msg.content {
         let content_value = match &tool_response.output {
-            ai_sdk_provider::language_model::prompt::message::LanguageModelToolResultOutput::Text { value } => {
+            llm_kit_provider::language_model::prompt::message::LanguageModelToolResultOutput::Text { value } => {
                 value.clone()
             }
-            ai_sdk_provider::language_model::prompt::message::LanguageModelToolResultOutput::ErrorText { value } => {
+            llm_kit_provider::language_model::prompt::message::LanguageModelToolResultOutput::ErrorText { value } => {
                 value.clone()
             }
-            ai_sdk_provider::language_model::prompt::message::LanguageModelToolResultOutput::Content { value } => {
+            llm_kit_provider::language_model::prompt::message::LanguageModelToolResultOutput::Content { value } => {
                 serde_json::to_string(value).unwrap_or_default()
             }
-            ai_sdk_provider::language_model::prompt::message::LanguageModelToolResultOutput::Json { value } => {
+            llm_kit_provider::language_model::prompt::message::LanguageModelToolResultOutput::Json { value } => {
                 serde_json::to_string(value).unwrap_or_default()
             }
-            ai_sdk_provider::language_model::prompt::message::LanguageModelToolResultOutput::ErrorJson { value } => {
+            llm_kit_provider::language_model::prompt::message::LanguageModelToolResultOutput::ErrorJson { value } => {
                 serde_json::to_string(value).unwrap_or_default()
             }
         };

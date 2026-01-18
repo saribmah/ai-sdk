@@ -19,8 +19,8 @@
 //! ### Using the Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_openai::OpenAIClient;
-//! use ai_sdk_provider::language_model::LanguageModel;
+//! use llm_kit_openai::OpenAIClient;
+//! use llm_kit_provider::language_model::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,8 +41,8 @@
 //! ### Using Settings Directly (Alternative)
 //!
 //! ```no_run
-//! use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
-//! use ai_sdk_provider::language_model::LanguageModel;
+//! use llm_kit_openai::{OpenAIProvider, OpenAIProviderSettings};
+//! use llm_kit_provider::language_model::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -63,7 +63,7 @@
 //! ### Using the Client Builder
 //!
 //! ```rust
-//! use ai_sdk_openai::OpenAIClient;
+//! use llm_kit_openai::OpenAIClient;
 //!
 //! let provider = OpenAIClient::new()
 //!     .api_key("your-api-key")
@@ -78,7 +78,7 @@
 //! ### Using Settings Directly
 //!
 //! ```rust
-//! use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
+//! use llm_kit_openai::{OpenAIProvider, OpenAIProviderSettings};
 //!
 //! let settings = OpenAIProviderSettings::new()
 //!     .with_api_key("your-api-key")
@@ -106,12 +106,12 @@
 //! OpenAI-specific options can be passed through `provider_options`:
 //!
 //! ```no_run
-//! use ai_sdk_openai::chat::OpenAIChatLanguageModelOptions;
+//! use llm_kit_openai::chat::OpenAIChatLanguageModelOptions;
 //! use serde_json::json;
 //!
 //! let options = OpenAIChatLanguageModelOptions {
-//!     reasoning_effort: Some(ai_sdk_openai::chat::openai_chat_options::ReasoningEffort::High),
-//!     logprobs: Some(ai_sdk_openai::chat::openai_chat_options::LogprobsOption::Number(5)),
+//!     reasoning_effort: Some(llm_kit_openai::chat::openai_chat_options::ReasoningEffort::High),
+//!     logprobs: Some(llm_kit_openai::chat::openai_chat_options::LogprobsOption::Number(5)),
 //!     ..Default::default()
 //! };
 //! ```

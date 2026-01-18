@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{EmptyResponseBodyErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{EmptyResponseBodyErrorBuilder, ProviderError};
 ///
 /// let error = EmptyResponseBodyErrorBuilder::new()
 ///     .message("Expected response but got empty body")
@@ -53,7 +53,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::empty_response_body();
     ///
@@ -75,7 +75,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::empty_response_body_with_message(
     ///     "Expected streaming response but received empty body"

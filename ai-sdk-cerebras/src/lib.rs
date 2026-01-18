@@ -16,7 +16,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::CerebrasClient;
+//! use llm_kit_cerebras::CerebrasClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = CerebrasClient::new()
@@ -29,7 +29,7 @@
 //! ## Alternative: Using Settings Directly
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings};
+//! use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings};
 //!
 //! // Create a provider using settings
 //! let provider = CerebrasProvider::new(
@@ -43,7 +43,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::CerebrasClient;
+//! use llm_kit_cerebras::CerebrasClient;
 //!
 //! let model = CerebrasClient::new()
 //!     .api_key("your-api-key")
@@ -54,7 +54,7 @@
 //! ## Using Model Constants
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::{CerebrasClient, chat::models};
+//! use llm_kit_cerebras::{CerebrasClient, chat::models};
 //!
 //! let provider = CerebrasClient::new()
 //!     .api_key("your-api-key")
@@ -67,7 +67,7 @@
 //! ## Custom Headers
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::CerebrasClient;
+//! use llm_kit_cerebras::CerebrasClient;
 //!
 //! let provider = CerebrasClient::new()
 //!     .api_key("your-api-key")
@@ -83,7 +83,7 @@
 //! environment variable if not provided explicitly:
 //!
 //! ```no_run
-//! use ai_sdk_cerebras::CerebrasClient;
+//! use llm_kit_cerebras::CerebrasClient;
 //!
 //! // API key will be read from CEREBRAS_API_KEY environment variable
 //! let provider = CerebrasClient::new().build();
@@ -143,7 +143,7 @@ pub use settings::CerebrasProviderSettings;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_cerebras::cerebras;
+/// use llm_kit_cerebras::cerebras;
 ///
 /// let model = cerebras().chat_model("llama-3.3-70b");
 /// ```

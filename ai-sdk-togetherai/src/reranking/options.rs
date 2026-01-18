@@ -24,7 +24,7 @@ pub struct TogetherAIRerankingOptions {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIRerankingOptions;
+    /// use llm_kit_togetherai::TogetherAIRerankingOptions;
     ///
     /// let options = TogetherAIRerankingOptions {
     ///     rank_fields: Some(vec!["title".to_string(), "text".to_string()]),

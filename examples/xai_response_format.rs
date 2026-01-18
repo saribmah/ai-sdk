@@ -1,4 +1,4 @@
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 ///
 /// This example demonstrates response format (JSON mode) with the xAI provider.
 ///
@@ -12,9 +12,9 @@ use ai_sdk_core::GenerateText;
 /// export XAI_API_KEY="your-xai-api-key"
 /// cargo run --example xai_response_format
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
-use ai_sdk_xai::XaiClient;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
+use llm_kit_xai::XaiClient;
 use serde_json::json;
 use std::env;
 
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Example 1: Simple JSON mode without schema
 async fn simple_json_mode(
-    provider: &ai_sdk_xai::XaiProvider,
+    provider: &llm_kit_xai::XaiProvider,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("grok-2-1212");
 
@@ -87,7 +87,7 @@ async fn simple_json_mode(
 
 /// Example 2: Structured output with JSON schema
 async fn structured_output(
-    provider: &ai_sdk_xai::XaiProvider,
+    provider: &llm_kit_xai::XaiProvider,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("grok-2-1212");
 
@@ -161,7 +161,7 @@ async fn structured_output(
 
 /// Example 3: Complex structured output (user profile)
 async fn complex_structured_output(
-    provider: &ai_sdk_xai::XaiProvider,
+    provider: &llm_kit_xai::XaiProvider,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("grok-2-1212");
 

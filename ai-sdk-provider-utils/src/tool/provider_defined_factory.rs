@@ -145,7 +145,7 @@ impl Default for ProviderDefinedToolOptions {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions};
+/// use llm_kit_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions};
 /// use serde_json::json;
 ///
 /// // Create a factory for a code execution tool
@@ -170,7 +170,7 @@ impl Default for ProviderDefinedToolOptions {
 ///         .with_description("Execute Python code in a sandbox")
 /// );
 ///
-/// assert_eq!(tool.tool_type, ai_sdk_provider_utils::tool::ToolType::ProviderDefined {
+/// assert_eq!(tool.tool_type, llm_kit_provider_utils::tool::ToolType::ProviderDefined {
 ///     id: "anthropic.code_execution_20250522".to_string(),
 ///     name: "code_execution".to_string(),
 ///     args: std::collections::HashMap::new(),
@@ -200,7 +200,7 @@ impl ProviderDefinedToolFactory {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::ProviderDefinedToolFactory;
+    /// use llm_kit_provider_utils::tool::ProviderDefinedToolFactory;
     /// use serde_json::json;
     ///
     /// let factory = ProviderDefinedToolFactory::new(
@@ -231,7 +231,7 @@ impl ProviderDefinedToolFactory {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, ToolExecutionOutput};
+    /// use llm_kit_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, ToolExecutionOutput};
     /// use serde_json::json;
     /// use std::sync::Arc;
     ///
@@ -284,7 +284,7 @@ impl ProviderDefinedToolFactory {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::ProviderDefinedToolFactory;
+    /// use llm_kit_provider_utils::tool::ProviderDefinedToolFactory;
     /// use serde_json::json;
     ///
     /// let factory = ProviderDefinedToolFactory::new(
@@ -308,7 +308,7 @@ impl ProviderDefinedToolFactory {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions};
+/// use llm_kit_provider_utils::tool::{ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions};
 /// use serde_json::json;
 ///
 /// let factory = ProviderDefinedToolFactoryWithOutput::new(
@@ -361,7 +361,7 @@ impl ProviderDefinedToolFactoryWithOutput {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::ProviderDefinedToolFactoryWithOutput;
+    /// use llm_kit_provider_utils::tool::ProviderDefinedToolFactoryWithOutput;
     /// use serde_json::json;
     ///
     /// let factory = ProviderDefinedToolFactoryWithOutput::new(
@@ -407,7 +407,7 @@ impl ProviderDefinedToolFactoryWithOutput {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions};
+    /// use llm_kit_provider_utils::tool::{ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions};
     /// use serde_json::json;
     ///
     /// let factory = ProviderDefinedToolFactoryWithOutput::new(
@@ -460,7 +460,7 @@ impl ProviderDefinedToolFactoryWithOutput {
     /// # Example
     ///
     /// ```rust
-    /// use ai_sdk_provider_utils::tool::ProviderDefinedToolFactoryWithOutput;
+    /// use llm_kit_provider_utils::tool::ProviderDefinedToolFactoryWithOutput;
     /// use serde_json::json;
     ///
     /// let factory = ProviderDefinedToolFactoryWithOutput::new(

@@ -1,14 +1,14 @@
 //! Streaming chat completion example using OpenAI provider
 //!
-//! This example demonstrates using do_stream() directly with ai-sdk-provider.
+//! This example demonstrates using do_stream() directly with llm-kit-provider.
 //!
-//! Run with: cargo run --example stream -p ai-sdk-openai
+//! Run with: cargo run --example stream -p llm-kit-openai
 
-use ai_sdk_openai::OpenAIClient;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::message::LanguageModelMessage;
 use futures_util::StreamExt;
+use llm_kit_openai::OpenAIClient;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::message::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Process the stream
     while let Some(part) = response.stream.next().await {
-        use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
+        use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
         match part {
             LanguageModelStreamPart::StreamStart(start) => {

@@ -10,8 +10,8 @@ use std::future::Future;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::StopCondition;
-/// use ai_sdk_core::StepResult;
+/// use llm_kit_core::StopCondition;
+/// use llm_kit_core::StepResult;
 /// use async_trait::async_trait;
 ///
 /// struct CustomCondition;
@@ -43,7 +43,7 @@ pub trait StopCondition: Send + Sync {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::step_count_is;
+/// use llm_kit_core::step_count_is;
 ///
 /// // Stop after exactly 3 steps
 /// let condition = step_count_is(3);
@@ -73,7 +73,7 @@ impl StopCondition for StepCountIs {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::step_count_is;
+/// use llm_kit_core::step_count_is;
 ///
 /// let condition = step_count_is(5);
 /// // This will return true when exactly 5 steps have been completed
@@ -87,7 +87,7 @@ pub fn step_count_is(step_count: usize) -> StepCountIs {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::has_tool_call;
+/// use llm_kit_core::has_tool_call;
 ///
 /// // Stop when the model calls the "final_answer" tool
 /// let condition = has_tool_call("final_answer");
@@ -124,7 +124,7 @@ impl StopCondition for HasToolCall {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::has_tool_call;
+/// use llm_kit_core::has_tool_call;
 ///
 /// let condition = has_tool_call("get_final_answer");
 /// // This will return true when the last step contains a tool call named "get_final_answer"
@@ -152,7 +152,7 @@ pub fn has_tool_call(tool_name: impl Into<String>) -> HasToolCall {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::{is_stop_condition_met, step_count_is, has_tool_call, StopCondition, StepResult};
+/// use llm_kit_core::{is_stop_condition_met, step_count_is, has_tool_call, StopCondition, StepResult};
 ///
 /// # async fn example() {
 /// # let steps: Vec<StepResult> = vec![];
@@ -196,14 +196,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::{
+    use llm_kit_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
 
     fn create_test_step(tool_calls: Vec<(&str, &str)>) -> StepResult {
         use crate::output::Output;
         use crate::output::text::TextOutput;
-        use ai_sdk_provider_utils::tool::ToolCall;
+        use llm_kit_provider_utils::tool::ToolCall;
         use serde_json::json;
 
         let mut content: Vec<Output> = vec![Output::Text(TextOutput::new("Test".to_string()))];

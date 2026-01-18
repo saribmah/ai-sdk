@@ -1,6 +1,6 @@
 use crate::error::AISDKError;
 use crate::prompt::{Prompt, PromptContent};
-use ai_sdk_provider_utils::message::{Message, UserContent, UserMessage};
+use llm_kit_provider_utils::message::{Message, UserContent, UserMessage};
 use serde::{Deserialize, Serialize};
 
 /// A standardized prompt that always has messages.
@@ -75,7 +75,7 @@ pub fn standardize_prompt(prompt: Prompt) -> StandardizedPrompt {
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::prompt::{Prompt, standardize::validate_and_standardize};
+/// use llm_kit_core::prompt::{Prompt, standardize::validate_and_standardize};
 ///
 /// let prompt = Prompt::text("Hello, world!");
 /// let standardized = validate_and_standardize(prompt).unwrap();
@@ -109,7 +109,7 @@ pub fn validate_and_standardize(prompt: Prompt) -> Result<StandardizedPrompt, AI
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::message::UserContent;
+    use llm_kit_provider_utils::message::UserContent;
 
     #[test]
     fn test_standardized_prompt_new() {

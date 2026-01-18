@@ -11,7 +11,7 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+/// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
 /// use serde_json::json;
 ///
 /// // Create an MCP tool use
@@ -58,7 +58,7 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new(
@@ -93,7 +93,7 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("old_id", "tool", "server", json!({}))
@@ -114,7 +114,7 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("id", "old_tool", "server", json!({}))
@@ -135,7 +135,7 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("id", "tool", "old_server", json!({}))
@@ -156,7 +156,7 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("id", "tool", "server", json!({}))
@@ -176,8 +176,8 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("id", "tool", "server", json!({}))
@@ -193,8 +193,8 @@ impl AnthropicMcpToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::mcp_tool_use::AnthropicMcpToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     /// use serde_json::json;
     ///
     /// let mcp_tool = AnthropicMcpToolUseContent::new("id", "tool", "server", json!({}))

@@ -5,9 +5,9 @@
 //! and collecting required beta feature flags.
 
 use crate::prompt::tool::{AnthropicTool, AnthropicToolChoice};
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
-use ai_sdk_provider_utils::tool::{Tool, ToolType};
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
+use llm_kit_provider_utils::tool::{Tool, ToolType};
 use std::collections::HashSet;
 
 /// Result of preparing tools for the Anthropic API.
@@ -457,8 +457,8 @@ fn convert_tool_choice(
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prepare_tools::prepare_tools;
-/// use ai_sdk_anthropic::provider_tool::bash_20250124;
+/// use llm_kit_anthropic::prepare_tools::prepare_tools;
+/// use llm_kit_anthropic::provider_tool::bash_20250124;
 ///
 /// let tool = bash_20250124(None);
 /// let prepared = prepare_tools(Some(&[tool]), None, false);
@@ -762,8 +762,8 @@ pub fn prepare_tools(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-    use ai_sdk_provider::language_model::tool::provider_defined_tool::LanguageModelProviderDefinedTool;
+    use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+    use llm_kit_provider::language_model::tool::provider_defined_tool::LanguageModelProviderDefinedTool;
     use serde_json::json;
     use std::collections::HashMap;
 

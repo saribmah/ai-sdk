@@ -1,17 +1,17 @@
-/// Text embedding example using Together AI provider with only ai-sdk-provider.
+/// Text embedding example using Together AI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using EmbeddingModel::do_embed() directly (no ai-sdk-core)
+/// - Using EmbeddingModel::do_embed() directly (no llm-kit-core)
 /// - Generating text embeddings for semantic search
-/// - Working with EmbeddingModelCallOptions from ai-sdk-provider
+/// - Working with EmbeddingModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export TOGETHER_AI_API_KEY="your-api-key"
-/// cargo run --example text_embedding -p ai-sdk-togetherai
+/// cargo run --example text_embedding -p llm-kit-togetherai
 /// ```
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-use ai_sdk_togetherai::TogetherAIClient;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_togetherai::TogetherAIClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

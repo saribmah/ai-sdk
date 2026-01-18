@@ -19,9 +19,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-elevenlabs = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-elevenlabs = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -30,8 +30,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::{Provider, SpeechModel};
+use llm_kit_elevenlabs::ElevenLabsClient;
+use llm_kit_provider::{Provider, SpeechModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,8 +52,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
-use ai_sdk_provider::{Provider, SpeechModel};
+use llm_kit_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
+use llm_kit_provider::{Provider, SpeechModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@ export ELEVENLABS_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_elevenlabs::ElevenLabsClient;
+use llm_kit_elevenlabs::ElevenLabsClient;
 
 let provider = ElevenLabsClient::new()
     .api_key("your-api-key")
@@ -132,7 +132,7 @@ ElevenLabs supports advanced features through provider options for both speech g
 Customize voice characteristics:
 
 ```rust
-use ai_sdk_core::GenerateSpeech;
+use llm_kit_core::GenerateSpeech;
 use std::collections::HashMap;
 use serde_json::json;
 
@@ -176,8 +176,8 @@ Or use your own custom voices from your ElevenLabs account.
 Identify different speakers in transcriptions:
 
 ```rust
-use ai_sdk_core::Transcribe;
-use ai_sdk_provider::transcription_model::AudioInput;
+use llm_kit_core::Transcribe;
+use llm_kit_provider::transcription_model::AudioInput;
 use std::collections::HashMap;
 use serde_json::json;
 
@@ -236,7 +236,7 @@ cargo run --example transcription
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-elevenlabs)
+- [API Documentation](https://docs.rs/llm-kit-elevenlabs)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [ElevenLabs API Reference](https://elevenlabs.io/docs/api-reference)
 

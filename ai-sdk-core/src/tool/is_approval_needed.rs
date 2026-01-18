@@ -1,5 +1,5 @@
-use ai_sdk_provider_utils::message::Message;
-use ai_sdk_provider_utils::tool::{NeedsApproval, Tool, ToolExecuteOptions};
+use llm_kit_provider_utils::message::Message;
+use llm_kit_provider_utils::tool::{NeedsApproval, Tool, ToolExecuteOptions};
 use serde_json::Value;
 
 /// Checks if a tool call needs approval before execution.
@@ -22,9 +22,9 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_core::tool::is_approval_needed, ai_sdk_provider_utils::tool::Tool;
+/// use llm_kit_core::tool::is_approval_needed, llm_kit_provider_utils::tool::Tool;
 /// use serde_json::json;
-/// # use ai_sdk_provider_utils::message::Message;
+/// # use llm_kit_provider_utils::message::Message;
 /// # use tokio::runtime::Runtime;
 /// # fn example(tool: Tool) {
 /// # Runtime::new().unwrap().block_on(async {
@@ -77,7 +77,7 @@ pub async fn is_approval_needed(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::tool::{NeedsApproval, Tool};
+    use llm_kit_provider_utils::tool::{NeedsApproval, Tool};
     use serde_json::json;
     use std::sync::Arc;
 
@@ -195,7 +195,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_messages() {
-        use ai_sdk_provider_utils::message::user::UserMessage;
+        use llm_kit_provider_utils::message::user::UserMessage;
 
         let mut tool = Tool::function(json!({
             "type": "object",

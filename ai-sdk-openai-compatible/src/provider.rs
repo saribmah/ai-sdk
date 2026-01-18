@@ -1,8 +1,8 @@
-use ai_sdk_provider::EmbeddingModel;
-use ai_sdk_provider::ImageModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
+use llm_kit_provider::EmbeddingModel;
+use llm_kit_provider::ImageModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -295,21 +295,21 @@ impl Provider for OpenAICompatibleProvider {
     fn text_embedding_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::EmbeddingModel<String>>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::EmbeddingModel<String>>, ProviderError> {
         Ok(self.text_embedding_model(model_id))
     }
 
     fn image_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::ImageModel>, ProviderError> {
         Ok(self.image_model(model_id))
     }
 
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             format!("{}.transcription-model-not-supported", self.settings.name),
@@ -319,7 +319,7 @@ impl Provider for OpenAICompatibleProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             format!("{}.speech-model-not-supported", self.settings.name),
@@ -329,7 +329,7 @@ impl Provider for OpenAICompatibleProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             format!("{}.reranking-model-not-supported", self.settings.name),
@@ -539,8 +539,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_do_generate_integration() {
-        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-        use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+        use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+        use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 
         let settings = OpenAICompatibleProviderSettings::new("https://api.openai.com/v1", "openai")
             .with_api_key("test-key");

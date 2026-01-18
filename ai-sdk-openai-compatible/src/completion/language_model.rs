@@ -1,11 +1,11 @@
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::{
+use async_trait::async_trait;
+use futures_util::{Stream, StreamExt};
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning,
     content::LanguageModelContent, content::text::LanguageModelText, usage::LanguageModelUsage,
 };
-use async_trait::async_trait;
-use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
 use serde::Deserialize;
@@ -351,7 +351,7 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
             usage,
             provider_metadata: Some(provider_metadata),
             request: Some(
-                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+                llm_kit_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
             ),
             response: Some(response_metadata),
             warnings,
@@ -457,9 +457,9 @@ impl LanguageModel for OpenAICompatibleCompletionLanguageModel {
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
             request: Some(
-                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+                llm_kit_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
             ),
-            response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
+            response: Some(llm_kit_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),
         })
@@ -480,7 +480,7 @@ impl OpenAICompatibleCompletionLanguageModel {
             yield LanguageModelStreamPart::stream_start(warnings);
 
             let mut stream = Box::pin(byte_stream);
-            let mut finish_reason = ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Unknown;
+            let mut finish_reason = llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason::Unknown;
             let mut usage = LanguageModelUsage::default();
 
             while let Some(result) = stream.next().await {

@@ -10,22 +10,22 @@ use super::openai_chat_options::{
 };
 use super::openai_chat_prepare_tools::prepare_chat_tools;
 use super::openai_chat_prompt::{SystemMessageMode, convert_to_openai_chat_messages};
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::content::text::{LanguageModelText, TextType};
-use ai_sdk_provider::language_model::content::tool_call::{LanguageModelToolCall, ToolCallType};
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::language_model::{
-    LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
-    LanguageModelStreamResponse, StreamResponseMetadata,
-};
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
 use async_trait::async_trait;
 use futures_util::Stream;
 use futures_util::StreamExt;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::content::source::LanguageModelSource;
+use llm_kit_provider::language_model::content::text::{LanguageModelText, TextType};
+use llm_kit_provider::language_model::content::tool_call::{LanguageModelToolCall, ToolCallType};
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::language_model::{
+    LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
+    LanguageModelStreamResponse, StreamResponseMetadata,
+};
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use regex::Regex;
 use serde_json::{Value as JsonValue, json};
 use std::collections::HashMap;
@@ -166,7 +166,7 @@ impl OpenAIChatLanguageModel {
 
         // Add response format if specified
         if let Some(ref response_format) = options.response_format {
-            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+            use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
             match response_format {
                 LanguageModelResponseFormat::Text => {
                     // No need to set response_format for text
@@ -692,7 +692,7 @@ impl LanguageModel for OpenAIChatLanguageModel {
             provider_metadata: Some(provider_metadata),
             request: Some(LanguageModelRequestMetadata { body: Some(body) }),
             response: Some(
-                ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata {
+                llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata {
                     id: response_body.id,
                     model_id: response_body.model,
                     timestamp: response_body.created,

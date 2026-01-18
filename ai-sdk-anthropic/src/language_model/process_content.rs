@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::content::{
+use llm_kit_provider::language_model::content::{
     LanguageModelContent, reasoning::LanguageModelReasoning, source::LanguageModelSource,
     text::LanguageModelText, tool_call::LanguageModelToolCall,
     tool_result::LanguageModelToolResult,

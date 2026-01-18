@@ -10,13 +10,13 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+/// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
 ///
 /// // Create a simple text content block
 /// let text_content = AnthropicTextContent::new("Hello, world!");
 ///
 /// // Create a text content block with cache control
-/// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+/// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
 ///
 /// let text_with_cache = AnthropicTextContent::new("This is cached content")
 ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour));
@@ -45,7 +45,7 @@ impl AnthropicTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let text_content = AnthropicTextContent::new("Hello, world!");
     /// assert_eq!(text_content.text, "Hello, world!");
@@ -67,8 +67,8 @@ impl AnthropicTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let text_content = AnthropicTextContent::new("Cached content")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -83,8 +83,8 @@ impl AnthropicTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let text_content = AnthropicTextContent::new("Content")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -104,7 +104,7 @@ impl From<String> for AnthropicTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let text_content: AnthropicTextContent = "Hello".to_string().into();
     /// assert_eq!(text_content.text, "Hello");
@@ -120,7 +120,7 @@ impl From<&str> for AnthropicTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let text_content: AnthropicTextContent = "Hello".into();
     /// assert_eq!(text_content.text, "Hello");

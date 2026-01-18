@@ -1,18 +1,18 @@
-/// Text embedding example using Baseten provider with only ai-sdk-provider.
+/// Text embedding example using Baseten provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using EmbeddingModel::do_embed() directly (no ai-sdk-core)
+/// - Using EmbeddingModel::do_embed() directly (no llm-kit-core)
 /// - Generating text embeddings for semantic search
-/// - Working with EmbeddingModelCallOptions from ai-sdk-provider
+/// - Working with EmbeddingModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export BASETEN_API_KEY="your-api-key"
 /// export BASETEN_EMBEDDING_MODEL_ID="your-embedding-model-id"
-/// cargo run --example text_embedding -p ai-sdk-baseten
+/// cargo run --example text_embedding -p llm-kit-baseten
 /// ```
-use ai_sdk_baseten::BasetenClient;
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_baseten::BasetenClient;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

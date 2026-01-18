@@ -1,20 +1,20 @@
-/// Streaming tool calling example using ai-sdk-provider traits only.
+use futures_util::StreamExt;
+/// Streaming tool calling example using llm-kit-provider traits only.
 ///
 /// This example demonstrates direct usage of LanguageModel::do_stream() with tools
-/// without ai-sdk-core abstractions.
+/// without llm-kit-core abstractions.
 ///
 /// Run with:
 /// ```bash
 /// export CEREBRAS_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-use futures_util::StreamExt;
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 use serde_json::json;
 
 #[tokio::main]

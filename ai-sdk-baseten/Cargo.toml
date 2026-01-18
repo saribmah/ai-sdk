@@ -1,18 +1,18 @@
 [package]
-name = "ai-sdk-baseten"
+name = "llm-kit-baseten"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 authors = ["AI SDK Team"]
 description = "Baseten provider for AI SDK Rust"
 license = "Apache-2.0"
-repository = "https://github.com/vercel/ai-sdk-rust"
+repository = "https://github.com/saribmah/llm-kit"
 keywords = ["ai", "ml", "baseten", "llm"]
 categories = ["api-bindings", "web-programming"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

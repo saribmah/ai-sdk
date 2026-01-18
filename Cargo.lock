@@ -26,351 +26,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai-sdk-anthropic"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-stream",
- "async-trait",
- "base64",
- "bytes",
- "chrono",
- "futures",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-assemblyai"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-trait",
- "base64",
- "dotenvy",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "ai-sdk-azure"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "async-trait",
- "futures",
- "serde",
- "serde_json",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "ai-sdk-baseten"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "async-trait",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-cerebras"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-trait",
- "dotenvy",
- "futures-util",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-core"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "ai-sdk-storage",
- "ai-sdk-storage-filesystem",
- "async-stream",
- "async-trait",
- "base64",
- "chrono",
- "futures",
- "futures-util",
- "jsonschema",
- "log",
- "regex",
- "reqwest",
- "schemars",
- "serde",
- "serde_bytes",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "tokio-util",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-deepseek"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-trait",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-elevenlabs"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-trait",
- "base64",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "urlencoding",
-]
-
-[[package]]
-name = "ai-sdk-examples"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-azure",
- "ai-sdk-cerebras",
- "ai-sdk-core",
- "ai-sdk-groq",
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "ai-sdk-storage",
- "ai-sdk-storage-filesystem",
- "ai-sdk-xai",
- "async-trait",
- "chrono",
- "dotenvy",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-groq"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-trait",
- "base64",
- "chrono",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-huggingface"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-stream",
- "async-trait",
- "base64",
- "bytes",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-openai"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-stream",
- "async-trait",
- "base64",
- "bytes",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-openai-compatible"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "async-stream",
- "async-trait",
- "base64",
- "bytes",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-provider"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "base64",
- "chrono",
- "futures",
- "regex",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "ai-sdk-provider-utils"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-provider",
- "async-stream",
- "base64",
- "futures-util",
- "serde",
- "serde_bytes",
- "serde_json",
- "tokio",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "ai-sdk-storage"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "chrono",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-storage-filesystem"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-storage",
- "async-trait",
- "chrono",
- "rand",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "ai-sdk-togetherai"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "async-trait",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tokio-test",
- "uuid",
-]
-
-[[package]]
-name = "ai-sdk-xai"
-version = "0.1.0"
-dependencies = [
- "ai-sdk-openai-compatible",
- "ai-sdk-provider",
- "ai-sdk-provider-utils",
- "async-stream",
- "async-trait",
- "base64",
- "bytes",
- "futures",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1130,6 +785,351 @@ name = "litemap"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
+
+[[package]]
+name = "llm-kit-anthropic"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "futures-util",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-assemblyai"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "dotenvy",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "llm-kit-azure"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "llm-kit-baseten"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-cerebras"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "dotenvy",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-core"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "chrono",
+ "futures",
+ "futures-util",
+ "jsonschema",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "llm-kit-storage",
+ "llm-kit-storage-filesystem",
+ "log",
+ "regex",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-deepseek"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-elevenlabs"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "urlencoding",
+]
+
+[[package]]
+name = "llm-kit-examples"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "dotenvy",
+ "futures-util",
+ "llm-kit-azure",
+ "llm-kit-cerebras",
+ "llm-kit-core",
+ "llm-kit-groq",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "llm-kit-storage",
+ "llm-kit-storage-filesystem",
+ "llm-kit-xai",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-groq"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "chrono",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-huggingface"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-util",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-openai"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-util",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-openai-compatible"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-util",
+ "llm-kit-provider",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-provider"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "chrono",
+ "futures",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
+name = "llm-kit-provider-utils"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "base64",
+ "futures-util",
+ "llm-kit-provider",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
+name = "llm-kit-storage"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-storage-filesystem"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "llm-kit-storage",
+ "rand",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "llm-kit-togetherai"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-test",
+ "uuid",
+]
+
+[[package]]
+name = "llm-kit-xai"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures",
+ "futures-util",
+ "llm-kit-openai-compatible",
+ "llm-kit-provider",
+ "llm-kit-provider-utils",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "url",
+ "uuid",
+]
 
 [[package]]
 name = "lock_api"

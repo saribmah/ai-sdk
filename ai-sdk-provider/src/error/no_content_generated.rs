@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{NoContentGeneratedErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{NoContentGeneratedErrorBuilder, ProviderError};
 ///
 /// let error = NoContentGeneratedErrorBuilder::new()
 ///     .message("Model returned empty response with no generated content")
@@ -53,7 +53,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::no_content_generated();
     ///
@@ -75,7 +75,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::no_content_generated_with_message(
     ///     "AI provider returned a response but generated no text content"

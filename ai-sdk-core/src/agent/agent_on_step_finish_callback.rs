@@ -12,7 +12,7 @@ use std::sync::Arc;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::AgentOnStepFinishCallback;
+/// use llm_kit_core::agent::AgentOnStepFinishCallback;
 /// use std::sync::Arc;
 ///
 /// let on_step_finish: AgentOnStepFinishCallback = Arc::new(|step_result| {
@@ -33,7 +33,7 @@ pub type AgentOnStepFinishCallback =
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::noop_agent_on_step_finish_callback;
+/// use llm_kit_core::agent::noop_agent_on_step_finish_callback;
 ///
 /// let callback = noop_agent_on_step_finish_callback();
 /// // The callback can be safely called but will do nothing
@@ -47,9 +47,9 @@ mod tests {
     use super::*;
     use crate::generate_text::{RequestMetadata, StepResponseMetadata};
     use crate::output::{Output, TextOutput};
-    use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-    use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-    use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
+    use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+    use llm_kit_provider::language_model::usage::LanguageModelUsage;
+    use llm_kit_provider_utils::tool::{ToolCall, ToolResult};
     use serde_json::json;
 
     fn create_test_step(text: &str, usage: LanguageModelUsage) -> StepResult {

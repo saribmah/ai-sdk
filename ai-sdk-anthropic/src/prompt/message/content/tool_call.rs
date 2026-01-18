@@ -11,7 +11,7 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+/// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
 /// use serde_json::json;
 ///
 /// // Create a tool call
@@ -53,7 +53,7 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new(
@@ -81,7 +81,7 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new("old_id", "tool", json!({}))
@@ -102,7 +102,7 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new("id", "old_tool", json!({}))
@@ -123,7 +123,7 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new("id", "tool", json!({}))
@@ -143,8 +143,8 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new("id", "tool", json!({}))
@@ -160,8 +160,8 @@ impl AnthropicToolCallContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::tool_call::AnthropicToolCallContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     /// use serde_json::json;
     ///
     /// let tool_call = AnthropicToolCallContent::new("id", "tool", json!({}))

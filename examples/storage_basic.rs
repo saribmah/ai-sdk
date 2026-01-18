@@ -8,12 +8,12 @@
 //! - List sessions
 //! - Delete sessions
 
-use ai_sdk_storage::{
+use chrono::Utc;
+use llm_kit_storage::{
     AssistantMessage, MessageMetadata, MessagePart, Session, SessionMetadata, Storage, TextPart,
     UsageStats, UserMessage,
 };
-use ai_sdk_storage_filesystem::FilesystemStorage;
-use chrono::Utc;
+use llm_kit_storage_filesystem::FilesystemStorage;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🗄️  AI SDK Filesystem Storage Example\n");
 
     // Create a filesystem storage provider in a temporary directory
-    let storage_path = std::env::temp_dir().join("ai-sdk-storage-example");
+    let storage_path = std::env::temp_dir().join("llm-kit-storage-example");
     println!("📁 Storage path: {}\n", storage_path.display());
 
     let storage = Arc::new(FilesystemStorage::new(&storage_path)?);

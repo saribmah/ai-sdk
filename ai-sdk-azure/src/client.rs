@@ -12,7 +12,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## Basic Usage with Resource Name
 ///
 /// ```no_run
-/// use ai_sdk_azure::AzureClient;
+/// use llm_kit_azure::AzureClient;
 ///
 /// let provider = AzureClient::new()
 ///     .resource_name("my-azure-resource")
@@ -25,7 +25,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## Custom Base URL
 ///
 /// ```no_run
-/// use ai_sdk_azure::AzureClient;
+/// use llm_kit_azure::AzureClient;
 ///
 /// let provider = AzureClient::new()
 ///     .base_url("https://my-resource.openai.azure.com/openai")
@@ -38,7 +38,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## With Custom Headers and API Version
 ///
 /// ```no_run
-/// use ai_sdk_azure::AzureClient;
+/// use llm_kit_azure::AzureClient;
 ///
 /// let provider = AzureClient::new()
 ///     .resource_name("my-resource")
@@ -53,7 +53,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## Deployment-Based URLs (Legacy Format)
 ///
 /// ```no_run
-/// use ai_sdk_azure::AzureClient;
+/// use llm_kit_azure::AzureClient;
 ///
 /// let provider = AzureClient::new()
 ///     .resource_name("my-resource")
@@ -96,7 +96,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .resource_name("my-azure-resource");
@@ -117,7 +117,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .base_url("https://custom.endpoint.com/openai");
@@ -138,7 +138,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .api_key("your-api-key");
@@ -158,7 +158,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .header("X-Custom-Header", "value");
@@ -177,7 +177,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -209,7 +209,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .api_version("2024-02-15-preview");
@@ -234,7 +234,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let client = AzureClient::new()
     ///     .use_deployment_based_urls(true);
@@ -256,7 +256,7 @@ impl AzureClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_azure::AzureClient;
+    /// use llm_kit_azure::AzureClient;
     ///
     /// let provider = AzureClient::new()
     ///     .resource_name("my-resource")

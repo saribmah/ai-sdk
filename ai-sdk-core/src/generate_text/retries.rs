@@ -31,8 +31,8 @@ impl RetryConfig {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::generate_text::RetryConfig;
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::generate_text::RetryConfig;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// # async fn example() -> Result<(), AISDKError> {
     /// let config = RetryConfig {

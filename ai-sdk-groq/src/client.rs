@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_groq::GroqClient;
+/// use llm_kit_groq::GroqClient;
 ///
 /// // Basic usage
 /// let provider = GroqClient::new()
@@ -75,7 +75,7 @@ impl GroqClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_groq::GroqClient;
+    /// use llm_kit_groq::GroqClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();

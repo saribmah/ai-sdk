@@ -1,19 +1,19 @@
-/// Reranking example using Together AI provider with only ai-sdk-provider.
+/// Reranking example using Together AI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using RerankingModel::do_rerank() directly (no ai-sdk-core)
+/// - Using RerankingModel::do_rerank() directly (no llm-kit-core)
 /// - Reranking documents for improved search results
-/// - Working with RerankingModelCallOptions from ai-sdk-provider
+/// - Working with RerankingModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export TOGETHER_AI_API_KEY="your-api-key"
-/// cargo run --example reranking -p ai-sdk-togetherai
+/// cargo run --example reranking -p llm-kit-togetherai
 /// ```
-use ai_sdk_provider::reranking_model::call_options::{
+use llm_kit_provider::reranking_model::call_options::{
     RerankingDocuments, RerankingModelCallOptions,
 };
-use ai_sdk_togetherai::TogetherAIClient;
+use llm_kit_togetherai::TogetherAIClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

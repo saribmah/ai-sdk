@@ -1,9 +1,9 @@
-use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
-use ai_sdk_provider::EmbeddingModel;
-use ai_sdk_provider::ImageModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
+use llm_kit_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
+use llm_kit_provider::EmbeddingModel;
+use llm_kit_provider::ImageModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
 use std::sync::Arc;
 
 use crate::settings::BasetenProviderSettings;
@@ -160,7 +160,7 @@ impl Provider for BasetenProvider {
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "baseten.transcription-model-not-supported",
@@ -170,7 +170,7 @@ impl Provider for BasetenProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "baseten.speech-model-not-supported",
@@ -180,7 +180,7 @@ impl Provider for BasetenProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "baseten.reranking-model-not-supported",

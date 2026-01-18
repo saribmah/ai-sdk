@@ -1,6 +1,6 @@
 use super::step_result::StepResult;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
 use async_trait::async_trait;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
 use std::future::Future;
 
 /// Callback that is called when a step finishes.
@@ -11,7 +11,7 @@ use std::future::Future;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::{OnStepFinish, StepResult};
+/// use llm_kit_core::{OnStepFinish, StepResult};
 /// use async_trait::async_trait;
 ///
 /// struct MyStepCallback;
@@ -53,15 +53,15 @@ where
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::{FinishEvent, StepResult};
-/// use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+/// use llm_kit_core::{FinishEvent, StepResult};
+/// use llm_kit_provider::language_model::usage::LanguageModelUsage;
 ///
 /// // Create a finish event
 /// let event = FinishEvent {
 ///     text: "Hello".to_string(),
 ///     tool_calls: vec![],
 ///     tool_results: vec![],
-///     finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+///     finish_reason: llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
 ///     usage: LanguageModelUsage::new(10, 20),
 ///     warnings: None,
 ///     steps: vec![],
@@ -74,20 +74,20 @@ pub struct FinishEvent {
     pub text: String,
 
     /// Tool calls from the final step (user-facing types).
-    pub tool_calls: Vec<ai_sdk_provider_utils::tool::ToolCall>,
+    pub tool_calls: Vec<llm_kit_provider_utils::tool::ToolCall>,
 
     /// Tool results from the final step (user-facing types).
-    pub tool_results: Vec<ai_sdk_provider_utils::tool::ToolResult>,
+    pub tool_results: Vec<llm_kit_provider_utils::tool::ToolResult>,
 
     /// The reason why the generation finished.
-    pub finish_reason: ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason,
+    pub finish_reason: llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason,
 
     /// The token usage of the final step.
     pub usage: LanguageModelUsage,
 
     /// Warnings from the final step.
     pub warnings:
-        Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
+        Option<Vec<llm_kit_provider::language_model::call_warning::LanguageModelCallWarning>>,
 
     /// Details for all steps.
     ///
@@ -111,8 +111,8 @@ impl FinishEvent {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::generate_text::FinishEvent;
-    /// # use ai_sdk_core::generate_text::StepResult;
+    /// use llm_kit_core::generate_text::FinishEvent;
+    /// # use llm_kit_core::generate_text::StepResult;
     /// # fn example(final_step: StepResult, all_steps: Vec<StepResult>) {
     ///
     /// let event = FinishEvent::new(&final_step, all_steps);
@@ -162,7 +162,7 @@ impl FinishEvent {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::{OnFinish, FinishEvent};
+/// use llm_kit_core::{OnFinish, FinishEvent};
 /// use async_trait::async_trait;
 ///
 /// struct MyFinishCallback;
@@ -203,10 +203,10 @@ mod tests {
     use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use ai_sdk_provider::language_model::{
+    use llm_kit_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
-    use ai_sdk_provider_utils::tool::ToolCall;
+    use llm_kit_provider_utils::tool::ToolCall;
     use serde_json::json;
 
     fn create_test_step(input_tokens: u64, output_tokens: u64) -> StepResult {

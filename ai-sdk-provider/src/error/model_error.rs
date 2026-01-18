@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{ModelErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{ModelErrorBuilder, ProviderError};
 /// use std::io;
 ///
 /// let source_error = io::Error::new(io::ErrorKind::Other, "Connection failed");
@@ -57,7 +57,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::model_error("Failed to initialize model");
     ///
@@ -80,7 +80,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let source_error = io::Error::new(io::ErrorKind::Other, "Connection refused");

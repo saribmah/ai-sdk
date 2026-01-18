@@ -62,7 +62,7 @@ impl AnthropicAssistantMessageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
     ///
     /// let content = AnthropicAssistantMessageContent::text("Hello, world!");
     /// ```
@@ -75,7 +75,7 @@ impl AnthropicAssistantMessageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
     ///
     /// let content = AnthropicAssistantMessageContent::thinking("Let me think about this...");
     /// ```
@@ -88,7 +88,7 @@ impl AnthropicAssistantMessageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessageContent;
     /// use serde_json::json;
     ///
     /// let content = AnthropicAssistantMessageContent::tool_call(
@@ -186,7 +186,7 @@ impl From<AnthropicMcpToolResultContent> for AnthropicAssistantMessageContent {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::assistant::{
+/// use llm_kit_anthropic::prompt::message::assistant::{
 ///     AnthropicAssistantMessage, AnthropicAssistantMessageContent
 /// };
 ///
@@ -230,7 +230,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::{
+    /// use llm_kit_anthropic::prompt::message::assistant::{
     ///     AnthropicAssistantMessage, AnthropicAssistantMessageContent
     /// };
     ///
@@ -254,7 +254,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message = AnthropicAssistantMessage::text("Hello, how can I help you?");
     /// ```
@@ -271,7 +271,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message = AnthropicAssistantMessage::thinking("Let me analyze this problem...");
     /// ```
@@ -289,7 +289,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message = AnthropicAssistantMessage::thinking_and_text(
     ///     "I need to consider multiple factors...",
@@ -308,7 +308,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::{
+    /// use llm_kit_anthropic::prompt::message::assistant::{
     ///     AnthropicAssistantMessage, AnthropicAssistantMessageContent
     /// };
     ///
@@ -325,7 +325,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message = AnthropicAssistantMessage::text("Hello!")
     ///     .with_text("How are you?");
@@ -341,7 +341,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message = AnthropicAssistantMessage::text("Answer")
     ///     .with_thinking("Let me reconsider...");
@@ -357,7 +357,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     /// use serde_json::json;
     ///
     /// let message = AnthropicAssistantMessage::text("Let me check the weather")
@@ -379,7 +379,7 @@ impl AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::{
+    /// use llm_kit_anthropic::prompt::message::assistant::{
     ///     AnthropicAssistantMessage, AnthropicAssistantMessageContent
     /// };
     ///
@@ -401,7 +401,7 @@ impl From<String> for AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message: AnthropicAssistantMessage = "Hello!".to_string().into();
     /// ```
@@ -416,7 +416,7 @@ impl From<&str> for AnthropicAssistantMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let message: AnthropicAssistantMessage = "Hello!".into();
     /// ```

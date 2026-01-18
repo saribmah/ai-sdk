@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall};
+/// use llm_kit_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall};
 /// use serde_json::json;
 ///
 /// let tool_call = ToolCall::new(
@@ -47,7 +47,7 @@ impl ToolApprovalRequestOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall};
+    /// use llm_kit_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall};
     /// use serde_json::json;
     ///
     /// let tool_call = ToolCall::new(

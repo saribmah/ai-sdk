@@ -1,12 +1,12 @@
 // Provider example: Streaming chat using do_stream()
 // This example demonstrates using the DeepSeek provider's streaming capabilities directly.
-// It does NOT use ai-sdk-core (GenerateText, StreamText, etc.)
+// It does NOT use llm-kit-core (GenerateText, StreamText, etc.)
 
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use futures_util::StreamExt;
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

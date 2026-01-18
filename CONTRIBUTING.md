@@ -136,10 +136,10 @@ Our CI runs on every push and PR:
 
 ## Project Structure
 
-- `ai-sdk-core/` - Core functionality (generate_text, prompts, messages)
-- `ai-sdk-provider/` - Provider traits and interfaces
-- `ai-sdk-openai-compatible/` - OpenAI-compatible provider implementation
-- `ai-sdk-provider-utils/` - Shared utilities for AI SDK providers
+- `llm-kit-core/` - Core functionality (generate_text, prompts, messages)
+- `llm-kit-provider/` - Provider traits and interfaces
+- `llm-kit-openai-compatible/` - OpenAI-compatible provider implementation
+- `llm-kit-provider-utils/` - Shared utilities for AI SDK providers
 - `examples/` - Example applications and integration tests
 
 ## Need Help?

@@ -1,13 +1,13 @@
 // examples/transcription.rs
 //
 // This example demonstrates using AssemblyAI's TranscriptionModel directly
-// with only ai-sdk-provider (no ai-sdk-core).
+// with only llm-kit-provider (no llm-kit-core).
 //
 // This validates the provider implementation works independently and shows
 // how to use the do_generate() method directly.
 
-use ai_sdk_assemblyai::AssemblyAIClient;
-use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+use llm_kit_assemblyai::AssemblyAIClient;
+use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,8 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Downloading audio file...");
 
     // Download audio from URL
-    let audio_url =
-        "https://github.com/AssemblyAI-Examples/audio-examples/raw/main/20230607_me_canadian_wildfires.mp3";
+    let audio_url = "https://github.com/AssemblyAI-Examples/audio-examples/raw/main/20230607_me_canadian_wildfires.mp3";
     let audio_data = reqwest::get(audio_url).await?.bytes().await?;
 
     println!("Transcribing audio...");

@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, InvalidToolInputErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, InvalidToolInputErrorBuilder};
 ///
 /// let error = InvalidToolInputErrorBuilder::new("calculate", r#"{"invalid": "json"#)
 ///     .message("Failed to parse JSON")
@@ -38,7 +38,7 @@ impl InvalidToolInputErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidToolInputErrorBuilder;
+    /// use llm_kit_core::error::InvalidToolInputErrorBuilder;
     ///
     /// let builder = InvalidToolInputErrorBuilder::new("search", r#"{"query": null}"#);
     /// ```
@@ -59,7 +59,7 @@ impl InvalidToolInputErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidToolInputErrorBuilder;
+    /// use llm_kit_core::error::InvalidToolInputErrorBuilder;
     ///
     /// let builder = InvalidToolInputErrorBuilder::new("calculate", r#"{"op": "unknown"}"#)
     ///     .message("Unknown operation type");
@@ -77,7 +77,7 @@ impl InvalidToolInputErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidToolInputErrorBuilder;
+    /// use llm_kit_core::error::InvalidToolInputErrorBuilder;
     ///
     /// let error = InvalidToolInputErrorBuilder::new("search", r#"{"query": ""}"#)
     ///     .message("Query cannot be empty")
@@ -111,7 +111,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_tool_input(
     ///     "calculate",
@@ -150,7 +150,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_tool_input_builder("search", r#"{"query": null}"#)
     ///     .message("Query cannot be null")

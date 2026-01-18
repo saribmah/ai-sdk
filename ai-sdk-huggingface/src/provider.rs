@@ -1,6 +1,6 @@
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -73,7 +73,7 @@ impl Provider for HuggingFaceProvider {
     fn text_embedding_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::EmbeddingModel<String>>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::EmbeddingModel<String>>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "huggingface.text-embedding-not-supported",
@@ -83,7 +83,7 @@ impl Provider for HuggingFaceProvider {
     fn image_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::ImageModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "huggingface.image-not-supported",
@@ -93,7 +93,7 @@ impl Provider for HuggingFaceProvider {
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "huggingface.transcription-not-supported",
@@ -103,7 +103,7 @@ impl Provider for HuggingFaceProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "huggingface.speech-not-supported",
@@ -113,7 +113,7 @@ impl Provider for HuggingFaceProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "huggingface.reranking-not-supported",

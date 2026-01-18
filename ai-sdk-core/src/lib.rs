@@ -20,9 +20,9 @@
 //! ## Text Generation
 //!
 //! ```no_run
-//! use ai_sdk_core::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_provider::Provider;
+//! use llm_kit_core::GenerateText;
+//! use llm_kit_core::prompt::Prompt;
+//! use llm_kit_provider::Provider;
 //! # use std::sync::Arc;
 //! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
 //!
@@ -42,10 +42,10 @@
 //! ## Text Streaming
 //!
 //! ```no_run
-//! use ai_sdk_core::StreamText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_core::stream_text::TextStreamPart;
-//! # use ai_sdk_provider::Provider;
+//! use llm_kit_core::StreamText;
+//! use llm_kit_core::prompt::Prompt;
+//! use llm_kit_core::stream_text::TextStreamPart;
+//! # use llm_kit_provider::Provider;
 //! # use std::sync::Arc;
 //! # use futures::StreamExt;
 //! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
@@ -68,8 +68,8 @@
 //! ## Embeddings
 //!
 //! ```no_run
-//! use ai_sdk_core::Embed;
-//! # use ai_sdk_provider::Provider;
+//! use llm_kit_core::Embed;
+//! # use llm_kit_provider::Provider;
 //! # use std::sync::Arc;
 //! # async fn example(provider: Arc<dyn Provider>) -> Result<(), Box<dyn std::error::Error>> {
 //!
@@ -87,11 +87,11 @@
 //! ## Agent Pattern
 //!
 //! ```no_run
-//! use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-//! use ai_sdk_core::agent::AgentInterface;
+//! use llm_kit_core::{Agent, AgentSettings, AgentCallParameters};
+//! use llm_kit_core::agent::AgentInterface;
 //! # use std::sync::Arc;
-//! # use ai_sdk_provider::LanguageModel;
-//! # use ai_sdk_core::tool::ToolSet;
+//! # use llm_kit_provider::LanguageModel;
+//! # use llm_kit_core::tool::ToolSet;
 //! # async fn example(model: Arc<dyn LanguageModel>, tools: ToolSet) -> Result<(), Box<dyn std::error::Error>> {
 //!
 //! // Configure agent with persistent settings
@@ -113,13 +113,13 @@
 //! ## Tool Calling
 //!
 //! ```no_run
-//! use ai_sdk_core::GenerateText;
-//! use ai_sdk_core::prompt::Prompt;
-//! use ai_sdk_core::tool::ToolSet;
-//! use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+//! use llm_kit_core::GenerateText;
+//! use llm_kit_core::prompt::Prompt;
+//! use llm_kit_core::tool::ToolSet;
+//! use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 //! use serde_json::json;
 //! # use std::sync::Arc;
-//! # use ai_sdk_provider::LanguageModel;
+//! # use llm_kit_provider::LanguageModel;
 //! # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 //!
 //! // Create a tool

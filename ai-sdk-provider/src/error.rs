@@ -42,7 +42,7 @@ pub use unsupported_functionality::UnsupportedFunctionalityErrorBuilder;
 /// ## Pattern matching on error types
 ///
 /// ```
-/// use ai_sdk_provider::error::ProviderError;
+/// use llm_kit_provider::error::ProviderError;
 ///
 /// let error = ProviderError::api_call_error(
 ///     "Failed to connect",
@@ -84,7 +84,7 @@ pub use unsupported_functionality::UnsupportedFunctionalityErrorBuilder;
 /// and `None`/`false` for other error types.
 ///
 /// ```
-/// use ai_sdk_provider::error::ProviderError;
+/// use llm_kit_provider::error::ProviderError;
 ///
 /// let api_error = ProviderError::api_call_error_with_details(
 ///     "Rate limited",

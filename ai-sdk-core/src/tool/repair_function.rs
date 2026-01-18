@@ -1,7 +1,7 @@
 use super::tool_set::ToolSet;
 use crate::error::AISDKError;
-use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
-use ai_sdk_provider_utils::message::Message;
+use llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall;
+use llm_kit_provider_utils::message::Message;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -67,8 +67,8 @@ impl ToolCallRepairOptions {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::tool::repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
-/// use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
+/// use llm_kit_core::tool::repair_function::{ToolCallRepairFunction, ToolCallRepairOptions};
+/// use llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall;
 /// use std::future::Future;
 /// use std::pin::Pin;
 ///
@@ -98,7 +98,7 @@ pub type ToolCallRepairFunction = Box<
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::tool::repair_function::no_repair;
+/// use llm_kit_core::tool::repair_function::no_repair;
 ///
 /// let repair_fn = no_repair();
 /// // This repair function will always return None, indicating no repair is possible
@@ -110,8 +110,8 @@ pub fn no_repair() -> ToolCallRepairFunction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::message::UserMessage;
-    use ai_sdk_provider_utils::tool::Tool;
+    use llm_kit_provider_utils::message::UserMessage;
+    use llm_kit_provider_utils::tool::Tool;
     use serde_json::json;
 
     fn create_test_toolset() -> ToolSet {

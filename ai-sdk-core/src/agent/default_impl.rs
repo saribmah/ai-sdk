@@ -23,11 +23,11 @@ use super::interface::{AgentCallParameters, AgentInterface};
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::{Agent, AgentCallParameters};
-/// # use ai_sdk_core::agent::AgentSettings;
-/// # use ai_sdk_core::agent::AgentInterface;
+/// use llm_kit_core::agent::{Agent, AgentCallParameters};
+/// # use llm_kit_core::agent::AgentSettings;
+/// # use llm_kit_core::agent::AgentInterface;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::LanguageModel;
+/// # use llm_kit_provider::LanguageModel;
 /// # async fn example(settings: AgentSettings) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let agent = Agent::new(settings);
@@ -54,10 +54,10 @@ impl Agent {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_core::agent::{Agent, AgentSettings};
+    /// use llm_kit_core::agent::{Agent, AgentSettings};
     /// # use std::sync::Arc;
-    /// # use ai_sdk_provider::LanguageModel;
-    /// # fn example(model: Arc<dyn LanguageModel>, tools: ai_sdk_core::tool::ToolSet) {
+    /// # use llm_kit_provider::LanguageModel;
+    /// # fn example(model: Arc<dyn LanguageModel>, tools: llm_kit_core::tool::ToolSet) {
     ///
     /// let settings = AgentSettings::new(model)
     ///     .with_instructions("You are a helpful assistant")

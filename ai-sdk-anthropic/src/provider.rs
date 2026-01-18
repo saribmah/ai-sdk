@@ -7,8 +7,8 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::provider::Provider;
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+//! use llm_kit_provider::provider::Provider;
 //!
 //! // Create provider with default settings
 //! let anthropic = AnthropicProvider::new(AnthropicProviderSettings::default());
@@ -24,14 +24,14 @@ use crate::anthropic_tools;
 use crate::language_model::{AnthropicMessagesConfig, AnthropicMessagesLanguageModel};
 use crate::options::AnthropicMessagesModelId;
 use crate::settings::AnthropicProviderSettings;
-use ai_sdk_provider::embedding_model::EmbeddingModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::image_model::ImageModel;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::reranking_model::RerankingModel;
-use ai_sdk_provider::speech_model::SpeechModel;
-use ai_sdk_provider::transcription_model::TranscriptionModel;
+use llm_kit_provider::embedding_model::EmbeddingModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::image_model::ImageModel;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::reranking_model::RerankingModel;
+use llm_kit_provider::speech_model::SpeechModel;
+use llm_kit_provider::transcription_model::TranscriptionModel;
 
 /// Anthropic provider for creating language models.
 ///
@@ -41,7 +41,7 @@ use ai_sdk_provider::transcription_model::TranscriptionModel;
 /// # Example
 ///
 /// ```rust,no_run
-/// use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+/// use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 ///
 /// let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
 ///
@@ -75,7 +75,7 @@ impl AnthropicProvider {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+    /// use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
     ///
     /// let provider = AnthropicProvider::new(
     ///     AnthropicProviderSettings::new()
@@ -179,7 +179,7 @@ impl AnthropicProvider {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+    /// use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
     ///
     /// let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
     ///

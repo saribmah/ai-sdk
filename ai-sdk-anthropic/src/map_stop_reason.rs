@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 
 /// Maps Anthropic API stop/finish reasons to the SDK's standard finish reason enum.
 ///
@@ -28,8 +28,8 @@ use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::map_stop_reason::map_anthropic_stop_reason;
-/// use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+/// use llm_kit_anthropic::map_stop_reason::map_anthropic_stop_reason;
+/// use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 ///
 /// let reason = map_anthropic_stop_reason(Some("end_turn"), false);
 /// assert_eq!(reason, LanguageModelFinishReason::Stop);

@@ -1,5 +1,5 @@
 [package]
-name = "ai-sdk-elevenlabs"
+name = "llm-kit-elevenlabs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,8 +10,8 @@ keywords = ["ai", "sdk", "elevenlabs", "speech", "transcription"]
 categories = ["api-bindings"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 async-trait = "0.1"
 base64 = "0.22"
 reqwest = { version = "0.12", features = ["json", "multipart"] }

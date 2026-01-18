@@ -18,7 +18,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
+//! use llm_kit_groq::GroqClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = GroqClient::new()
@@ -31,7 +31,7 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_groq::{GroqProvider, GroqProviderSettings};
+//! use llm_kit_groq::{GroqProvider, GroqProviderSettings};
 //!
 //! // Create a provider using settings
 //! let provider = GroqProvider::new(
@@ -45,7 +45,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
+//! use llm_kit_groq::GroqClient;
 //!
 //! let model = GroqClient::new()
 //!     .api_key("your-api-key")
@@ -56,7 +56,7 @@
 //! ## Environment Variable
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
+//! use llm_kit_groq::GroqClient;
 //!
 //! // API key will be read from GROQ_API_KEY environment variable
 //! let provider = GroqClient::new()
@@ -69,10 +69,10 @@
 //! ## Text Generation
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_provider::LanguageModel;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_groq::GroqClient;
+//! use llm_kit_provider::LanguageModel;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = GroqClient::new()
@@ -94,7 +94,7 @@
 //! // Extract text from content
 //! let text = result.content.iter()
 //!     .filter_map(|c| match c {
-//!         ai_sdk_provider::language_model::content::LanguageModelContent::Text(t) => Some(t.text.clone()),
+//!         llm_kit_provider::language_model::content::LanguageModelContent::Text(t) => Some(t.text.clone()),
 //!         _ => None,
 //!     })
 //!     .collect::<Vec<_>>()
@@ -108,11 +108,11 @@
 //! ## Streaming
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_provider::LanguageModel;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
+//! use llm_kit_groq::GroqClient;
+//! use llm_kit_provider::LanguageModel;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -148,10 +148,10 @@
 //! Groq provides cached token statistics in the metadata:
 //!
 //! ```no_run
-//! use ai_sdk_groq::GroqClient;
-//! use ai_sdk_provider::LanguageModel;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_groq::GroqClient;
+//! use llm_kit_provider::LanguageModel;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = GroqClient::new()
@@ -180,9 +180,9 @@
 //! Groq provides ultra-fast Whisper transcription:
 //!
 //! ```no_run
-//! use ai_sdk_groq::{GroqClient, GroqTranscriptionOptions};
-//! use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
-//! use ai_sdk_provider::TranscriptionModel;
+//! use llm_kit_groq::{GroqClient, GroqTranscriptionOptions};
+//! use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+//! use llm_kit_provider::TranscriptionModel;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = GroqClient::new()

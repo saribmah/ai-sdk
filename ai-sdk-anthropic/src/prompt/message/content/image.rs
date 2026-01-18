@@ -11,8 +11,8 @@ use crate::prompt::message::content::source_type::AnthropicContentSource;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-/// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+/// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+/// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
 ///
 /// // Create an image from a URL
 /// let image = AnthropicImageContent::new(
@@ -25,7 +25,7 @@ use crate::prompt::message::content::source_type::AnthropicContentSource;
 /// );
 ///
 /// // Create an image with cache control
-/// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+/// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
 ///
 /// let cached_image = AnthropicImageContent::new(
 ///     AnthropicContentSource::url("https://example.com/large-image.png")
@@ -55,8 +55,8 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let image = AnthropicImageContent::new(
     ///     AnthropicContentSource::url("https://example.com/photo.jpg")
@@ -79,7 +79,7 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
     ///
     /// let image = AnthropicImageContent::from_url("https://example.com/image.png");
     /// ```
@@ -97,7 +97,7 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
     ///
     /// let image = AnthropicImageContent::from_base64("image/png", "iVBORw0KG...");
     /// ```
@@ -114,8 +114,8 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let image = AnthropicImageContent::from_url("https://example.com/image.png")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -130,8 +130,8 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let image = AnthropicImageContent::from_url("https://example.com/image.png")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -153,8 +153,8 @@ impl AnthropicImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let image = AnthropicImageContent::from_url("https://example.com/old.png")
     ///     .with_source(AnthropicContentSource::url("https://example.com/new.png"));

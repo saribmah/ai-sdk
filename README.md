@@ -26,16 +26,16 @@ Add the core library and a provider to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-core = "0.1"
-ai-sdk-openai = "0.1"  # Or any other provider
+llm-kit-core = "0.1"
+llm-kit-openai = "0.1"  # Or any other provider
 tokio = { version = "1", features = ["full"] }
 ```
 
 ### Basic Example
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_openai::OpenAIClient;
+use llm_kit_core::{GenerateText, prompt::Prompt};
+use llm_kit_openai::OpenAIClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -65,18 +65,18 @@ All providers follow the same standardized builder pattern and API:
 
 | Provider | Chat | Embed | Image | Speech | Transcription | Reranking | Status |
 |----------|------|-------|-------|--------|---------------|-----------|--------|
-| [OpenAI](ai-sdk-openai/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [Anthropic](ai-sdk-anthropic/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [Azure](ai-sdk-azure/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [Groq](ai-sdk-groq/) | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
-| [DeepSeek](ai-sdk-deepseek/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [xAI](ai-sdk-xai/) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [TogetherAI](ai-sdk-togetherai/) | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ Standardized |
-| [Baseten](ai-sdk-baseten/) | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [Hugging Face](ai-sdk-huggingface/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
-| [ElevenLabs](ai-sdk-elevenlabs/) | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
-| [AssemblyAI](ai-sdk-assemblyai/) | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ Standardized |
-| [OpenAI-Compatible](ai-sdk-openai-compatible/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [OpenAI](llm-kit-openai/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Anthropic](llm-kit-anthropic/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Azure](llm-kit-azure/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Groq](llm-kit-groq/) | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
+| [DeepSeek](llm-kit-deepseek/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [xAI](llm-kit-xai/) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [TogetherAI](llm-kit-togetherai/) | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ Standardized |
+| [Baseten](llm-kit-baseten/) | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [Hugging Face](llm-kit-huggingface/) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Standardized |
+| [ElevenLabs](llm-kit-elevenlabs/) | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ Standardized |
+| [AssemblyAI](llm-kit-assemblyai/) | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ Standardized |
+| [OpenAI-Compatible](llm-kit-openai-compatible/) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Standardized |
 
 **Legend:**
 - ✅ = Feature supported and implemented
@@ -88,19 +88,19 @@ All providers use the same builder pattern:
 
 ```rust
 // OpenAI
-use ai_sdk_openai::OpenAIClient;
+use llm_kit_openai::OpenAIClient;
 let provider = OpenAIClient::new()
     .api_key("your-key")
     .build();
 
 // Anthropic (Claude)
-use ai_sdk_anthropic::AnthropicClient;
+use llm_kit_anthropic::AnthropicClient;
 let provider = AnthropicClient::new()
     .api_key("your-key")
     .build();
 
 // Azure OpenAI
-use ai_sdk_azure::AzureClient;
+use llm_kit_azure::AzureClient;
 let provider = AzureClient::new()
     .api_key("your-key")
     .resource_name("your-resource")
@@ -108,13 +108,13 @@ let provider = AzureClient::new()
     .build();
 
 // Groq (ultra-fast inference)
-use ai_sdk_groq::GroqClient;
+use llm_kit_groq::GroqClient;
 let provider = GroqClient::new()
     .api_key("your-key")
     .build();
 
 // DeepSeek (reasoning models)
-use ai_sdk_deepseek::DeepSeekClient;
+use llm_kit_deepseek::DeepSeekClient;
 let provider = DeepSeekClient::new()
     .api_key("your-key")
     .build();
@@ -131,7 +131,7 @@ Switch providers by changing just 2-3 lines of code. The rest of your applicatio
 Generate text with comprehensive configuration options:
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use llm_kit_core::{GenerateText, prompt::Prompt};
 
 let result = GenerateText::new(model, Prompt::text("Write a poem"))
     .temperature(0.8)
@@ -151,7 +151,7 @@ println!("Response: {}", result.text);
 Stream responses in real-time:
 
 ```rust
-use ai_sdk_core::{StreamText, prompt::Prompt};
+use llm_kit_core::{StreamText, prompt::Prompt};
 use futures::StreamExt;
 
 let result = StreamText::new(model, Prompt::text("Tell me a story"))
@@ -175,8 +175,8 @@ Define tools with dynamic or type-safe APIs:
 **Dynamic Tools:**
 
 ```rust
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+use llm_kit_core::{GenerateText, ToolSet};
+use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -206,7 +206,7 @@ let result = GenerateText::new(model, Prompt::text("What's the weather in Paris?
 **Type-Safe Tools:**
 
 ```rust
-use ai_sdk_core::tool::TypeSafeTool;
+use llm_kit_core::tool::TypeSafeTool;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -242,8 +242,8 @@ impl TypeSafeTool for WeatherInput {
 Create reusable AI agents with persistent configuration:
 
 ```rust
-use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-use ai_sdk_core::agent::AgentInterface;
+use llm_kit_core::{Agent, AgentSettings, AgentCallParameters};
+use llm_kit_core::agent::AgentInterface;
 
 // Configure agent once
 let settings = AgentSettings::new(model)
@@ -274,8 +274,8 @@ let stream_result = agent.stream(AgentCallParameters::from_text("Tell a story"))
 Persist conversation history with automatic loading:
 
 ```rust
-use ai_sdk_storage_filesystem::FilesystemStorage;
-use ai_sdk_storage::Storage;
+use llm_kit_storage_filesystem::FilesystemStorage;
+use llm_kit_storage::Storage;
 use std::sync::Arc;
 
 let storage: Arc<dyn Storage> = Arc::new(FilesystemStorage::new("./storage")?);
@@ -301,9 +301,9 @@ GenerateText::new(model, Prompt::text("Why should I learn it?"))
 **Enable storage feature:**
 
 ```toml
-ai-sdk-core = { version = "0.1", features = ["storage"] }
-ai-sdk-storage = "0.1"
-ai-sdk-storage-filesystem = "0.1"
+llm-kit-core = { version = "0.1", features = ["storage"] }
+llm-kit-storage = "0.1"
+llm-kit-storage-filesystem = "0.1"
 ```
 
 ### Embeddings
@@ -311,7 +311,7 @@ ai-sdk-storage-filesystem = "0.1"
 Generate embeddings for single or multiple texts:
 
 ```rust
-use ai_sdk_core::{Embed, EmbedMany};
+use llm_kit_core::{Embed, EmbedMany};
 
 // Single embedding
 let result = Embed::new(embedding_model.clone(), "Hello world".to_string())
@@ -331,7 +331,7 @@ let results = EmbedMany::new(embedding_model, texts)
 Generate images from text prompts:
 
 ```rust
-use ai_sdk_core::GenerateImage;
+use llm_kit_core::GenerateImage;
 
 let result = GenerateImage::new(image_model, "A serene landscape".to_string())
     .n(2)
@@ -346,7 +346,7 @@ let result = GenerateImage::new(image_model, "A serene landscape".to_string())
 Convert between text and speech:
 
 ```rust
-use ai_sdk_core::{GenerateSpeech, Transcribe, AudioInput};
+use llm_kit_core::{GenerateSpeech, Transcribe, AudioInput};
 
 // Text to speech
 let result = GenerateSpeech::new(speech_model, "Hello world".to_string())
@@ -367,7 +367,7 @@ let result = Transcribe::new(transcription_model, AudioInput::Data(audio_data))
 Rerank documents based on relevance:
 
 ```rust
-use ai_sdk_core::Rerank;
+use llm_kit_core::Rerank;
 
 let documents = vec!["doc1".to_string(), "doc2".to_string()];
 let result = Rerank::new(reranking_model, documents, "search query".to_string())
@@ -382,34 +382,34 @@ This is a Cargo workspace organized into layers:
 
 ### Core Layer
 
-- **[ai-sdk-core](ai-sdk-core/)** - Core functionality with builder APIs, agent system, tool integration, and storage
-- **[ai-sdk-provider](ai-sdk-provider/)** - Provider interface and traits for implementing new providers
-- **[ai-sdk-provider-utils](ai-sdk-provider-utils/)** - Shared utilities for providers
+- **[llm-kit-core](llm-kit-core/)** - Core functionality with builder APIs, agent system, tool integration, and storage
+- **[llm-kit-provider](llm-kit-provider/)** - Provider interface and traits for implementing new providers
+- **[llm-kit-provider-utils](llm-kit-provider-utils/)** - Shared utilities for providers
 
 ### Storage Layer
 
-- **[ai-sdk-storage](ai-sdk-storage/)** - Storage trait and types for conversation persistence
-- **[ai-sdk-storage-filesystem](ai-sdk-storage-filesystem/)** - Filesystem-based storage implementation
+- **[llm-kit-storage](llm-kit-storage/)** - Storage trait and types for conversation persistence
+- **[llm-kit-storage-filesystem](llm-kit-storage-filesystem/)** - Filesystem-based storage implementation
 
 ### Provider Implementations
 
 **Language Model Providers:**
-- **[ai-sdk-openai](ai-sdk-openai/)** - OpenAI (GPT models)
-- **[ai-sdk-anthropic](ai-sdk-anthropic/)** - Anthropic (Claude models) with extended thinking and citations
-- **[ai-sdk-deepseek](ai-sdk-deepseek/)** - DeepSeek (reasoning models)
-- **[ai-sdk-huggingface](ai-sdk-huggingface/)** - Hugging Face Inference API (Llama, Mistral, Qwen, and more)
-- **[ai-sdk-xai](ai-sdk-xai/)** - xAI (Grok models)
+- **[llm-kit-openai](llm-kit-openai/)** - OpenAI (GPT models)
+- **[llm-kit-anthropic](llm-kit-anthropic/)** - Anthropic (Claude models) with extended thinking and citations
+- **[llm-kit-deepseek](llm-kit-deepseek/)** - DeepSeek (reasoning models)
+- **[llm-kit-huggingface](llm-kit-huggingface/)** - Hugging Face Inference API (Llama, Mistral, Qwen, and more)
+- **[llm-kit-xai](llm-kit-xai/)** - xAI (Grok models)
 
 **Multi-Feature Providers:**
-- **[ai-sdk-azure](ai-sdk-azure/)** - Azure OpenAI (chat, embeddings, images)
-- **[ai-sdk-groq](ai-sdk-groq/)** - Groq (ultra-fast chat, speech, transcription)
-- **[ai-sdk-togetherai](ai-sdk-togetherai/)** - TogetherAI (chat, embeddings, images, reranking)
-- **[ai-sdk-baseten](ai-sdk-baseten/)** - Baseten (chat, embeddings)
-- **[ai-sdk-openai-compatible](ai-sdk-openai-compatible/)** - Base for OpenAI-compatible APIs
+- **[llm-kit-azure](llm-kit-azure/)** - Azure OpenAI (chat, embeddings, images)
+- **[llm-kit-groq](llm-kit-groq/)** - Groq (ultra-fast chat, speech, transcription)
+- **[llm-kit-togetherai](llm-kit-togetherai/)** - TogetherAI (chat, embeddings, images, reranking)
+- **[llm-kit-baseten](llm-kit-baseten/)** - Baseten (chat, embeddings)
+- **[llm-kit-openai-compatible](llm-kit-openai-compatible/)** - Base for OpenAI-compatible APIs
 
 **Specialized Providers:**
-- **[ai-sdk-elevenlabs](ai-sdk-elevenlabs/)** - ElevenLabs (speech generation, transcription)
-- **[ai-sdk-assemblyai](ai-sdk-assemblyai/)** - AssemblyAI (transcription)
+- **[llm-kit-elevenlabs](llm-kit-elevenlabs/)** - ElevenLabs (speech generation, transcription)
+- **[llm-kit-assemblyai](llm-kit-assemblyai/)** - AssemblyAI (transcription)
 
 ## Examples
 
@@ -475,7 +475,7 @@ See the [`examples/`](examples/) directory for all available examples.
 
 The SDK follows a three-layer architecture:
 
-### 1. Core Layer (`ai-sdk-core`)
+### 1. Core Layer (`llm-kit-core`)
 
 Provides builder pattern APIs and core functionality:
 - **Builders**: `GenerateText`, `StreamText`, `Embed`, `EmbedMany`, `GenerateImage`, `GenerateSpeech`, `Transcribe`, `Rerank`
@@ -484,7 +484,7 @@ Provides builder pattern APIs and core functionality:
 - **Prompt Management**: Standardized message types and conversions
 - **Storage Integration**: Conversation persistence
 
-### 2. Provider Layer (`ai-sdk-provider`)
+### 2. Provider Layer (`llm-kit-provider`)
 
 Defines traits for implementing providers:
 - **`Provider` trait**: Top-level provider interface
@@ -501,7 +501,7 @@ Concrete implementations for each provider:
 
 ## Documentation
 
-- **[Core Library Documentation](ai-sdk-core/README.md)** - Builder APIs, agent system, tools
+- **[Core Library Documentation](llm-kit-core/README.md)** - Builder APIs, agent system, tools
 - **[Provider Implementation Guide](PROVIDER-IMPLEMENTATION.md)** - How to implement new providers
 - **[Provider Standardization](PROVIDER-STANDARDIZATION.md)** - Provider standardization process
 - **[Provider Examples Guide](PROVIDER_EXAMPLES.md)** - Required examples for each provider
@@ -511,18 +511,18 @@ Concrete implementations for each provider:
 ### Provider Documentation
 
 Each provider has comprehensive README documentation:
-- [OpenAI](ai-sdk-openai/README.md)
-- [Anthropic](ai-sdk-anthropic/README.md)
-- [Azure](ai-sdk-azure/README.md)
-- [Groq](ai-sdk-groq/README.md)
-- [DeepSeek](ai-sdk-deepseek/README.md)
-- [xAI](ai-sdk-xai/README.md)
-- [TogetherAI](ai-sdk-togetherai/README.md)
-- [Baseten](ai-sdk-baseten/README.md)
-- [Hugging Face](ai-sdk-huggingface/README.md)
-- [ElevenLabs](ai-sdk-elevenlabs/README.md)
-- [AssemblyAI](ai-sdk-assemblyai/README.md)
-- [OpenAI-Compatible](ai-sdk-openai-compatible/README.md)
+- [OpenAI](llm-kit-openai/README.md)
+- [Anthropic](llm-kit-anthropic/README.md)
+- [Azure](llm-kit-azure/README.md)
+- [Groq](llm-kit-groq/README.md)
+- [DeepSeek](llm-kit-deepseek/README.md)
+- [xAI](llm-kit-xai/README.md)
+- [TogetherAI](llm-kit-togetherai/README.md)
+- [Baseten](llm-kit-baseten/README.md)
+- [Hugging Face](llm-kit-huggingface/README.md)
+- [ElevenLabs](llm-kit-elevenlabs/README.md)
+- [AssemblyAI](llm-kit-assemblyai/README.md)
+- [OpenAI-Compatible](llm-kit-openai-compatible/README.md)
 
 ## Development
 
@@ -571,15 +571,15 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 cargo test
 
 # Run tests for a specific crate
-cargo test -p ai-sdk-core
-cargo test -p ai-sdk-openai
-cargo test -p ai-sdk-anthropic
+cargo test -p llm-kit-core
+cargo test -p llm-kit-openai
+cargo test -p llm-kit-anthropic
 
 # Run with output
 cargo test -- --nocapture
 
 # Run storage tests
-cargo test -p ai-sdk-core --features storage
+cargo test -p llm-kit-core --features storage
 ```
 
 ### Building

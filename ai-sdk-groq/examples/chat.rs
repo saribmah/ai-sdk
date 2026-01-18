@@ -1,19 +1,19 @@
-/// Basic chat example using Groq provider with only ai-sdk-provider.
+/// Basic chat example using Groq provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_generate() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_generate() directly (no llm-kit-core)
 /// - Basic text generation without tools
-/// - Working with LanguageModelCallOptions from ai-sdk-provider
+/// - Working with LanguageModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export GROQ_API_KEY="your-api-key"
-/// cargo run --example chat -p ai-sdk-groq
+/// cargo run --example chat -p llm-kit-groq
 /// ```
-use ai_sdk_groq::GroqClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_groq::GroqClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -1,6 +1,8 @@
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider::transcription_model::call_warning::TranscriptionModelCallWarning;
-use ai_sdk_provider::transcription_model::{TranscriptSegment, TranscriptionModelResponseMetadata};
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::transcription_model::call_warning::TranscriptionModelCallWarning;
+use llm_kit_provider::transcription_model::{
+    TranscriptSegment, TranscriptionModelResponseMetadata,
+};
 use serde::{Deserialize, Serialize};
 
 /// The result of a `transcribe` call.

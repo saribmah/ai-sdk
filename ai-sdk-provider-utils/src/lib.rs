@@ -16,17 +16,17 @@
 //!
 //! ## Architecture
 //!
-//! This crate sits between `ai-sdk-provider` and `ai-sdk-core`, providing shared types
+//! This crate sits between `llm-kit-provider` and `llm-kit-core`, providing shared types
 //! that both layers depend on:
 //!
 //! ```text
-//! ai-sdk-core (high-level APIs)
+//! llm-kit-core (high-level APIs)
 //!      ↓
-//! ai-sdk-provider-utils (shared types) ← You are here
+//! llm-kit-provider-utils (shared types) ← You are here
 //!      ↓
-//! ai-sdk-provider (provider interface)
+//! llm-kit-provider (provider interface)
 //!      ↓
-//! ai-sdk-openai-compatible (implementation)
+//! llm-kit-openai-compatible (implementation)
 //! ```
 //!
 //! ## Message System
@@ -36,7 +36,7 @@
 //! ### Message Types
 //!
 //! ```rust
-//! use ai_sdk_provider_utils::message::{Message, UserMessage, AssistantMessage, SystemMessage};
+//! use llm_kit_provider_utils::message::{Message, UserMessage, AssistantMessage, SystemMessage};
 //!
 //! // System message
 //! let system = SystemMessage::new("You are a helpful assistant.");
@@ -60,9 +60,9 @@
 //! Messages can contain rich content with multiple parts:
 //!
 //! ```rust
-//! use ai_sdk_provider_utils::message::{UserMessage, UserContentPart};
-//! use ai_sdk_provider_utils::message::content_parts::{TextPart, ImagePart};
-//! # use ai_sdk_provider_utils::message::DataContent;
+//! use llm_kit_provider_utils::message::{UserMessage, UserContentPart};
+//! use llm_kit_provider_utils::message::content_parts::{TextPart, ImagePart};
+//! # use llm_kit_provider_utils::message::DataContent;
 //!
 //! let message = UserMessage::with_parts(vec![
 //!     UserContentPart::Text(TextPart::new("What's in this image?")),
@@ -77,7 +77,7 @@
 //! ### Dynamic Tools
 //!
 //! ```rust,no_run
-//! use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+//! use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 //! use serde_json::json;
 //! use std::sync::Arc;
 //!
@@ -112,7 +112,7 @@
 //! Tools can require user approval before execution:
 //!
 //! ```rust,no_run
-//! # use ai_sdk_provider_utils::tool::Tool;
+//! # use llm_kit_provider_utils::tool::Tool;
 //! # use serde_json::json;
 //! # let schema = json!({"type": "object"});
 //! let delete_tool = Tool::function(schema)
@@ -125,7 +125,7 @@
 //! Binary data (images, files, audio) can be represented as base64 or raw bytes:
 //!
 //! ```rust
-//! use ai_sdk_provider_utils::message::DataContent;
+//! use llm_kit_provider_utils::message::DataContent;
 //!
 //! // From base64
 //! let data = DataContent::base64("iVBORw0KGgo...");
@@ -148,7 +148,7 @@
 //! Common types are re-exported at the crate root for convenience:
 //!
 //! ```rust
-//! use ai_sdk_provider_utils::{
+//! use llm_kit_provider_utils::{
 //!     // Messages
 //!     Message, UserMessage, AssistantMessage, SystemMessage, ToolMessage,
 //!     // Content parts
@@ -171,8 +171,8 @@
 //!
 //! ## See Also
 //!
-//! - `ai-sdk-core`: High-level builder APIs that use these types
-//! - `ai-sdk-provider`: Provider interface that these types support
+//! - `llm-kit-core`: High-level builder APIs that use these types
+//! - `llm-kit-provider`: Provider interface that these types support
 
 #![warn(missing_docs)]
 

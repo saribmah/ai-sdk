@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, UnsupportedModelVersionErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, UnsupportedModelVersionErrorBuilder};
 ///
 /// let error = UnsupportedModelVersionErrorBuilder::new("v1", "openai", "gpt-4")
 ///     .build();
@@ -38,7 +38,7 @@ impl UnsupportedModelVersionErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::UnsupportedModelVersionErrorBuilder;
+    /// use llm_kit_core::error::UnsupportedModelVersionErrorBuilder;
     ///
     /// let builder = UnsupportedModelVersionErrorBuilder::new("v1", "openai", "gpt-4");
     /// ```
@@ -59,7 +59,7 @@ impl UnsupportedModelVersionErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::UnsupportedModelVersionErrorBuilder;
+    /// use llm_kit_core::error::UnsupportedModelVersionErrorBuilder;
     ///
     /// let error = UnsupportedModelVersionErrorBuilder::new("v1", "openai", "gpt-4")
     ///     .build();
@@ -85,7 +85,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::unsupported_model_version("v1", "openai", "gpt-4");
     ///
@@ -121,7 +121,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::unsupported_model_version_builder("v1", "openai", "gpt-4")
     ///     .build();

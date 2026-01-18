@@ -1,17 +1,17 @@
 use crate::completion::prompt::OpenAICompatibleCompletionPrompt;
-use ai_sdk_provider::language_model::prompt::{
+use llm_kit_provider::language_model::prompt::{
     LanguageModelAssistantMessagePart, LanguageModelMessage, LanguageModelPrompt,
     LanguageModelUserMessagePart,
 };
 
 #[cfg(test)]
-use ai_sdk_provider::language_model::prompt::message::{
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
     LanguageModelUserMessage,
 };
 
 #[cfg(test)]
-use ai_sdk_provider::language_model::prompt::message::parts::{
+use llm_kit_provider::language_model::prompt::message::parts::{
     LanguageModelTextPart, LanguageModelToolCallPart,
 };
 
@@ -37,9 +37,9 @@ use ai_sdk_provider::language_model::prompt::message::parts::{
 /// # Example
 ///
 /// ```ignore
-/// use ai_sdk_provider::language_model::prompt::{LanguageModelPrompt, LanguageModelMessage};
-/// use ai_sdk_provider::language_model::prompt::message::{LanguageModelSystemMessage, LanguageModelUserMessage};
-/// use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelTextPart;
+/// use llm_kit_provider::language_model::prompt::{LanguageModelPrompt, LanguageModelMessage};
+/// use llm_kit_provider::language_model::prompt::message::{LanguageModelSystemMessage, LanguageModelUserMessage};
+/// use llm_kit_provider::language_model::prompt::message::parts::LanguageModelTextPart;
 ///
 /// let prompt: LanguageModelPrompt = vec![
 ///     LanguageModelMessage::System(LanguageModelSystemMessage {
@@ -265,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_tool_message_errors() {
-        use ai_sdk_provider::language_model::prompt::{
+        use llm_kit_provider::language_model::prompt::{
             LanguageModelToolResultOutput, LanguageModelToolResultPart,
         };
 
@@ -297,8 +297,8 @@ mod tests {
 
     #[test]
     fn test_file_parts_filtered() {
-        use ai_sdk_provider::language_model::prompt::LanguageModelDataContent;
-        use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelFilePart;
+        use llm_kit_provider::language_model::prompt::LanguageModelDataContent;
+        use llm_kit_provider::language_model::prompt::message::parts::LanguageModelFilePart;
 
         let prompt = vec![LanguageModelMessage::User(LanguageModelUserMessage::new(
             vec![

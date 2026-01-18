@@ -22,7 +22,6 @@ pub mod tool_result;
 use crate::tool::callbacks::{
     OnInputAvailableCallback, OnInputDeltaCallback, OnInputStartCallback, ToModelOutputFunction,
 };
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
 pub use approval_request::ToolApprovalRequest;
 pub use approval_request_output::ToolApprovalRequestOutput;
 pub use approval_response::ToolApprovalResponse;
@@ -31,6 +30,7 @@ pub use callbacks::{
     ToolNeedsApprovalFunction, ToolType,
 };
 pub use execute_options::ToolExecuteOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 pub use provider_defined_factory::{
     ProviderDefinedToolFactory, ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions,
 };
@@ -74,7 +74,7 @@ pub use tool_result::ToolResult;
 /// ## Basic Function Tool
 ///
 /// ```no_run
-/// use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+/// use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// use serde_json::json;
 /// use std::sync::Arc;
 ///
@@ -100,7 +100,7 @@ pub use tool_result::ToolResult;
 /// ## Tool with Approval
 ///
 /// ```no_run
-/// # use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+/// # use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// # use serde_json::json;
 /// # use std::sync::Arc;
 /// # let schema = json!({"type": "object"});
@@ -120,7 +120,7 @@ pub use tool_result::ToolResult;
 /// ```ignore
 /// # use serde::{Deserialize, Serialize};
 /// # use schemars::JsonSchema;
-/// # use ai_sdk_provider_utils::tool::TypeSafeTool;
+/// # use llm_kit_provider_utils::tool::TypeSafeTool;
 /// # use serde_json::Value;
 /// # struct WeatherTool;
 /// # #[derive(Serialize, Deserialize, JsonSchema)]

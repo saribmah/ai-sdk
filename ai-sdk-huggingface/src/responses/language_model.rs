@@ -1,12 +1,12 @@
-use ai_sdk_provider::language_model::{
+use async_trait::async_trait;
+use futures_util::{Stream, StreamExt};
+use llm_kit_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
     LanguageModelStreamResponse, call_options::LanguageModelCallOptions,
     call_warning::LanguageModelCallWarning, content::LanguageModelContent,
     response_metadata::LanguageModelResponseMetadata, stream_part::LanguageModelStreamPart,
     usage::LanguageModelUsage,
 };
-use async_trait::async_trait;
-use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
 use serde::Deserialize;
@@ -124,7 +124,7 @@ impl HuggingFaceResponsesLanguageModel {
 
         // Handle response format (structured output)
         if let Some(response_format) = &options.response_format {
-            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+            use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
 
             match response_format {
                 LanguageModelResponseFormat::Text => {
@@ -299,7 +299,7 @@ impl HuggingFaceResponsesLanguageModel {
 
                         // Emit the ToolCall with complete arguments
                         parts.push(LanguageModelStreamPart::ToolCall(
-                                        ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall::new(
+                                        llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall::new(
                                             tool_state.id.clone(),
                                             tool_state.name.clone(),
                                             tool_state.arguments.clone(),
@@ -557,7 +557,7 @@ impl LanguageModel for HuggingFaceResponsesLanguageModel {
                     for content_part in &item.content {
                         if let Some(text) = &content_part.text {
                             content.push(LanguageModelContent::Text(
-                                ai_sdk_provider::language_model::content::text::LanguageModelText::new(
+                                llm_kit_provider::language_model::content::text::LanguageModelText::new(
                                     text.clone()
                                 )
                             ));
@@ -566,7 +566,7 @@ impl LanguageModel for HuggingFaceResponsesLanguageModel {
                         // Process annotations as sources
                         for annotation in &content_part.annotations {
                             content.push(LanguageModelContent::Source(
-                                ai_sdk_provider::language_model::content::source::LanguageModelSource::Url {
+                                llm_kit_provider::language_model::content::source::LanguageModelSource::Url {
                                     id: format!("source-{}", uuid::Uuid::new_v4()),
                                     url: annotation.url.clone(),
                                     title: annotation.title.clone(),
@@ -585,7 +585,7 @@ impl LanguageModel for HuggingFaceResponsesLanguageModel {
                         let provider_executed = item.output.is_some();
 
                         content.push(LanguageModelContent::ToolCall(
-                            ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
+                            llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
                                 call_id.clone(),
                                 name.clone(),
                                 arguments.clone(),
@@ -601,7 +601,7 @@ impl LanguageModel for HuggingFaceResponsesLanguageModel {
                                 serde_json::from_str(output).unwrap_or_else(|_| json!(output));
 
                             content.push(LanguageModelContent::ToolResult(
-                                ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+                                llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                                     call_id.clone(),
                                     name.clone(),
                                     result_value,

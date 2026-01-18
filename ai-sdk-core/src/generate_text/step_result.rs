@@ -1,9 +1,9 @@
-use ai_sdk_provider::language_model::{
+use llm_kit_provider::language_model::{
     call_warning::LanguageModelCallWarning, content::source::LanguageModelSource,
     finish_reason::LanguageModelFinishReason, response_metadata::LanguageModelResponseMetadata,
     usage::LanguageModelUsage,
 };
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -57,9 +57,9 @@ impl From<LanguageModelResponseMetadata> for StepResponseMetadata {
 ///
 ///
 /// ```no_run
-/// use ai_sdk_core::generate_text::{StepResult, RequestMetadata, StepResponseMetadata};
-/// use ai_sdk_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
-/// # use ai_sdk_core::output::Output;
+/// use llm_kit_core::generate_text::{StepResult, RequestMetadata, StepResponseMetadata};
+/// use llm_kit_provider::language_model::{finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage};
+/// # use llm_kit_core::output::Output;
 /// # let content: Vec<Output> = vec![];
 /// # let finish_reason = LanguageModelFinishReason::Stop;
 /// # let usage = LanguageModelUsage::new(10, 20);
@@ -147,7 +147,7 @@ impl StepResult {
     /// # Example
     ///
     /// ```no_run
-    /// # use ai_sdk_core::generate_text::StepResult;
+    /// # use llm_kit_core::generate_text::StepResult;
     /// # fn example(result: StepResult) {
     /// let text = result.text();
     /// println!("Generated text: {}", text);
@@ -239,7 +239,7 @@ impl StepResult {
     /// # Returns
     ///
     /// A vector of references to tool calls.
-    pub fn tool_calls(&self) -> Vec<&ai_sdk_provider_utils::tool::ToolCall> {
+    pub fn tool_calls(&self) -> Vec<&llm_kit_provider_utils::tool::ToolCall> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -257,7 +257,7 @@ impl StepResult {
     /// # Returns
     ///
     /// A vector of references to tool results.
-    pub fn tool_results(&self) -> Vec<&ai_sdk_provider_utils::tool::ToolResult> {
+    pub fn tool_results(&self) -> Vec<&llm_kit_provider_utils::tool::ToolResult> {
         self.content
             .iter()
             .filter_map(|part| {
@@ -282,7 +282,7 @@ mod tests {
             Output::Text(crate::output::text::TextOutput::new("world!".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 1. ".to_string())),
             Output::Reasoning(ReasoningOutput::new("Thinking step 2.".to_string())),
-            Output::ToolCall(ai_sdk_provider_utils::tool::ToolCall::new(
+            Output::ToolCall(llm_kit_provider_utils::tool::ToolCall::new(
                 "call_1",
                 "get_weather",
                 json!({"city": "SF"}),

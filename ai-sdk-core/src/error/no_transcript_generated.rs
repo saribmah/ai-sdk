@@ -1,13 +1,13 @@
 use crate::error::AISDKError;
-use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
 
 /// Builder for [`AISDKError::NoTranscriptGenerated`].
 ///
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, NoTranscriptGeneratedErrorBuilder};
-/// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+/// use llm_kit_core::error::{AISDKError, NoTranscriptGeneratedErrorBuilder};
+/// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
 ///
 /// let metadata = TranscriptionModelResponseMetadata::new("whisper-1");
 /// let error = NoTranscriptGeneratedErrorBuilder::new(vec![metadata])
@@ -36,8 +36,8 @@ impl NoTranscriptGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoTranscriptGeneratedErrorBuilder;
-    /// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+    /// use llm_kit_core::error::NoTranscriptGeneratedErrorBuilder;
+    /// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
     ///
     /// let metadata = TranscriptionModelResponseMetadata::new("whisper-1");
     /// let builder = NoTranscriptGeneratedErrorBuilder::new(vec![metadata]);
@@ -55,8 +55,8 @@ impl NoTranscriptGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoTranscriptGeneratedErrorBuilder;
-    /// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+    /// use llm_kit_core::error::NoTranscriptGeneratedErrorBuilder;
+    /// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
     ///
     /// let metadata1 = TranscriptionModelResponseMetadata::new("whisper-1");
     /// let metadata2 = TranscriptionModelResponseMetadata::new("whisper-1");
@@ -73,8 +73,8 @@ impl NoTranscriptGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoTranscriptGeneratedErrorBuilder;
-    /// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+    /// use llm_kit_core::error::NoTranscriptGeneratedErrorBuilder;
+    /// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
     ///
     /// let metadata = TranscriptionModelResponseMetadata::new("whisper-1");
     /// let error = NoTranscriptGeneratedErrorBuilder::new(vec![metadata])
@@ -98,8 +98,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
     ///
     /// let metadata = TranscriptionModelResponseMetadata::new("whisper-1");
     /// let error = AISDKError::no_transcript_generated(vec![metadata]);
@@ -128,8 +128,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata;
     ///
     /// let metadata = TranscriptionModelResponseMetadata::new("whisper-1");
     /// let error = AISDKError::no_transcript_generated_builder(vec![metadata])

@@ -17,8 +17,8 @@ use self::user::AnthropicUserMessage;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::{AnthropicMessage, user::AnthropicUserMessage};
-/// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+/// use llm_kit_anthropic::prompt::message::{AnthropicMessage, user::AnthropicUserMessage};
+/// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
 ///
 /// // Create a user message
 /// let user_msg = AnthropicMessage::User(

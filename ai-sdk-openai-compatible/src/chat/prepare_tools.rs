@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::{
+use llm_kit_provider::language_model::{
     call_warning::LanguageModelCallWarning, tool::LanguageModelTool,
     tool_choice::LanguageModelToolChoice,
 };
@@ -160,8 +160,8 @@ pub fn prepare_tools(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-    use ai_sdk_provider::language_model::tool::provider_defined_tool::LanguageModelProviderDefinedTool;
+    use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+    use llm_kit_provider::language_model::tool::provider_defined_tool::LanguageModelProviderDefinedTool;
     use serde_json::json;
     use std::collections::HashMap;
 

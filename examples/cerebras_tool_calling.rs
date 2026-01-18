@@ -1,8 +1,8 @@
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_core::output::Output;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{GenerateText, ToolSet};
+use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 use serde_json::{Value, json};
 use std::env;
 use std::sync::Arc;

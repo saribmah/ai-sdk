@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
+/// use llm_kit_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
 ///
 /// // Create a thinking content block
 /// let thinking_content = AnthropicThinkingContent::new(
@@ -43,7 +43,7 @@ impl AnthropicThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
     ///
     /// let thinking = AnthropicThinkingContent::new(
     ///     "First, I need to understand the problem...",
@@ -69,7 +69,7 @@ impl AnthropicThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
     ///
     /// let thinking = AnthropicThinkingContent::new("Initial thought", "sig_1")
     ///     .with_thinking("Updated thought process");
@@ -89,7 +89,7 @@ impl AnthropicThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::thinking::AnthropicThinkingContent;
     ///
     /// let thinking = AnthropicThinkingContent::new("Thinking...", "sig_old")
     ///     .with_signature("sig_new");

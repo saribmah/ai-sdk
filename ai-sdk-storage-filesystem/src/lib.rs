@@ -3,7 +3,7 @@
 //! Filesystem-based storage implementation for AI SDK Storage.
 //!
 //! This crate provides a production-ready filesystem storage provider that implements
-//! the `Storage` trait from `ai-sdk-storage`. It stores sessions, messages, and parts
+//! the `Storage` trait from `llm-kit-storage`. It stores sessions, messages, and parts
 //! as JSON files in a hierarchical directory structure.
 //!
 //! ## Features
@@ -25,8 +25,8 @@
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use ai_sdk_storage::Storage;
-//! use ai_sdk_storage_filesystem::FilesystemStorage;
+//! use llm_kit_storage::Storage;
+//! use llm_kit_storage_filesystem::FilesystemStorage;
 //! use std::sync::Arc;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,11 +59,11 @@
 
 mod id_generator;
 
-use ai_sdk_storage::{
+use async_trait::async_trait;
+use llm_kit_storage::{
     AssistantMessage, MessageMetadata, MessagePart, MessageRole, Session, Storage, StorageError,
     UserMessage,
 };
-use async_trait::async_trait;
 use std::path::PathBuf;
 use tokio::fs;
 
@@ -503,7 +503,7 @@ impl Storage for FilesystemStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_storage::{MessageMetadata, Session, TextPart, UsageStats};
+    use llm_kit_storage::{MessageMetadata, Session, TextPart, UsageStats};
     use tempfile::TempDir;
 
     async fn setup_storage() -> (FilesystemStorage, TempDir) {

@@ -1,7 +1,7 @@
-use ai_sdk_cerebras::{CerebrasClient, chat::models};
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::Prompt;
+use llm_kit_cerebras::{CerebrasClient, chat::models};
+use llm_kit_core::GenerateText;
+use llm_kit_core::output::Output;
+use llm_kit_core::prompt::Prompt;
 use std::env;
 
 /// Reasoning model example with Cerebras.

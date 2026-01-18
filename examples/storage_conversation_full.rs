@@ -8,10 +8,10 @@
 //!
 //! Run with: `cargo run --example storage_conversation_full`
 
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_storage::Storage;
-use ai_sdk_storage_filesystem::FilesystemStorage;
+use llm_kit_core::{GenerateText, prompt::Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_storage::Storage;
+use llm_kit_storage_filesystem::FilesystemStorage;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = provider.chat_model("openai/gpt-4o");
 
     // Initialize storage
-    let storage_path = std::env::temp_dir().join("ai-sdk-conversation-example");
+    let storage_path = std::env::temp_dir().join("llm-kit-conversation-example");
     println!("📁 Storage path: {}\n", storage_path.display());
 
     let storage = Arc::new(FilesystemStorage::new(&storage_path)?);
@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (i, msg_id) in message_ids.iter().enumerate() {
         let (role, parts) = storage.get_message(&session_id, msg_id).await?;
-        if let Some(ai_sdk_storage::MessagePart::Text(text_part)) = parts.first() {
+        if let Some(llm_kit_storage::MessagePart::Text(text_part)) = parts.first() {
             println!("{}. {:?}: {}", i + 1, role, text_part.text);
         }
     }

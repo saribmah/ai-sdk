@@ -16,7 +16,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_togetherai::TogetherAIClient;
+//! use llm_kit_togetherai::TogetherAIClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = TogetherAIClient::new()
@@ -29,7 +29,7 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+//! use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
 //!
 //! // Create a provider using settings
 //! let provider = TogetherAIProvider::new(
@@ -43,7 +43,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_togetherai::TogetherAIClient;
+//! use llm_kit_togetherai::TogetherAIClient;
 //!
 //! let model = TogetherAIClient::new()
 //!     .api_key("your-api-key")
@@ -54,7 +54,7 @@
 //! ## Environment Variable
 //!
 //! ```no_run
-//! use ai_sdk_togetherai::TogetherAIClient;
+//! use llm_kit_togetherai::TogetherAIClient;
 //!
 //! // API key will be read from TOGETHER_AI_API_KEY environment variable
 //! let provider = TogetherAIClient::new()
@@ -66,7 +66,7 @@
 //!
 //! ## Using the Provider
 //!
-//! This provider implements the `ai-sdk-provider` traits. See the examples directory
+//! This provider implements the `llm-kit-provider` traits. See the examples directory
 //! for detailed usage with `LanguageModel`, `EmbeddingModel`, `ImageModel`, and
 //! `RerankingModel` traits.
 

@@ -21,9 +21,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-huggingface = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-huggingface = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -32,8 +32,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_huggingface::HuggingFaceClient;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_huggingface::HuggingFaceClient;
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -54,8 +54,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -85,7 +85,7 @@ export HUGGINGFACE_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_huggingface::HuggingFaceClient;
+use llm_kit_huggingface::HuggingFaceClient;
 
 let provider = HuggingFaceClient::new()
     .api_key("your-api-key")
@@ -113,7 +113,7 @@ The `HuggingFaceClient` builder supports:
 Hugging Face Responses API supports Model Context Protocol (MCP), allowing tools to be executed on the provider side:
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt, tool::ToolSet};
+use llm_kit_core::{GenerateText, prompt::Prompt, tool::ToolSet};
 
 // When tools are called, check if they were executed by the provider
 let result = GenerateText::new(model, Prompt::text("What's the weather?"))
@@ -147,7 +147,7 @@ for content in result.content {
 Use JSON schema to constrain model output:
 
 ```rust
-use ai_sdk_core::response_format::ResponseFormat;
+use llm_kit_core::response_format::ResponseFormat;
 use serde_json::json;
 
 let result = GenerateText::new(model, Prompt::text("Generate a person"))
@@ -169,7 +169,7 @@ let result = GenerateText::new(model, Prompt::text("Generate a person"))
 Include images in your prompts:
 
 ```rust
-use ai_sdk_core::prompt::Prompt;
+use llm_kit_core::prompt::Prompt;
 
 let prompt = Prompt::new()
     .add_text("What's in this image?")
@@ -185,7 +185,7 @@ let result = GenerateText::new(model, prompt)
 The provider includes constants for popular models:
 
 ```rust
-use ai_sdk_huggingface::{
+use llm_kit_huggingface::{
     LLAMA_3_1_8B_INSTRUCT,
     LLAMA_3_1_70B_INSTRUCT,
     LLAMA_3_3_70B_INSTRUCT,
@@ -245,7 +245,7 @@ cargo run --example stream_tool_calling
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-huggingface)
+- [API Documentation](https://docs.rs/llm-kit-huggingface)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Hugging Face Responses API Reference](https://router.huggingface.co/v1)
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)

@@ -16,9 +16,9 @@
 //! ## Recommended: Using the Builder Pattern
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
+//! use llm_kit_elevenlabs::ElevenLabsClient;
+//! use llm_kit_provider::Provider;
+//! use llm_kit_provider::speech_model::call_options::SpeechModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! // Create provider using builder
@@ -51,8 +51,8 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
-//! use ai_sdk_provider::Provider;
+//! use llm_kit_elevenlabs::{ElevenLabsProvider, ElevenLabsProviderSettings};
+//! use llm_kit_provider::Provider;
 //!
 //! let provider = ElevenLabsProvider::new(
 //!     ElevenLabsProviderSettings::new()
@@ -65,9 +65,9 @@
 //! ## Text-to-Speech
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::Provider;
-//! use ai_sdk_provider::speech_model::{AudioData, call_options::SpeechModelCallOptions};
+//! use llm_kit_elevenlabs::ElevenLabsClient;
+//! use llm_kit_provider::Provider;
+//! use llm_kit_provider::speech_model::{AudioData, call_options::SpeechModelCallOptions};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = ElevenLabsClient::new()
@@ -107,9 +107,9 @@
 //! ## Speech-to-Text Transcription
 //!
 //! ```ignore
-//! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::{Provider, TranscriptionModel, TranscriptionInput, TranscriptionSettings};
-//! use ai_sdk_provider_utils::DataContent;
+//! use llm_kit_elevenlabs::ElevenLabsClient;
+//! use llm_kit_provider::{Provider, TranscriptionModel, TranscriptionInput, TranscriptionSettings};
+//! use llm_kit_provider_utils::DataContent;
 //! use std::fs;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -131,7 +131,7 @@
 //! ## Custom Configuration
 //!
 //! ```no_run
-//! use ai_sdk_elevenlabs::ElevenLabsClient;
+//! use llm_kit_elevenlabs::ElevenLabsClient;
 //!
 //! let provider = ElevenLabsClient::new()
 //!     .api_key("your-api-key")
@@ -143,8 +143,8 @@
 //! ## Provider-Specific Options
 //!
 //! ```ignore
-//! use ai_sdk_elevenlabs::ElevenLabsClient;
-//! use ai_sdk_provider::{Provider, SpeechModel, SpeechSettings};
+//! use llm_kit_elevenlabs::ElevenLabsClient;
+//! use llm_kit_provider::{Provider, SpeechModel, SpeechSettings};
 //! use std::collections::HashMap;
 //! use serde_json::json;
 //!

@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{UnsupportedFunctionalityErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{UnsupportedFunctionalityErrorBuilder, ProviderError};
 ///
 /// let error = UnsupportedFunctionalityErrorBuilder::new("streaming")
 ///     .message("This model does not support streaming responses")
@@ -63,7 +63,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::unsupported_functionality("vision");
     ///
@@ -88,7 +88,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::unsupported_functionality_with_message(
     ///     "function_calling",

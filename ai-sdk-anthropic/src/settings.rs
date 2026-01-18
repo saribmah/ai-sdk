@@ -14,7 +14,7 @@ use std::collections::HashMap;
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_anthropic::AnthropicProviderSettings;
+/// use llm_kit_anthropic::AnthropicProviderSettings;
 /// use std::collections::HashMap;
 ///
 /// let settings = AnthropicProviderSettings {

@@ -25,7 +25,7 @@ impl TextEditorCodeExecutionErrorResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionErrorResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionErrorResult;
     ///
     /// let result = TextEditorCodeExecutionErrorResult::new("FILE_NOT_FOUND");
     /// assert_eq!(result.error_code, "FILE_NOT_FOUND");
@@ -61,7 +61,7 @@ impl TextEditorCodeExecutionCreateResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
     ///
     /// let result = TextEditorCodeExecutionCreateResult::new(false);
     /// assert!(!result.is_file_update);
@@ -78,7 +78,7 @@ impl TextEditorCodeExecutionCreateResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
     ///
     /// let result = TextEditorCodeExecutionCreateResult::created();
     /// assert!(!result.is_file_update);
@@ -92,7 +92,7 @@ impl TextEditorCodeExecutionCreateResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionCreateResult;
     ///
     /// let result = TextEditorCodeExecutionCreateResult::updated();
     /// assert!(result.is_file_update);
@@ -141,7 +141,7 @@ impl TextEditorCodeExecutionViewResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
     ///
     /// let result = TextEditorCodeExecutionViewResult::new("print('hello')", "py");
     /// assert_eq!(result.content, "print('hello')");
@@ -163,7 +163,7 @@ impl TextEditorCodeExecutionViewResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
     ///
     /// let result = TextEditorCodeExecutionViewResult::new("content", "txt")
     ///     .with_num_lines(10);
@@ -179,7 +179,7 @@ impl TextEditorCodeExecutionViewResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
     ///
     /// let result = TextEditorCodeExecutionViewResult::new("content", "txt")
     ///     .with_start_line(5);
@@ -195,7 +195,7 @@ impl TextEditorCodeExecutionViewResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
     ///
     /// let result = TextEditorCodeExecutionViewResult::new("content", "txt")
     ///     .with_total_lines(100);
@@ -211,7 +211,7 @@ impl TextEditorCodeExecutionViewResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionViewResult;
     ///
     /// let result = TextEditorCodeExecutionViewResult::new("content", "txt")
     ///     .with_window(10, 5, 100);
@@ -260,7 +260,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new();
     /// ```
@@ -280,7 +280,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_lines(vec!["line 1".to_string(), "line 2".to_string()]);
@@ -295,7 +295,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_new_lines(5);
@@ -310,7 +310,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_new_start(10);
@@ -325,7 +325,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_old_lines(3);
@@ -340,7 +340,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_old_start(10);
@@ -355,7 +355,7 @@ impl TextEditorCodeExecutionStrReplaceResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionStrReplaceResult;
     ///
     /// let result = TextEditorCodeExecutionStrReplaceResult::new()
     ///     .with_replacement_info(3, 10, 5, 10);
@@ -447,7 +447,7 @@ impl TextEditorCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
     ///
     /// let result = TextEditorCodeExecutionResultContent::error("FILE_NOT_FOUND");
     /// ```
@@ -462,7 +462,7 @@ impl TextEditorCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
     ///
     /// let result = TextEditorCodeExecutionResultContent::create(false);
     /// ```
@@ -475,7 +475,7 @@ impl TextEditorCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
     ///
     /// let result = TextEditorCodeExecutionResultContent::view("content", "txt");
     /// ```
@@ -494,7 +494,7 @@ impl TextEditorCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::TextEditorCodeExecutionResultContent;
     ///
     /// let result = TextEditorCodeExecutionResultContent::str_replace();
     /// ```
@@ -517,7 +517,7 @@ impl TextEditorCodeExecutionResultContent {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
 ///     AnthropicTextEditorCodeExecutionToolResultContent, TextEditorCodeExecutionResultContent
 /// };
 ///
@@ -561,7 +561,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
     ///     AnthropicTextEditorCodeExecutionToolResultContent, TextEditorCodeExecutionResultContent
     /// };
     ///
@@ -587,7 +587,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::error(
     ///     "toolu_123",
@@ -606,7 +606,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::create(
     ///     "toolu_123",
@@ -625,7 +625,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::view(
     ///     "toolu_123",
@@ -649,7 +649,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::str_replace("toolu_123");
     /// ```
@@ -665,8 +665,8 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::create("toolu_123", false)
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -681,8 +681,8 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::create("toolu_123", false)
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -700,7 +700,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::AnthropicTextEditorCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicTextEditorCodeExecutionToolResultContent::create("old_id", false)
     ///     .with_tool_use_id("new_id");
@@ -717,7 +717,7 @@ impl AnthropicTextEditorCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::text_editor_code_execution_tool_result::{
     ///     AnthropicTextEditorCodeExecutionToolResultContent, TextEditorCodeExecutionResultContent
     /// };
     ///

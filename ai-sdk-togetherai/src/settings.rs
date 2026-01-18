@@ -40,7 +40,7 @@ impl TogetherAIProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIProviderSettings;
+    /// use llm_kit_togetherai::TogetherAIProviderSettings;
     ///
     /// let settings = TogetherAIProviderSettings::new();
     /// ```
@@ -57,7 +57,7 @@ impl TogetherAIProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIProviderSettings;
+    /// use llm_kit_togetherai::TogetherAIProviderSettings;
     ///
     /// let settings = TogetherAIProviderSettings::new()
     ///     .with_api_key("your-api-key");
@@ -76,7 +76,7 @@ impl TogetherAIProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIProviderSettings;
+    /// use llm_kit_togetherai::TogetherAIProviderSettings;
     ///
     /// let settings = TogetherAIProviderSettings::new()
     ///     .with_base_url("https://custom-url.com");
@@ -95,7 +95,7 @@ impl TogetherAIProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIProviderSettings;
+    /// use llm_kit_togetherai::TogetherAIProviderSettings;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -119,7 +119,7 @@ impl TogetherAIProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIProviderSettings;
+    /// use llm_kit_togetherai::TogetherAIProviderSettings;
     ///
     /// let settings = TogetherAIProviderSettings::new()
     ///     .with_header("X-Custom-Header", "value");

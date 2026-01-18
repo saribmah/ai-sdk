@@ -5,14 +5,14 @@
 use crate::chat::openai_chat_language_model::OpenAIChatConfig;
 use crate::chat::{OpenAIChatLanguageModel, OpenAIChatModelId};
 use crate::settings::OpenAIProviderSettings;
-use ai_sdk_provider::embedding_model::EmbeddingModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::image_model::ImageModel;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::reranking_model::RerankingModel;
-use ai_sdk_provider::speech_model::SpeechModel;
-use ai_sdk_provider::transcription_model::TranscriptionModel;
+use llm_kit_provider::embedding_model::EmbeddingModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::image_model::ImageModel;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::reranking_model::RerankingModel;
+use llm_kit_provider::speech_model::SpeechModel;
+use llm_kit_provider::transcription_model::TranscriptionModel;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -38,7 +38,7 @@ impl OpenAIProvider {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
+    /// use llm_kit_openai::{OpenAIProvider, OpenAIProviderSettings};
     ///
     /// // Create with default settings (uses OPENAI_API_KEY env var)
     /// let provider = OpenAIProvider::new(OpenAIProviderSettings::default());

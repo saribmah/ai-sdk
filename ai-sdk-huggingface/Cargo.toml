@@ -1,17 +1,17 @@
 [package]
-name = "ai-sdk-huggingface"
+name = "llm-kit-huggingface"
 version = "0.1.0"
 edition = "2024"
 authors = ["AI SDK Contributors"]
 description = "Hugging Face provider for AI SDK Rust"
 license = "MIT"
-repository = "https://github.com/yourusername/ai-sdk"
+repository = "https://github.com/saribmah/llm-kit"
 keywords = ["ai", "llm", "huggingface", "language-model"]
 categories = ["api-bindings"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 
 # Async runtime
 tokio = { version = "1.42", features = ["full"] }

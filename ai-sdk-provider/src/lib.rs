@@ -6,8 +6,8 @@
 //!
 //! # Overview
 //!
-//! The provider layer serves as the contract between the high-level SDK APIs (in `ai-sdk-core`)
-//! and concrete provider implementations (like `ai-sdk-openai-compatible`). By implementing
+//! The provider layer serves as the contract between the high-level SDK APIs (in `llm-kit-core`)
+//! and concrete provider implementations (like `llm-kit-openai-compatible`). By implementing
 //! these traits, new providers can be seamlessly integrated into the SDK.
 //!
 //! # Core Traits
@@ -41,9 +41,9 @@
 //! ## Example
 //!
 //! ```no_run
-//! use ai_sdk_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::{LanguageModelGenerateResponse, LanguageModelStreamResponse};
+//! use llm_kit_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::{LanguageModelGenerateResponse, LanguageModelStreamResponse};
 //! use std::sync::Arc;
 //! use std::collections::HashMap;
 //! use regex::Regex;
@@ -146,8 +146,8 @@
 //!
 //! # See Also
 //!
-//! - `ai-sdk-openai-compatible`: Reference implementation for OpenAI-compatible APIs
-//! - `ai-sdk-core`: High-level builder APIs that use these traits
+//! - `llm-kit-openai-compatible`: Reference implementation for OpenAI-compatible APIs
+//! - `llm-kit-core`: High-level builder APIs that use these traits
 
 #![warn(missing_docs)]
 

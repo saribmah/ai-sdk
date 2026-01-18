@@ -26,7 +26,7 @@ impl CerebrasProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasProviderSettings;
+    /// use llm_kit_cerebras::CerebrasProviderSettings;
     ///
     /// let settings = CerebrasProviderSettings::new("https://api.cerebras.ai/v1");
     /// ```
@@ -47,7 +47,7 @@ impl CerebrasProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasProviderSettings;
+    /// use llm_kit_cerebras::CerebrasProviderSettings;
     ///
     /// let settings = CerebrasProviderSettings::new("https://api.cerebras.ai/v1")
     ///     .with_api_key("your-api-key");
@@ -67,7 +67,7 @@ impl CerebrasProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasProviderSettings;
+    /// use llm_kit_cerebras::CerebrasProviderSettings;
     ///
     /// let settings = CerebrasProviderSettings::new("https://api.cerebras.ai/v1")
     ///     .with_header("X-Custom-Header", "value");
@@ -88,7 +88,7 @@ impl CerebrasProviderSettings {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasProviderSettings;
+    /// use llm_kit_cerebras::CerebrasProviderSettings;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();

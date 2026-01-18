@@ -9,10 +9,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example multi_step_tools
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{GenerateText, ToolSet, step_count_is};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{GenerateText, ToolSet, step_count_is};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 /// Multi-step tool execution example demonstrating iterative tool calling.
@@ -115,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({

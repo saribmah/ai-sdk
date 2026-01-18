@@ -1,5 +1,5 @@
-use ai_sdk_storage::{MessagePart, Session, SessionMetadata, Storage, TextPart, UserMessage};
-use ai_sdk_storage_filesystem::FilesystemStorage;
+use llm_kit_storage::{MessagePart, Session, SessionMetadata, Storage, TextPart, UserMessage};
+use llm_kit_storage_filesystem::FilesystemStorage;
 use std::sync::Arc;
 
 #[tokio::main]

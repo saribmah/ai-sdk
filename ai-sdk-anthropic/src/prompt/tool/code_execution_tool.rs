@@ -10,7 +10,7 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250522;
+/// use llm_kit_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250522;
 ///
 /// let tool = AnthropicCodeExecutionTool20250522::new("code_exec");
 /// ```
@@ -38,7 +38,7 @@ impl AnthropicCodeExecutionTool20250522 {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250522;
+    /// use llm_kit_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250522;
     ///
     /// let tool = AnthropicCodeExecutionTool20250522::new("python_executor");
     /// ```
@@ -77,7 +77,7 @@ impl AnthropicCodeExecutionTool20250522 {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250825;
+/// use llm_kit_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250825;
 ///
 /// let tool = AnthropicCodeExecutionTool20250825::new("code_exec");
 /// ```
@@ -101,7 +101,7 @@ impl AnthropicCodeExecutionTool20250825 {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250825;
+    /// use llm_kit_anthropic::prompt::tool::code_execution_tool::AnthropicCodeExecutionTool20250825;
     ///
     /// let tool = AnthropicCodeExecutionTool20250825::new("python_executor");
     /// ```

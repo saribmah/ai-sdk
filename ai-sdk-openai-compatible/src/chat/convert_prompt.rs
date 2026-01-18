@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::prompt::{LanguageModelMessage, LanguageModelPrompt};
+use llm_kit_provider::language_model::prompt::{LanguageModelMessage, LanguageModelPrompt};
 
 use crate::chat::prompt::message::{
     OpenAICompatibleAssistantMessage, OpenAICompatibleMessage, OpenAICompatibleSystemMessage,
@@ -58,14 +58,14 @@ pub fn convert_to_openai_compatible_chat_messages(
 mod tests {
     use super::*;
     use crate::chat::prompt::message::{OpenAICompatibleContentPart, UserMessageContent};
-    use ai_sdk_provider::language_model::prompt::message::parts::{
+    use llm_kit_provider::language_model::prompt::message::parts::{
         LanguageModelFilePart, LanguageModelTextPart, LanguageModelToolCallPart,
     };
-    use ai_sdk_provider::language_model::prompt::message::{
+    use llm_kit_provider::language_model::prompt::message::{
         LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
         LanguageModelUserMessage,
     };
-    use ai_sdk_provider::language_model::prompt::{
+    use llm_kit_provider::language_model::prompt::{
         LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelToolResultOutput,
         LanguageModelToolResultPart, LanguageModelUserMessagePart,
     };

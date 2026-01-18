@@ -10,11 +10,11 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example tool_calling
 /// ```
-use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_core::output::Output;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{GenerateText, ToolSet};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 /// Tool calling example demonstrating function calling with a weather tool.
@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tool");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     let weather_tool = Tool::function(json!({
         "type": "object",

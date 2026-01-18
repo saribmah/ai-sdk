@@ -1,10 +1,10 @@
 use crate::embed::result::{EmbedResult, EmbedResultResponseData};
 use crate::error::AISDKError;
 use crate::generate_text::prepare_retries;
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-use ai_sdk_provider::embedding_model::{EmbeddingModel, EmbeddingModelUsage};
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_provider::embedding_model::{EmbeddingModel, EmbeddingModelUsage};
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -15,9 +15,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::Embed;
+/// use llm_kit_core::Embed;
 /// use std::sync::Arc;
-/// # use ai_sdk_provider::embedding_model::EmbeddingModel;
+/// # use llm_kit_provider::embedding_model::EmbeddingModel;
 /// # async fn example(model: Arc<dyn EmbeddingModel<String>>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = Embed::new(model, "Hello, world!".to_string())
@@ -187,9 +187,9 @@ fn add_user_agent_suffix(headers: Option<SharedHeaders>, suffix: String) -> Opti
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::embedding_model::EmbeddingModelResponse;
-    use ai_sdk_provider::embedding_model::embedding::EmbeddingModelEmbedding;
     use async_trait::async_trait;
+    use llm_kit_provider::embedding_model::EmbeddingModelResponse;
+    use llm_kit_provider::embedding_model::embedding::EmbeddingModelEmbedding;
     use std::collections::HashMap;
 
     // Mock embedding model for testing

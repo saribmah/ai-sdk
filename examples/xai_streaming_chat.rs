@@ -1,4 +1,5 @@
-use ai_sdk_core::StreamText;
+use futures_util::StreamExt;
+use llm_kit_core::StreamText;
 /// xAI streaming example demonstrating real-time text generation with Grok.
 ///
 /// This example shows how to:
@@ -12,9 +13,8 @@ use ai_sdk_core::StreamText;
 /// export XAI_API_KEY="your-api-key"
 /// cargo run --example xai_streaming_chat
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_xai::XaiClient;
-use futures_util::StreamExt;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_xai::XaiClient;
 use std::env;
 use std::sync::Arc;
 use tokio::sync::Mutex;

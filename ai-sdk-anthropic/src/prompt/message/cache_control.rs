@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+/// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
 ///
 /// // Create cache control with default TTL (5 minutes)
 /// let cache_control = AnthropicCacheControl::default();
@@ -54,7 +54,7 @@ impl AnthropicCacheControl {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let cache_control = AnthropicCacheControl::new(CacheTTL::OneHour);
     /// ```
@@ -70,7 +70,7 @@ impl AnthropicCacheControl {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::cache_control::AnthropicCacheControl;
+    /// use llm_kit_anthropic::prompt::message::cache_control::AnthropicCacheControl;
     ///
     /// let cache_control = AnthropicCacheControl::ephemeral();
     /// ```
@@ -90,7 +90,7 @@ impl AnthropicCacheControl {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let cache_control = AnthropicCacheControl::ephemeral()
     ///     .with_ttl(CacheTTL::FiveMinutes);

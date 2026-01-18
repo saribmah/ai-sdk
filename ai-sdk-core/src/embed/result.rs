@@ -1,7 +1,7 @@
-use ai_sdk_provider::embedding_model::EmbeddingModelUsage;
-use ai_sdk_provider::embedding_model::embedding::EmbeddingModelEmbedding;
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::embedding_model::EmbeddingModelUsage;
+use llm_kit_provider::embedding_model::embedding::EmbeddingModelEmbedding;
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

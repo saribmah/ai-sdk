@@ -1,7 +1,7 @@
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
 use bytes::Bytes;
 use futures_util::stream::Stream;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -70,7 +70,7 @@ struct AnthropicStreamParser {
 
     /// Finish reason
     finish_reason:
-        Option<ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason>,
+        Option<llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason>,
 
     /// Whether stream has started
     stream_started: bool,
@@ -145,7 +145,7 @@ impl AnthropicStreamParser {
 
     /// Process a chunk event and generate stream parts
     fn process_chunk(&mut self, chunk: AnthropicChunk) {
-        use ai_sdk_provider::language_model::stream_part::finish::LanguageModelStreamFinish;
+        use llm_kit_provider::language_model::stream_part::finish::LanguageModelStreamFinish;
 
         match chunk {
             AnthropicChunk::Ping => {
@@ -164,7 +164,7 @@ impl AnthropicStreamParser {
                 // Emit response metadata
                 if self.response_id.is_some() || self.model_id.is_some() {
                     self.pending_events.push(LanguageModelStreamPart::ResponseMetadata(
-                        ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata {
+                        llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata {
                             id: self.response_id.clone(),
                             model_id: self.model_id.clone(),
                             timestamp: None,
@@ -206,7 +206,7 @@ impl AnthropicStreamParser {
 
             AnthropicChunk::MessageStop => {
                 // Emit finish event
-                let usage = ai_sdk_provider::language_model::usage::LanguageModelUsage {
+                let usage = llm_kit_provider::language_model::usage::LanguageModelUsage {
                     input_tokens: self.usage.input_tokens,
                     output_tokens: self.usage.output_tokens,
                     total_tokens: self.usage.input_tokens + self.usage.output_tokens,
@@ -218,7 +218,7 @@ impl AnthropicStreamParser {
                 let provider_metadata = self.build_provider_metadata();
 
                 let finish_reason = self.finish_reason.clone().unwrap_or(
-                    ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Unknown
+                    llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason::Unknown
                 );
 
                 self.pending_events.push(LanguageModelStreamPart::Finish(
@@ -233,7 +233,7 @@ impl AnthropicStreamParser {
             AnthropicChunk::Error { error } => {
                 // Emit error event
                 self.pending_events.push(LanguageModelStreamPart::Error(
-                    ai_sdk_provider::language_model::stream_part::error::LanguageModelStreamError::new(
+                    llm_kit_provider::language_model::stream_part::error::LanguageModelStreamError::new(
                         serde_json::json!(error.message),
                     ),
                 ));
@@ -260,7 +260,7 @@ impl AnthropicStreamParser {
                 self.current_block_type = Some("text".to_string());
 
                 self.pending_events.push(LanguageModelStreamPart::TextStart(
-                    ai_sdk_provider::language_model::stream_part::text_start::LanguageModelStreamTextStart::new(
+                    llm_kit_provider::language_model::stream_part::text_start::LanguageModelStreamTextStart::new(
                         index.to_string(),
                     ),
                 ));
@@ -273,7 +273,7 @@ impl AnthropicStreamParser {
 
                 self.pending_events
                     .push(LanguageModelStreamPart::ReasoningStart(
-                        ai_sdk_provider::language_model::stream_part::reasoning_start::LanguageModelStreamReasoningStart::new(
+                        llm_kit_provider::language_model::stream_part::reasoning_start::LanguageModelStreamReasoningStart::new(
                             index.to_string(),
                         ),
                     ));
@@ -291,7 +291,7 @@ impl AnthropicStreamParser {
 
                 self.pending_events
                     .push(LanguageModelStreamPart::ReasoningStart(
-                        ai_sdk_provider::language_model::stream_part::reasoning_start::LanguageModelStreamReasoningStart::with_metadata(
+                        llm_kit_provider::language_model::stream_part::reasoning_start::LanguageModelStreamReasoningStart::with_metadata(
                             index.to_string(),
                             Some(metadata),
                         ),
@@ -307,7 +307,7 @@ impl AnthropicStreamParser {
                     self.current_block_type = Some("tool_use".to_string());
 
                     self.pending_events.push(LanguageModelStreamPart::TextStart(
-                        ai_sdk_provider::language_model::stream_part::text_start::LanguageModelStreamTextStart::new(
+                        llm_kit_provider::language_model::stream_part::text_start::LanguageModelStreamTextStart::new(
                             index.to_string(),
                         ),
                     ));
@@ -326,7 +326,7 @@ impl AnthropicStreamParser {
 
                     self.pending_events
                         .push(LanguageModelStreamPart::ToolInputStart(
-                            ai_sdk_provider::language_model::stream_part::tool_input_start::LanguageModelStreamToolInputStart::new(
+                            llm_kit_provider::language_model::stream_part::tool_input_start::LanguageModelStreamToolInputStart::new(
                                 id,
                                 name,
                             ),
@@ -364,7 +364,7 @@ impl AnthropicStreamParser {
                     );
                     self.current_block_type = Some("server_tool_use".to_string());
 
-                    let mut tool_input_start = ai_sdk_provider::language_model::stream_part::tool_input_start::LanguageModelStreamToolInputStart::new(
+                    let mut tool_input_start = llm_kit_provider::language_model::stream_part::tool_input_start::LanguageModelStreamToolInputStart::new(
                         id,
                         mapped_tool_name,
                     );
@@ -400,7 +400,7 @@ impl AnthropicStreamParser {
                 metadata.insert("anthropic".to_string(), anthropic_meta);
 
                 self.pending_events.push(LanguageModelStreamPart::ToolCall(
-                    ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
+                    llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
                         id,
                         name,
                         input_str,
@@ -434,7 +434,7 @@ impl AnthropicStreamParser {
                     metadata.insert("anthropic".to_string(), anthropic_meta);
 
                     self.pending_events.push(LanguageModelStreamPart::ToolResult(
-                        ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+                        llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                             tool_use_id,
                             mcp_state.tool_name.clone(),
                             result_value,
@@ -506,7 +506,7 @@ impl AnthropicStreamParser {
 
                 self.pending_events
                     .push(LanguageModelStreamPart::TextDelta(
-                        ai_sdk_provider::language_model::stream_part::text_delta::LanguageModelStreamTextDelta::new(
+                        llm_kit_provider::language_model::stream_part::text_delta::LanguageModelStreamTextDelta::new(
                             index.to_string(),
                             text,
                         ),
@@ -515,7 +515,7 @@ impl AnthropicStreamParser {
 
             ContentBlockDelta::ThinkingDelta { thinking } => {
                 self.pending_events.push(LanguageModelStreamPart::ReasoningDelta(
-                    ai_sdk_provider::language_model::stream_part::reasoning_delta::LanguageModelStreamReasoningDelta::new(
+                    llm_kit_provider::language_model::stream_part::reasoning_delta::LanguageModelStreamReasoningDelta::new(
                         index.to_string(),
                         thinking,
                     ),
@@ -549,7 +549,7 @@ impl AnthropicStreamParser {
                     if self.uses_json_response_tool {
                         // Emit as text delta
                         self.pending_events.push(LanguageModelStreamPart::TextDelta(
-                            ai_sdk_provider::language_model::stream_part::text_delta::LanguageModelStreamTextDelta::new(
+                            llm_kit_provider::language_model::stream_part::text_delta::LanguageModelStreamTextDelta::new(
                                 index.to_string(),
                                 delta.clone(),
                             ),
@@ -557,7 +557,7 @@ impl AnthropicStreamParser {
                     } else {
                         // Emit as tool input delta
                         self.pending_events.push(LanguageModelStreamPart::ToolInputDelta(
-                            ai_sdk_provider::language_model::stream_part::tool_input_delta::LanguageModelStreamToolInputDelta::new(
+                            llm_kit_provider::language_model::stream_part::tool_input_delta::LanguageModelStreamToolInputDelta::new(
                                 tool_call_id.clone(),
                                 delta.clone(),
                             ),
@@ -578,7 +578,7 @@ impl AnthropicStreamParser {
                 ContentBlockState::Text => {
                     self.pending_events
                         .push(LanguageModelStreamPart::TextEnd(
-                            ai_sdk_provider::language_model::stream_part::text_end::LanguageModelStreamTextEnd::new(
+                            llm_kit_provider::language_model::stream_part::text_end::LanguageModelStreamTextEnd::new(
                                 index.to_string(),
                             ),
                         ));
@@ -586,7 +586,7 @@ impl AnthropicStreamParser {
 
                 ContentBlockState::Reasoning => {
                     self.pending_events.push(LanguageModelStreamPart::ReasoningEnd(
-                        ai_sdk_provider::language_model::stream_part::reasoning_end::LanguageModelStreamReasoningEnd::new(
+                        llm_kit_provider::language_model::stream_part::reasoning_end::LanguageModelStreamReasoningEnd::new(
                             index.to_string(),
                         ),
                     ));
@@ -604,7 +604,7 @@ impl AnthropicStreamParser {
                     if !is_json_response_tool {
                         // Emit tool input end
                         self.pending_events.push(LanguageModelStreamPart::ToolInputEnd(
-                            ai_sdk_provider::language_model::stream_part::tool_input_end::LanguageModelStreamToolInputEnd::new(
+                            llm_kit_provider::language_model::stream_part::tool_input_end::LanguageModelStreamToolInputEnd::new(
                                 tool_call_id.clone(),
                             ),
                         ));
@@ -620,7 +620,7 @@ impl AnthropicStreamParser {
 
                         // Emit complete tool call
                         self.pending_events.push(LanguageModelStreamPart::ToolCall(
-                            ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
+                            llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall::with_options(
                                 tool_call_id,
                                 mapped_tool_name,
                                 input,
@@ -669,7 +669,7 @@ impl AnthropicStreamParser {
         };
 
         self.pending_events.push(LanguageModelStreamPart::ToolResult(
-            ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+            llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                 tool_use_id,
                 "web_fetch",
                 result,
@@ -686,14 +686,14 @@ impl AnthropicStreamParser {
         content: super::response_schema::WebSearchContent,
     ) {
         use super::response_schema::WebSearchContent;
-        use ai_sdk_provider::language_model::content::source::LanguageModelSource;
+        use llm_kit_provider::language_model::content::source::LanguageModelSource;
 
         match content {
             WebSearchContent::Results(results) => {
                 // Emit tool result
                 let result_value = serde_json::to_value(&results).unwrap_or(serde_json::json!([]));
                 self.pending_events.push(LanguageModelStreamPart::ToolResult(
-                    ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+                    llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                         tool_use_id,
                         "web_search",
                         result_value,
@@ -731,7 +731,7 @@ impl AnthropicStreamParser {
             }
             WebSearchContent::Error { error_code, .. } => {
                 self.pending_events.push(LanguageModelStreamPart::ToolResult(
-                    ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+                    llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                         tool_use_id,
                         "web_search",
                         serde_json::json!({
@@ -778,7 +778,7 @@ impl AnthropicStreamParser {
         };
 
         self.pending_events.push(LanguageModelStreamPart::ToolResult(
-            ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+            llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                 tool_use_id,
                 "code_execution",
                 result,
@@ -797,7 +797,7 @@ impl AnthropicStreamParser {
         let result = serde_json::to_value(&content).unwrap_or(serde_json::json!({}));
 
         self.pending_events.push(LanguageModelStreamPart::ToolResult(
-            ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+            llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                 tool_use_id,
                 "code_execution",
                 result,
@@ -816,7 +816,7 @@ impl AnthropicStreamParser {
         let result = serde_json::to_value(&content).unwrap_or(serde_json::json!({}));
 
         self.pending_events.push(LanguageModelStreamPart::ToolResult(
-            ai_sdk_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
+            llm_kit_provider::language_model::content::tool_result::LanguageModelToolResult::with_options(
                 tool_use_id,
                 "text_editor_code_execution",
                 result,
@@ -829,12 +829,12 @@ impl AnthropicStreamParser {
 
     fn build_provider_metadata(
         &self,
-    ) -> Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata> {
+    ) -> Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata> {
         if self.cache_creation_input_tokens.is_some()
             || self.stop_sequence.is_some()
             || self.container.is_some()
         {
-            let mut metadata: ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata =
+            let mut metadata: llm_kit_provider::shared::provider_metadata::SharedProviderMetadata =
                 HashMap::new();
             let mut anthropic_metadata: HashMap<String, serde_json::Value> = HashMap::new();
 
@@ -870,7 +870,7 @@ impl Stream for AnthropicStreamParser {
             self.stream_started = true;
             let warnings = std::mem::take(&mut self.warnings);
             return Poll::Ready(Some(LanguageModelStreamPart::StreamStart(
-                ai_sdk_provider::language_model::stream_part::stream_start::LanguageModelStreamStart::new(
+                llm_kit_provider::language_model::stream_part::stream_start::LanguageModelStreamStart::new(
                     warnings,
                 ),
             )));
@@ -904,7 +904,7 @@ impl Stream for AnthropicStreamParser {
             Poll::Ready(Some(Err(e))) => {
                 // Emit error
                 Poll::Ready(Some(LanguageModelStreamPart::Error(
-                    ai_sdk_provider::language_model::stream_part::error::LanguageModelStreamError::new(
+                    llm_kit_provider::language_model::stream_part::error::LanguageModelStreamError::new(
                         serde_json::json!(e.to_string()),
                     ),
                 )))

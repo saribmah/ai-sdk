@@ -1,7 +1,7 @@
 use crate::generate_text::GeneratedFile;
-use ai_sdk_provider::image_model::call_warning::ImageModelCallWarning;
-use ai_sdk_provider::image_model::{ImageData, ImageModelProviderMetadata};
-use ai_sdk_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::image_model::call_warning::ImageModelCallWarning;
+use llm_kit_provider::image_model::{ImageData, ImageModelProviderMetadata};
+use llm_kit_provider::shared::headers::SharedHeaders;
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 
@@ -160,7 +160,7 @@ mod system_time_as_timestamp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::image_model::ImageData;
+    use llm_kit_provider::image_model::ImageData;
     use std::collections::HashMap;
 
     #[test]

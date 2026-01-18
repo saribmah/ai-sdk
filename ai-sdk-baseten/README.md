@@ -19,9 +19,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-baseten = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-baseten = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -30,8 +30,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_baseten::BasetenClient;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_baseten::BasetenClient;
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,8 +52,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_baseten::{BasetenProvider, BasetenProviderSettings};
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_baseten::{BasetenProvider, BasetenProviderSettings};
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -80,7 +80,7 @@ export BASETEN_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_baseten::BasetenClient;
+use llm_kit_baseten::BasetenClient;
 
 let provider = BasetenClient::new()
     .api_key("your-api-key")
@@ -112,7 +112,7 @@ Baseten supports two deployment modes:
 Use the default base URL to access Baseten's hosted models:
 
 ```rust
-use ai_sdk_baseten::BasetenClient;
+use llm_kit_baseten::BasetenClient;
 
 let provider = BasetenClient::new()
     .api_key("your-api-key")
@@ -127,7 +127,7 @@ let model = provider.chat_model(Some("deepseek-ai/DeepSeek-V3-0324"));
 For dedicated deployments, specify a custom model URL:
 
 ```rust
-use ai_sdk_baseten::BasetenClient;
+use llm_kit_baseten::BasetenClient;
 
 let provider = BasetenClient::new()
     .api_key("your-api-key")
@@ -147,7 +147,7 @@ let model = provider.chat_model(None);
 Embeddings require a custom model URL and are not available via Model APIs:
 
 ```rust
-use ai_sdk_baseten::BasetenClient;
+use llm_kit_baseten::BasetenClient;
 
 let provider = BasetenClient::new()
     .api_key("your-api-key")
@@ -201,7 +201,7 @@ cargo run --example text_embedding
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-baseten)
+- [API Documentation](https://docs.rs/llm-kit-baseten)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Baseten API Reference](https://docs.baseten.co/)
 - [Baseten Model APIs](https://docs.baseten.co/development/model-apis/overview)

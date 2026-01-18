@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_groq::GroqSpeechOptions;
+/// use llm_kit_groq::GroqSpeechOptions;
 /// use std::collections::HashMap;
 /// use serde_json::Value;
 ///
@@ -42,7 +42,7 @@ impl GroqSpeechOptions {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_groq::GroqSpeechOptions;
+    /// use llm_kit_groq::GroqSpeechOptions;
     ///
     /// let options = GroqSpeechOptions::new();
     /// ```
@@ -59,7 +59,7 @@ impl GroqSpeechOptions {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_groq::GroqSpeechOptions;
+    /// use llm_kit_groq::GroqSpeechOptions;
     ///
     /// let options = GroqSpeechOptions::new()
     ///     .with_sample_rate(24000);

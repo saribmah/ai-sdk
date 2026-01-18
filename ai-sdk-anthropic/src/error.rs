@@ -44,12 +44,12 @@
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel};
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_anthropic::error::{AnthropicError, AnthropicErrorData};
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+//! use llm_kit_provider::{Provider, LanguageModel};
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
@@ -76,7 +76,7 @@
 //! # }
 //! ```
 
-use ai_sdk_provider::ProviderError;
+use llm_kit_provider::ProviderError;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -89,7 +89,7 @@ use std::fmt;
 /// # Examples
 ///
 /// ```rust
-/// use ai_sdk_anthropic::error::{AnthropicError, AnthropicErrorData};
+/// use llm_kit_anthropic::error::{AnthropicError, AnthropicErrorData};
 ///
 /// // Create an API error
 /// let error_data = AnthropicErrorData::new(

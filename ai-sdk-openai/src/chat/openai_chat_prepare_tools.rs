@@ -5,9 +5,9 @@
 use crate::chat::openai_chat_api::{
     FunctionDefinition, FunctionName, OpenAIChatFunctionTool, OpenAIChatToolChoice,
 };
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 
 /// Prepare tools for OpenAI API call.
 ///
@@ -92,7 +92,7 @@ pub fn prepare_chat_tools(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+    use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
     use serde_json::json;
 
     #[test]

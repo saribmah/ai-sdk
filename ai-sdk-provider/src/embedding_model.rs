@@ -41,9 +41,9 @@ pub mod embedding;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_provider::EmbeddingModel;
-/// use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-/// use ai_sdk_provider::embedding_model::EmbeddingModelResponse;
+/// use llm_kit_provider::EmbeddingModel;
+/// use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+/// use llm_kit_provider::embedding_model::EmbeddingModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyEmbeddingModel {
@@ -151,7 +151,7 @@ where
     /// # Note
     ///
     /// The "do_" prefix prevents accidental direct usage of this method.
-    /// Use the high-level `Embed` or `EmbedMany` builders from `ai-sdk-core` instead.
+    /// Use the high-level `Embed` or `EmbedMany` builders from `llm-kit-core` instead.
     async fn do_embed(
         &self,
         options: EmbeddingModelCallOptions<V>,

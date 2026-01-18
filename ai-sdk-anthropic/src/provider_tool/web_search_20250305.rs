@@ -7,7 +7,7 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::web_search_20250305;
+//! use llm_kit_anthropic::provider_tool::web_search_20250305;
 //!
 //! // Create a web search tool with default options
 //! let builder = web_search_20250305();
@@ -20,7 +20,7 @@
 //!     .build();
 //! ```
 
-use ai_sdk_provider_utils::tool::{
+use llm_kit_provider_utils::tool::{
     ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions, Tool,
 };
 use serde_json::json;
@@ -63,7 +63,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .max_uses(10)
@@ -85,7 +85,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .allowed_domains(vec!["example.com".to_string(), "docs.rs".to_string()])
@@ -107,7 +107,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .blocked_domains(vec!["spam.com".to_string()])
@@ -133,7 +133,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .user_location(
@@ -165,7 +165,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .with_description("Search the web for information")
@@ -181,7 +181,7 @@ impl WebSearch20250305Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+    /// use llm_kit_anthropic::provider_tool::web_search_20250305;
     ///
     /// let tool = web_search_20250305()
     ///     .with_needs_approval(true)
@@ -323,7 +323,7 @@ impl WebSearch20250305Builder {
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+/// use llm_kit_anthropic::provider_tool::web_search_20250305;
 ///
 /// let tool = web_search_20250305().build();
 /// ```
@@ -331,7 +331,7 @@ impl WebSearch20250305Builder {
 /// ## With Domain Restrictions
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+/// use llm_kit_anthropic::provider_tool::web_search_20250305;
 ///
 /// let tool = web_search_20250305()
 ///     .allowed_domains(vec!["example.com".to_string(), "docs.rs".to_string()])
@@ -342,7 +342,7 @@ impl WebSearch20250305Builder {
 /// ## With User Location
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_search_20250305;
+/// use llm_kit_anthropic::provider_tool::web_search_20250305;
 ///
 /// let tool = web_search_20250305()
 ///     .user_location(
@@ -362,7 +362,7 @@ pub fn web_search_20250305() -> WebSearch20250305Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_web_search_20250305_default() {
@@ -483,7 +483,7 @@ mod tests {
 
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 
@@ -586,7 +586,7 @@ mod tests {
         // Check approval
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 

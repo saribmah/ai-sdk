@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{TypeValidationErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{TypeValidationErrorBuilder, ProviderError};
 /// use std::io;
 ///
 /// let validation_error = io::Error::new(io::ErrorKind::InvalidInput, "expected string, got number");
@@ -57,7 +57,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let validation_error = io::Error::new(io::ErrorKind::InvalidInput, "type mismatch");
@@ -91,7 +91,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::type_validation_error_without_cause(
     ///     r#"{"invalid": "value"}"#,
@@ -120,7 +120,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let value = r#"{"test": "value"}"#;

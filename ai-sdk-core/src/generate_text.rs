@@ -38,15 +38,15 @@ use crate::prompt::{
     standardize::{StandardizedPrompt, validate_and_standardize},
 };
 use crate::tool::{ToolSet, execute_tool_call, parse_tool_call, prepare_tools_and_tool_choice};
-use ai_sdk_provider::{
+use llm_kit_provider::{
     language_model::tool_choice::LanguageModelToolChoice,
     language_model::{
         LanguageModel, call_options::LanguageModelCallOptions, usage::LanguageModelUsage,
     },
     shared::provider_options::SharedProviderOptions,
 };
-use ai_sdk_provider_utils::message::Message;
-use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolOutput, ToolResult};
+use llm_kit_provider_utils::message::Message;
+use llm_kit_provider_utils::tool::{ToolCall, ToolError, ToolOutput, ToolResult};
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -127,9 +127,9 @@ async fn execute_tools(
 /// # Example
 ///
 /// ```no_run
-/// # use ai_sdk_core::generate_text::as_output;
-/// # use ai_sdk_provider_utils::tool::{ToolCall, ToolOutput};
-/// # use ai_sdk_provider::language_model::content::LanguageModelContent;
+/// # use llm_kit_core::generate_text::as_output;
+/// # use llm_kit_provider_utils::tool::{ToolCall, ToolOutput};
+/// # use llm_kit_provider::language_model::content::LanguageModelContent;
 /// # fn example() {
 /// # let response_content: Vec<LanguageModelContent> = vec![];
 /// # let tool_calls: Vec<ToolCall> = vec![];
@@ -142,11 +142,11 @@ async fn execute_tools(
 /// # }
 /// ```
 pub fn as_output(
-    content: Vec<ai_sdk_provider::language_model::content::LanguageModelContent>,
+    content: Vec<llm_kit_provider::language_model::content::LanguageModelContent>,
     tool_calls: Vec<ToolCall>,
     tool_outputs: Vec<ToolOutput>,
 ) -> Vec<Output> {
-    use ai_sdk_provider::language_model::content::LanguageModelContent;
+    use llm_kit_provider::language_model::content::LanguageModelContent;
 
     let mut result = Vec::new();
 
@@ -167,7 +167,7 @@ pub fn as_output(
             }
             // Convert provider File to GeneratedFile
             LanguageModelContent::File(file) => {
-                use ai_sdk_provider::language_model::content::file::FileData;
+                use llm_kit_provider::language_model::content::file::FileData;
 
                 let generated_file = match &file.data {
                     FileData::Base64(base64) => {
@@ -253,11 +253,11 @@ pub fn as_output(
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::{GenerateText, step_count_is};
-/// use ai_sdk_core::prompt::Prompt;
+/// use llm_kit_core::{GenerateText, step_count_is};
+/// use llm_kit_core::prompt::Prompt;
 /// use std::sync::Arc;
-/// # use ai_sdk_provider::LanguageModel;
-/// # use ai_sdk_core::tool::ToolSet;
+/// # use llm_kit_provider::LanguageModel;
+/// # use llm_kit_core::tool::ToolSet;
 /// # async fn example(model: Arc<dyn LanguageModel>, my_tools: ToolSet) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateText::new(model, Prompt::text("Tell me a joke"))
@@ -277,14 +277,14 @@ pub struct GenerateText {
     tools: Option<ToolSet>,
     tool_choice: Option<LanguageModelToolChoice>,
     response_format:
-        Option<ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat>,
+        Option<llm_kit_provider::language_model::call_options::LanguageModelResponseFormat>,
     provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
     on_step_finish: Option<Box<dyn OnStepFinish>>,
     on_finish: Option<Box<dyn OnFinish>>,
     #[cfg(feature = "storage")]
-    storage: Option<Arc<dyn ai_sdk_storage::Storage>>,
+    storage: Option<Arc<dyn llm_kit_storage::Storage>>,
     #[cfg(feature = "storage")]
     session_id: Option<String>,
     #[cfg(feature = "storage")]
@@ -402,7 +402,7 @@ impl GenerateText {
     /// Sets the response format (e.g., JSON mode).
     pub fn with_response_format(
         mut self,
-        format: ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat,
+        format: llm_kit_provider::language_model::call_options::LanguageModelResponseFormat,
     ) -> Self {
         self.response_format = Some(format);
         self
@@ -448,7 +448,7 @@ impl GenerateText {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// use llm_kit_storage_filesystem::FilesystemStorage;
     /// use std::sync::Arc;
     ///
     /// let storage = Arc::new(FilesystemStorage::new("./storage")?);
@@ -461,7 +461,7 @@ impl GenerateText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::Storage>) -> Self {
+    pub fn with_storage(mut self, storage: Arc<dyn llm_kit_storage::Storage>) -> Self {
         self.storage = Some(storage);
         self.load_history = true; // Enable history loading by default
         self
@@ -536,7 +536,7 @@ impl GenerateText {
 
             // Create session if it doesn't exist
             if storage.get_session(session_id).await.is_err() {
-                let session = ai_sdk_storage::Session::new(session_id.clone());
+                let session = llm_kit_storage::Session::new(session_id.clone());
                 if let Err(e) = storage.store_session(&session).await {
                     log::warn!("Failed to create session: {}", e);
                 }
@@ -682,10 +682,10 @@ impl GenerateText {
                             active_tool_names.iter().any(|name| {
                                 // Match against the tool name from the provider tool
                                 match tool {
-                                    ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
+                                    llm_kit_provider::language_model::tool::LanguageModelTool::Function(f) => {
                                         f.name == *name
                                     }
-                                    ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
+                                    llm_kit_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
                                         p.name == *name
                                     }
                                 }
@@ -753,7 +753,7 @@ impl GenerateText {
                 .await?;
 
             // Step 9: Parse tool calls from the response
-            use ai_sdk_provider::language_model::content::LanguageModelContent;
+            use llm_kit_provider::language_model::content::LanguageModelContent;
 
             let step_tool_calls: Vec<ToolCall> = if let Some(tool_set) = self.tools.as_ref() {
                 response
@@ -908,11 +908,11 @@ impl GenerateText {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::{
+    use async_trait::async_trait;
+    use llm_kit_provider::language_model::{
         LanguageModelGenerateResponse, LanguageModelStreamResponse,
         call_options::LanguageModelCallOptions,
     };
-    use async_trait::async_trait;
     use regex::Regex;
     use serde_json::Value;
     use std::collections::HashMap;
@@ -1132,8 +1132,8 @@ mod tests {
 
     #[test]
     fn test_as_output_converts_file() {
-        use ai_sdk_provider::language_model::content::LanguageModelContent;
-        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
+        use llm_kit_provider::language_model::content::LanguageModelContent;
+        use llm_kit_provider::language_model::content::file::LanguageModelFile;
 
         // Create a provider File content
         let provider_file = LanguageModelFile::from_base64("text/plain", "SGVsbG8gV29ybGQh");
@@ -1156,8 +1156,8 @@ mod tests {
 
     #[test]
     fn test_as_output_converts_file_from_bytes() {
-        use ai_sdk_provider::language_model::content::LanguageModelContent;
-        use ai_sdk_provider::language_model::content::file::LanguageModelFile;
+        use llm_kit_provider::language_model::content::LanguageModelContent;
+        use llm_kit_provider::language_model::content::file::LanguageModelFile;
 
         // Create a provider File content from bytes
         let provider_file =

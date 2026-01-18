@@ -11,9 +11,9 @@
 /// - Set AZURE_RESOURCE_NAME or AZURE_BASE_URL environment variable
 /// - Set AZURE_API_KEY environment variable
 /// - Deploy models in Azure OpenAI (e.g., gpt-4, text-embedding-ada-002)
-use ai_sdk_azure::AzureClient;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{Embed, GenerateText};
+use llm_kit_azure::AzureClient;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{Embed, GenerateText};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

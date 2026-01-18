@@ -13,8 +13,8 @@
 /// export OPENAI_API_KEY="your-openai-api-key"
 /// cargo run --example basic_image
 /// ```
-use ai_sdk_core::GenerateImage;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::GenerateImage;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
 #[tokio::main]

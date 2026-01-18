@@ -1,4 +1,4 @@
-use ai_sdk_provider_utils::message::data_content::DataContent;
+use llm_kit_provider_utils::message::data_content::DataContent;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
@@ -40,7 +40,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain");
     /// assert_eq!(file.media_type, "text/plain");
@@ -68,7 +68,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_bytes(b"Hello World!", "text/plain");
     /// assert_eq!(file.media_type, "text/plain");
@@ -91,7 +91,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain")
     ///     .with_name("hello.txt");
@@ -110,7 +110,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_bytes(b"Hello World!", "text/plain");
     /// let base64 = file.base64();
@@ -128,7 +128,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain");
     /// let bytes = file.bytes();
@@ -146,7 +146,7 @@ impl GeneratedFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_text::GeneratedFile;
+    /// use llm_kit_core::generate_text::GeneratedFile;
     ///
     /// let file = GeneratedFile::from_base64("SGVsbG8gV29ybGQh", "text/plain");
     /// let bytes = file.to_vec();

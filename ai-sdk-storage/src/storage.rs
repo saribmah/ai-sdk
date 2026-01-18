@@ -35,7 +35,7 @@ use async_trait::async_trait;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, MessageMetadata, StorageError, MessageRole};
+/// use llm_kit_storage::{Storage, Session, UserMessage, AssistantMessage, MessagePart, MessageMetadata, StorageError, MessageRole};
 /// use async_trait::async_trait;
 ///
 /// struct MyStorage {

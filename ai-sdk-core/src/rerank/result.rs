@@ -1,5 +1,5 @@
-use ai_sdk_provider::reranking_model::RerankingModelResponseMetadata;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::reranking_model::RerankingModelResponseMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// A ranked document with its relevance score.

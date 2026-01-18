@@ -1,12 +1,12 @@
 use crate::embed::many_result::{EmbedManyResult, EmbedManyResultResponseData};
 use crate::error::AISDKError;
 use crate::generate_text::{RetryConfig, prepare_retries};
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-use ai_sdk_provider::embedding_model::embedding::EmbeddingModelEmbedding;
-use ai_sdk_provider::embedding_model::{EmbeddingModel, EmbeddingModelUsage};
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_provider::embedding_model::embedding::EmbeddingModelEmbedding;
+use llm_kit_provider::embedding_model::{EmbeddingModel, EmbeddingModelUsage};
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
@@ -21,9 +21,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::EmbedMany;
+/// use llm_kit_core::EmbedMany;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::embedding_model::EmbeddingModel;
+/// # use llm_kit_provider::embedding_model::EmbeddingModel;
 /// # async fn example(model: Arc<dyn EmbeddingModel<String>>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = EmbedMany::new(
@@ -299,7 +299,7 @@ where
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::embed::many::split_array;
+/// use llm_kit_core::embed::many::split_array;
 ///
 /// let values = vec![1, 2, 3, 4, 5];
 /// let chunks = split_array(values, 2);

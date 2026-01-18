@@ -7,8 +7,8 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_elevenlabs::ElevenLabsClient;
-/// use ai_sdk_provider::Provider;
+/// use llm_kit_elevenlabs::ElevenLabsClient;
+/// use llm_kit_provider::Provider;
 ///
 /// // Create provider with API key
 /// let provider = ElevenLabsClient::new()
@@ -21,7 +21,7 @@ use std::collections::HashMap;
 /// ```
 ///
 /// ```no_run
-/// use ai_sdk_elevenlabs::ElevenLabsClient;
+/// use llm_kit_elevenlabs::ElevenLabsClient;
 ///
 /// // Create provider with custom configuration
 /// let provider = ElevenLabsClient::new()
@@ -44,7 +44,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     ///
     /// let client = ElevenLabsClient::new();
     /// ```
@@ -64,7 +64,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     ///
     /// let client = ElevenLabsClient::new()
     ///     .api_key("your-api-key");
@@ -81,7 +81,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     ///
     /// let client = ElevenLabsClient::new()
     ///     .base_url("https://custom-api.elevenlabs.io");
@@ -96,7 +96,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     ///
     /// let client = ElevenLabsClient::new()
     ///     .header("X-Custom-Header", "custom-value");
@@ -111,7 +111,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -130,7 +130,7 @@ impl ElevenLabsClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_elevenlabs::ElevenLabsClient;
+    /// use llm_kit_elevenlabs::ElevenLabsClient;
     ///
     /// let provider = ElevenLabsClient::new()
     ///     .api_key("your-api-key")
@@ -158,7 +158,7 @@ impl ElevenLabsClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::Provider;
+    use llm_kit_provider::Provider;
 
     #[test]
     fn test_builder_new() {

@@ -33,7 +33,7 @@ impl CodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
     ///
     /// let result = CodeExecutionResult::new("Hello, world!", "", 0);
     /// assert_eq!(result.stdout, "Hello, world!");
@@ -57,7 +57,7 @@ impl CodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
     ///
     /// let result = CodeExecutionResult::success("Output");
     /// assert_eq!(result.return_code, 0);
@@ -76,7 +76,7 @@ impl CodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::CodeExecutionResult;
     ///
     /// let result = CodeExecutionResult::failure("Error message", 1);
     /// assert_eq!(result.return_code, 1);
@@ -94,7 +94,7 @@ impl CodeExecutionResult {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::{
 ///     AnthropicCodeExecutionToolResultContent, CodeExecutionResult
 /// };
 ///
@@ -138,7 +138,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::{
     ///     AnthropicCodeExecutionToolResultContent, CodeExecutionResult
     /// };
     ///
@@ -168,7 +168,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::with_output(
     ///     "toolu_123",
@@ -199,7 +199,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::success(
     ///     "toolu_123",
@@ -221,7 +221,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::failure(
     ///     "toolu_456",
@@ -249,10 +249,10 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::{
     ///     AnthropicCodeExecutionToolResultContent, CodeExecutionResult
     /// };
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::success("toolu_123", "Output")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -267,8 +267,8 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::success("toolu_123", "Output")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -286,7 +286,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::AnthropicCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicCodeExecutionToolResultContent::success("old_id", "Output")
     ///     .with_tool_use_id("new_id");
@@ -303,7 +303,7 @@ impl AnthropicCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::code_execution_tool_result::{
     ///     AnthropicCodeExecutionToolResultContent, CodeExecutionResult
     /// };
     ///

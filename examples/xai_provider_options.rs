@@ -1,4 +1,4 @@
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use llm_kit_core::{GenerateText, prompt::Prompt};
 /// xAI provider options example demonstrating xAI-specific features.
 ///
 /// This example shows how to use provider-specific options to control
@@ -9,7 +9,7 @@ use ai_sdk_core::{GenerateText, prompt::Prompt};
 /// export XAI_API_KEY="your-api-key"
 /// cargo run --example xai_provider_options
 /// ```
-use ai_sdk_xai::XaiClient;
+use llm_kit_xai::XaiClient;
 use std::collections::HashMap;
 use std::env;
 
@@ -88,7 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let source_count = result
         .content
         .iter()
-        .filter(|content| matches!(content, ai_sdk_core::output::Output::Source(_)))
+        .filter(|content| matches!(content, llm_kit_core::output::Output::Source(_)))
         .count();
 
     if source_count > 0 {

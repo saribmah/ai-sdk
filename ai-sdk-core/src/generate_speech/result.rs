@@ -1,7 +1,7 @@
 use crate::generate_speech::GeneratedAudioFile;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider::speech_model::call_warning::SpeechModelCallWarning;
-use ai_sdk_provider::speech_model::{AudioData, SpeechModelResponseMetadata};
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::speech_model::call_warning::SpeechModelCallWarning;
+use llm_kit_provider::speech_model::{AudioData, SpeechModelResponseMetadata};
 use serde::{Deserialize, Serialize};
 
 /// The result of a `generate_speech` call.

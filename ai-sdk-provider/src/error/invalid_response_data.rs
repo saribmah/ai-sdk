@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{InvalidResponseDataErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{InvalidResponseDataErrorBuilder, ProviderError};
 ///
 /// let error = InvalidResponseDataErrorBuilder::new(r#"{"unexpected": "format"}"#)
 ///     .message("Expected 'data' field but got 'unexpected'")
@@ -66,7 +66,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::invalid_response_data(r#"{"error": "invalid"}"#);
     ///
@@ -91,7 +91,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::invalid_response_data_with_message(
     ///     r#"{"unexpected": "structure"}"#,

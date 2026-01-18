@@ -6,7 +6,7 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, RetryableErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, RetryableErrorBuilder};
 /// use std::time::Duration;
 ///
 /// let error = RetryableErrorBuilder::new("Rate limit exceeded")
@@ -37,7 +37,7 @@ impl RetryableErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::RetryableErrorBuilder;
+    /// use llm_kit_core::error::RetryableErrorBuilder;
     ///
     /// let builder = RetryableErrorBuilder::new("Service temporarily unavailable");
     /// ```
@@ -59,7 +59,7 @@ impl RetryableErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::RetryableErrorBuilder;
+    /// use llm_kit_core::error::RetryableErrorBuilder;
     /// use std::time::Duration;
     ///
     /// let builder = RetryableErrorBuilder::new("Rate limited")
@@ -75,7 +75,7 @@ impl RetryableErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::RetryableErrorBuilder;
+    /// use llm_kit_core::error::RetryableErrorBuilder;
     /// use std::time::Duration;
     ///
     /// let error = RetryableErrorBuilder::new("Temporary error")
@@ -100,7 +100,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::retryable_error("Network timeout");
     ///
@@ -129,7 +129,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     /// use std::time::Duration;
     ///
     /// let error = AISDKError::retryable_error_with_delay(
@@ -161,7 +161,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     /// use std::time::Duration;
     ///
     /// let error = AISDKError::retryable_error_builder("Service unavailable")

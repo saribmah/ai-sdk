@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
+/// use llm_kit_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
 ///
 /// // Create a redacted thinking content block
 /// let redacted = AnthropicRedactedThinkingContent::new("[REDACTED]");
@@ -37,7 +37,7 @@ impl AnthropicRedactedThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
     ///
     /// let redacted = AnthropicRedactedThinkingContent::new("[REDACTED]");
     /// assert_eq!(redacted.data, "[REDACTED]");
@@ -58,7 +58,7 @@ impl AnthropicRedactedThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
     ///
     /// let redacted = AnthropicRedactedThinkingContent::new("[INITIAL]")
     ///     .with_data("[UPDATED]");
@@ -76,7 +76,7 @@ impl From<String> for AnthropicRedactedThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
     ///
     /// let redacted: AnthropicRedactedThinkingContent = "[REDACTED]".to_string().into();
     /// assert_eq!(redacted.data, "[REDACTED]");
@@ -92,7 +92,7 @@ impl From<&str> for AnthropicRedactedThinkingContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
+    /// use llm_kit_anthropic::prompt::message::content::redacted_thinking::AnthropicRedactedThinkingContent;
     ///
     /// let redacted: AnthropicRedactedThinkingContent = "[REDACTED]".into();
     /// assert_eq!(redacted.data, "[REDACTED]");

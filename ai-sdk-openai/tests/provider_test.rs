@@ -1,5 +1,5 @@
-use ai_sdk_openai::*;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_openai::*;
+use llm_kit_provider::language_model::LanguageModel;
 
 fn test_provider() -> OpenAIProvider {
     let settings = OpenAIProviderSettings::default().with_api_key("test-key");

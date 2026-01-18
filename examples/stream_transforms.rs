@@ -1,4 +1,5 @@
-use ai_sdk_core::StreamText;
+use futures_util::StreamExt;
+use llm_kit_core::StreamText;
 /// Stream transformations example demonstrating various stream processing capabilities.
 ///
 /// This example shows how to:
@@ -13,12 +14,11 @@ use ai_sdk_core::StreamText;
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_transforms
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::stream_text::{
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::stream_text::{
     TextStreamPart, batch_text_transform, filter_transform, map_transform, throttle_transform,
 };
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use futures_util::StreamExt;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use std::env;
 use std::time::Duration;
 

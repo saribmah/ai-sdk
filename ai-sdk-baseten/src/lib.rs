@@ -8,7 +8,7 @@
 //! ## Recommended: Builder Pattern
 //!
 //! ```no_run
-//! use ai_sdk_baseten::BasetenClient;
+//! use llm_kit_baseten::BasetenClient;
 //!
 //! // Create a provider using Model APIs
 //! let provider = BasetenClient::new()
@@ -21,7 +21,7 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_baseten::{BasetenProvider, BasetenProviderSettings};
+//! use llm_kit_baseten::{BasetenProvider, BasetenProviderSettings};
 //!
 //! let provider = BasetenProvider::new(
 //!     BasetenProviderSettings::new()
@@ -34,7 +34,7 @@
 //! ## Custom Model URL
 //!
 //! ```no_run
-//! use ai_sdk_baseten::BasetenClient;
+//! use llm_kit_baseten::BasetenClient;
 //!
 //! // Create a provider with custom model URL
 //! let provider = BasetenClient::new()
@@ -48,9 +48,9 @@
 //! ## Text Embeddings
 //!
 //! ```no_run
-//! use ai_sdk_baseten::BasetenClient;
-//! use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-//! use ai_sdk_provider::EmbeddingModel;
+//! use llm_kit_baseten::BasetenClient;
+//! use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+//! use llm_kit_provider::EmbeddingModel;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = BasetenClient::new()

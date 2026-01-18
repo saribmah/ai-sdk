@@ -30,7 +30,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_base64("SGVsbG8gV29ybGQh", "audio/mp3");
     /// assert_eq!(audio.format, "mp3");
@@ -57,7 +57,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_bytes(b"audio data", "audio/wav");
     /// assert_eq!(audio.format, "wav");
@@ -83,7 +83,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_base64_with_format(
     ///     "SGVsbG8gV29ybGQh",
@@ -117,7 +117,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_bytes_with_format(
     ///     b"audio data",
@@ -143,7 +143,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_base64("SGVsbG8gV29ybGQh", "audio/mp3")
     ///     .with_name("speech.mp3");
@@ -164,7 +164,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_bytes(b"Hello World!", "audio/mp3");
     /// let base64 = audio.base64();
@@ -179,7 +179,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_base64("SGVsbG8gV29ybGQh", "audio/mp3");
     /// let bytes = audio.bytes();
@@ -194,7 +194,7 @@ impl GeneratedAudioFile {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::generate_speech::GeneratedAudioFile;
+    /// use llm_kit_core::generate_speech::GeneratedAudioFile;
     ///
     /// let audio = GeneratedAudioFile::from_base64("SGVsbG8gV29ybGQh", "audio/mp3");
     /// let bytes = audio.to_vec();

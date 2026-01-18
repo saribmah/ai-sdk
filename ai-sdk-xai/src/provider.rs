@@ -1,8 +1,8 @@
-use ai_sdk_openai_compatible::OpenAICompatibleImageModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::{EmbeddingModel, ImageModel};
+use llm_kit_openai_compatible::OpenAICompatibleImageModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::{EmbeddingModel, ImageModel};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -32,7 +32,7 @@ impl XaiProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_xai::XaiClient;
+    /// use llm_kit_xai::XaiClient;
     ///
     /// let provider = XaiClient::new()
     ///     .api_key("your-api-key")
@@ -57,7 +57,7 @@ impl XaiProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_xai::XaiClient;
+    /// use llm_kit_xai::XaiClient;
     ///
     /// let provider = XaiClient::new()
     ///     .api_key("your-api-key")
@@ -100,12 +100,12 @@ impl XaiProvider {
     }
 
     /// Creates the configuration for image models.
-    fn create_image_config(&self) -> ai_sdk_openai_compatible::OpenAICompatibleImageModelConfig {
+    fn create_image_config(&self) -> llm_kit_openai_compatible::OpenAICompatibleImageModelConfig {
         let api_key = self.settings.api_key.clone();
         let custom_headers = self.settings.headers.clone().unwrap_or_default();
         let base_url = self.settings.base_url.clone();
 
-        ai_sdk_openai_compatible::OpenAICompatibleImageModelConfig {
+        llm_kit_openai_compatible::OpenAICompatibleImageModelConfig {
             provider: "xai.image".to_string(),
             headers: Box::new(move || {
                 let mut headers = HashMap::new();
@@ -158,14 +158,14 @@ impl Provider for XaiProvider {
     fn image_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::ImageModel>, ProviderError> {
         Ok(self.image_model(model_id))
     }
 
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "xai.transcription-model-not-supported".to_string(),
@@ -175,7 +175,7 @@ impl Provider for XaiProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "xai.speech-model-not-supported".to_string(),
@@ -185,7 +185,7 @@ impl Provider for XaiProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "xai.reranking-model-not-supported".to_string(),

@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+use llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata;
 
 /// Creates response metadata from OpenAI-compatible API response fields.
 ///
@@ -16,7 +16,7 @@ use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMet
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+/// use llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata;
 ///
 /// // This is an internal utility function
 /// fn get_response_metadata(

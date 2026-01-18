@@ -1,13 +1,13 @@
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::{
+use async_trait::async_trait;
+use futures_util::{Stream, StreamExt};
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
     call_options::LanguageModelCallOptions, call_warning::LanguageModelCallWarning,
     content::LanguageModelContent, content::reasoning::LanguageModelReasoning,
     content::text::LanguageModelText, content::tool_call::LanguageModelToolCall,
     usage::LanguageModelUsage,
 };
-use async_trait::async_trait;
-use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest;
 use serde::Deserialize;
@@ -376,7 +376,7 @@ impl OpenAICompatibleChatLanguageModel {
         if let Some(response_format) = &options.response_format
             && self.config.supports_structured_outputs
         {
-            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+            use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
 
             let format_json = match response_format {
                 LanguageModelResponseFormat::Text => {
@@ -744,7 +744,7 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
             usage,
             provider_metadata: Some(provider_metadata),
             request: Some(
-                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+                llm_kit_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
             ),
             response: Some(response_metadata),
             warnings,
@@ -850,9 +850,9 @@ impl LanguageModel for OpenAICompatibleChatLanguageModel {
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
             request: Some(
-                ai_sdk_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
+                llm_kit_provider::language_model::LanguageModelRequestMetadata { body: Some(body) },
             ),
-            response: Some(ai_sdk_provider::language_model::StreamResponseMetadata {
+            response: Some(llm_kit_provider::language_model::StreamResponseMetadata {
                 headers: Some(headers_map),
             }),
         })

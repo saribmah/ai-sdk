@@ -6,8 +6,8 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::code_execution_20250825;
-//! use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+//! use llm_kit_anthropic::provider_tool::code_execution_20250825;
+//! use llm_kit_provider_utils::ProviderDefinedToolOptions;
 //!
 //! // Create a code execution tool with default options
 //! let tool = code_execution_20250825(None);
@@ -20,7 +20,7 @@
 //! ));
 //! ```
 
-use ai_sdk_provider_utils::tool::{
+use llm_kit_provider_utils::tool::{
     ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions, Tool,
 };
 use serde_json::json;
@@ -328,7 +328,7 @@ fn create_code_execution_20250825_factory() -> ProviderDefinedToolFactoryWithOut
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::code_execution_20250825;
+/// use llm_kit_anthropic::provider_tool::code_execution_20250825;
 ///
 /// let tool = code_execution_20250825(None);
 /// ```
@@ -336,8 +336,8 @@ fn create_code_execution_20250825_factory() -> ProviderDefinedToolFactoryWithOut
 /// ## With Description
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::code_execution_20250825;
-/// use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+/// use llm_kit_anthropic::provider_tool::code_execution_20250825;
+/// use llm_kit_provider_utils::ProviderDefinedToolOptions;
 ///
 /// let tool = code_execution_20250825(Some(
 ///     ProviderDefinedToolOptions::new()
@@ -348,8 +348,8 @@ fn create_code_execution_20250825_factory() -> ProviderDefinedToolFactoryWithOut
 /// ## With Approval Requirement
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::code_execution_20250825;
-/// use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+/// use llm_kit_anthropic::provider_tool::code_execution_20250825;
+/// use llm_kit_provider_utils::ProviderDefinedToolOptions;
 ///
 /// let tool = code_execution_20250825(Some(
 ///     ProviderDefinedToolOptions::new()
@@ -365,7 +365,7 @@ pub fn code_execution_20250825(options: Option<ProviderDefinedToolOptions>) -> T
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_code_execution_20250825_default() {
@@ -407,7 +407,7 @@ mod tests {
 
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 
@@ -563,7 +563,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_code_execution_20250825_with_execute() {
-        use ai_sdk_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
+        use llm_kit_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
         use std::sync::Arc;
 
         let tool = code_execution_20250825(Some(ProviderDefinedToolOptions::new().with_execute(

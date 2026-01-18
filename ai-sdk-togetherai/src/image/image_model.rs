@@ -1,9 +1,9 @@
-use ai_sdk_provider::image_model::{
+use async_trait::async_trait;
+use llm_kit_provider::image_model::{
     ImageData, ImageModel, ImageModelResponse, ImageModelResponseMetadata,
     call_options::ImageModelCallOptions,
 };
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use async_trait::async_trait;
+use llm_kit_provider::shared::headers::SharedHeaders;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::SystemTime;

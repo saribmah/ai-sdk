@@ -7,13 +7,13 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::memory_20250818;
+//! use llm_kit_anthropic::provider_tool::memory_20250818;
 //!
 //! // Create a memory tool with default options
 //! let tool = memory_20250818(None);
 //! ```
 
-use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
+use llm_kit_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
 use serde_json::json;
 
 /// Creates a memory tool (version 20250818).
@@ -46,7 +46,7 @@ use serde_json::json;
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::memory_20250818;
+/// use llm_kit_anthropic::provider_tool::memory_20250818;
 ///
 /// let tool = memory_20250818(None);
 /// ```
@@ -54,8 +54,8 @@ use serde_json::json;
 /// ## With Description
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::memory_20250818;
-/// use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+/// use llm_kit_anthropic::provider_tool::memory_20250818;
+/// use llm_kit_provider_utils::ProviderDefinedToolOptions;
 ///
 /// let tool = memory_20250818(Some(
 ///     ProviderDefinedToolOptions::new()
@@ -66,8 +66,8 @@ use serde_json::json;
 /// ## With Approval Requirement
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::memory_20250818;
-/// use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+/// use llm_kit_anthropic::provider_tool::memory_20250818;
+/// use llm_kit_provider_utils::ProviderDefinedToolOptions;
 ///
 /// let tool = memory_20250818(Some(
 ///     ProviderDefinedToolOptions::new()
@@ -208,7 +208,7 @@ pub fn memory_20250818(options: Option<ProviderDefinedToolOptions>) -> Tool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_memory_20250818_default() {
@@ -250,7 +250,7 @@ mod tests {
 
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 
@@ -410,7 +410,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_memory_20250818_with_execute() {
-        use ai_sdk_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
+        use llm_kit_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
         use std::sync::Arc;
 
         let tool = memory_20250818(Some(ProviderDefinedToolOptions::new().with_execute(

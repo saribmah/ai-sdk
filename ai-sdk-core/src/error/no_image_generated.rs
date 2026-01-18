@@ -6,7 +6,7 @@ use crate::generate_image::ImageModelResponseMetadata;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, NoImageGeneratedErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, NoImageGeneratedErrorBuilder};
 ///
 /// let error = NoImageGeneratedErrorBuilder::new()
 ///     .message("The model failed to generate any images")
@@ -32,7 +32,7 @@ impl NoImageGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoImageGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoImageGeneratedErrorBuilder;
     ///
     /// let builder = NoImageGeneratedErrorBuilder::new();
     /// ```
@@ -49,7 +49,7 @@ impl NoImageGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoImageGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoImageGeneratedErrorBuilder;
     ///
     /// let builder = NoImageGeneratedErrorBuilder::new()
     ///     .message("Model failed to generate a response");
@@ -68,8 +68,8 @@ impl NoImageGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoImageGeneratedErrorBuilder;
-    /// use ai_sdk_core::generate_image::ImageModelResponseMetadata;
+    /// use llm_kit_core::error::NoImageGeneratedErrorBuilder;
+    /// use llm_kit_core::generate_image::ImageModelResponseMetadata;
     ///
     /// let metadata = ImageModelResponseMetadata::new("dall-e-3");
     /// let builder = NoImageGeneratedErrorBuilder::new()
@@ -89,8 +89,8 @@ impl NoImageGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoImageGeneratedErrorBuilder;
-    /// use ai_sdk_core::generate_image::ImageModelResponseMetadata;
+    /// use llm_kit_core::error::NoImageGeneratedErrorBuilder;
+    /// use llm_kit_core::generate_image::ImageModelResponseMetadata;
     ///
     /// let metadata = ImageModelResponseMetadata::new("dall-e-3");
     /// let builder = NoImageGeneratedErrorBuilder::new()
@@ -108,7 +108,7 @@ impl NoImageGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoImageGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoImageGeneratedErrorBuilder;
     ///
     /// let error = NoImageGeneratedErrorBuilder::new()
     ///     .message("Model failed to generate response")
@@ -130,7 +130,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_image_generated();
     ///
@@ -158,7 +158,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_image_generated_with_message("Model failed to generate response");
     ///
@@ -187,8 +187,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_core::generate_image::ImageModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_core::generate_image::ImageModelResponseMetadata;
     ///
     /// let metadata = ImageModelResponseMetadata::new("dall-e-3");
     /// let error = AISDKError::no_image_generated_with_responses(
@@ -219,8 +219,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_core::generate_image::ImageModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_core::generate_image::ImageModelResponseMetadata;
     ///
     /// let metadata = ImageModelResponseMetadata::new("dall-e-3");
     /// let error = AISDKError::no_image_generated_builder()

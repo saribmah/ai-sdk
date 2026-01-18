@@ -9,13 +9,13 @@
 //!
 //! ## Architecture
 //!
-//! The storage system follows the provider pattern similar to `ai-sdk-provider`:
+//! The storage system follows the provider pattern similar to `llm-kit-provider`:
 //!
-//! 1. **Trait Layer** (`ai-sdk-storage`): Defines the [`Storage`] trait - NO implementations
+//! 1. **Trait Layer** (`llm-kit-storage`): Defines the [`Storage`] trait - NO implementations
 //! 2. **Implementation Layer**: Concrete implementations in separate crates:
-//!    - `ai-sdk-storage-filesystem`: Filesystem-based storage
-//!    - `ai-sdk-storage-mongodb`: MongoDB storage (future)
-//!    - `ai-sdk-storage-postgresql`: PostgreSQL storage (future)
+//!    - `llm-kit-storage-filesystem`: Filesystem-based storage
+//!    - `llm-kit-storage-mongodb`: MongoDB storage (future)
+//!    - `llm-kit-storage-postgresql`: PostgreSQL storage (future)
 //!
 //! ## Hierarchy
 //!
@@ -28,8 +28,8 @@
 //! ## Usage Example
 //!
 //! ```rust,no_run
-//! use ai_sdk_storage::{Storage, Session, SessionMetadata};
-//! // use ai_sdk_storage_filesystem::FilesystemStorage;
+//! use llm_kit_storage::{Storage, Session, SessionMetadata};
+//! // use llm_kit_storage_filesystem::FilesystemStorage;
 //! // use std::sync::Arc;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {

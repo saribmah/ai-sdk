@@ -21,9 +21,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-xai = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-xai = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -32,8 +32,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_xai::XaiClient;
-use ai_sdk_provider::{Provider, LanguageModel};
+use llm_kit_xai::XaiClient;
+use llm_kit_provider::{Provider, LanguageModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -54,8 +54,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_xai::{XaiProvider, XaiProviderSettings};
-use ai_sdk_provider::{Provider, LanguageModel};
+use llm_kit_xai::{XaiProvider, XaiProviderSettings};
+use llm_kit_provider::{Provider, LanguageModel};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@ export XAI_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_xai::XaiClient;
+use llm_kit_xai::XaiClient;
 
 let provider = XaiClient::new()
     .api_key("your-api-key")
@@ -134,14 +134,14 @@ let model = provider.image_model("grok-2-image");
 
 ## Provider-Specific Options
 
-xAI supports advanced features through provider options that can be passed using the `ai-sdk-core` API.
+xAI supports advanced features through provider options that can be passed using the `llm-kit-core` API.
 
 ### Reasoning Mode
 
 Control the model's reasoning effort level:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -157,7 +157,7 @@ Access reasoning content in the response:
 ```rust
 // Reasoning content is automatically extracted to result.content
 for content in result.content {
-    if let ai_sdk_core::output::Output::Reasoning(reasoning) = content {
+    if let llm_kit_core::output::Output::Reasoning(reasoning) = content {
         println!("Model reasoning: {}", reasoning.text);
     }
 }
@@ -168,7 +168,7 @@ for content in result.content {
 Enable web, X (Twitter), news, or RSS search:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -196,7 +196,7 @@ let result = GenerateText::new(model, prompt).execute().await?;
 
 // Citations available in result.content
 for content in result.content {
-    if let ai_sdk_core::output::Output::Source(source) = content {
+    if let llm_kit_core::output::Output::Source(source) = content {
         println!("Source: {} - {}", source.title, source.url);
     }
 }
@@ -207,8 +207,8 @@ for content in result.content {
 Force structured JSON outputs:
 
 ```rust
-use ai_sdk_core::GenerateText;
-use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+use llm_kit_core::GenerateText;
+use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
 use serde_json::json;
 
 // Simple JSON mode
@@ -246,7 +246,7 @@ let result = GenerateText::new(model, prompt)
 Control parallel tool execution:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -288,7 +288,7 @@ cargo run --example image_generation
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-xai)
+- [API Documentation](https://docs.rs/llm-kit-xai)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [xAI API Reference](https://docs.x.ai/)
 - [xAI Console](https://console.x.ai/)

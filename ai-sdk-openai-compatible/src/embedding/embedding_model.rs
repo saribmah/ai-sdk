@@ -1,10 +1,10 @@
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
-use ai_sdk_provider::embedding_model::embedding::EmbeddingModelEmbedding;
-use ai_sdk_provider::embedding_model::{
+use async_trait::async_trait;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_provider::embedding_model::embedding::EmbeddingModelEmbedding;
+use llm_kit_provider::embedding_model::{
     EmbeddingModel, EmbeddingModelResponse, EmbeddingModelResponseMetadata, EmbeddingModelUsage,
 };
-use ai_sdk_provider::error::ProviderError;
-use async_trait::async_trait;
+use llm_kit_provider::error::ProviderError;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

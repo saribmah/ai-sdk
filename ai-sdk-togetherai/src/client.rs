@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_togetherai::TogetherAIClient;
+/// use llm_kit_togetherai::TogetherAIClient;
 ///
 /// // Basic usage
 /// let provider = TogetherAIClient::new()
@@ -75,7 +75,7 @@ impl TogetherAIClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_togetherai::TogetherAIClient;
+    /// use llm_kit_togetherai::TogetherAIClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();

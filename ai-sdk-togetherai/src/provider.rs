@@ -1,11 +1,11 @@
-use ai_sdk_openai_compatible::{
+use llm_kit_openai_compatible::{
     OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
     OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
     OpenAICompatibleEmbeddingConfig, OpenAICompatibleEmbeddingModel,
 };
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::{EmbeddingModel, ImageModel, LanguageModel, RerankingModel};
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::{EmbeddingModel, ImageModel, LanguageModel, RerankingModel};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -25,7 +25,7 @@ use crate::settings::TogetherAIProviderSettings;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+/// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
 ///
 /// let provider = TogetherAIProvider::new(
 ///     TogetherAIProviderSettings::new()
@@ -67,7 +67,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
@@ -85,7 +85,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.chat_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
@@ -106,7 +106,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.completion_model("meta-llama/Llama-3.3-70B-Instruct-Turbo");
@@ -129,7 +129,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.text_embedding_model("WhereIsAI/UAE-Large-V1");
@@ -153,7 +153,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.image_model("black-forest-labs/FLUX.1-schnell");
@@ -174,7 +174,7 @@ impl TogetherAIProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+    /// use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
     ///
     /// let provider = TogetherAIProvider::new(TogetherAIProviderSettings::new());
     /// let model = provider.reranking_model("Salesforce/Llama-Rank-v1");
@@ -348,7 +348,7 @@ impl Provider for TogetherAIProvider {
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "togetherai.transcription-model-not-supported",
@@ -358,7 +358,7 @@ impl Provider for TogetherAIProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "togetherai.speech-model-not-supported",

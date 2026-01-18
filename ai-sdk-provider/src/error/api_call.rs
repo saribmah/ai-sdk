@@ -7,7 +7,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{APICallErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{APICallErrorBuilder, ProviderError};
 /// use std::collections::HashMap;
 ///
 /// let mut headers = HashMap::new();
@@ -117,7 +117,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error_with_details(
     ///     "Server error",
@@ -150,7 +150,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error_with_details(
     ///     "Not found",
@@ -183,7 +183,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error_with_details(
     ///     "Error",
@@ -216,7 +216,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error(
     ///     "Failed",
@@ -241,7 +241,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error(
     ///     "Request failed",
@@ -275,7 +275,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::api_call_error_with_details(
     ///     "Internal server error",

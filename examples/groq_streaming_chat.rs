@@ -1,7 +1,7 @@
-use ai_sdk_core::StreamText;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_groq::GroqClient;
 use futures_util::StreamExt;
+use llm_kit_core::StreamText;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_groq::GroqClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

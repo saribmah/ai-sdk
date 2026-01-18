@@ -6,7 +6,7 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::anthropic_tools;
+//! use llm_kit_anthropic::anthropic_tools;
 //!
 //! // Create tools using the anthropic_tools namespace
 //! let bash = anthropic_tools::bash_20250124(None);
@@ -27,7 +27,7 @@ use crate::provider_tool::{
     text_editor_20250728::TextEditor20250728Builder, web_fetch_20250910::WebFetch20250910Builder,
     web_search_20250305::WebSearch20250305Builder,
 };
-use ai_sdk_provider_utils::tool::provider_defined_factory::ProviderDefinedToolOptions;
+use llm_kit_provider_utils::tool::provider_defined_factory::ProviderDefinedToolOptions;
 
 /// Static tools namespace for provider access.
 pub struct AnthropicTools;
@@ -36,28 +36,28 @@ impl AnthropicTools {
     pub fn bash_20241022(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         bash_20241022(options)
     }
 
     pub fn bash_20250124(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         bash_20250124(options)
     }
 
     pub fn code_execution_20250522(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         code_execution_20250522(options)
     }
 
     pub fn code_execution_20250825(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         code_execution_20250825(options)
     }
 
@@ -66,7 +66,7 @@ impl AnthropicTools {
         display_width_px: u32,
         display_height_px: u32,
         display_number: Option<u32>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         computer_20241022(display_width_px, display_height_px, display_number)
     }
 
@@ -75,28 +75,28 @@ impl AnthropicTools {
         display_width_px: u32,
         display_height_px: u32,
         display_number: Option<u32>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         computer_20250124(display_width_px, display_height_px, display_number)
     }
 
     pub fn memory_20250818(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         memory_20250818(options)
     }
 
     pub fn text_editor_20241022(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         text_editor_20241022(options)
     }
 
     pub fn text_editor_20250124(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         text_editor_20250124(options)
     }
 
@@ -104,7 +104,7 @@ impl AnthropicTools {
     pub fn text_editor_20250429(
         &self,
         options: Option<ProviderDefinedToolOptions>,
-    ) -> ai_sdk_provider_utils::Tool {
+    ) -> llm_kit_provider_utils::Tool {
         text_editor_20250429(options)
     }
 
@@ -137,7 +137,7 @@ pub static TOOLS: AnthropicTools = AnthropicTools;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::bash_20241022(None);
 /// ```
@@ -158,7 +158,7 @@ pub use bash_20241022 as bash_20241022_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::bash_20250124(None);
 /// ```
@@ -186,7 +186,7 @@ pub use bash_20250124 as bash_20250124_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::code_execution_20250522(None);
 /// ```
@@ -218,7 +218,7 @@ pub use code_execution_20250522 as code_execution_20250522_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::code_execution_20250825(None);
 /// ```
@@ -245,7 +245,7 @@ pub use code_execution_20250825 as code_execution_20250825_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::computer_20241022(1920, 1080, None);
 /// ```
@@ -272,7 +272,7 @@ pub use computer_20241022 as computer_20241022_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::computer_20250124(1920, 1080, Some(0));
 /// ```
@@ -302,7 +302,7 @@ pub use computer_20250124 as computer_20250124_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::memory_20250818(None);
 /// ```
@@ -325,7 +325,7 @@ pub use memory_20250818 as memory_20250818_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::text_editor_20241022(None);
 /// ```
@@ -348,7 +348,7 @@ pub use text_editor_20241022 as text_editor_20241022_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::text_editor_20250124(None);
 /// ```
@@ -373,7 +373,7 @@ pub use text_editor_20250124 as text_editor_20250124_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::text_editor_20250429(None);
 /// ```
@@ -408,7 +408,7 @@ pub use text_editor_20250429 as text_editor_20250429_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::text_editor_20250728()
 ///     .max_characters(10000)
@@ -437,7 +437,7 @@ pub use text_editor_20250728 as text_editor_20250728_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::web_fetch_20250910()
 ///     .allowed_domains(vec!["example.com".to_string()])
@@ -466,7 +466,7 @@ pub use web_fetch_20250910 as web_fetch_20250910_tool;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::anthropic_tools;
+/// use llm_kit_anthropic::anthropic_tools;
 ///
 /// let tool = anthropic_tools::web_search_20250305()
 ///     .user_location("San Francisco", Some("CA"), Some("US"), Some("America/Los_Angeles"))

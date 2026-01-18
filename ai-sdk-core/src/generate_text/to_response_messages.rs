@@ -2,7 +2,7 @@ use crate::ResponseMessage;
 use crate::output::Output;
 use crate::prompt::create_tool_model_output::{ErrorMode, create_tool_model_output};
 use crate::tool::ToolSet;
-use ai_sdk_provider_utils::message::{
+use llm_kit_provider_utils::message::{
     AssistantMessage, ToolMessage, assistant::AssistantContentPart,
     content_parts::tool_result::ToolResultPart, tool::ToolContentPart,
 };
@@ -25,8 +25,8 @@ use ai_sdk_provider_utils::message::{
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::generate_text::to_response_messages;
-/// use ai_sdk_core::output::Output;
+/// use llm_kit_core::generate_text::to_response_messages;
+/// use llm_kit_core::output::Output;
 ///
 /// # let content: Vec<Output> = vec![];
 /// let messages = to_response_messages(content, None);
@@ -65,17 +65,17 @@ pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Ve
         .filter_map(|part| {
             match part {
                 Output::Text(text_output) => Some(AssistantContentPart::Text(
-                    ai_sdk_provider_utils::message::content_parts::TextPart::new(
+                    llm_kit_provider_utils::message::content_parts::TextPart::new(
                         text_output.text.clone(),
                     ),
                 )),
                 Output::Reasoning(reasoning_output) => Some(AssistantContentPart::Reasoning(
-                    ai_sdk_provider_utils::message::content_parts::ReasoningPart::new(
+                    llm_kit_provider_utils::message::content_parts::ReasoningPart::new(
                         reasoning_output.text.clone(),
                     ),
                 )),
                 Output::ToolCall(tool_call) => Some(AssistantContentPart::ToolCall(
-                    ai_sdk_provider_utils::message::content_parts::ToolCallPart::new(
+                    llm_kit_provider_utils::message::content_parts::ToolCallPart::new(
                         tool_call.tool_call_id.clone(),
                         tool_call.tool_name.clone(),
                         tool_call.input.clone(),
@@ -181,7 +181,7 @@ pub fn to_response_messages(content: Vec<Output>, tools: Option<&ToolSet>) -> Ve
 mod tests {
     use super::*;
     use crate::generate_text::{ReasoningOutput, TextOutput};
-    use ai_sdk_provider_utils::tool::{ToolCall, ToolError, ToolResult};
+    use llm_kit_provider_utils::tool::{ToolCall, ToolError, ToolResult};
     use serde_json::json;
 
     #[test]

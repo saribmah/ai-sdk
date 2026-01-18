@@ -20,9 +20,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-assemblyai = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-assemblyai = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -31,8 +31,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_assemblyai::AssemblyAIClient;
-use ai_sdk_provider::TranscriptionModel;
+use llm_kit_assemblyai::AssemblyAIClient;
+use llm_kit_provider::TranscriptionModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,8 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_assemblyai::{AssemblyAIProvider, AssemblyAIProviderSettings};
-use ai_sdk_provider::TranscriptionModel;
+use llm_kit_assemblyai::{AssemblyAIProvider, AssemblyAIProviderSettings};
+use llm_kit_provider::TranscriptionModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -81,7 +81,7 @@ export ASSEMBLYAI_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_assemblyai::AssemblyAIClient;
+use llm_kit_assemblyai::AssemblyAIClient;
 
 let provider = AssemblyAIClient::new()
     .api_key("your-api-key")
@@ -119,13 +119,13 @@ let model = provider.transcription_model("nano");
 
 ## Provider-Specific Options
 
-AssemblyAI supports advanced transcription features through provider options. These can be passed using the `ai-sdk-core` API or through the provider's direct interface.
+AssemblyAI supports advanced transcription features through provider options. These can be passed using the `llm-kit-core` API or through the provider's direct interface.
 
 ### Using Provider Options
 
 ```rust
-use ai_sdk_core::Transcribe;
-use ai_sdk_provider::transcription_model::AudioInput;
+use llm_kit_core::Transcribe;
+use llm_kit_provider::transcription_model::AudioInput;
 
 // Enable speaker diarization
 let result = Transcribe::new(model, AudioInput::Data(audio_data))
@@ -262,7 +262,7 @@ cargo run --example transcription
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-assemblyai)
+- [API Documentation](https://docs.rs/llm-kit-assemblyai)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [AssemblyAI API Reference](https://www.assemblyai.com/docs)
 

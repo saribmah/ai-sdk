@@ -1,5 +1,5 @@
 [package]
-name = "ai-sdk-anthropic"
+name = "llm-kit-anthropic"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,11 +9,11 @@ description = "Anthropic provider for AI SDK Rust - Complete Claude integration 
 keywords = ["anthropic", "claude", "ai", "llm", "sdk"]
 categories = ["api-bindings", "asynchronous", "web-programming"]
 readme = "README.md"
-documentation = "https://docs.rs/ai-sdk-anthropic"
+documentation = "https://docs.rs/llm-kit-anthropic"
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 async-trait = "0.1"
 base64 = "0.22.1"
 regex = "1.11"

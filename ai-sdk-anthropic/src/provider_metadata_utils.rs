@@ -3,8 +3,8 @@
 //! This module provides functions to extract and parse Anthropic-specific options
 //! from provider metadata, including citation settings and document metadata.
 
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider_utils::parse_provider_options::{SerdeSchema, parse_provider_options};
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider_utils::parse_provider_options::{SerdeSchema, parse_provider_options};
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -123,7 +123,7 @@ impl DocumentMetadata {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::should_enable_citations;
+/// use llm_kit_anthropic::provider_metadata_utils::should_enable_citations;
 /// use serde_json::json;
 /// use std::collections::HashMap;
 ///
@@ -142,7 +142,7 @@ impl DocumentMetadata {
 /// # Example - No Metadata
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::should_enable_citations;
+/// use llm_kit_anthropic::provider_metadata_utils::should_enable_citations;
 ///
 /// let enabled = should_enable_citations(None);
 /// assert!(!enabled); // Returns false when no metadata is provided
@@ -151,7 +151,7 @@ impl DocumentMetadata {
 /// # Example - Citations Disabled
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::should_enable_citations;
+/// use llm_kit_anthropic::provider_metadata_utils::should_enable_citations;
 /// use serde_json::json;
 /// use std::collections::HashMap;
 ///
@@ -203,7 +203,7 @@ pub fn should_enable_citations(provider_metadata: Option<&SharedProviderMetadata
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::get_document_metadata;
+/// use llm_kit_anthropic::provider_metadata_utils::get_document_metadata;
 /// use serde_json::json;
 /// use std::collections::HashMap;
 ///
@@ -221,7 +221,7 @@ pub fn should_enable_citations(provider_metadata: Option<&SharedProviderMetadata
 /// # Example - No Metadata
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::get_document_metadata;
+/// use llm_kit_anthropic::provider_metadata_utils::get_document_metadata;
 ///
 /// let doc_metadata = get_document_metadata(None);
 /// assert!(doc_metadata.title.is_none());
@@ -231,7 +231,7 @@ pub fn should_enable_citations(provider_metadata: Option<&SharedProviderMetadata
 /// # Example - Partial Metadata
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_metadata_utils::get_document_metadata;
+/// use llm_kit_anthropic::provider_metadata_utils::get_document_metadata;
 /// use serde_json::json;
 /// use std::collections::HashMap;
 ///

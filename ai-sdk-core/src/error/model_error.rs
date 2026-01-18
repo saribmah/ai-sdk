@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, ModelErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, ModelErrorBuilder};
 ///
 /// let error = ModelErrorBuilder::new("Model initialization failed")
 ///     .build();
@@ -32,7 +32,7 @@ impl ModelErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::ModelErrorBuilder;
+    /// use llm_kit_core::error::ModelErrorBuilder;
     ///
     /// let builder = ModelErrorBuilder::new("Model not found");
     /// ```
@@ -47,7 +47,7 @@ impl ModelErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::ModelErrorBuilder;
+    /// use llm_kit_core::error::ModelErrorBuilder;
     ///
     /// let error = ModelErrorBuilder::new("Model configuration invalid")
     ///     .build();
@@ -71,7 +71,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::model_error("Model not responding");
     ///
@@ -97,7 +97,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::model_error_builder("Model initialization failed")
     ///     .build();

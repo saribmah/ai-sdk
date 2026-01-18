@@ -1,4 +1,5 @@
-use ai_sdk_core::StreamText;
+use futures_util::StreamExt;
+use llm_kit_core::StreamText;
 /// Partial output parsing example demonstrating incremental structured data extraction.
 ///
 /// This example shows how to:
@@ -12,9 +13,8 @@ use ai_sdk_core::StreamText;
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example partial_output
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use futures_util::StreamExt;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

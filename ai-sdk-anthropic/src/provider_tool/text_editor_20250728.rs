@@ -10,7 +10,7 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+//! use llm_kit_anthropic::provider_tool::text_editor_20250728;
 //!
 //! // Create a text editor tool with default options
 //! let builder = text_editor_20250728();
@@ -22,7 +22,7 @@
 //!     .build();
 //! ```
 
-use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
+use llm_kit_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
 use serde_json::json;
 
 /// Builder for creating a text editor tool (version 20250728).
@@ -58,7 +58,7 @@ impl TextEditor20250728Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+    /// use llm_kit_anthropic::provider_tool::text_editor_20250728;
     ///
     /// let tool = text_editor_20250728()
     ///     .max_characters(10000)
@@ -74,7 +74,7 @@ impl TextEditor20250728Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+    /// use llm_kit_anthropic::provider_tool::text_editor_20250728;
     ///
     /// let tool = text_editor_20250728()
     ///     .with_description("Edit and view files with truncation support")
@@ -90,7 +90,7 @@ impl TextEditor20250728Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+    /// use llm_kit_anthropic::provider_tool::text_editor_20250728;
     ///
     /// let tool = text_editor_20250728()
     ///     .with_needs_approval(true)
@@ -203,7 +203,7 @@ impl TextEditor20250728Builder {
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+/// use llm_kit_anthropic::provider_tool::text_editor_20250728;
 ///
 /// let tool = text_editor_20250728().build();
 /// ```
@@ -211,7 +211,7 @@ impl TextEditor20250728Builder {
 /// ## With Max Characters
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+/// use llm_kit_anthropic::provider_tool::text_editor_20250728;
 ///
 /// let tool = text_editor_20250728()
 ///     .max_characters(10000)
@@ -221,7 +221,7 @@ impl TextEditor20250728Builder {
 /// ## With Description and Approval
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::text_editor_20250728;
+/// use llm_kit_anthropic::provider_tool::text_editor_20250728;
 ///
 /// let tool = text_editor_20250728()
 ///     .with_description("Edit files with truncation support")
@@ -236,7 +236,7 @@ pub fn text_editor_20250728() -> TextEditor20250728Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_text_editor_20250728_default() {
@@ -284,7 +284,7 @@ mod tests {
 
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 
@@ -406,7 +406,7 @@ mod tests {
         // Check approval
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 

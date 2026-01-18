@@ -1,7 +1,7 @@
 //! Provider-defined tools for Anthropic.
 //!
 //! This module provides factory functions for creating Anthropic's provider-defined tools
-//! using the provider-defined tool factory pattern from `ai-sdk-provider-utils`.
+//! using the provider-defined tool factory pattern from `llm-kit-provider-utils`.
 //!
 //! Each tool in this module follows the pattern:
 //! - A factory function that creates a `Tool` instance
@@ -27,8 +27,8 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::bash_20241022;
-//! use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+//! use llm_kit_anthropic::provider_tool::bash_20241022;
+//! use llm_kit_provider_utils::ProviderDefinedToolOptions;
 //!
 //! // Create a bash tool with default options
 //! let tool = bash_20241022(None);

@@ -28,11 +28,11 @@ Guidance for agentic coding agents working in this repository.
 - Pre-commit checks: `just pre-commit` (fmt + clippy + test)
 
 ## Running a Single Test
-- By name in a crate: `cargo test -p ai-sdk-core my_test_name`
-- Fully qualified path: `cargo test -p ai-sdk-core module::tests::my_test`
-- Single integration test file: `cargo test -p ai-sdk-core --test integration_name`
-- Single doc test: `cargo test -p ai-sdk-core --doc item_path`
-- Single example (as test): `cargo test -p ai-sdk-core --example example_name`
+- By name in a crate: `cargo test -p llm-kit-core my_test_name`
+- Fully qualified path: `cargo test -p llm-kit-core module::tests::my_test`
+- Single integration test file: `cargo test -p llm-kit-core --test integration_name`
+- Single doc test: `cargo test -p llm-kit-core --doc item_path`
+- Single example (as test): `cargo test -p llm-kit-core --example example_name`
 
 ## Examples / Local Runs
 - List examples: `just list-examples`
@@ -40,11 +40,11 @@ Guidance for agentic coding agents working in this repository.
 - Watch tests: `just watch` (requires `cargo-watch`)
 
 ## Targeted Workspace Commands
-- Build a single crate: `cargo build -p ai-sdk-openai`
-- Check a single crate: `cargo check -p ai-sdk-openai`
-- Test a single crate: `cargo test -p ai-sdk-openai`
-- Lint a single crate: `cargo clippy -p ai-sdk-openai --all-targets --all-features -- -D warnings`
-- Run tests with output: `cargo test -p ai-sdk-core my_test -- --nocapture`
+- Build a single crate: `cargo build -p llm-kit-openai`
+- Check a single crate: `cargo check -p llm-kit-openai`
+- Test a single crate: `cargo test -p llm-kit-openai`
+- Lint a single crate: `cargo clippy -p llm-kit-openai --all-targets --all-features -- -D warnings`
+- Run tests with output: `cargo test -p llm-kit-core my_test -- --nocapture`
 - Open docs locally: `just doc-open`
 
 ## Workspace Practices
@@ -134,7 +134,7 @@ Guidance for agentic coding agents working in this repository.
 - Avoid writing secrets to logs or test snapshots.
 
 ## Project Structure Notes
-- Workspace is multi-crate; core crates include `ai-sdk-core`, `ai-sdk-provider`, and provider crates.
+- Workspace is multi-crate; core crates include `llm-kit-core`, `llm-kit-provider`, and provider crates.
 - Follow existing module layout and keep changes scoped to the target crate.
 - Use feature flags for optional storage or provider-specific functionality.
 

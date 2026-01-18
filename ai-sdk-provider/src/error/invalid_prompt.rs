@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{InvalidPromptErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{InvalidPromptErrorBuilder, ProviderError};
 ///
 /// let error = InvalidPromptErrorBuilder::new(
 ///     "Prompt contains invalid characters",
@@ -64,7 +64,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::invalid_prompt(
     ///     "Prompt exceeds maximum length",
@@ -92,7 +92,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let cause_error = io::Error::new(io::ErrorKind::InvalidInput, "Parse error");

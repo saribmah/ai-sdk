@@ -1,3 +1,4 @@
+use futures_util::StreamExt;
 /// Agent stream example demonstrating agent-based tool calling (streaming).
 ///
 /// This example shows how to:
@@ -11,11 +12,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example agent_stream
 /// ```
-use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
-use ai_sdk_core::{ToolSet, step_count_is};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider_utils::tool::Tool;
-use futures_util::StreamExt;
+use llm_kit_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
+use llm_kit_core::{ToolSet, step_count_is};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 use std::sync::Arc;
@@ -202,7 +202,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     // Stock price tool
     let stock_tool = Tool::function(json!({
@@ -421,7 +421,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Process stream parts
     while let Some(part) = full_stream.next().await {
-        use ai_sdk_core::TextStreamPart;
+        use llm_kit_core::TextStreamPart;
         match part {
             TextStreamPart::TextDelta { text, .. } => {
                 print!("{}", text);

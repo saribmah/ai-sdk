@@ -42,8 +42,8 @@ impl DocumentCitations {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-/// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+/// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+/// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
 ///
 /// // Create a document from a URL
 /// let document = AnthropicDocumentContent::new(
@@ -51,7 +51,7 @@ impl DocumentCitations {
 /// );
 ///
 /// // Create a document with title and citations
-/// use ai_sdk_anthropic::prompt::message::content::document::DocumentCitations;
+/// use llm_kit_anthropic::prompt::message::content::document::DocumentCitations;
 ///
 /// let document = AnthropicDocumentContent::new(
 ///     AnthropicContentSource::url("https://example.com/research.pdf")
@@ -96,8 +96,8 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let document = AnthropicDocumentContent::new(
     ///     AnthropicContentSource::url("https://example.com/doc.pdf")
@@ -123,7 +123,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/file.pdf");
     /// ```
@@ -141,7 +141,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_base64("application/pdf", "base64data...");
     /// ```
@@ -158,7 +158,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_text("This is the document content");
     /// ```
@@ -175,7 +175,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_title("Important Document");
@@ -194,7 +194,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_context("This document contains the company's financial statements");
@@ -213,7 +213,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::{AnthropicDocumentContent, DocumentCitations};
+    /// use llm_kit_anthropic::prompt::message::content::document::{AnthropicDocumentContent, DocumentCitations};
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_citations(DocumentCitations::enabled());
@@ -228,7 +228,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_citations_enabled();
@@ -242,7 +242,7 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_citations_disabled();
@@ -260,8 +260,8 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour));
@@ -276,8 +276,8 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/doc.pdf")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -299,8 +299,8 @@ impl AnthropicDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let document = AnthropicDocumentContent::from_url("https://example.com/old.pdf")
     ///     .with_source(AnthropicContentSource::url("https://example.com/new.pdf"));

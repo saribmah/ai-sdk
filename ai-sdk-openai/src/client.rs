@@ -12,7 +12,7 @@ use crate::settings::OpenAIProviderSettings;
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_openai::OpenAIClient;
+/// use llm_kit_openai::OpenAIClient;
 ///
 /// let provider = OpenAIClient::new()
 ///     .api_key("your-api-key")
@@ -24,7 +24,7 @@ use crate::settings::OpenAIProviderSettings;
 /// ## Custom Base URL
 ///
 /// ```no_run
-/// use ai_sdk_openai::OpenAIClient;
+/// use llm_kit_openai::OpenAIClient;
 ///
 /// let provider = OpenAIClient::new()
 ///     .base_url("https://api.openai.com/v1")
@@ -37,7 +37,7 @@ use crate::settings::OpenAIProviderSettings;
 /// ## With Organization and Project
 ///
 /// ```no_run
-/// use ai_sdk_openai::OpenAIClient;
+/// use llm_kit_openai::OpenAIClient;
 ///
 /// let provider = OpenAIClient::new()
 ///     .api_key("your-api-key")
@@ -51,7 +51,7 @@ use crate::settings::OpenAIProviderSettings;
 /// ## With Custom Headers
 ///
 /// ```no_run
-/// use ai_sdk_openai::OpenAIClient;
+/// use llm_kit_openai::OpenAIClient;
 ///
 /// let provider = OpenAIClient::new()
 ///     .api_key("your-api-key")
@@ -88,7 +88,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .base_url("https://api.openai.com/v1");
@@ -109,7 +109,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .api_key("your-api-key");
@@ -128,7 +128,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .organization("org-123");
@@ -147,7 +147,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .project("proj-456");
@@ -166,7 +166,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .name("my-openai-provider");
@@ -188,7 +188,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let client = OpenAIClient::new()
     ///     .header("X-Custom-Header", "value");
@@ -207,7 +207,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -235,7 +235,7 @@ impl OpenAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai::OpenAIClient;
+    /// use llm_kit_openai::OpenAIClient;
     ///
     /// let provider = OpenAIClient::new()
     ///     .api_key("your-api-key")
@@ -275,7 +275,7 @@ impl OpenAIClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::LanguageModel;
+    use llm_kit_provider::language_model::LanguageModel;
 
     #[test]
     fn test_basic_client_builder() {

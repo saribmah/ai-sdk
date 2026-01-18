@@ -1,6 +1,6 @@
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::prompt::LanguageModelPrompt;
-use ai_sdk_provider::language_model::prompt::message::{
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::prompt::LanguageModelPrompt;
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessage, LanguageModelAssistantMessagePart, LanguageModelDataContent,
     LanguageModelMessage, LanguageModelToolMessage, LanguageModelUserMessage,
     LanguageModelUserMessagePart,
@@ -206,19 +206,19 @@ fn convert_tool_message(tool_msg: &LanguageModelToolMessage) -> Vec<XaiChatMessa
         .iter()
         .map(|tool_result| {
             let content_value = match &tool_result.output {
-                ai_sdk_provider::language_model::prompt::LanguageModelToolResultOutput::Text { value } => {
+                llm_kit_provider::language_model::prompt::LanguageModelToolResultOutput::Text { value } => {
                     value.clone()
                 }
-                ai_sdk_provider::language_model::prompt::LanguageModelToolResultOutput::ErrorText { value } => {
+                llm_kit_provider::language_model::prompt::LanguageModelToolResultOutput::ErrorText { value } => {
                     value.clone()
                 }
-                ai_sdk_provider::language_model::prompt::LanguageModelToolResultOutput::Content { value } => {
+                llm_kit_provider::language_model::prompt::LanguageModelToolResultOutput::Content { value } => {
                     serde_json::to_string(value).unwrap_or_default()
                 }
-                ai_sdk_provider::language_model::prompt::LanguageModelToolResultOutput::Json { value } => {
+                llm_kit_provider::language_model::prompt::LanguageModelToolResultOutput::Json { value } => {
                     serde_json::to_string(value).unwrap_or_default()
                 }
-                ai_sdk_provider::language_model::prompt::LanguageModelToolResultOutput::ErrorJson { value } => {
+                llm_kit_provider::language_model::prompt::LanguageModelToolResultOutput::ErrorJson { value } => {
                     serde_json::to_string(value).unwrap_or_default()
                 }
             };
@@ -291,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_convert_system_message() {
-        use ai_sdk_provider::language_model::prompt::message::LanguageModelSystemMessage;
+        use llm_kit_provider::language_model::prompt::message::LanguageModelSystemMessage;
 
         let prompt = vec![LanguageModelMessage::System(
             LanguageModelSystemMessage::new("You are helpful"),

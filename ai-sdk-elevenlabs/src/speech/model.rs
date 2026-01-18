@@ -5,12 +5,12 @@ use super::options::{ElevenLabsSpeechModelId, ElevenLabsSpeechVoiceId};
 use super::provider_options::ElevenLabsSpeechProviderOptions;
 use crate::config::ElevenLabsConfig;
 use crate::error::parse_elevenlabs_error;
-use ai_sdk_provider::speech_model::{
+use async_trait::async_trait;
+use llm_kit_provider::speech_model::{
     AudioData, SpeechModel, SpeechModelRequestMetadata, SpeechModelResponse,
     SpeechModelResponseMetadata, call_options::SpeechModelCallOptions,
     call_warning::SpeechModelCallWarning,
 };
-use async_trait::async_trait;
 use std::collections::HashMap;
 use std::time::SystemTime;
 

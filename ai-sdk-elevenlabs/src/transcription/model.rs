@@ -3,11 +3,11 @@ use super::options::ElevenLabsTranscriptionModelId;
 use super::provider_options::ElevenLabsTranscriptionProviderOptions;
 use crate::config::ElevenLabsConfig;
 use crate::error::parse_elevenlabs_error;
-use ai_sdk_provider::transcription_model::{
+use async_trait::async_trait;
+use llm_kit_provider::transcription_model::{
     TranscriptSegment, TranscriptionModel, TranscriptionModelResponse,
     TranscriptionModelResponseMetadata, call_options::TranscriptionModelCallOptions,
 };
-use async_trait::async_trait;
 use reqwest::multipart::{Form, Part};
 use std::collections::HashMap;
 use std::time::SystemTime;
@@ -44,13 +44,13 @@ impl ElevenLabsTranscriptionModel {
 
     /// Convert audio data to bytes.
     fn audio_to_bytes(
-        audio: &ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData,
+        audio: &llm_kit_provider::transcription_model::call_options::TranscriptionAudioData,
     ) -> Result<Vec<u8>, String> {
         match audio {
-            ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData::Binary(
+            llm_kit_provider::transcription_model::call_options::TranscriptionAudioData::Binary(
                 bytes,
             ) => Ok(bytes.clone()),
-            ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData::Base64(
+            llm_kit_provider::transcription_model::call_options::TranscriptionAudioData::Base64(
                 base64_str,
             ) => {
                 // Decode base64

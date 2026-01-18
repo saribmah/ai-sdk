@@ -1,11 +1,11 @@
 use crate::generate_text::RequestMetadata;
 use crate::output::SourceOutput;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-use ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall, ToolError, ToolResult};
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider_utils::tool::{ToolApprovalRequestOutput, ToolCall, ToolError, ToolResult};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -48,11 +48,11 @@ pub struct StreamGeneratedFile {
 /// # Usage Pattern
 ///
 /// ```no_run
-/// use ai_sdk_core::StreamText;
-/// use ai_sdk_core::stream_text::TextStreamPart;
-/// use ai_sdk_core::prompt::Prompt;
+/// use llm_kit_core::StreamText;
+/// use llm_kit_core::stream_text::TextStreamPart;
+/// use llm_kit_core::prompt::Prompt;
 /// use futures::StreamExt;
-/// # use ai_sdk_provider::LanguageModel;
+/// # use llm_kit_provider::LanguageModel;
 /// # use std::sync::Arc;
 /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 /// # let prompt = Prompt::text("Hello");
@@ -88,7 +88,7 @@ pub struct StreamGeneratedFile {
 /// ## Text Delta
 ///
 /// ```
-/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use llm_kit_core::stream_text::TextStreamPart;
 ///
 /// let part = TextStreamPart::TextDelta {
 ///     id: "text_123".to_string(),
@@ -100,8 +100,8 @@ pub struct StreamGeneratedFile {
 /// ## Tool Call
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::TextStreamPart;
-/// use ai_sdk_provider_utils::tool::ToolCall;
+/// use llm_kit_core::stream_text::TextStreamPart;
+/// use llm_kit_provider_utils::tool::ToolCall;
 /// use serde_json::json;
 ///
 /// let part = TextStreamPart::ToolCall {

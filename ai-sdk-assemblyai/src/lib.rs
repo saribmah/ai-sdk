@@ -9,8 +9,8 @@
 //! ## Basic Transcription (Provider-Only)
 //!
 //! ```no_run
-//! use ai_sdk_assemblyai::AssemblyAIClient;
-//! use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+//! use llm_kit_assemblyai::AssemblyAIClient;
+//! use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! // Create a provider using the client builder
@@ -38,9 +38,9 @@
 //! ## Using Provider Options
 //!
 //! ```no_run
-//! use ai_sdk_assemblyai::AssemblyAIClient;
-//! use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
-//! use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+//! use llm_kit_assemblyai::AssemblyAIClient;
+//! use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+//! use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = AssemblyAIClient::new()

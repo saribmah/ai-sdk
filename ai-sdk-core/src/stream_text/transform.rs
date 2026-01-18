@@ -11,8 +11,8 @@ use std::pin::Pin;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::{StreamTransform, filter_transform};
-/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use llm_kit_core::stream_text::transform::{StreamTransform, filter_transform};
+/// use llm_kit_core::stream_text::TextStreamPart;
 ///
 /// // Create a transform that only allows text deltas
 /// let text_only = filter_transform(|part| {
@@ -128,8 +128,8 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::map_transform;
-/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use llm_kit_core::stream_text::transform::map_transform;
+/// use llm_kit_core::stream_text::TextStreamPart;
 ///
 /// let uppercase_text = map_transform(|part| {
 ///     match part {
@@ -184,7 +184,7 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::throttle_transform;
+/// use llm_kit_core::stream_text::transform::throttle_transform;
 /// use std::time::Duration;
 ///
 /// // Limit to one item every 100ms
@@ -225,7 +225,7 @@ impl StreamTransform for ThrottleTransform {
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::batch_text_transform;
+/// use llm_kit_core::stream_text::transform::batch_text_transform;
 /// use std::time::Duration;
 ///
 /// // Batch up to 10 text deltas or flush after 100ms
@@ -325,8 +325,8 @@ impl StreamTransform for BatchTextTransform {
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::filter_transform;
-/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use llm_kit_core::stream_text::transform::filter_transform;
+/// use llm_kit_core::stream_text::TextStreamPart;
 ///
 /// let text_only = filter_transform(|part| {
 ///     matches!(part, TextStreamPart::TextDelta { .. })
@@ -344,8 +344,8 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::map_transform;
-/// use ai_sdk_core::stream_text::TextStreamPart;
+/// use llm_kit_core::stream_text::transform::map_transform;
+/// use llm_kit_core::stream_text::TextStreamPart;
 ///
 /// let uppercase_text = map_transform(|part| {
 ///     // Transform the part
@@ -364,7 +364,7 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::throttle_transform;
+/// use llm_kit_core::stream_text::transform::throttle_transform;
 /// use std::time::Duration;
 ///
 /// let throttled = throttle_transform(Duration::from_millis(100));
@@ -378,7 +378,7 @@ pub fn throttle_transform(delay: std::time::Duration) -> ThrottleTransform {
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::transform::batch_text_transform;
+/// use llm_kit_core::stream_text::transform::batch_text_transform;
 /// use std::time::Duration;
 ///
 /// let batched = batch_text_transform(10, Duration::from_millis(100));
@@ -412,8 +412,8 @@ mod tests {
             },
             TextStreamPart::Finish {
                 finish_reason:
-                    ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
-                total_usage: ai_sdk_provider::language_model::usage::LanguageModelUsage::default(),
+                    llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+                total_usage: llm_kit_provider::language_model::usage::LanguageModelUsage::default(),
             },
         ];
 

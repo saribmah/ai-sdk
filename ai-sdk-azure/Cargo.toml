@@ -1,18 +1,18 @@
 [package]
-name = "ai-sdk-azure"
+name = "llm-kit-azure"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 license = "Apache-2.0"
 description = "Azure OpenAI provider for AI SDK Rust"
-homepage = "https://github.com/saribmah/ai-sdk"
-repository = "https://github.com/saribmah/ai-sdk"
+homepage = "https://github.com/saribmah/llm-kit"
+repository = "https://github.com/saribmah/llm-kit"
 keywords = ["ai", "llm", "azure", "openai", "language-model"]
 categories = ["api-bindings", "asynchronous"]
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-openai-compatible = { path = "../ai-sdk-openai-compatible", version = "0.1.0" }
 
 async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }

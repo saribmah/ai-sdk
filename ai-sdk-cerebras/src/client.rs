@@ -12,7 +12,7 @@ use crate::settings::CerebrasProviderSettings;
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_cerebras::CerebrasClient;
+/// use llm_kit_cerebras::CerebrasClient;
 ///
 /// let provider = CerebrasClient::new()
 ///     .api_key("your-api-key")
@@ -24,7 +24,7 @@ use crate::settings::CerebrasProviderSettings;
 /// ## Custom Base URL
 ///
 /// ```no_run
-/// use ai_sdk_cerebras::CerebrasClient;
+/// use llm_kit_cerebras::CerebrasClient;
 ///
 /// let provider = CerebrasClient::new()
 ///     .base_url("https://custom.cerebras.ai/v1")
@@ -37,7 +37,7 @@ use crate::settings::CerebrasProviderSettings;
 /// ## With Custom Headers
 ///
 /// ```no_run
-/// use ai_sdk_cerebras::CerebrasClient;
+/// use llm_kit_cerebras::CerebrasClient;
 ///
 /// let provider = CerebrasClient::new()
 ///     .api_key("your-api-key")
@@ -61,7 +61,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     ///
     /// let client = CerebrasClient::new();
     /// ```
@@ -78,7 +78,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     ///
     /// let client = CerebrasClient::new()
     ///     .base_url("https://custom.cerebras.ai/v1");
@@ -100,7 +100,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     ///
     /// let client = CerebrasClient::new()
     ///     .api_key("your-api-key");
@@ -122,7 +122,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     ///
     /// let client = CerebrasClient::new()
     ///     .header("X-Custom-Header", "value");
@@ -141,7 +141,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -167,7 +167,7 @@ impl CerebrasClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_cerebras::CerebrasClient;
+    /// use llm_kit_cerebras::CerebrasClient;
     ///
     /// let provider = CerebrasClient::new()
     ///     .api_key("your-api-key")

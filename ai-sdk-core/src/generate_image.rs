@@ -5,11 +5,11 @@ pub use result::{GenerateImageResult, ImageModelResponseMetadata};
 
 use crate::error::AISDKError;
 use crate::generate_text::{GeneratedFile, prepare_retries};
-use ai_sdk_provider::image_model::call_options::{AspectRatio, ImageModelCallOptions, ImageSize};
-use ai_sdk_provider::image_model::call_warning::ImageModelCallWarning;
-use ai_sdk_provider::image_model::{ImageData, ImageModel, ImageModelProviderMetadata};
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::image_model::call_options::{AspectRatio, ImageModelCallOptions, ImageSize};
+use llm_kit_provider::image_model::call_warning::ImageModelCallWarning;
+use llm_kit_provider::image_model::{ImageData, ImageModel, ImageModelProviderMetadata};
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use result::image_data_to_generated_file;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -23,9 +23,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::GenerateImage;
+/// use llm_kit_core::GenerateImage;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::image_model::ImageModel;
+/// # use llm_kit_provider::image_model::ImageModel;
 /// # async fn example(model: Arc<dyn ImageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateImage::new(model, "A beautiful sunset over mountains".to_string())

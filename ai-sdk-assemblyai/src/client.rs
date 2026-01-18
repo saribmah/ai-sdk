@@ -11,7 +11,7 @@ use std::collections::HashMap;
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_assemblyai::AssemblyAIClient;
+/// use llm_kit_assemblyai::AssemblyAIClient;
 ///
 /// let provider = AssemblyAIClient::new()
 ///     .api_key("your-api-key")
@@ -23,7 +23,7 @@ use std::collections::HashMap;
 /// ## Custom Configuration
 ///
 /// ```no_run
-/// use ai_sdk_assemblyai::AssemblyAIClient;
+/// use llm_kit_assemblyai::AssemblyAIClient;
 ///
 /// let provider = AssemblyAIClient::new()
 ///     .api_key("your-api-key")
@@ -109,7 +109,7 @@ impl AssemblyAIClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_assemblyai::AssemblyAIClient;
+    /// use llm_kit_assemblyai::AssemblyAIClient;
     ///
     /// let provider = AssemblyAIClient::new()
     ///     .api_key("your-api-key")

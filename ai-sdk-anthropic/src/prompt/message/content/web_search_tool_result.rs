@@ -38,7 +38,7 @@ impl WebSearchResultItem {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_search_tool_result::WebSearchResultItem;
+    /// use llm_kit_anthropic::prompt::message::content::web_search_tool_result::WebSearchResultItem;
     ///
     /// let result = WebSearchResultItem::new(
     ///     "https://example.com",
@@ -71,7 +71,7 @@ impl WebSearchResultItem {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_search_tool_result::WebSearchResultItem;
+    /// use llm_kit_anthropic::prompt::message::content::web_search_tool_result::WebSearchResultItem;
     ///
     /// let result = WebSearchResultItem::new("url", "title", "content", "type")
     ///     .with_page_age("3 days ago");
@@ -120,7 +120,7 @@ impl WebSearchResultItem {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::web_search_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::web_search_tool_result::{
 ///     AnthropicWebSearchToolResultContent, WebSearchResultItem
 /// };
 ///
@@ -172,7 +172,7 @@ impl AnthropicWebSearchToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_search_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::web_search_tool_result::{
     ///     AnthropicWebSearchToolResultContent, WebSearchResultItem
     /// };
     ///

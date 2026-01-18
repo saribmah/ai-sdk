@@ -20,9 +20,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-openai = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-openai = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -31,8 +31,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_openai::OpenAIClient;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_openai::OpenAIClient;
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,8 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_openai::{OpenAIProvider, OpenAIProviderSettings};
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@ export OPENAI_BASE_URL=https://api.openai.com/v1  # Optional
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_openai::OpenAIClient;
+use llm_kit_openai::OpenAIClient;
 
 let provider = OpenAIClient::new()
     .api_key("your-api-key")
@@ -97,7 +97,7 @@ let provider = OpenAIClient::new()
 ### Using Settings Directly
 
 ```rust
-use ai_sdk_openai::{OpenAIProvider, OpenAIProviderSettings};
+use llm_kit_openai::{OpenAIProvider, OpenAIProviderSettings};
 
 let settings = OpenAIProviderSettings::new()
     .with_api_key("your-api-key")
@@ -168,7 +168,7 @@ OpenAI supports additional options beyond the standard AI SDK parameters:
 Control the computational effort for reasoning models:
 
 ```rust
-use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ReasoningEffort};
+use llm_kit_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ReasoningEffort};
 
 let options = OpenAIChatLanguageModelOptions {
     reasoning_effort: Some(ReasoningEffort::High),
@@ -186,7 +186,7 @@ Available values:
 Request log probabilities for generated tokens:
 
 ```rust
-use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::LogprobsOption};
+use llm_kit_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::LogprobsOption};
 
 let options = OpenAIChatLanguageModelOptions {
     logprobs: Some(LogprobsOption::Number(5)),  // Top 5 token probabilities
@@ -199,7 +199,7 @@ let options = OpenAIChatLanguageModelOptions {
 Select the service tier for processing:
 
 ```rust
-use ai_sdk_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ServiceTier};
+use llm_kit_openai::chat::{OpenAIChatLanguageModelOptions, openai_chat_options::ServiceTier};
 
 let options = OpenAIChatLanguageModelOptions {
     service_tier: Some(ServiceTier::Auto),
@@ -257,7 +257,7 @@ cargo run --example stream_tool_calling
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-openai)
+- [API Documentation](https://docs.rs/llm-kit-openai)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
 

@@ -1,20 +1,20 @@
-/// Streaming chat example using xAI provider with only ai-sdk-provider.
+use futures::StreamExt;
+/// Streaming chat example using xAI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_stream() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_stream() directly (no llm-kit-core)
 /// - Processing stream parts and displaying output
 /// - Real-time streaming text generation
 ///
 /// Run with:
 /// ```bash
 /// export XAI_API_KEY="your-api-key"
-/// cargo run --example stream -p ai-sdk-xai
+/// cargo run --example stream -p llm-kit-xai
 /// ```
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_xai::XaiClient;
-use futures::StreamExt;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_xai::XaiClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -1,6 +1,6 @@
 /// Audio transcription example using Groq provider directly.
 ///
-/// This example demonstrates how to use Groq's transcription model with only `ai-sdk-provider`,
+/// This example demonstrates how to use Groq's transcription model with only `llm-kit-provider`,
 /// calling the `do_generate()` method directly on the `TranscriptionModel` trait.
 ///
 /// Features demonstrated:
@@ -14,11 +14,11 @@
 /// Run with:
 /// ```bash
 /// export GROQ_API_KEY="your-api-key"
-/// cargo run --example transcription -p ai-sdk-groq
+/// cargo run --example transcription -p llm-kit-groq
 /// ```
-use ai_sdk_groq::GroqClient;
-use ai_sdk_provider::TranscriptionModel;
-use ai_sdk_provider::transcription_model::call_options::{
+use llm_kit_groq::GroqClient;
+use llm_kit_provider::TranscriptionModel;
+use llm_kit_provider::transcription_model::call_options::{
     TranscriptionAudioData, TranscriptionModelCallOptions,
 };
 use std::collections::HashMap;
@@ -52,9 +52,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("⚠️  Note: '{}' not found.", audio_path);
         println!("   To run this example, provide an audio file (mp3, wav, etc.)");
         println!("   You can use the output from the speech_generation example:");
-        println!("   cargo run --example speech_generation -p ai-sdk-groq");
+        println!("   cargo run --example speech_generation -p llm-kit-groq");
         println!("   mv output_groq_speech.wav sample_audio.mp3");
-        println!("   cargo run --example transcription -p ai-sdk-groq\n");
+        println!("   cargo run --example transcription -p llm-kit-groq\n");
 
         // Try to use output_groq_speech.wav if it exists from speech_generation example
         if std::path::Path::new("output_groq_speech.wav").exists() {

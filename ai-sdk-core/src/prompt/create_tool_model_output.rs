@@ -1,5 +1,5 @@
-use ai_sdk_provider_utils::message::content_parts::tool_result::ToolResultOutput;
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_provider_utils::message::content_parts::tool_result::ToolResultOutput;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::Value;
 
 /// Error mode for tool output.
@@ -33,7 +33,7 @@ pub enum ErrorMode {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::prompt::create_tool_model_output::{create_tool_model_output, ErrorMode};
+/// use llm_kit_core::prompt::create_tool_model_output::{create_tool_model_output, ErrorMode};
 /// use serde_json::json;
 ///
 /// // Regular output

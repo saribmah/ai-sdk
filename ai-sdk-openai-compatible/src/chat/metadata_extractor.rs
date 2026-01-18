@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 use std::future::Future;
 use std::pin::Pin;

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_deepseek::DeepSeekClient;
+/// use llm_kit_deepseek::DeepSeekClient;
 ///
 /// // Basic usage
 /// let provider = DeepSeekClient::new()
@@ -75,7 +75,7 @@ impl DeepSeekClient {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_deepseek::DeepSeekClient;
+    /// use llm_kit_deepseek::DeepSeekClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();

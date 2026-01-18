@@ -19,9 +19,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-deepseek = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-deepseek = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -30,8 +30,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -58,8 +58,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -91,7 +91,7 @@ export DEEPSEEK_BASE_URL=https://api.deepseek.com/v1  # Optional
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
+use llm_kit_deepseek::DeepSeekClient;
 
 let provider = DeepSeekClient::new()
     .api_key("your-api-key")
@@ -103,7 +103,7 @@ let provider = DeepSeekClient::new()
 ### Using Settings Directly
 
 ```rust
-use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
+use llm_kit_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
 
 let settings = DeepSeekProviderSettings::new()
     .with_api_key("your-api-key")
@@ -116,7 +116,7 @@ let provider = DeepSeekProvider::new(settings);
 ### Loading from Environment
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
+use llm_kit_deepseek::DeepSeekClient;
 
 // Reads from DEEPSEEK_API_KEY environment variable
 let provider = DeepSeekClient::new()
@@ -140,8 +140,8 @@ The `DeepSeekClient` builder supports:
 DeepSeek's reasoner model (R1) provides advanced reasoning capabilities for complex problem-solving:
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = DeepSeekClient::new()
     .load_api_key_from_env()
@@ -156,7 +156,7 @@ let result = GenerateText::new(std::sync::Arc::new(model),
 
 // Access reasoning and answer separately
 for output in result.experimental_output.iter() {
-    if let ai_sdk_provider::language_model::Output::Reasoning(reasoning) = output {
+    if let llm_kit_provider::language_model::Output::Reasoning(reasoning) = output {
         println!("Reasoning: {}", reasoning.text);
     }
 }
@@ -169,8 +169,8 @@ println!("Answer: {}", result.text);
 Stream responses for real-time output:
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_core::{StreamText, Prompt};
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_core::{StreamText, Prompt};
 use futures_util::StreamExt;
 
 let provider = DeepSeekClient::new()
@@ -207,8 +207,8 @@ For a complete list of available models, see the [DeepSeek documentation](https:
 DeepSeek provides detailed information about prompt cache hits and misses to help optimize performance:
 
 ```rust
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = DeepSeekClient::new().build();
 let model = provider.chat_model("deepseek-chat");
@@ -253,7 +253,7 @@ Make sure to set your `DEEPSEEK_API_KEY` environment variable first.
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-deepseek)
+- [API Documentation](https://docs.rs/llm-kit-deepseek)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [DeepSeek API Reference](https://api-docs.deepseek.com/)
 

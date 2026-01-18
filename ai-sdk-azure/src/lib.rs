@@ -16,8 +16,8 @@
 //! ## Quick Start (Recommended: Builder Pattern)
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
-//! use ai_sdk_provider::LanguageModel;
+//! use llm_kit_azure::AzureClient;
+//! use llm_kit_provider::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -40,8 +40,8 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
-//! use ai_sdk_provider::LanguageModel;
+//! use llm_kit_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+//! use llm_kit_provider::LanguageModel;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -64,7 +64,7 @@
 //! ### Using Resource Name
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
+//! use llm_kit_azure::AzureClient;
 //!
 //! let provider = AzureClient::new()
 //!     .resource_name("my-resource")
@@ -75,7 +75,7 @@
 //! ### Using Custom Base URL
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
+//! use llm_kit_azure::AzureClient;
 //!
 //! let provider = AzureClient::new()
 //!     .base_url("https://my-resource.openai.azure.com/openai")
@@ -86,7 +86,7 @@
 //! ### With Custom API Version
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
+//! use llm_kit_azure::AzureClient;
 //!
 //! let provider = AzureClient::new()
 //!     .resource_name("my-resource")
@@ -98,7 +98,7 @@
 //! ### With Custom Headers
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
+//! use llm_kit_azure::AzureClient;
 //!
 //! let provider = AzureClient::new()
 //!     .resource_name("my-resource")
@@ -110,7 +110,7 @@
 //! ### With Deployment-Based URLs (Legacy Format)
 //!
 //! ```no_run
-//! use ai_sdk_azure::AzureClient;
+//! use llm_kit_azure::AzureClient;
 //!
 //! let provider = AzureClient::new()
 //!     .resource_name("my-resource")
@@ -147,7 +147,7 @@
 //! ### Chat Models
 //! Use `.chat_model()` or `.model()` for conversational AI:
 //! ```no_run
-//! # use ai_sdk_azure::AzureClient;
+//! # use llm_kit_azure::AzureClient;
 //! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.chat_model("gpt-4-deployment");
 //! ```
@@ -155,7 +155,7 @@
 //! ### Completion Models
 //! Use `.completion_model()` for text completion:
 //! ```no_run
-//! # use ai_sdk_azure::AzureClient;
+//! # use llm_kit_azure::AzureClient;
 //! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.completion_model("gpt-35-turbo-instruct");
 //! ```
@@ -163,7 +163,7 @@
 //! ### Embedding Models
 //! Use `.text_embedding_model()` for embeddings:
 //! ```no_run
-//! # use ai_sdk_azure::AzureClient;
+//! # use llm_kit_azure::AzureClient;
 //! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.text_embedding_model("text-embedding-ada-002");
 //! ```
@@ -171,7 +171,7 @@
 //! ### Image Models
 //! Use `.image_model()` for image generation:
 //! ```no_run
-//! # use ai_sdk_azure::AzureClient;
+//! # use llm_kit_azure::AzureClient;
 //! # let provider = AzureClient::new().resource_name("test").api_key("key").build();
 //! let model = provider.image_model("dall-e-3");
 //! ```

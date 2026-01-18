@@ -1,17 +1,17 @@
-/// Text embedding example using OpenAI-compatible provider with only ai-sdk-provider.
+/// Text embedding example using OpenAI-compatible provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using EmbeddingModel::do_embed() directly (no ai-sdk-core)
+/// - Using EmbeddingModel::do_embed() directly (no llm-kit-core)
 /// - Generating text embeddings for semantic search
-/// - Working with EmbeddingModelCallOptions from ai-sdk-provider
+/// - Working with EmbeddingModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export OPENAI_API_KEY="your-api-key"
-/// cargo run --example text_embedding -p ai-sdk-openai-compatible
+/// cargo run --example text_embedding -p llm-kit-openai-compatible
 /// ```
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

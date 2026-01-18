@@ -1,5 +1,5 @@
-use ai_sdk_core::GenerateSpeech;
-use ai_sdk_groq::{GroqClient, GroqSpeechOptions};
+use llm_kit_core::GenerateSpeech;
+use llm_kit_groq::{GroqClient, GroqSpeechOptions};
 use std::collections::HashMap;
 
 #[tokio::main]

@@ -12,11 +12,11 @@
 /// export XAI_API_KEY="your-xai-api-key"
 /// cargo run --example xai_tool_calling
 /// ```
-use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_provider_utils::tool::Tool;
-use ai_sdk_xai::XaiClient;
+use llm_kit_core::output::Output;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{GenerateText, ToolSet};
+use llm_kit_provider_utils::tool::Tool;
+use llm_kit_xai::XaiClient;
 use serde_json::{Value, json};
 use std::env;
 use std::sync::Arc;
@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({
@@ -257,7 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Example 3: Specific Tool Choice");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+    use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 
     let prompt3 = Prompt::text("Tell me about London");
 

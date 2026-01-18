@@ -20,9 +20,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-togetherai = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-togetherai = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -31,8 +31,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_togetherai::TogetherAIClient;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_togetherai::TogetherAIClient;
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,8 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_togetherai::{TogetherAIProvider, TogetherAIProviderSettings};
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -84,7 +84,7 @@ export TOGETHER_AI_API_KEY=your-api-key
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_togetherai::TogetherAIClient;
+use llm_kit_togetherai::TogetherAIClient;
 
 let provider = TogetherAIClient::new()
     .api_key("your-api-key")
@@ -143,7 +143,7 @@ For a complete list of available models, see the [Together AI Models documentati
 Together AI provider supports convenient chained model creation:
 
 ```rust
-use ai_sdk_togetherai::TogetherAIClient;
+use llm_kit_togetherai::TogetherAIClient;
 
 // Create model directly from builder
 let model = TogetherAIClient::new()
@@ -157,7 +157,7 @@ let model = TogetherAIClient::new()
 Together AI supports multiple model types in a single provider:
 
 ```rust
-use ai_sdk_togetherai::TogetherAIClient;
+use llm_kit_togetherai::TogetherAIClient;
 
 let provider = TogetherAIClient::new()
     .api_key("your-api-key")
@@ -203,7 +203,7 @@ cargo run --example reranking
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-togetherai)
+- [API Documentation](https://docs.rs/llm-kit-togetherai)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Together AI API Reference](https://docs.together.ai/)
 - [Together AI Models](https://docs.together.ai/docs/serverless-models)

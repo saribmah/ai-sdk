@@ -6,7 +6,7 @@ use std::fmt;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, InvalidArgumentErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, InvalidArgumentErrorBuilder};
 ///
 /// let error = InvalidArgumentErrorBuilder::new("temperature")
 ///     .value(2.5)
@@ -39,7 +39,7 @@ impl InvalidArgumentErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidArgumentErrorBuilder;
+    /// use llm_kit_core::error::InvalidArgumentErrorBuilder;
     ///
     /// let builder = InvalidArgumentErrorBuilder::new("max_tokens");
     /// ```
@@ -60,7 +60,7 @@ impl InvalidArgumentErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidArgumentErrorBuilder;
+    /// use llm_kit_core::error::InvalidArgumentErrorBuilder;
     ///
     /// let builder = InvalidArgumentErrorBuilder::new("temperature")
     ///     .value(3.0);
@@ -79,7 +79,7 @@ impl InvalidArgumentErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidArgumentErrorBuilder;
+    /// use llm_kit_core::error::InvalidArgumentErrorBuilder;
     ///
     /// let builder = InvalidArgumentErrorBuilder::new("temperature")
     ///     .message("must be between 0 and 2");
@@ -94,7 +94,7 @@ impl InvalidArgumentErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidArgumentErrorBuilder;
+    /// use llm_kit_core::error::InvalidArgumentErrorBuilder;
     ///
     /// let error = InvalidArgumentErrorBuilder::new("temperature")
     ///     .value(3.0)
@@ -125,7 +125,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_argument("temperature", 3.0, "must be between 0 and 2");
     ///
@@ -159,7 +159,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_argument_builder("temperature")
     ///     .value(3.0)

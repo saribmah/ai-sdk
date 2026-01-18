@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_xai::XaiClient;
+/// use llm_kit_xai::XaiClient;
 ///
 /// let provider = XaiClient::new()
 ///     .api_key("your-api-key")

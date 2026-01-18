@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{TooManyEmbeddingValuesForCallErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{TooManyEmbeddingValuesForCallErrorBuilder, ProviderError};
 ///
 /// let error = TooManyEmbeddingValuesForCallErrorBuilder::new(
 ///     "openai",
@@ -71,7 +71,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::too_many_embedding_values_for_call(
     ///     "openai",

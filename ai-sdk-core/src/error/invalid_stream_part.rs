@@ -6,7 +6,7 @@ use serde_json::Value;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, InvalidStreamPartErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, InvalidStreamPartErrorBuilder};
 /// use serde_json::json;
 ///
 /// let chunk = json!({"type": "unknown", "data": "test"});
@@ -37,7 +37,7 @@ impl InvalidStreamPartErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidStreamPartErrorBuilder;
+    /// use llm_kit_core::error::InvalidStreamPartErrorBuilder;
     /// use serde_json::json;
     ///
     /// let chunk = json!({"type": "invalid-type"});
@@ -59,7 +59,7 @@ impl InvalidStreamPartErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidStreamPartErrorBuilder;
+    /// use llm_kit_core::error::InvalidStreamPartErrorBuilder;
     /// use serde_json::json;
     ///
     /// let chunk = json!({"type": "unknown"});
@@ -76,7 +76,7 @@ impl InvalidStreamPartErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidStreamPartErrorBuilder;
+    /// use llm_kit_core::error::InvalidStreamPartErrorBuilder;
     /// use serde_json::json;
     ///
     /// let chunk = json!({"type": "invalid"});
@@ -107,7 +107,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     /// use serde_json::json;
     ///
     /// let chunk = json!({"type": "unknown", "data": "test"});
@@ -137,7 +137,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     /// use serde_json::json;
     ///
     /// let chunk = json!({"type": "invalid"});

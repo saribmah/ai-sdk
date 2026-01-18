@@ -1,5 +1,5 @@
-use ai_sdk_provider_utils::message::{AssistantContent, Message, ToolContentPart};
-use ai_sdk_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse, ToolCall};
+use llm_kit_provider_utils::message::{AssistantContent, Message, ToolContentPart};
+use llm_kit_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse, ToolCall};
 use std::collections::HashMap;
 
 /// A collected tool approval containing the approval request, response, and associated tool call.
@@ -93,10 +93,10 @@ impl CollectedToolApprovals {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::tool::collect_tool_approvals;
-/// use ai_sdk_provider_utils::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
-/// use ai_sdk_provider_utils::message::content_parts::ToolCallPart;
-/// use ai_sdk_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse};
+/// use llm_kit_core::tool::collect_tool_approvals;
+/// use llm_kit_provider_utils::message::{Message, AssistantMessage, ToolMessage, AssistantContentPart, ToolContentPart};
+/// use llm_kit_provider_utils::message::content_parts::ToolCallPart;
+/// use llm_kit_provider_utils::tool::{ToolApprovalRequest, ToolApprovalResponse};
 /// use serde_json::json;
 ///
 /// // Create a message history with an approval request
@@ -143,7 +143,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
             && let AssistantContent::Parts(parts) = &assistant_msg.content
         {
             for part in parts {
-                if let ai_sdk_provider_utils::message::assistant::AssistantContentPart::ToolCall(
+                if let llm_kit_provider_utils::message::assistant::AssistantContentPart::ToolCall(
                     tool_call,
                 ) = part
                 {
@@ -168,7 +168,7 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
             && let AssistantContent::Parts(parts) = &assistant_msg.content
         {
             for part in parts {
-                if let ai_sdk_provider_utils::message::assistant::AssistantContentPart::ToolApprovalRequest(
+                if let llm_kit_provider_utils::message::assistant::AssistantContentPart::ToolApprovalRequest(
                         approval_req,
                     ) = part
                     {
@@ -236,10 +236,10 @@ pub fn collect_tool_approvals(messages: &[Message]) -> CollectedToolApprovals {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::message::content_parts::{
+    use llm_kit_provider_utils::message::content_parts::{
         ToolCallPart, ToolResultOutput, ToolResultPart,
     };
-    use ai_sdk_provider_utils::message::{AssistantContentPart, AssistantMessage, ToolMessage};
+    use llm_kit_provider_utils::message::{AssistantContentPart, AssistantMessage, ToolMessage};
     use serde_json::json;
 
     #[test]

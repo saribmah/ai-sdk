@@ -27,7 +27,7 @@ impl AnthropicNestedTextContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::AnthropicNestedTextContent;
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::AnthropicNestedTextContent;
     ///
     /// let text = AnthropicNestedTextContent::new("Tool result text");
     /// ```
@@ -75,8 +75,8 @@ impl AnthropicNestedImageContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::AnthropicNestedImageContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::AnthropicNestedImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let image = AnthropicNestedImageContent::new(
     ///     AnthropicContentSource::url("https://example.com/image.png")
@@ -169,8 +169,8 @@ impl AnthropicNestedDocumentContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::AnthropicNestedDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::AnthropicNestedDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let document = AnthropicNestedDocumentContent::new(
     ///     AnthropicContentSource::url("https://example.com/doc.pdf")
@@ -288,7 +288,7 @@ pub enum ToolResultContentType {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::tool_result::{
 ///     AnthropicToolResultContent, ToolResultContentType
 /// };
 ///
@@ -336,7 +336,7 @@ impl AnthropicToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::{
     ///     AnthropicToolResultContent, ToolResultContentType
     /// };
     ///

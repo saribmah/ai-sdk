@@ -10,9 +10,9 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example conversation
 /// ```
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::GenerateText;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use std::env;
 
 #[tokio::main]

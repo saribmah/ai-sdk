@@ -1,8 +1,8 @@
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::content::source::LanguageModelSource;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde_json::Value;
 
 use super::generated_file::GeneratedFile;
@@ -10,7 +10,7 @@ use super::response_message::ResponseMessage;
 use super::step_result::{RequestMetadata, StepResponseMetadata, StepResult};
 use crate::output::Output;
 use crate::output::reasoning::ReasoningOutput;
-use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
+use llm_kit_provider_utils::tool::{ToolCall, ToolResult};
 
 /// Metadata for the response, including messages and optional body.
 #[derive(Debug, Clone, PartialEq)]
@@ -48,11 +48,11 @@ pub struct ResponseMetadata {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::generate_text::GenerateTextResult;
-/// # use ai_sdk_core::GenerateText;
-/// # use ai_sdk_core::prompt::Prompt;
+/// use llm_kit_core::generate_text::GenerateTextResult;
+/// # use llm_kit_core::GenerateText;
+/// # use llm_kit_core::prompt::Prompt;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::LanguageModel;
+/// # use llm_kit_provider::LanguageModel;
 /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateText::new(model, Prompt::text("Hello")).execute().await?;
@@ -389,7 +389,7 @@ mod tests {
 
     #[test]
     fn test_generate_text_result_from_steps_with_tool_calls() {
-        use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
+        use llm_kit_provider_utils::tool::{ToolCall, ToolResult};
 
         // Create a step with tool calls and tool results using Output
         let content = vec![

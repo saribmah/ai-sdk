@@ -1,4 +1,5 @@
-use ai_sdk_core::StreamText;
+use futures_util::StreamExt;
+use llm_kit_core::StreamText;
 /// Basic streaming example demonstrating real-time text generation.
 ///
 /// This example shows how to:
@@ -12,9 +13,8 @@ use ai_sdk_core::StreamText;
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example basic_stream
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use futures_util::StreamExt;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use std::env;
 use std::sync::Arc;
 use tokio::sync::Mutex;

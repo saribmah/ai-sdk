@@ -1,5 +1,5 @@
 [package]
-name = "ai-sdk-storage-filesystem"
+name = "llm-kit-storage-filesystem"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,7 +9,7 @@ description = "Filesystem storage provider for AI SDK Rust"
 
 [dependencies]
 # Workspace dependencies
-ai-sdk-storage = { path = "../ai-sdk-storage", version = "0.1.0" }
+llm-kit-storage = { path = "../ai-sdk-storage", version = "0.1.0" }
 
 # Async trait support
 async-trait = "0.1"

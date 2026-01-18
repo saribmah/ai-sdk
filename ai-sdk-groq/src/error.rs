@@ -4,7 +4,7 @@ use thiserror::Error;
 ///
 /// Re-exports OpenAI-compatible error structure since Groq uses
 /// the same error format.
-pub use ai_sdk_openai_compatible::OpenAICompatibleErrorData as GroqErrorData;
+pub use llm_kit_openai_compatible::OpenAICompatibleErrorData as GroqErrorData;
 
 /// Groq provider errors.
 #[derive(Error, Debug)]

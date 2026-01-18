@@ -1,10 +1,10 @@
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
-use ai_sdk_provider::image_model::call_warning::ImageModelCallWarning;
-use ai_sdk_provider::image_model::{
+use async_trait::async_trait;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::image_model::call_options::ImageModelCallOptions;
+use llm_kit_provider::image_model::call_warning::ImageModelCallWarning;
+use llm_kit_provider::image_model::{
     ImageData, ImageModel, ImageModelResponse, ImageModelResponseMetadata,
 };
-use async_trait::async_trait;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

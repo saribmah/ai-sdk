@@ -1,18 +1,18 @@
-/// Image generation example using Azure OpenAI provider with only ai-sdk-provider.
+/// Image generation example using Azure OpenAI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using ImageModel::do_generate() directly (no ai-sdk-core)
+/// - Using ImageModel::do_generate() directly (no llm-kit-core)
 /// - Generating images from text prompts
-/// - Working with ImageModelCallOptions from ai-sdk-provider
+/// - Working with ImageModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export AZURE_API_KEY="your-api-key"
 /// export AZURE_RESOURCE_NAME="your-resource-name"
-/// cargo run --example image_generation -p ai-sdk-azure
+/// cargo run --example image_generation -p llm-kit-azure
 /// ```
-use ai_sdk_azure::AzureClient;
-use ai_sdk_provider::image_model::call_options::{ImageModelCallOptions, ImageSize};
+use llm_kit_azure::AzureClient;
+use llm_kit_provider::image_model::call_options::{ImageModelCallOptions, ImageSize};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,11 +59,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, image) in result1.images.iter().enumerate() {
         println!("\n   Image #{}:", i + 1);
         match image {
-            ai_sdk_provider::image_model::ImageData::Base64(data) => {
+            llm_kit_provider::image_model::ImageData::Base64(data) => {
                 println!("      Base64 data length: {} characters", data.len());
                 println!("      Preview: {}...", &data[..data.len().min(50)]);
             }
-            ai_sdk_provider::image_model::ImageData::Binary(data) => {
+            llm_kit_provider::image_model::ImageData::Binary(data) => {
                 println!("      Binary data size: {} bytes", data.len());
             }
         }
@@ -89,10 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, image) in result2.images.iter().enumerate() {
         println!("\n   Image #{}:", i + 1);
         match image {
-            ai_sdk_provider::image_model::ImageData::Base64(data) => {
+            llm_kit_provider::image_model::ImageData::Base64(data) => {
                 println!("      Base64 data length: {} characters", data.len());
             }
-            ai_sdk_provider::image_model::ImageData::Binary(data) => {
+            llm_kit_provider::image_model::ImageData::Binary(data) => {
                 println!("      Binary data size: {} bytes", data.len());
             }
         }
@@ -121,10 +121,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("   ✅ Generated!");
         for image in &result.images {
             match image {
-                ai_sdk_provider::image_model::ImageData::Base64(data) => {
+                llm_kit_provider::image_model::ImageData::Base64(data) => {
                     println!("      Base64 data length: {} characters", data.len());
                 }
-                ai_sdk_provider::image_model::ImageData::Binary(data) => {
+                llm_kit_provider::image_model::ImageData::Binary(data) => {
                     println!("      Binary data size: {} bytes", data.len());
                 }
             }
@@ -160,10 +160,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, image) in result4.images.iter().enumerate() {
         println!("\n   Image #{}:", i + 1);
         match image {
-            ai_sdk_provider::image_model::ImageData::Base64(data) => {
+            llm_kit_provider::image_model::ImageData::Base64(data) => {
                 println!("      Base64 data length: {} characters", data.len());
             }
-            ai_sdk_provider::image_model::ImageData::Binary(data) => {
+            llm_kit_provider::image_model::ImageData::Binary(data) => {
                 println!("      Binary data size: {} bytes", data.len());
             }
         }

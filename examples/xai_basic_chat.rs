@@ -1,6 +1,6 @@
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_xai::XaiClient;
+use llm_kit_core::GenerateText;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_xai::XaiClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

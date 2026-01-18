@@ -1,20 +1,20 @@
-/// Streaming chat example using OpenAI-compatible provider with only ai-sdk-provider.
+use futures_util::StreamExt;
+/// Streaming chat example using OpenAI-compatible provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_stream() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_stream() directly (no llm-kit-core)
 /// - Processing stream parts and displaying output
 /// - Real-time streaming text generation
 ///
 /// Run with:
 /// ```bash
 /// export OPENAI_API_KEY="your-api-key"
-/// cargo run --example stream -p ai-sdk-openai-compatible
+/// cargo run --example stream -p llm-kit-openai-compatible
 /// ```
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use futures_util::StreamExt;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

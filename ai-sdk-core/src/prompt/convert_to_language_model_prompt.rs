@@ -1,18 +1,18 @@
 use crate::error::AISDKError;
 use crate::prompt::standardize::StandardizedPrompt;
-use ai_sdk_provider::language_model::prompt::message::parts::{
+use llm_kit_provider::language_model::prompt::message::parts::{
     LanguageModelFilePart, LanguageModelReasoningPart, LanguageModelTextPart,
     LanguageModelToolCallPart,
 };
-use ai_sdk_provider::language_model::prompt::message::{
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
     LanguageModelUserMessage,
 };
-use ai_sdk_provider::language_model::prompt::{
+use llm_kit_provider::language_model::prompt::{
     LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage,
     LanguageModelToolResultOutput, LanguageModelToolResultPart, LanguageModelUserMessagePart,
 };
-use ai_sdk_provider_utils::message::{
+use llm_kit_provider_utils::message::{
     AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent, UserContentPart,
     content_parts::{
         FilePart, FileSource, ImagePart, ImageSource, ReasoningPart, TextPart, ToolCallPart,
@@ -240,7 +240,7 @@ fn convert_assistant_content_part(
         )),
 
         AssistantContentPart::ToolResult(tool_result) => {
-            use ai_sdk_provider::language_model::prompt::message::parts::LanguageModelToolResultPart;
+            use llm_kit_provider::language_model::prompt::message::parts::LanguageModelToolResultPart;
             Ok(LanguageModelAssistantMessagePart::ToolResult(
                 LanguageModelToolResultPart::with_options(
                     tool_result.tool_call_id,
@@ -279,10 +279,10 @@ fn convert_tool_result_to_provider(
 
 /// Convert core `ToolResultOutput` to provider `ToolResultOutput`.
 fn convert_tool_result_output(
-    output: ai_sdk_provider_utils::message::content_parts::ToolResultOutput,
+    output: llm_kit_provider_utils::message::content_parts::ToolResultOutput,
 ) -> Result<LanguageModelToolResultOutput, AISDKError> {
-    use ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem;
-    use ai_sdk_provider_utils::message::content_parts::ToolResultOutput;
+    use llm_kit_provider::language_model::prompt::LanguageModelToolResultContentItem;
+    use llm_kit_provider_utils::message::content_parts::ToolResultOutput;
 
     match output {
         ToolResultOutput::Text {
@@ -328,10 +328,10 @@ fn convert_tool_result_output(
 ///
 /// Returns None for items that cannot be converted (like FileId which providers don't support).
 fn convert_tool_result_content_part(
-    part: ai_sdk_provider_utils::message::content_parts::ToolResultContentPart,
-) -> Option<ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem> {
-    use ai_sdk_provider::language_model::prompt::LanguageModelToolResultContentItem;
-    use ai_sdk_provider_utils::message::content_parts::ToolResultContentPart;
+    part: llm_kit_provider_utils::message::content_parts::ToolResultContentPart,
+) -> Option<llm_kit_provider::language_model::prompt::LanguageModelToolResultContentItem> {
+    use llm_kit_provider::language_model::prompt::LanguageModelToolResultContentItem;
+    use llm_kit_provider_utils::message::content_parts::ToolResultContentPart;
 
     match part {
         ToolResultContentPart::Text {
@@ -431,7 +431,7 @@ fn combine_consecutive_tool_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::message::UserMessage;
+    use llm_kit_provider_utils::message::UserMessage;
 
     #[test]
     fn test_convert_text_prompt() {

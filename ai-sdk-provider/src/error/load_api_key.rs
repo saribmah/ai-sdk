@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{LoadAPIKeyErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{LoadAPIKeyErrorBuilder, ProviderError};
 ///
 /// let error = LoadAPIKeyErrorBuilder::new(
 ///     "API key not found in environment variable OPENAI_API_KEY"
@@ -46,7 +46,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::load_api_key_error(
     ///     "OPENAI_API_KEY environment variable is not set"

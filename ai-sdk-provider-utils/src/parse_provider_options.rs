@@ -3,7 +3,7 @@
 //! This module provides functionality to extract and parse provider-specific options
 //! from a generic provider options map.
 
-use ai_sdk_provider::error::ProviderError;
+use llm_kit_provider::error::ProviderError;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -116,7 +116,7 @@ impl<T> ValidationResult<T> {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::parse_provider_options::{safe_validate_types, SerdeSchema};
+/// use llm_kit_provider_utils::parse_provider_options::{safe_validate_types, SerdeSchema};
 /// use serde::Deserialize;
 /// use serde_json::json;
 ///
@@ -179,7 +179,7 @@ where
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
+/// use llm_kit_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
 /// use serde::Deserialize;
 /// use serde_json::{json, Value};
 /// use std::collections::HashMap;
@@ -215,7 +215,7 @@ where
 /// # Example - Missing Provider Options
 ///
 /// ```
-/// use ai_sdk_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
+/// use llm_kit_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
 /// use serde::Deserialize;
 /// use std::collections::HashMap;
 ///
@@ -240,8 +240,8 @@ where
 /// # Example - Validation Error
 ///
 /// ```
-/// use ai_sdk_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
-/// use ai_sdk_provider::error::ProviderError;
+/// use llm_kit_provider_utils::parse_provider_options::{parse_provider_options, SerdeSchema};
+/// use llm_kit_provider::error::ProviderError;
 /// use serde::Deserialize;
 /// use serde_json::json;
 /// use std::collections::HashMap;

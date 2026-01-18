@@ -1,6 +1,6 @@
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::{
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::{
     EmbeddingModel, ImageModel, LanguageModel, RerankingModel, SpeechModel, TranscriptionModel,
 };
 use std::sync::Arc;
@@ -31,7 +31,7 @@ impl AssemblyAIProvider {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_assemblyai::{AssemblyAIClient, AssemblyAIProvider};
+    /// use llm_kit_assemblyai::{AssemblyAIClient, AssemblyAIProvider};
     ///
     /// let provider = AssemblyAIClient::new()
     ///     .api_key("your-api-key")

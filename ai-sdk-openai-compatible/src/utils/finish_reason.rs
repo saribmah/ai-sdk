@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 
 /// Maps OpenAI-compatible finish reasons to the standard FinishReason enum.
 ///

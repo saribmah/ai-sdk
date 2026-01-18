@@ -16,7 +16,7 @@ use std::sync::Arc;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_provider::{Provider, LanguageModel, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel, ProviderError};
+/// use llm_kit_provider::{Provider, LanguageModel, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel, ProviderError};
 /// use std::sync::Arc;
 ///
 /// struct MyProvider {
@@ -84,7 +84,7 @@ pub trait Provider: Send + Sync {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
+    /// use llm_kit_provider::{Provider, LanguageModel, ProviderError, EmbeddingModel, ImageModel, TranscriptionModel, SpeechModel, RerankingModel};
     /// use std::sync::Arc;
     ///
     /// struct MyProvider;

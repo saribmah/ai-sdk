@@ -29,9 +29,9 @@ pub mod call_warning;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_provider::TranscriptionModel;
-/// use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
-/// use ai_sdk_provider::transcription_model::TranscriptionModelResponse;
+/// use llm_kit_provider::TranscriptionModel;
+/// use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+/// use llm_kit_provider::transcription_model::TranscriptionModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyTranscriptionModel {

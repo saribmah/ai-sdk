@@ -23,9 +23,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-openai-compatible = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-openai-compatible = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -34,8 +34,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -63,8 +63,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -103,7 +103,7 @@ Note: This provider does not automatically load environment variables. Use the b
 ### OpenAI
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .base_url("https://api.openai.com/v1")
@@ -116,7 +116,7 @@ let model = provider.chat_model("gpt-4");
 ### Azure OpenAI
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .base_url("https://my-resource.openai.azure.com/openai")
@@ -131,7 +131,7 @@ let model = provider.chat_model("gpt-4");
 ### Together AI
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .base_url("https://api.together.xyz/v1")
@@ -145,7 +145,7 @@ let model = provider.chat_model("meta-llama/Llama-3-70b-chat-hf");
 ### Custom OpenAI-Compatible Service
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .base_url("https://api.example.com/v1")
@@ -180,8 +180,8 @@ The `OpenAICompatibleClient` builder supports:
 ### Chat Models
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -197,8 +197,8 @@ let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Hello!"
 ### Completion Models
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -214,8 +214,8 @@ let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("Complet
 ### Text Embedding Models
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::EmbedMany;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::EmbedMany;
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -235,8 +235,8 @@ println!("Generated {} embeddings", result.embeddings.len());
 ### Image Models
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::GenerateImage;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::GenerateImage;
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -261,8 +261,8 @@ println!("Generated {} image(s)", result.images.len());
 Stream responses for real-time output:
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{StreamText, Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{StreamText, Prompt};
 use futures_util::StreamExt;
 
 let provider = OpenAICompatibleClient::new()
@@ -287,8 +287,8 @@ while let Some(text_delta) = text_stream.next().await {
 Support for function/tool calling with compatible models:
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{GenerateText, Prompt, Tool, ToolSet};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, Prompt, Tool, ToolSet};
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -296,7 +296,7 @@ let provider = OpenAICompatibleClient::new()
 
 let model = provider.chat_model("gpt-4");
 
-// Define a tool (see ai-sdk-core docs for details)
+// Define a tool (see llm-kit-core docs for details)
 let tools = ToolSet::from_vec(vec![
     // Your tools here
 ]);
@@ -312,7 +312,7 @@ let result = GenerateText::new(std::sync::Arc::new(model), Prompt::text("What's 
 ### Custom Headers and Organization
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .api_key("your-api-key")
@@ -325,7 +325,7 @@ let provider = OpenAICompatibleClient::new()
 ### Query Parameters for Azure
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 let provider = OpenAICompatibleClient::new()
     .base_url("https://my-resource.openai.azure.com/openai")
@@ -337,8 +337,8 @@ let provider = OpenAICompatibleClient::new()
 ### Chained Usage
 
 ```rust
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 // Create provider and model in one chain
 let model = OpenAICompatibleClient::new()
@@ -381,7 +381,7 @@ This provider works with any OpenAI-compatible API, including:
 - **Together AI** - https://together.ai
 - **Perplexity** - https://perplexity.ai
 - **Anyscale** - https://anyscale.com
-- **Groq** - https://groq.com (also has dedicated `ai-sdk-groq` provider)
+- **Groq** - https://groq.com (also has dedicated `llm-kit-groq` provider)
 - **Local LLMs** - LocalAI, Ollama (with OpenAI compatibility), LM Studio
 
 ## Examples
@@ -406,7 +406,7 @@ cargo run --example image_generation
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-openai-compatible)
+- [API Documentation](https://docs.rs/llm-kit-openai-compatible)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
 - [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)

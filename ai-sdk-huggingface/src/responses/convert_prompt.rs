@@ -1,5 +1,5 @@
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::prompt::message::{
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::prompt::message::{
     LanguageModelAssistantMessagePart, LanguageModelDataContent, LanguageModelMessage,
     LanguageModelUserMessagePart,
 };
@@ -122,7 +122,7 @@ pub async fn convert_to_huggingface_responses_messages(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::prompt::message::{
+    use llm_kit_provider::language_model::prompt::message::{
         LanguageModelAssistantMessage, LanguageModelSystemMessage, LanguageModelToolMessage,
         LanguageModelUserMessage,
     };
@@ -179,7 +179,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_convert_image_url() {
-        use ai_sdk_provider::language_model::prompt::message::LanguageModelFilePart;
+        use llm_kit_provider::language_model::prompt::message::LanguageModelFilePart;
         use url::Url;
 
         let file_part = LanguageModelFilePart::new(
@@ -204,7 +204,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_convert_image_base64() {
-        use ai_sdk_provider::language_model::prompt::message::LanguageModelFilePart;
+        use llm_kit_provider::language_model::prompt::message::LanguageModelFilePart;
 
         let file_part = LanguageModelFilePart::new(
             LanguageModelDataContent::Base64("abc123".to_string()),
@@ -228,7 +228,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_convert_tool_message_warning() {
-        use ai_sdk_provider::language_model::prompt::message::{
+        use llm_kit_provider::language_model::prompt::message::{
             LanguageModelToolResultOutput, LanguageModelToolResultPart,
         };
 

@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// A system message. It can contain system information.

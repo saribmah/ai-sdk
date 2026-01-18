@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{JSONParseErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{JSONParseErrorBuilder, ProviderError};
 /// use std::io;
 ///
 /// let parse_error = io::Error::new(io::ErrorKind::InvalidData, "unexpected character");
@@ -57,7 +57,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let parse_error = io::Error::new(io::ErrorKind::InvalidData, "expected value at line 1");
@@ -91,7 +91,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::json_parse_error_without_cause(
     ///     r#"not valid json"#,

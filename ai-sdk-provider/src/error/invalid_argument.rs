@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{InvalidArgumentErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{InvalidArgumentErrorBuilder, ProviderError};
 ///
 /// let error = InvalidArgumentErrorBuilder::new("temperature", "Temperature must be between 0 and 2")
 ///     .build();
@@ -57,7 +57,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::invalid_argument(
     ///     "max_tokens",
@@ -85,7 +85,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let cause_error = io::Error::new(io::ErrorKind::InvalidInput, "Parse error");

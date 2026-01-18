@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{NoSuchModelErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{NoSuchModelErrorBuilder, ProviderError};
 /// use std::io;
 ///
 /// let source_error = io::Error::new(io::ErrorKind::NotFound, "Model file not found");
@@ -61,7 +61,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::no_such_model("gpt-4", "openai");
     ///
@@ -86,7 +86,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     /// use std::io;
     ///
     /// let source_error = io::Error::new(io::ErrorKind::NotFound, "Model file not found");

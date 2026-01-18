@@ -7,7 +7,7 @@ pub mod create_tool_model_output;
 /// Standardization of prompts for language models.
 pub mod standardize;
 
-use ai_sdk_provider_utils::message::Message;
+use llm_kit_provider_utils::message::Message;
 use serde::{Deserialize, Serialize};
 
 /// Prompt part of the AI function options.
@@ -47,7 +47,7 @@ impl Prompt {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::prompt::Prompt;
+    /// use llm_kit_core::prompt::Prompt;
     ///
     /// let prompt = Prompt::text("What is the weather?");
     /// ```
@@ -63,8 +63,8 @@ impl Prompt {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::prompt::Prompt;
-    /// use ai_sdk_provider_utils::message::{Message, UserMessage};
+    /// use llm_kit_core::prompt::Prompt;
+    /// use llm_kit_provider_utils::message::{Message, UserMessage};
     ///
     /// let messages = vec![
     ///     Message::User(UserMessage::new("Hello")),
@@ -83,7 +83,7 @@ impl Prompt {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::prompt::Prompt;
+    /// use llm_kit_core::prompt::Prompt;
     ///
     /// let prompt = Prompt::text("What is the weather?")
     ///     .with_system("You are a helpful weather assistant");
@@ -159,7 +159,7 @@ impl PromptContent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::message::{UserContent, UserMessage};
+    use llm_kit_provider_utils::message::{UserContent, UserMessage};
 
     #[test]
     fn test_text_prompt() {

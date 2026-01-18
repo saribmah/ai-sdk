@@ -5,12 +5,12 @@ pub use result::{RankedDocumentWithValue, RerankResponseMetadata, RerankResult};
 
 use crate::error::AISDKError;
 use crate::generate_text::prepare_retries;
-use ai_sdk_provider::reranking_model::RerankingModel;
-use ai_sdk_provider::reranking_model::call_options::{
+use llm_kit_provider::reranking_model::RerankingModel;
+use llm_kit_provider::reranking_model::call_options::{
     RerankingDocuments, RerankingModelCallOptions,
 };
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -25,9 +25,9 @@ use tokio_util::sync::CancellationToken;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::Rerank;
+/// use llm_kit_core::Rerank;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::reranking_model::RerankingModel;
+/// # use llm_kit_provider::reranking_model::RerankingModel;
 /// # async fn example(model: Arc<dyn RerankingModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let documents = vec![
@@ -344,10 +344,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::reranking_model::{
+    use async_trait::async_trait;
+    use llm_kit_provider::reranking_model::{
         RankedDocument, RerankingModelResponse, RerankingModelResponseMetadata,
     };
-    use async_trait::async_trait;
 
     // Mock reranking model for testing
     struct MockRerankingModel {

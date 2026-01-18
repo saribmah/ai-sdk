@@ -17,7 +17,7 @@
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::language_model::{AnthropicMessagesLanguageModel, AnthropicMessagesConfig};
+//! use llm_kit_anthropic::language_model::{AnthropicMessagesLanguageModel, AnthropicMessagesConfig};
 //! use std::sync::Arc;
 //!
 //! let config = AnthropicMessagesConfig::new(
@@ -51,8 +51,8 @@ pub mod stream_schema;
 // pub mod process_content;
 // pub mod stream;
 
-use ai_sdk_provider::language_model::LanguageModel;
 use async_trait::async_trait;
+use llm_kit_provider::language_model::LanguageModel;
 use std::collections::HashMap;
 
 use crate::options::AnthropicMessagesModelId;
@@ -204,16 +204,16 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
 
     async fn do_generate(
         &self,
-        options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
+        options: llm_kit_provider::language_model::call_options::LanguageModelCallOptions,
     ) -> Result<
-        ai_sdk_provider::language_model::LanguageModelGenerateResponse,
+        llm_kit_provider::language_model::LanguageModelGenerateResponse,
         Box<dyn std::error::Error>,
     > {
-        use ai_sdk_provider::language_model::{
-            LanguageModelGenerateResponse, LanguageModelRequestMetadata,
-        };
         use args_builder::build_request_args;
         use http_client::post_json;
+        use llm_kit_provider::language_model::{
+            LanguageModelGenerateResponse, LanguageModelRequestMetadata,
+        };
         use process_content::process_content_blocks;
         use response_schema::AnthropicMessagesResponse;
 
@@ -245,7 +245,7 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
         );
 
         // Build usage statistics
-        let usage = ai_sdk_provider::language_model::usage::LanguageModelUsage {
+        let usage = llm_kit_provider::language_model::usage::LanguageModelUsage {
             input_tokens: response.usage.input_tokens as u64,
             output_tokens: response.usage.output_tokens as u64,
             total_tokens: (response.usage.input_tokens + response.usage.output_tokens) as u64,
@@ -258,7 +258,7 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
             || response.stop_sequence.is_some()
             || response.container.is_some()
         {
-            let mut metadata: ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata =
+            let mut metadata: llm_kit_provider::shared::provider_metadata::SharedProviderMetadata =
                 HashMap::new();
             let mut anthropic_metadata: HashMap<String, serde_json::Value> = HashMap::new();
 
@@ -286,7 +286,7 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
 
         // Build response metadata
         let response_metadata = Some(
-            ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata {
+            llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata {
                 id: response.id,
                 model_id: response.model,
                 timestamp: None,
@@ -311,16 +311,16 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
 
     async fn do_stream(
         &self,
-        options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
+        options: llm_kit_provider::language_model::call_options::LanguageModelCallOptions,
     ) -> Result<
-        ai_sdk_provider::language_model::LanguageModelStreamResponse,
+        llm_kit_provider::language_model::LanguageModelStreamResponse,
         Box<dyn std::error::Error>,
     > {
-        use ai_sdk_provider::language_model::{
-            LanguageModelStreamResponse, StreamResponseMetadata,
-        };
         use args_builder::build_request_args;
         use http_client::post_stream;
+        use llm_kit_provider::language_model::{
+            LanguageModelStreamResponse, StreamResponseMetadata,
+        };
         use sse_parser::parse_sse_stream;
 
         // Build request arguments with streaming enabled
@@ -349,7 +349,7 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
         Ok(LanguageModelStreamResponse {
             stream: Box::new(stream),
             request: Some(
-                ai_sdk_provider::language_model::LanguageModelRequestMetadata {
+                llm_kit_provider::language_model::LanguageModelRequestMetadata {
                     body: Some(build_result.args),
                 },
             ),
@@ -361,8 +361,8 @@ impl LanguageModel for AnthropicMessagesLanguageModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-    use ai_sdk_provider::language_model::prompt::message::LanguageModelMessage;
+    use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+    use llm_kit_provider::language_model::prompt::message::LanguageModelMessage;
     use std::sync::Arc;
 
     #[test]
@@ -444,8 +444,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_do_generate_basic_structure() {
-        use ai_sdk_provider::language_model::LanguageModel;
-        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
+        use llm_kit_provider::language_model::LanguageModel;
+        use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
 
         // This is a mock test to verify the structure compiles and types are correct
         // We can't test actual API calls without a real API key

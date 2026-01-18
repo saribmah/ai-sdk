@@ -1,4 +1,4 @@
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_provider_utils::tool::Tool;
 use std::collections::HashMap;
 
 /// A set of tools indexed by their names.
@@ -8,8 +8,8 @@ use std::collections::HashMap;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::ToolSet;
-/// use ai_sdk_provider_utils::tool::Tool;
+/// use llm_kit_core::ToolSet;
+/// use llm_kit_provider_utils::tool::Tool;
 /// use serde_json::json;
 ///
 /// let mut tools = ToolSet::new();

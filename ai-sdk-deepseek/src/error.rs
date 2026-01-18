@@ -4,7 +4,7 @@ use thiserror::Error;
 ///
 /// Re-exports OpenAI-compatible error structure since DeepSeek uses
 /// the same error format.
-pub use ai_sdk_openai_compatible::OpenAICompatibleErrorData as DeepSeekErrorData;
+pub use llm_kit_openai_compatible::OpenAICompatibleErrorData as DeepSeekErrorData;
 
 /// DeepSeek provider errors.
 #[derive(Error, Debug)]

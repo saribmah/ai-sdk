@@ -21,9 +21,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-anthropic = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-anthropic = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -32,8 +32,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_anthropic::AnthropicClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_anthropic::AnthropicClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,8 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+use llm_kit_core::{GenerateText, Prompt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -93,7 +93,7 @@ export ANTHROPIC_BASE_URL=https://api.anthropic.com/v1  # Optional
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_anthropic::AnthropicClient;
+use llm_kit_anthropic::AnthropicClient;
 
 let provider = AnthropicClient::new()
     .api_key("your-api-key")
@@ -106,7 +106,7 @@ let provider = AnthropicClient::new()
 ### Using Settings Directly
 
 ```rust
-use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 
 let settings = AnthropicProviderSettings::new()
     .with_api_key("your-api-key")
@@ -133,8 +133,8 @@ The `AnthropicClient` builder supports:
 Anthropic provides several powerful provider-defined tools:
 
 ```rust
-use ai_sdk_anthropic::anthropic_tools;
-use ai_sdk_core::ToolSet;
+use llm_kit_anthropic::anthropic_tools;
+use llm_kit_core::ToolSet;
 
 let tools = ToolSet::from_vec(vec![
     // Execute bash commands
@@ -171,8 +171,8 @@ let tools = ToolSet::from_vec(vec![
 Enable Claude's extended reasoning process:
 
 ```rust
-use ai_sdk_anthropic::AnthropicClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_anthropic::AnthropicClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = AnthropicClient::new().build();
 let model = provider.language_model("claude-3-7-sonnet-20250219".to_string());
@@ -186,7 +186,7 @@ let result = GenerateText::new(std::sync::Arc::new(model),
 
 // Access reasoning
 for output in result.experimental_output.iter() {
-    if let ai_sdk_provider::language_model::Output::Reasoning(reasoning) = output {
+    if let llm_kit_provider::language_model::Output::Reasoning(reasoning) = output {
         println!("Reasoning: {}", reasoning.text);
     }
 }
@@ -197,8 +197,8 @@ for output in result.experimental_output.iter() {
 Stream responses for real-time output:
 
 ```rust
-use ai_sdk_anthropic::AnthropicClient;
-use ai_sdk_core::{StreamText, Prompt};
+use llm_kit_anthropic::AnthropicClient;
+use llm_kit_core::{StreamText, Prompt};
 use futures_util::StreamExt;
 
 let provider = AnthropicClient::new().build();
@@ -233,8 +233,8 @@ For a complete list of available models, see the [Anthropic documentation](https
 Anthropic-specific options can be passed through `provider_options`:
 
 ```rust
-use ai_sdk_anthropic::language_model::{ProviderChatLanguageModelOptions, provider_chat_options::*};
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_anthropic::language_model::{ProviderChatLanguageModelOptions, provider_chat_options::*};
+use llm_kit_core::{GenerateText, Prompt};
 
 let options = ProviderChatLanguageModelOptions {
     thinking: Some(Thinking {
@@ -286,7 +286,7 @@ cargo run --example provider_specific_defined_tools
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-anthropic)
+- [API Documentation](https://docs.rs/llm-kit-anthropic)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Anthropic API Reference](https://docs.anthropic.com/en/api)
 

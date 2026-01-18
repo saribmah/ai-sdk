@@ -23,9 +23,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-azure = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-azure = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -34,8 +34,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_azure::AzureClient;
-use ai_sdk_provider::LanguageModel;
+use llm_kit_azure::AzureClient;
+use llm_kit_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -57,8 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
-use ai_sdk_provider::LanguageModel;
+use llm_kit_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+use llm_kit_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -90,7 +90,7 @@ export AZURE_RESOURCE_NAME=my-azure-resource  # Or use AZURE_BASE_URL
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_azure::AzureClient;
+use llm_kit_azure::AzureClient;
 
 // With resource name (most common)
 let provider = AzureClient::new()
@@ -123,7 +123,7 @@ let provider = AzureClient::new()
 ### Using Settings Directly
 
 ```rust
-use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+use llm_kit_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
 
 let settings = AzureOpenAIProviderSettings::new()
     .with_resource_name("my-azure-resource")
@@ -236,8 +236,8 @@ Text completion models:
 Use `.chat_model()` or `.model()` for conversational AI:
 
 ```rust
-use ai_sdk_azure::AzureClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_azure::AzureClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = AzureClient::new()
     .resource_name("my-resource")
@@ -307,7 +307,7 @@ cargo run --example image_generation
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-azure)
+- [API Documentation](https://docs.rs/llm-kit-azure)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
 

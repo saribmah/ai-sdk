@@ -12,7 +12,7 @@ use crate::settings::AnthropicProviderSettings;
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_anthropic::AnthropicClient;
+/// use llm_kit_anthropic::AnthropicClient;
 ///
 /// let provider = AnthropicClient::new()
 ///     .api_key("your-api-key")
@@ -24,7 +24,7 @@ use crate::settings::AnthropicProviderSettings;
 /// ## Custom Base URL
 ///
 /// ```no_run
-/// use ai_sdk_anthropic::AnthropicClient;
+/// use llm_kit_anthropic::AnthropicClient;
 ///
 /// let provider = AnthropicClient::new()
 ///     .base_url("https://custom.api.com/v1")
@@ -37,7 +37,7 @@ use crate::settings::AnthropicProviderSettings;
 /// ## With Custom Headers
 ///
 /// ```no_run
-/// use ai_sdk_anthropic::AnthropicClient;
+/// use llm_kit_anthropic::AnthropicClient;
 ///
 /// let provider = AnthropicClient::new()
 ///     .api_key("your-api-key")
@@ -72,7 +72,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     ///
     /// let client = AnthropicClient::new()
     ///     .base_url("https://custom.api.com/v1");
@@ -93,7 +93,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     ///
     /// let client = AnthropicClient::new()
     ///     .api_key("your-api-key");
@@ -112,7 +112,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     ///
     /// let client = AnthropicClient::new()
     ///     .name("my-anthropic-provider");
@@ -134,7 +134,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     ///
     /// let client = AnthropicClient::new()
     ///     .header("X-Custom-Header", "value");
@@ -153,7 +153,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -181,7 +181,7 @@ impl AnthropicClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_anthropic::AnthropicClient;
+    /// use llm_kit_anthropic::AnthropicClient;
     ///
     /// let provider = AnthropicClient::new()
     ///     .api_key("your-api-key")
@@ -213,7 +213,7 @@ impl AnthropicClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::language_model::LanguageModel;
+    use llm_kit_provider::language_model::LanguageModel;
 
     #[test]
     fn test_basic_client_builder() {

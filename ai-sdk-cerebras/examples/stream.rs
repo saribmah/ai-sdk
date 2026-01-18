@@ -1,18 +1,18 @@
-/// Streaming chat example using ai-sdk-provider traits only.
+use futures_util::StreamExt;
+/// Streaming chat example using llm-kit-provider traits only.
 ///
 /// This example demonstrates direct usage of the LanguageModel::do_stream() trait
-/// without ai-sdk-core abstractions.
+/// without llm-kit-core abstractions.
 ///
 /// Run with:
 /// ```bash
 /// export CEREBRAS_API_KEY="your-api-key"
 /// cargo run --example stream
 /// ```
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use futures_util::StreamExt;
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

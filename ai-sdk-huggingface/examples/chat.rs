@@ -1,19 +1,19 @@
-/// Basic chat example using Hugging Face provider with only ai-sdk-provider.
+/// Basic chat example using Hugging Face provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_generate() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_generate() directly (no llm-kit-core)
 /// - Basic text generation without tools
-/// - Working with LanguageModelCallOptions from ai-sdk-provider
+/// - Working with LanguageModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export HUGGINGFACE_API_KEY="your-api-key"
-/// cargo run --example chat -p ai-sdk-huggingface
+/// cargo run --example chat -p llm-kit-huggingface
 /// ```
-use ai_sdk_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_huggingface::{HuggingFaceClient, LLAMA_3_1_8B_INSTRUCT};
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

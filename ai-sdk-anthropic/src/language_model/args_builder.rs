@@ -1,5 +1,5 @@
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
 use serde_json::{Value, json};
 use std::collections::HashSet;
 

@@ -7,7 +7,7 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+//! use llm_kit_anthropic::provider_tool::web_fetch_20250910;
 //!
 //! // Create a web fetch tool with default options
 //! let builder = web_fetch_20250910();
@@ -20,7 +20,7 @@
 //!     .build();
 //! ```
 
-use ai_sdk_provider_utils::tool::{
+use llm_kit_provider_utils::tool::{
     ProviderDefinedToolFactoryWithOutput, ProviderDefinedToolOptions, Tool,
 };
 use serde_json::json;
@@ -55,7 +55,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .max_uses(10)
@@ -77,7 +77,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .allowed_domains(vec!["example.com".to_string(), "docs.rs".to_string()])
@@ -99,7 +99,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .blocked_domains(vec!["spam.com".to_string()])
@@ -122,7 +122,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .citations(true)
@@ -144,7 +144,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .max_content_tokens(5000)
@@ -160,7 +160,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .with_description("Fetch web content from URLs")
@@ -176,7 +176,7 @@ impl WebFetch20250910Builder {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+    /// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
     ///
     /// let tool = web_fetch_20250910()
     ///     .with_needs_approval(true)
@@ -352,7 +352,7 @@ impl WebFetch20250910Builder {
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+/// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
 ///
 /// let tool = web_fetch_20250910().build();
 /// ```
@@ -360,7 +360,7 @@ impl WebFetch20250910Builder {
 /// ## With Domain Restrictions
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+/// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
 ///
 /// let tool = web_fetch_20250910()
 ///     .allowed_domains(vec!["example.com".to_string(), "docs.rs".to_string()])
@@ -371,7 +371,7 @@ impl WebFetch20250910Builder {
 /// ## With Citations and Limits
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::web_fetch_20250910;
+/// use llm_kit_anthropic::provider_tool::web_fetch_20250910;
 ///
 /// let tool = web_fetch_20250910()
 ///     .citations(true)
@@ -387,7 +387,7 @@ pub fn web_fetch_20250910() -> WebFetch20250910Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_web_fetch_20250910_default() {
@@ -485,7 +485,7 @@ mod tests {
 
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 
@@ -575,7 +575,7 @@ mod tests {
         // Check approval
         assert!(matches!(
             tool.needs_approval,
-            ai_sdk_provider_utils::NeedsApproval::Yes
+            llm_kit_provider_utils::NeedsApproval::Yes
         ));
     }
 

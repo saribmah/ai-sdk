@@ -17,8 +17,8 @@
 //! ### Using the Client Builder (Recommended)
 //!
 //! ```ignore
-//! use ai_sdk_huggingface::HuggingFaceClient;
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use llm_kit_huggingface::HuggingFaceClient;
+//! use llm_kit_core::{GenerateText, prompt::Prompt};
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -41,8 +41,8 @@
 //! ### Using Settings Directly (Alternative)
 //!
 //! ```ignore
-//! use ai_sdk_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
-//! use ai_sdk_core::{GenerateText, prompt::Prompt};
+//! use llm_kit_huggingface::{HuggingFaceProvider, HuggingFaceProviderSettings};
+//! use llm_kit_core::{GenerateText, prompt::Prompt};
 //!
 //! #[tokio::main]
 //! async fn main() {

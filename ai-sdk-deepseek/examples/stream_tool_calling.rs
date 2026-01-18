@@ -1,14 +1,14 @@
 // Provider example: Streaming tool calling with do_stream()
 // This example demonstrates using the DeepSeek provider's streaming with tool calling.
-// It does NOT use ai-sdk-core (GenerateText, StreamText, etc.)
+// It does NOT use llm-kit-core (GenerateText, StreamText, etc.)
 
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 use futures_util::StreamExt;
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 use serde_json::json;
 
 #[tokio::main]

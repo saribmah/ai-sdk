@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+/// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
 ///
 /// // Base64 image source
 /// let base64_source = AnthropicContentSource::base64(
@@ -64,7 +64,7 @@ impl AnthropicContentSource {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let source = AnthropicContentSource::base64(
     ///     "image/jpeg",
@@ -87,7 +87,7 @@ impl AnthropicContentSource {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let source = AnthropicContentSource::url("https://example.com/document.pdf");
     /// ```
@@ -106,7 +106,7 @@ impl AnthropicContentSource {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let source = AnthropicContentSource::text("This is plain text content");
     /// ```

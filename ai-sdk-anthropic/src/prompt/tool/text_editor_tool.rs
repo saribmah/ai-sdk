@@ -10,7 +10,7 @@ use crate::prompt::message::cache_control::AnthropicCacheControl;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::text_editor_tool::{AnthropicTextEditorTool, TextEditorToolVersion};
+/// use llm_kit_anthropic::prompt::tool::text_editor_tool::{AnthropicTextEditorTool, TextEditorToolVersion};
 ///
 /// let tool = AnthropicTextEditorTool::new(
 ///     "editor",
@@ -58,7 +58,7 @@ impl AnthropicTextEditorTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::text_editor_tool::{AnthropicTextEditorTool, TextEditorToolVersion};
+    /// use llm_kit_anthropic::prompt::tool::text_editor_tool::{AnthropicTextEditorTool, TextEditorToolVersion};
     ///
     /// let tool = AnthropicTextEditorTool::new(
     ///     "editor",
@@ -121,7 +121,7 @@ impl AnthropicTextEditorTool {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
+/// use llm_kit_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
 ///
 /// let tool = AnthropicTextEditorTool20250728::new("editor")
 ///     .with_max_characters(10000);
@@ -154,7 +154,7 @@ impl AnthropicTextEditorTool20250728 {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
+    /// use llm_kit_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
     ///
     /// let tool = AnthropicTextEditorTool20250728::new("editor");
     /// ```
@@ -176,7 +176,7 @@ impl AnthropicTextEditorTool20250728 {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
+    /// use llm_kit_anthropic::prompt::tool::text_editor_tool::AnthropicTextEditorTool20250728;
     ///
     /// let tool = AnthropicTextEditorTool20250728::new("editor")
     ///     .with_max_characters(50000);

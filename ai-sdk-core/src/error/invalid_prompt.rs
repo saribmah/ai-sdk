@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, InvalidPromptErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, InvalidPromptErrorBuilder};
 ///
 /// let error = InvalidPromptErrorBuilder::new("Prompt cannot be empty")
 ///     .build();
@@ -32,7 +32,7 @@ impl InvalidPromptErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidPromptErrorBuilder;
+    /// use llm_kit_core::error::InvalidPromptErrorBuilder;
     ///
     /// let builder = InvalidPromptErrorBuilder::new("Prompt must contain at least one message");
     /// ```
@@ -47,7 +47,7 @@ impl InvalidPromptErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::InvalidPromptErrorBuilder;
+    /// use llm_kit_core::error::InvalidPromptErrorBuilder;
     ///
     /// let error = InvalidPromptErrorBuilder::new("Invalid prompt format")
     ///     .build();
@@ -71,7 +71,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_prompt("Prompt cannot be empty");
     ///
@@ -97,7 +97,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::invalid_prompt_builder("Prompt must contain at least one message")
     ///     .build();

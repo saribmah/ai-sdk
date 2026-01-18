@@ -1,6 +1,6 @@
 use super::content_parts::{FilePart, ReasoningPart, TextPart, ToolCallPart, ToolResultPart};
 use crate::tool::ToolApprovalRequest;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content of an assistant message.

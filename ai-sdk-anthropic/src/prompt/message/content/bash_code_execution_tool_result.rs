@@ -25,7 +25,7 @@ impl BashCodeExecutionOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
     ///
     /// let output = BashCodeExecutionOutput::new("file_abc123");
     /// assert_eq!(output.file_id, "file_abc123");
@@ -44,7 +44,7 @@ impl From<String> for BashCodeExecutionOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
     ///
     /// let output: BashCodeExecutionOutput = "file_123".to_string().into();
     /// assert_eq!(output.file_id, "file_123");
@@ -60,7 +60,7 @@ impl From<&str> for BashCodeExecutionOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionOutput;
     ///
     /// let output: BashCodeExecutionOutput = "file_456".into();
     /// assert_eq!(output.file_id, "file_456");
@@ -106,7 +106,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     BashCodeExecutionResult, BashCodeExecutionOutput
     /// };
     ///
@@ -143,7 +143,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
     ///
     /// let result = BashCodeExecutionResult::success("Output");
     /// assert_eq!(result.return_code, 0);
@@ -163,7 +163,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     BashCodeExecutionResult, BashCodeExecutionOutput
     /// };
     ///
@@ -190,7 +190,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
     ///
     /// let result = BashCodeExecutionResult::failure("Error message", 1);
     /// assert_eq!(result.return_code, 1);
@@ -204,7 +204,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     BashCodeExecutionResult, BashCodeExecutionOutput
     /// };
     ///
@@ -223,7 +223,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResult;
     ///
     /// let result = BashCodeExecutionResult::success("Output")
     ///     .with_file_id("file_123");
@@ -239,7 +239,7 @@ impl BashCodeExecutionResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     BashCodeExecutionResult, BashCodeExecutionOutput
     /// };
     ///
@@ -279,7 +279,7 @@ impl BashCodeExecutionErrorResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionErrorResult;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionErrorResult;
     ///
     /// let result = BashCodeExecutionErrorResult::new("EXECUTION_TIMEOUT");
     /// assert_eq!(result.error_code, "EXECUTION_TIMEOUT");
@@ -325,7 +325,7 @@ impl BashCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
     ///
     /// let content = BashCodeExecutionResultContent::result("output", "", 0, vec![]);
     /// ```
@@ -348,7 +348,7 @@ impl BashCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
     ///
     /// let content = BashCodeExecutionResultContent::error("TIMEOUT");
     /// ```
@@ -363,7 +363,7 @@ impl BashCodeExecutionResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::BashCodeExecutionResultContent;
     ///
     /// let content = BashCodeExecutionResultContent::success("output");
     /// ```
@@ -380,7 +380,7 @@ impl BashCodeExecutionResultContent {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
 ///     AnthropicBashCodeExecutionToolResultContent, BashCodeExecutionResultContent,
 ///     BashCodeExecutionOutput
 /// };
@@ -434,7 +434,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     AnthropicBashCodeExecutionToolResultContent, BashCodeExecutionResultContent
     /// };
     ///
@@ -465,7 +465,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     AnthropicBashCodeExecutionToolResultContent, BashCodeExecutionOutput
     /// };
     ///
@@ -500,7 +500,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicBashCodeExecutionToolResultContent::success(
     ///     "toolu_123",
@@ -521,7 +521,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicBashCodeExecutionToolResultContent::error(
     ///     "toolu_456",
@@ -540,8 +540,8 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicBashCodeExecutionToolResultContent::success("toolu_123", "Output")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::FiveMinutes));
@@ -556,8 +556,8 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let result = AnthropicBashCodeExecutionToolResultContent::success("toolu_123", "Output")
     ///     .with_cache_control(AnthropicCacheControl::new(CacheTTL::OneHour))
@@ -575,7 +575,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::AnthropicBashCodeExecutionToolResultContent;
     ///
     /// let result = AnthropicBashCodeExecutionToolResultContent::success("old_id", "Output")
     ///     .with_tool_use_id("new_id");
@@ -592,7 +592,7 @@ impl AnthropicBashCodeExecutionToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::bash_code_execution_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::bash_code_execution_tool_result::{
     ///     AnthropicBashCodeExecutionToolResultContent, BashCodeExecutionResultContent
     /// };
     ///

@@ -20,9 +20,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-groq = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-groq = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -31,8 +31,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_groq::GroqClient;
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_groq::GroqClient;
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,8 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_groq::{GroqProvider, GroqProviderSettings};
-use ai_sdk_provider::language_model::LanguageModel;
+use llm_kit_groq::{GroqProvider, GroqProviderSettings};
+use llm_kit_provider::language_model::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@ export GROQ_BASE_URL=https://api.groq.com/openai/v1  # Optional
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_groq::GroqClient;
+use llm_kit_groq::GroqClient;
 
 let provider = GroqClient::new()
     .api_key("your-api-key")
@@ -95,7 +95,7 @@ let provider = GroqClient::new()
 ### Using Settings Directly
 
 ```rust
-use ai_sdk_groq::{GroqProvider, GroqProviderSettings};
+use llm_kit_groq::{GroqProvider, GroqProviderSettings};
 
 let settings = GroqProviderSettings::new()
     .with_api_key("your-api-key")
@@ -151,7 +151,7 @@ Groq supports advanced features through provider options.
 Control how reasoning content is returned:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -167,7 +167,7 @@ let result = GenerateText::new(model, prompt)
 Configure computational effort for reasoning models:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -183,7 +183,7 @@ let result = GenerateText::new(model, prompt)
 Enable or disable parallel tool execution (default: true):
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -200,7 +200,7 @@ let result = GenerateText::new(model, prompt)
 Select the service tier for processing:
 
 ```rust
-use ai_sdk_core::GenerateText;
+use llm_kit_core::GenerateText;
 use serde_json::json;
 
 let result = GenerateText::new(model, prompt)
@@ -216,8 +216,8 @@ let result = GenerateText::new(model, prompt)
 Groq provides metadata about cached tokens to help optimize performance:
 
 ```rust
-use ai_sdk_groq::GroqClient;
-use ai_sdk_core::{GenerateText, Prompt};
+use llm_kit_groq::GroqClient;
+use llm_kit_core::{GenerateText, Prompt};
 
 let provider = GroqClient::new().build();
 let model = provider.chat_model("llama-3.1-8b-instant");
@@ -270,7 +270,7 @@ cargo run --example transcription
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-groq)
+- [API Documentation](https://docs.rs/llm-kit-groq)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Groq API Reference](https://console.groq.com/docs)
 - [Groq Models](https://console.groq.com/docs/models)

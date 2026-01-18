@@ -1,8 +1,8 @@
-use ai_sdk_openai_compatible::OpenAICompatibleChatConfig;
-use ai_sdk_openai_compatible::OpenAICompatibleChatLanguageModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
+use llm_kit_openai_compatible::OpenAICompatibleChatConfig;
+use llm_kit_openai_compatible::OpenAICompatibleChatLanguageModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ use crate::settings::CerebrasProviderSettings;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings};
+/// use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings};
 ///
 /// let settings = CerebrasProviderSettings::new("https://api.cerebras.ai/v1")
 ///     .with_api_key("your-api-key");
@@ -38,7 +38,7 @@ impl CerebrasProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings};
+    /// use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings};
     ///
     /// let settings = CerebrasProviderSettings::new("https://api.cerebras.ai/v1")
     ///     .with_api_key("your-api-key");
@@ -60,7 +60,7 @@ impl CerebrasProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings};
+    /// use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings};
     ///
     /// let settings = CerebrasProviderSettings::default()
     ///     .with_api_key("your-api-key");
@@ -81,7 +81,7 @@ impl CerebrasProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings, chat::models};
+    /// use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings, chat::models};
     ///
     /// let settings = CerebrasProviderSettings::default()
     ///     .with_api_key("your-api-key");
@@ -150,7 +150,7 @@ impl Provider for CerebrasProvider {
     fn text_embedding_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::EmbeddingModel<String>>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::EmbeddingModel<String>>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "cerebras.embedding-model-not-supported",
@@ -160,7 +160,7 @@ impl Provider for CerebrasProvider {
     fn image_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::ImageModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "cerebras.image-model-not-supported",
@@ -170,7 +170,7 @@ impl Provider for CerebrasProvider {
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "cerebras.transcription-model-not-supported",
@@ -180,7 +180,7 @@ impl Provider for CerebrasProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "cerebras.speech-model-not-supported",
@@ -190,7 +190,7 @@ impl Provider for CerebrasProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "cerebras.reranking-model-not-supported",

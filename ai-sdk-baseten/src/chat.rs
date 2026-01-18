@@ -19,7 +19,7 @@ pub type BasetenChatModelId = String;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_baseten::chat::chat_model_id;
+/// use llm_kit_baseten::chat::chat_model_id;
 ///
 /// let model_id = chat_model_id("deepseek-ai/DeepSeek-V3-0324");
 /// ```

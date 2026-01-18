@@ -23,8 +23,8 @@
 //! When validation fails, detailed error messages indicate which constraints were violated.
 
 use crate::error::AISDKError;
-use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
-use ai_sdk_provider_utils::tool::{Tool, ToolCall};
+use llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall;
+use llm_kit_provider_utils::tool::{Tool, ToolCall};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -143,9 +143,9 @@ pub fn parse_provider_executed_dynamic_tool_call(
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::tool::{parse_tool_call, ToolSet};
-/// use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
-/// # use ai_sdk_core::error::AISDKError;
+/// use llm_kit_core::tool::{parse_tool_call, ToolSet};
+/// use llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall;
+/// # use llm_kit_core::error::AISDKError;
 /// # fn example() -> Result<(), AISDKError> {
 ///
 /// let tool_call = LanguageModelToolCall::new("call_123", "get_weather", r#"{"city": "SF"}"#);
@@ -211,7 +211,7 @@ pub fn parse_tool_call(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::tool::Tool;
+    use llm_kit_provider_utils::tool::Tool;
     use serde_json::json;
 
     #[test]
@@ -384,7 +384,7 @@ mod tests {
 
     #[test]
     fn test_parse_tool_call_with_provider_metadata() {
-        use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+        use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 
         let mut tools = HashMap::new();
         let schema = json!({"type": "object"});

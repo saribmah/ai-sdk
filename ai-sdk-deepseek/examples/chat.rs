@@ -1,11 +1,11 @@
 // Provider example: Basic chat using do_generate()
-// This example demonstrates using the DeepSeek provider directly with ai-sdk-provider traits.
-// It does NOT use ai-sdk-core (GenerateText, StreamText, etc.)
+// This example demonstrates using the DeepSeek provider directly with llm-kit-provider traits.
+// It does NOT use llm-kit-core (GenerateText, StreamText, etc.)
 
-use ai_sdk_deepseek::DeepSeekClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_deepseek::DeepSeekClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

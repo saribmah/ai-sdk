@@ -1,3 +1,4 @@
+use futures_util::StreamExt;
 ///
 /// This example shows how to:
 /// - Define tools with parameters
@@ -11,11 +12,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example stream_tool_calling
 /// ```
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::{StreamText, ToolSet, step_count_is};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider_utils::tool::Tool;
-use futures_util::StreamExt;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::{StreamText, ToolSet, step_count_is};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 /// Streaming tool calling example demonstrating real-time tool execution with streaming.
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     // Weather tool
     let weather_tool = Tool::function(json!({
@@ -210,7 +210,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!("📝 ");
 
     while let Some(part) = full_stream.next().await {
-        use ai_sdk_core::stream_text::TextStreamPart;
+        use llm_kit_core::stream_text::TextStreamPart;
         match part {
             TextStreamPart::TextDelta { text, .. } => {
                 print!("{}", text);
@@ -305,7 +305,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut step_count = 0;
 
     while let Some(part) = full_stream.next().await {
-        use ai_sdk_core::stream_text::TextStreamPart;
+        use llm_kit_core::stream_text::TextStreamPart;
         match part {
             TextStreamPart::StartStep { .. } => {
                 step_count += 1;

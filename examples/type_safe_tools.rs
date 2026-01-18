@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 /// Type-safe tools example demonstrating compile-time type checking for tool inputs/outputs.
 ///
 /// This example shows how to:
@@ -11,12 +12,11 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example type_safe_tools
 /// ```
-use ai_sdk_core::output::Output;
-use ai_sdk_core::prompt::Prompt;
-use ai_sdk_core::tool::TypeSafeTool;
-use ai_sdk_core::{GenerateText, ToolSet};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use async_trait::async_trait;
+use llm_kit_core::output::Output;
+use llm_kit_core::prompt::Prompt;
+use llm_kit_core::tool::TypeSafeTool;
+use llm_kit_core::{GenerateText, ToolSet};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::env;

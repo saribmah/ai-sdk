@@ -14,10 +14,10 @@ use self::message::content::text::AnthropicTextContent;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
-/// use ai_sdk_anthropic::prompt::message::AnthropicMessage;
-/// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-/// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+/// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
+/// use llm_kit_anthropic::prompt::message::AnthropicMessage;
+/// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+/// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
 ///
 /// // Create a prompt with a system message and user message
 /// let prompt = AnthropicMessagesPrompt::new(vec![
@@ -51,9 +51,9 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
-    /// use ai_sdk_anthropic::prompt::message::AnthropicMessage;
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::message::AnthropicMessage;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
     ///
     /// let prompt = AnthropicMessagesPrompt::new(vec![
     ///     AnthropicMessage::User(AnthropicUserMessage::from_text("What is Rust?"))
@@ -75,7 +75,7 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello, Claude!");
     /// ```
@@ -96,8 +96,8 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_system(vec![AnthropicTextContent::new("You are a helpful assistant.")]);
@@ -116,7 +116,7 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_system_text("You are a helpful assistant.");
@@ -131,7 +131,7 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_system_text("You are helpful.")
@@ -153,9 +153,9 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
-    /// use ai_sdk_anthropic::prompt::message::AnthropicMessage;
-    /// use ai_sdk_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::message::AnthropicMessage;
+    /// use llm_kit_anthropic::prompt::message::assistant::AnthropicAssistantMessage;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_message(AnthropicMessage::Assistant(
@@ -176,7 +176,7 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_user_message("How are you?");
@@ -200,7 +200,7 @@ impl AnthropicMessagesPrompt {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::AnthropicMessagesPrompt;
+    /// use llm_kit_anthropic::prompt::AnthropicMessagesPrompt;
     ///
     /// let prompt = AnthropicMessagesPrompt::from_user_text("Hello!")
     ///     .with_assistant_message("Hi! How can I help you?");

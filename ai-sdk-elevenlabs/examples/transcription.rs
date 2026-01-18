@@ -1,6 +1,6 @@
 /// Audio transcription example using ElevenLabs provider directly.
 ///
-/// This example demonstrates how to use ElevenLabs' transcription model with only `ai-sdk-provider`,
+/// This example demonstrates how to use ElevenLabs' transcription model with only `llm-kit-provider`,
 /// calling the `do_generate()` method directly on the `TranscriptionModel` trait.
 ///
 /// Features demonstrated:
@@ -14,13 +14,13 @@
 /// Run with:
 /// ```bash
 /// export ELEVENLABS_API_KEY="your-api-key"
-/// cargo run --example transcription -p ai-sdk-elevenlabs
+/// cargo run --example transcription -p llm-kit-elevenlabs
 /// ```
-use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::transcription_model::call_options::{
+use llm_kit_elevenlabs::ElevenLabsClient;
+use llm_kit_provider::transcription_model::call_options::{
     TranscriptionAudioData, TranscriptionModelCallOptions,
 };
-use ai_sdk_provider::{Provider, TranscriptionModel};
+use llm_kit_provider::{Provider, TranscriptionModel};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -52,9 +52,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("⚠️  Note: '{}' not found.", audio_path);
         println!("   To run this example, provide an audio file (mp3, wav, etc.)");
         println!("   You can use the output from the speech_generation example:");
-        println!("   cargo run --example speech_generation -p ai-sdk-elevenlabs");
+        println!("   cargo run --example speech_generation -p llm-kit-elevenlabs");
         println!("   mv output_speech.mp3 sample_audio.mp3");
-        println!("   cargo run --example transcription -p ai-sdk-elevenlabs\n");
+        println!("   cargo run --example transcription -p llm-kit-elevenlabs\n");
 
         // Try to use output_speech.mp3 if it exists from speech_generation example
         if std::path::Path::new("output_speech.mp3").exists() {

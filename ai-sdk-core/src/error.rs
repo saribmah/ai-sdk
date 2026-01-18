@@ -39,7 +39,7 @@ pub use unsupported_model_version::UnsupportedModelVersionErrorBuilder;
 /// ## Pattern matching on error types
 ///
 /// ```
-/// use ai_sdk_core::error::AISDKError;
+/// use llm_kit_core::error::AISDKError;
 ///
 /// let error = AISDKError::invalid_argument("temperature", 3.0, "must be between 0 and 2");
 ///
@@ -65,7 +65,7 @@ pub use unsupported_model_version::UnsupportedModelVersionErrorBuilder;
 /// ## Using builder patterns
 ///
 /// ```
-/// use ai_sdk_core::error::AISDKError;
+/// use llm_kit_core::error::AISDKError;
 /// use std::time::Duration;
 ///
 /// let error = AISDKError::retryable_error_builder("Rate limited")
@@ -182,7 +182,7 @@ pub enum AISDKError {
         /// The error message
         message: String,
         /// Response metadata from provider calls
-        responses: Vec<ai_sdk_provider::speech_model::SpeechModelResponseMetadata>,
+        responses: Vec<llm_kit_provider::speech_model::SpeechModelResponseMetadata>,
     },
 
     /// A no transcript generated error.
@@ -193,7 +193,7 @@ pub enum AISDKError {
         /// The error message
         message: String,
         /// Response metadata from provider calls
-        responses: Vec<ai_sdk_provider::transcription_model::TranscriptionModelResponseMetadata>,
+        responses: Vec<llm_kit_provider::transcription_model::TranscriptionModelResponseMetadata>,
     },
 
     /// An unsupported model version error.

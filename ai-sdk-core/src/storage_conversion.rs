@@ -1,7 +1,7 @@
-//! Storage conversion utilities for ai-sdk-storage integration.
+//! Storage conversion utilities for llm-kit-storage integration.
 //!
-//! This module provides conversion functions between `ai-sdk-core` types (prompts, outputs, messages)
-//! and `ai-sdk-storage` types (StorageUserMessage, StorageAssistantMessage, MessagePart).
+//! This module provides conversion functions between `llm-kit-core` types (prompts, outputs, messages)
+//! and `llm-kit-storage` types (StorageUserMessage, StorageAssistantMessage, MessagePart).
 //!
 //! # Key Functions
 //!
@@ -12,8 +12,8 @@
 //! # Example
 //!
 //! ```ignore
-//! use ai_sdk_storage_filesystem::FilesystemStorage;
-//! use ai_sdk_core::storage_conversion::*;
+//! use llm_kit_storage_filesystem::FilesystemStorage;
+//! use llm_kit_core::storage_conversion::*;
 //!
 //! let storage = Arc::new(FilesystemStorage::new("./storage")?);
 //! let session_id = storage.generate_session_id();
@@ -32,8 +32,8 @@
 
 use crate::generate_text::GenerateTextResult;
 use crate::output::Output;
-use ai_sdk_provider_utils::message::{AssistantMessage, Message, UserMessage};
-use ai_sdk_storage::{
+use llm_kit_provider_utils::message::{AssistantMessage, Message, UserMessage};
+use llm_kit_storage::{
     AssistantMessage as StorageAssistantMessage, FileData as StorageFileData,
     FilePart as StorageFilePart, ImageData as StorageImageData, ImagePart as StorageImagePart,
     MessageMetadata, MessagePart, MessageRole, ReasoningPart, Storage, StorageError, TextPart,
@@ -74,7 +74,7 @@ pub fn user_message_to_storage(
 
     // Extract text content from user message
     match &user_message.content {
-        ai_sdk_provider_utils::message::UserContent::Text(text) => {
+        llm_kit_provider_utils::message::UserContent::Text(text) => {
             let part_id = storage.generate_part_id();
             parts.push(MessagePart::Text(TextPart::new(
                 part_id.clone(),
@@ -82,19 +82,19 @@ pub fn user_message_to_storage(
             )));
             part_ids.push(part_id);
         }
-        ai_sdk_provider_utils::message::UserContent::Parts(content_parts) => {
+        llm_kit_provider_utils::message::UserContent::Parts(content_parts) => {
             for content in content_parts {
                 let part_id = storage.generate_part_id();
 
                 match content {
-                    ai_sdk_provider_utils::message::UserContentPart::Text(text_part) => {
+                    llm_kit_provider_utils::message::UserContentPart::Text(text_part) => {
                         parts.push(MessagePart::Text(TextPart::new(
                             part_id.clone(),
                             text_part.text.clone(),
                         )));
                         part_ids.push(part_id);
                     }
-                    ai_sdk_provider_utils::message::UserContentPart::Image(image_part) => {
+                    llm_kit_provider_utils::message::UserContentPart::Image(image_part) => {
                         if let Some(storage_part) =
                             image_part_to_storage(part_id.clone(), image_part)
                         {
@@ -102,7 +102,7 @@ pub fn user_message_to_storage(
                             part_ids.push(part_id);
                         }
                     }
-                    ai_sdk_provider_utils::message::UserContentPart::File(file_part) => {
+                    llm_kit_provider_utils::message::UserContentPart::File(file_part) => {
                         if let Some(storage_part) = file_part_to_storage(part_id.clone(), file_part)
                         {
                             parts.push(storage_part);
@@ -150,7 +150,7 @@ pub fn response_messages_to_storage(
     result: &GenerateTextResult,
 ) -> Vec<(StorageAssistantMessage, Vec<MessagePart>)> {
     use crate::ResponseMessage;
-    use ai_sdk_provider_utils::message::AssistantContent;
+    use llm_kit_provider_utils::message::AssistantContent;
 
     let mut storage_messages = Vec::new();
 
@@ -176,19 +176,19 @@ pub fn response_messages_to_storage(
                             let part_id = storage.generate_part_id();
 
                             let part = match content_part {
-                                ai_sdk_provider_utils::message::AssistantContentPart::Text(text) => {
+                                llm_kit_provider_utils::message::AssistantContentPart::Text(text) => {
                                     MessagePart::Text(TextPart::new(
                                         part_id.clone(),
                                         text.text.clone(),
                                     ))
                                 }
-                                ai_sdk_provider_utils::message::AssistantContentPart::Reasoning(
+                                llm_kit_provider_utils::message::AssistantContentPart::Reasoning(
                                     reasoning,
                                 ) => MessagePart::Reasoning(ReasoningPart::new(
                                     part_id.clone(),
                                     reasoning.text.clone(),
                                 )),
-                                ai_sdk_provider_utils::message::AssistantContentPart::ToolCall(
+                                llm_kit_provider_utils::message::AssistantContentPart::ToolCall(
                                     tool_call,
                                 ) => MessagePart::ToolCall(ToolCallPart::new(
                                     part_id.clone(),
@@ -196,15 +196,15 @@ pub fn response_messages_to_storage(
                                     tool_call.tool_name.clone(),
                                     tool_call.input.clone(),
                                 )),
-                                ai_sdk_provider_utils::message::AssistantContentPart::ToolResult(
+                                llm_kit_provider_utils::message::AssistantContentPart::ToolResult(
                                     tool_result,
                                 ) => {
                                     // Convert ToolResultOutput to storage format
-                                    use ai_sdk_provider_utils::message::content_parts::ToolResultOutput;
+                                    use llm_kit_provider_utils::message::content_parts::ToolResultOutput;
                                     match &tool_result.output {
                                         ToolResultOutput::Text { value, .. } => {
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                llm_kit_storage::ToolResultPart::new_success(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -214,7 +214,7 @@ pub fn response_messages_to_storage(
                                         }
                                         ToolResultOutput::Json { value, .. } => {
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                llm_kit_storage::ToolResultPart::new_success(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -225,7 +225,7 @@ pub fn response_messages_to_storage(
                                         ToolResultOutput::Content { value, .. } => {
                                             // For content array, serialize the whole array
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_success(
+                                                llm_kit_storage::ToolResultPart::new_success(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -238,7 +238,7 @@ pub fn response_messages_to_storage(
                                                 .clone()
                                                 .unwrap_or_else(|| "Execution denied".to_string());
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                llm_kit_storage::ToolResultPart::new_error(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -248,7 +248,7 @@ pub fn response_messages_to_storage(
                                         }
                                         ToolResultOutput::ErrorText { value, .. } => {
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                llm_kit_storage::ToolResultPart::new_error(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -258,7 +258,7 @@ pub fn response_messages_to_storage(
                                         }
                                         ToolResultOutput::ErrorJson { value, .. } => {
                                             MessagePart::ToolResult(
-                                                ai_sdk_storage::ToolResultPart::new_error(
+                                                llm_kit_storage::ToolResultPart::new_error(
                                                     part_id.clone(),
                                                     tool_result.tool_call_id.clone(),
                                                     tool_result.tool_name.clone(),
@@ -268,10 +268,10 @@ pub fn response_messages_to_storage(
                                         }
                                     }
                                 }
-                                ai_sdk_provider_utils::message::AssistantContentPart::File(file) => {
+                                llm_kit_provider_utils::message::AssistantContentPart::File(file) => {
                                     generated_file_to_storage_from_file_part(part_id.clone(), file)
                                 }
-                                ai_sdk_provider_utils::message::AssistantContentPart::ToolApprovalRequest(
+                                llm_kit_provider_utils::message::AssistantContentPart::ToolApprovalRequest(
                                     _,
                                 ) => {
                                     // Skip tool approval requests - they're not persisted
@@ -313,17 +313,17 @@ pub fn response_messages_to_storage(
                 // Convert tool message to assistant message with only tool result parts
                 for tool_content_part in &tool_msg.content {
                     match tool_content_part {
-                        ai_sdk_provider_utils::message::tool::ToolContentPart::ToolResult(
+                        llm_kit_provider_utils::message::tool::ToolContentPart::ToolResult(
                             tool_result,
                         ) => {
                             let part_id = storage.generate_part_id();
 
                             let part = {
-                                use ai_sdk_provider_utils::message::content_parts::ToolResultOutput;
+                                use llm_kit_provider_utils::message::content_parts::ToolResultOutput;
                                 match &tool_result.output {
                                     ToolResultOutput::Text { value, .. } => {
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_success(
+                                            llm_kit_storage::ToolResultPart::new_success(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -333,7 +333,7 @@ pub fn response_messages_to_storage(
                                     }
                                     ToolResultOutput::Json { value, .. } => {
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_success(
+                                            llm_kit_storage::ToolResultPart::new_success(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -343,7 +343,7 @@ pub fn response_messages_to_storage(
                                     }
                                     ToolResultOutput::Content { value, .. } => {
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_success(
+                                            llm_kit_storage::ToolResultPart::new_success(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -356,7 +356,7 @@ pub fn response_messages_to_storage(
                                             .clone()
                                             .unwrap_or_else(|| "Execution denied".to_string());
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_error(
+                                            llm_kit_storage::ToolResultPart::new_error(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -366,7 +366,7 @@ pub fn response_messages_to_storage(
                                     }
                                     ToolResultOutput::ErrorText { value, .. } => {
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_error(
+                                            llm_kit_storage::ToolResultPart::new_error(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -376,7 +376,7 @@ pub fn response_messages_to_storage(
                                     }
                                     ToolResultOutput::ErrorJson { value, .. } => {
                                         MessagePart::ToolResult(
-                                            ai_sdk_storage::ToolResultPart::new_error(
+                                            llm_kit_storage::ToolResultPart::new_error(
                                                 part_id.clone(),
                                                 tool_result.tool_call_id.clone(),
                                                 tool_result.tool_name.clone(),
@@ -390,7 +390,7 @@ pub fn response_messages_to_storage(
                             parts.push(part);
                             part_ids.push(part_id);
                         }
-                        ai_sdk_provider_utils::message::tool::ToolContentPart::ApprovalResponse(
+                        llm_kit_provider_utils::message::tool::ToolContentPart::ApprovalResponse(
                             _,
                         ) => {
                             // Skip approval responses - they're not persisted
@@ -468,7 +468,7 @@ pub fn assistant_output_to_storage(
             )),
             Output::ToolResult(tool_result) => {
                 // ToolResult already has output as JSON Value
-                MessagePart::ToolResult(ai_sdk_storage::ToolResultPart::new_success(
+                MessagePart::ToolResult(llm_kit_storage::ToolResultPart::new_success(
                     part_id.clone(),
                     tool_result.tool_call_id.clone(),
                     tool_result.tool_name.clone(),
@@ -477,7 +477,7 @@ pub fn assistant_output_to_storage(
             }
             Output::ToolError(tool_error) => {
                 // ToolError has error as JSON Value
-                MessagePart::ToolResult(ai_sdk_storage::ToolResultPart::new_error(
+                MessagePart::ToolResult(llm_kit_storage::ToolResultPart::new_error(
                     part_id.clone(),
                     tool_error.tool_call_id.clone(),
                     tool_error.tool_name.clone(),
@@ -607,20 +607,20 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
     for part in parts {
         match part {
             MessagePart::Text(text) => {
-                content_parts.push(ai_sdk_provider_utils::message::UserContentPart::Text(
-                    ai_sdk_provider_utils::message::TextPart::new(text.text.clone()),
+                content_parts.push(llm_kit_provider_utils::message::UserContentPart::Text(
+                    llm_kit_provider_utils::message::TextPart::new(text.text.clone()),
                 ));
             }
             MessagePart::Image(image) => {
                 if let Some(prompt_image) = storage_image_to_prompt(image) {
-                    content_parts.push(ai_sdk_provider_utils::message::UserContentPart::Image(
+                    content_parts.push(llm_kit_provider_utils::message::UserContentPart::Image(
                         prompt_image,
                     ));
                 }
             }
             MessagePart::File(file) => {
                 if let Some(prompt_file) = storage_file_to_prompt(file) {
-                    content_parts.push(ai_sdk_provider_utils::message::UserContentPart::File(
+                    content_parts.push(llm_kit_provider_utils::message::UserContentPart::File(
                         prompt_file,
                     ));
                 }
@@ -638,8 +638,8 @@ fn parts_to_user_message(parts: &[MessagePart]) -> UserMessage {
 ///
 /// Internal helper function that reconstructs a tool message from stored parts.
 /// This is used when an assistant message contains ONLY tool results.
-fn parts_to_tool_message(parts: &[MessagePart]) -> ai_sdk_provider_utils::message::ToolMessage {
-    use ai_sdk_provider_utils::message::tool::{ToolContentPart, ToolMessage};
+fn parts_to_tool_message(parts: &[MessagePart]) -> llm_kit_provider_utils::message::ToolMessage {
+    use llm_kit_provider_utils::message::tool::{ToolContentPart, ToolMessage};
 
     let mut tool_content: Vec<ToolContentPart> = Vec::new();
 
@@ -670,14 +670,14 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
     for part in parts {
         match part {
             MessagePart::Text(text) => {
-                content_parts.push(ai_sdk_provider_utils::message::AssistantContentPart::Text(
-                    ai_sdk_provider_utils::message::TextPart::new(text.text.clone()),
+                content_parts.push(llm_kit_provider_utils::message::AssistantContentPart::Text(
+                    llm_kit_provider_utils::message::TextPart::new(text.text.clone()),
                 ));
             }
             MessagePart::Reasoning(reasoning) => {
                 content_parts.push(
-                    ai_sdk_provider_utils::message::AssistantContentPart::Reasoning(
-                        ai_sdk_provider_utils::message::ReasoningPart::new(
+                    llm_kit_provider_utils::message::AssistantContentPart::Reasoning(
+                        llm_kit_provider_utils::message::ReasoningPart::new(
                             reasoning.content.clone(),
                         ),
                     ),
@@ -685,8 +685,8 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
             }
             MessagePart::ToolCall(tool_call) => {
                 content_parts.push(
-                    ai_sdk_provider_utils::message::AssistantContentPart::ToolCall(
-                        ai_sdk_provider_utils::message::ToolCallPart::new(
+                    llm_kit_provider_utils::message::AssistantContentPart::ToolCall(
+                        llm_kit_provider_utils::message::ToolCallPart::new(
                             tool_call.tool_call_id.clone(),
                             tool_call.tool_name.clone(),
                             tool_call.arguments.clone(),
@@ -717,9 +717,9 @@ fn parts_to_assistant_message(parts: &[MessagePart]) -> AssistantMessage {
 /// Returns `None` if the conversion cannot be performed (e.g., unsupported format).
 fn image_part_to_storage(
     id: String,
-    image: &ai_sdk_provider_utils::message::ImagePart,
+    image: &llm_kit_provider_utils::message::ImagePart,
 ) -> Option<MessagePart> {
-    use ai_sdk_provider_utils::message::{DataContent, ImageSource};
+    use llm_kit_provider_utils::message::{DataContent, ImageSource};
 
     let media_type = image
         .media_type
@@ -752,9 +752,9 @@ fn image_part_to_storage(
 /// Returns `None` if the conversion cannot be performed.
 fn file_part_to_storage(
     id: String,
-    file: &ai_sdk_provider_utils::message::FilePart,
+    file: &llm_kit_provider_utils::message::FilePart,
 ) -> Option<MessagePart> {
-    use ai_sdk_provider_utils::message::{DataContent, FileSource};
+    use llm_kit_provider_utils::message::{DataContent, FileSource};
 
     let storage_data = match &file.data {
         FileSource::Data(data_content) => match data_content {
@@ -784,8 +784,8 @@ fn file_part_to_storage(
 /// Returns `None` if the conversion cannot be performed.
 fn storage_image_to_prompt(
     image: &StorageImagePart,
-) -> Option<ai_sdk_provider_utils::message::ImagePart> {
-    use ai_sdk_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
+) -> Option<llm_kit_provider_utils::message::ImagePart> {
+    use llm_kit_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
 
     let mut prompt_image = match &image.data {
         StorageImageData::Base64 { data } => {
@@ -813,8 +813,8 @@ fn storage_image_to_prompt(
 /// Returns `None` if the conversion cannot be performed.
 fn storage_file_to_prompt(
     file: &StorageFilePart,
-) -> Option<ai_sdk_provider_utils::message::FilePart> {
-    use ai_sdk_provider_utils::message::{DataContent, FilePart as PromptFilePart};
+) -> Option<llm_kit_provider_utils::message::FilePart> {
+    use llm_kit_provider_utils::message::{DataContent, FilePart as PromptFilePart};
 
     let mut prompt_file = match &file.data {
         StorageFileData::Base64 { data } => {
@@ -846,8 +846,8 @@ fn source_output_to_storage(
     id: String,
     source_output: &crate::output::SourceOutput,
 ) -> Option<MessagePart> {
-    use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-    use ai_sdk_storage::SourcePart;
+    use llm_kit_provider::language_model::content::source::LanguageModelSource;
+    use llm_kit_storage::SourcePart;
 
     let (reference, title) = match &source_output.source {
         LanguageModelSource::Url { url, title, .. } => (url.clone(), title.clone()),
@@ -872,7 +872,7 @@ fn generated_file_to_storage(
     id: String,
     file: &crate::generate_text::GeneratedFile,
 ) -> MessagePart {
-    use ai_sdk_storage::FilePart as StorageFilePart;
+    use llm_kit_storage::FilePart as StorageFilePart;
 
     // Use base64 format for storage
     let storage_data = StorageFileData::Base64 {
@@ -891,10 +891,10 @@ fn generated_file_to_storage(
 /// Convert a FilePart (from assistant message) to storage format.
 fn generated_file_to_storage_from_file_part(
     id: String,
-    file: &ai_sdk_provider_utils::message::FilePart,
+    file: &llm_kit_provider_utils::message::FilePart,
 ) -> MessagePart {
-    use ai_sdk_provider_utils::message::{DataContent, FileSource};
-    use ai_sdk_storage::FilePart as StorageFilePart;
+    use llm_kit_provider_utils::message::{DataContent, FileSource};
+    use llm_kit_storage::FilePart as StorageFilePart;
 
     let storage_data = match &file.data {
         FileSource::Data(data_content) => match data_content {
@@ -922,8 +922,8 @@ fn generated_file_to_storage_from_file_part(
 /// Convert storage FilePart to assistant message part.
 fn storage_file_to_assistant(
     file: &StorageFilePart,
-) -> Option<ai_sdk_provider_utils::message::AssistantContentPart> {
-    use ai_sdk_provider_utils::message::{
+) -> Option<llm_kit_provider_utils::message::AssistantContentPart> {
+    use llm_kit_provider_utils::message::{
         AssistantContentPart, DataContent, FilePart as PromptFilePart,
     };
 
@@ -948,12 +948,12 @@ fn storage_file_to_assistant(
 
 /// Convert storage ToolResultPart to assistant message part.
 fn storage_tool_result_to_assistant(
-    tool_result: &ai_sdk_storage::ToolResultPart,
-) -> Option<ai_sdk_provider_utils::message::AssistantContentPart> {
-    use ai_sdk_provider_utils::message::{
+    tool_result: &llm_kit_storage::ToolResultPart,
+) -> Option<llm_kit_provider_utils::message::AssistantContentPart> {
+    use llm_kit_provider_utils::message::{
         AssistantContentPart, ToolResultOutput, ToolResultPart as PromptToolResultPart,
     };
-    use ai_sdk_storage::ToolResultData;
+    use llm_kit_storage::ToolResultData;
 
     let output = match &tool_result.result {
         ToolResultData::Success { output } => ToolResultOutput::Json {
@@ -977,13 +977,13 @@ fn storage_tool_result_to_assistant(
 
 /// Convert storage ToolResultPart to tool content part.
 fn storage_tool_result_to_tool_content(
-    tool_result: &ai_sdk_storage::ToolResultPart,
-) -> Option<ai_sdk_provider_utils::message::tool::ToolContentPart> {
-    use ai_sdk_provider_utils::message::tool::ToolContentPart;
-    use ai_sdk_provider_utils::message::{
+    tool_result: &llm_kit_storage::ToolResultPart,
+) -> Option<llm_kit_provider_utils::message::tool::ToolContentPart> {
+    use llm_kit_provider_utils::message::tool::ToolContentPart;
+    use llm_kit_provider_utils::message::{
         ToolResultOutput, ToolResultPart as PromptToolResultPart,
     };
-    use ai_sdk_storage::ToolResultData;
+    use llm_kit_storage::ToolResultData;
 
     let output = match &tool_result.result {
         ToolResultData::Success { output } => ToolResultOutput::Json {
@@ -1009,7 +1009,7 @@ fn storage_tool_result_to_tool_content(
 mod tests {
     use super::*;
 
-    use ai_sdk_storage_filesystem::FilesystemStorage;
+    use llm_kit_storage_filesystem::FilesystemStorage;
     use tempfile::TempDir;
 
     async fn setup_storage() -> (Arc<dyn Storage>, TempDir) {
@@ -1042,7 +1042,7 @@ mod tests {
         let session_id = storage.generate_session_id();
 
         // Create session
-        let session = ai_sdk_storage::Session::new(session_id.clone());
+        let session = llm_kit_storage::Session::new(session_id.clone());
         storage.store_session(&session).await.unwrap();
 
         // Store a user message
@@ -1064,7 +1064,7 @@ mod tests {
 
         if let Message::User(loaded_msg) = &history[0] {
             match &loaded_msg.content {
-                ai_sdk_provider_utils::message::UserContent::Text(text) => {
+                llm_kit_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Test message");
                 }
                 _ => panic!("Expected text content"),
@@ -1078,7 +1078,7 @@ mod tests {
         let session_id = storage.generate_session_id();
 
         // Create session
-        let session = ai_sdk_storage::Session::new(session_id.clone());
+        let session = llm_kit_storage::Session::new(session_id.clone());
         storage.store_session(&session).await.unwrap();
 
         // Store 3 user messages
@@ -1108,7 +1108,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_image_part_conversion_roundtrip() {
-        use ai_sdk_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
+        use llm_kit_provider_utils::message::{DataContent, ImagePart as PromptImagePart};
 
         let (storage, _dir) = setup_storage().await;
 
@@ -1136,7 +1136,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_file_part_conversion_roundtrip() {
-        use ai_sdk_provider_utils::message::{DataContent, FilePart as PromptFilePart};
+        use llm_kit_provider_utils::message::{DataContent, FilePart as PromptFilePart};
 
         let (storage, _dir) = setup_storage().await;
 
@@ -1173,7 +1173,7 @@ mod tests {
         let session_id = storage.generate_session_id();
 
         // Create session
-        let session = ai_sdk_storage::Session::new(session_id.clone());
+        let session = llm_kit_storage::Session::new(session_id.clone());
         storage.store_session(&session).await.unwrap();
 
         // Store 50 user messages to test large history loading
@@ -1198,7 +1198,7 @@ mod tests {
         // Verify first and last messages
         if let Message::User(first) = &history[0] {
             match &first.content {
-                ai_sdk_provider_utils::message::UserContent::Text(text) => {
+                llm_kit_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Message number 1");
                 }
                 _ => panic!("Expected text content"),
@@ -1207,7 +1207,7 @@ mod tests {
 
         if let Message::User(last) = &history[49] {
             match &last.content {
-                ai_sdk_provider_utils::message::UserContent::Text(text) => {
+                llm_kit_provider_utils::message::UserContent::Text(text) => {
                     assert_eq!(text, "Message number 50");
                 }
                 _ => panic!("Expected text content"),
@@ -1221,7 +1221,7 @@ mod tests {
         let session_id = storage.generate_session_id();
 
         // Create session
-        let session = ai_sdk_storage::Session::new(session_id.clone());
+        let session = llm_kit_storage::Session::new(session_id.clone());
         storage.store_session(&session).await.unwrap();
 
         // Store messages with deliberate timing
@@ -1252,7 +1252,7 @@ mod tests {
         for (i, msg) in history.iter().enumerate() {
             if let Message::User(user) = msg {
                 match &user.content {
-                    ai_sdk_provider_utils::message::UserContent::Text(text) => {
+                    llm_kit_provider_utils::message::UserContent::Text(text) => {
                         assert_eq!(text, expected_order[i]);
                     }
                     _ => panic!("Expected text content"),
@@ -1267,7 +1267,7 @@ mod tests {
         let session_id = storage.generate_session_id();
 
         // Create session but don't store any messages
-        let session = ai_sdk_storage::Session::new(session_id.clone());
+        let session = llm_kit_storage::Session::new(session_id.clone());
         storage.store_session(&session).await.unwrap();
 
         // Load history from empty session
@@ -1280,8 +1280,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_multimodal_user_message_conversion() {
-        use ai_sdk_provider_utils::message::content_parts::TextPart;
-        use ai_sdk_provider_utils::message::{
+        use llm_kit_provider_utils::message::content_parts::TextPart;
+        use llm_kit_provider_utils::message::{
             DataContent, ImagePart as PromptImagePart, UserContentPart,
         };
 

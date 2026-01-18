@@ -1,13 +1,13 @@
 use crate::error::AISDKError;
-use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
 
 /// Builder for [`AISDKError::NoSpeechGenerated`].
 ///
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, NoSpeechGeneratedErrorBuilder};
-/// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+/// use llm_kit_core::error::{AISDKError, NoSpeechGeneratedErrorBuilder};
+/// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
 ///
 /// let metadata = SpeechModelResponseMetadata::new("tts-1");
 /// let error = NoSpeechGeneratedErrorBuilder::new(vec![metadata])
@@ -36,8 +36,8 @@ impl NoSpeechGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSpeechGeneratedErrorBuilder;
-    /// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+    /// use llm_kit_core::error::NoSpeechGeneratedErrorBuilder;
+    /// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
     ///
     /// let metadata = SpeechModelResponseMetadata::new("tts-1");
     /// let builder = NoSpeechGeneratedErrorBuilder::new(vec![metadata]);
@@ -55,8 +55,8 @@ impl NoSpeechGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSpeechGeneratedErrorBuilder;
-    /// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+    /// use llm_kit_core::error::NoSpeechGeneratedErrorBuilder;
+    /// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
     ///
     /// let metadata1 = SpeechModelResponseMetadata::new("tts-1");
     /// let metadata2 = SpeechModelResponseMetadata::new("tts-1");
@@ -73,8 +73,8 @@ impl NoSpeechGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSpeechGeneratedErrorBuilder;
-    /// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+    /// use llm_kit_core::error::NoSpeechGeneratedErrorBuilder;
+    /// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
     ///
     /// let metadata = SpeechModelResponseMetadata::new("tts-1");
     /// let error = NoSpeechGeneratedErrorBuilder::new(vec![metadata])
@@ -98,8 +98,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
     ///
     /// let metadata = SpeechModelResponseMetadata::new("tts-1");
     /// let error = AISDKError::no_speech_generated(vec![metadata]);
@@ -128,8 +128,8 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
-    /// use ai_sdk_provider::speech_model::SpeechModelResponseMetadata;
+    /// use llm_kit_core::error::AISDKError;
+    /// use llm_kit_provider::speech_model::SpeechModelResponseMetadata;
     ///
     /// let metadata = SpeechModelResponseMetadata::new("tts-1");
     /// let error = AISDKError::no_speech_generated_builder(vec![metadata])

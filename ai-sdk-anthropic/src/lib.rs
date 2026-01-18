@@ -21,11 +21,11 @@
 //! ### Using the Client Builder (Recommended)
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::AnthropicClient;
-//! use ai_sdk_provider::LanguageModel;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_anthropic::AnthropicClient;
+//! use llm_kit_provider::LanguageModel;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,11 +59,11 @@
 //! ### Using Settings Directly (Alternative)
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel};
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+//! use llm_kit_provider::{Provider, LanguageModel};
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -96,7 +96,7 @@
 //!
 //! The Anthropic provider supports both custom tools and provider-defined tools.
 //! For tool calling examples, see the `anthropic_tools` module documentation and
-//! the high-level `GenerateText` API from `ai-sdk-core`.
+//! the high-level `GenerateText` API from `llm-kit-core`.
 //!
 //! ## Provider-Defined Tools
 //!
@@ -121,10 +121,10 @@
 //! Stream responses for real-time output:
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
-//! use ai_sdk_provider::{Provider, LanguageModel};
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+//! use llm_kit_provider::{Provider, LanguageModel};
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -151,7 +151,7 @@
 //! ### Using the Client Builder (Recommended)
 //!
 //! ```rust
-//! use ai_sdk_anthropic::AnthropicClient;
+//! use llm_kit_anthropic::AnthropicClient;
 //!
 //! let provider = AnthropicClient::new()
 //!     .api_key("your-api-key")
@@ -164,7 +164,7 @@
 //! ### Using Settings Directly (Alternative)
 //!
 //! ```rust
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings};
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings};
 //! use std::collections::HashMap;
 //!
 //! let settings = AnthropicProviderSettings::new()
@@ -186,11 +186,11 @@
 //! The provider uses the `AnthropicError` type for error handling:
 //!
 //! ```rust,no_run
-//! use ai_sdk_anthropic::{AnthropicProvider, AnthropicProviderSettings, AnthropicError};
-//! use ai_sdk_provider::{Provider, LanguageModel};
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_anthropic::{AnthropicProvider, AnthropicProviderSettings, AnthropicError};
+//! use llm_kit_provider::{Provider, LanguageModel};
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() {
 //! let provider = AnthropicProvider::new(AnthropicProviderSettings::default());

@@ -19,7 +19,7 @@ pub type BasetenEmbeddingModelId = String;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_baseten::embedding::embedding_model_id;
+/// use llm_kit_baseten::embedding::embedding_model_id;
 ///
 /// let model_id = embedding_model_id("embeddings");
 /// ```

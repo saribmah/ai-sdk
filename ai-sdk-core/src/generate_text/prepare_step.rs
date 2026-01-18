@@ -1,7 +1,7 @@
 use super::step_result::StepResult;
-use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
-use ai_sdk_provider_utils::message::Message;
 use async_trait::async_trait;
+use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
+use llm_kit_provider_utils::message::Message;
 use std::future::Future;
 
 /// Options passed to a prepare step function.
@@ -12,8 +12,8 @@ use std::future::Future;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::generate_text::{PrepareStepOptions, PrepareStepResult};
-/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+/// use llm_kit_core::generate_text::{PrepareStepOptions, PrepareStepResult};
+/// use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 ///
 /// fn my_prepare_step(options: &PrepareStepOptions) -> Option<PrepareStepResult> {
 ///     // Access current state
@@ -46,8 +46,8 @@ pub struct PrepareStepOptions<'a> {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::PrepareStepResult;
-/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+/// use llm_kit_core::PrepareStepResult;
+/// use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 ///
 /// // Force tool usage on step 3
 /// let result = PrepareStepResult {
@@ -72,7 +72,7 @@ pub struct PrepareStepResult {
     /// # Example
     ///
     /// ```no_run
-    /// # use ai_sdk_core::generate_text::PrepareStepResult;
+    /// # use llm_kit_core::generate_text::PrepareStepResult;
     /// // Only allow the "final_answer" tool on the last step
     /// # let result =
     /// PrepareStepResult {
@@ -104,8 +104,8 @@ pub struct PrepareStepResult {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::generate_text::{PrepareStep, PrepareStepOptions, PrepareStepResult};
-/// use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+/// use llm_kit_core::generate_text::{PrepareStep, PrepareStepOptions, PrepareStepResult};
+/// use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 /// use async_trait::async_trait;
 ///
 /// struct MyPrepareStep;
@@ -158,7 +158,7 @@ mod tests {
     use super::*;
     use crate::output::Output;
     use crate::output::text::TextOutput;
-    use ai_sdk_provider::language_model::{
+    use llm_kit_provider::language_model::{
         finish_reason::LanguageModelFinishReason, usage::LanguageModelUsage,
     };
 

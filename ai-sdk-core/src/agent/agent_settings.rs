@@ -2,15 +2,15 @@ use crate::generate_text::{PrepareStep, StopCondition};
 use crate::output::Output;
 use crate::prompt::call_settings::CallSettings;
 use crate::tool::{ToolCallRepairFunction, ToolSet};
-use ai_sdk_provider::LanguageModel;
-use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::LanguageModel;
+use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 #[cfg(feature = "storage")]
-use ai_sdk_storage::Storage;
+use llm_kit_storage::Storage;
 
 use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 
@@ -22,10 +22,10 @@ use super::{AgentOnFinishCallback, AgentOnStepFinishCallback};
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::AgentSettings;
+/// use llm_kit_core::agent::AgentSettings;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::LanguageModel;
-/// # fn example(model: Arc<dyn LanguageModel>, tools: ai_sdk_core::tool::ToolSet) {
+/// # use llm_kit_provider::LanguageModel;
+/// # fn example(model: Arc<dyn LanguageModel>, tools: llm_kit_core::tool::ToolSet) {
 ///
 /// let settings = AgentSettings::new(model)
 ///     .with_id("my-agent")
@@ -309,11 +309,11 @@ impl AgentSettings {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_core::agent::AgentSettings;
+    /// use llm_kit_core::agent::AgentSettings;
     /// # #[cfg(feature = "storage")]
-    /// # use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// # use llm_kit_storage_filesystem::FilesystemStorage;
     /// # use std::sync::Arc;
-    /// # use ai_sdk_provider::LanguageModel;
+    /// # use llm_kit_provider::LanguageModel;
     /// # #[cfg(feature = "storage")]
     /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
     /// # let storage = Arc::new(FilesystemStorage::new("./storage")?);
@@ -343,13 +343,13 @@ impl AgentSettings {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_core::agent::AgentSettings;
+    /// use llm_kit_core::agent::AgentSettings;
     /// # #[cfg(feature = "storage")]
-    /// # use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// # use llm_kit_storage_filesystem::FilesystemStorage;
     /// # #[cfg(feature = "storage")]
-    /// # use ai_sdk_storage::Storage;
+    /// # use llm_kit_storage::Storage;
     /// # use std::sync::Arc;
-    /// # use ai_sdk_provider::LanguageModel;
+    /// # use llm_kit_provider::LanguageModel;
     /// # #[cfg(feature = "storage")]
     /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
     /// # let storage = Arc::new(FilesystemStorage::new("./storage")?);

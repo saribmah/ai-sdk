@@ -1,9 +1,9 @@
-use ai_sdk_provider::language_model::prompt::message::LanguageModelUserMessage;
-use ai_sdk_provider::language_model::prompt::{
+use base64::{Engine as _, engine::general_purpose};
+use llm_kit_provider::language_model::prompt::message::LanguageModelUserMessage;
+use llm_kit_provider::language_model::prompt::{
     LanguageModelDataContent, LanguageModelUserMessagePart,
 };
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use base64::{Engine as _, engine::general_purpose};
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

@@ -42,14 +42,14 @@ use crate::tool::{
     ToolSet, execute_tool_call, parse_provider_executed_dynamic_tool_call, parse_tool_call,
     prepare_tools_and_tool_choice,
 };
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::{
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::{
     LanguageModel, finish_reason::LanguageModelFinishReason, tool_choice::LanguageModelToolChoice,
     usage::LanguageModelUsage,
 };
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use ai_sdk_provider_utils::message::Message;
-use ai_sdk_provider_utils::tool::ToolCall;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider_utils::message::Message;
+use llm_kit_provider_utils::tool::ToolCall;
 use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -78,10 +78,10 @@ struct SingleStepStreamResult {
     response: crate::generate_text::StepResponseMetadata,
 
     /// Provider metadata
-    provider_metadata: Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+    provider_metadata: Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata>,
 
     /// Warnings from the provider
-    warnings: Option<Vec<ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning>>,
+    warnings: Option<Vec<llm_kit_provider::language_model::call_warning::LanguageModelCallWarning>>,
 }
 
 /// Streams a single step and accumulates the results.
@@ -91,15 +91,15 @@ struct SingleStepStreamResult {
 /// as they arrive.
 async fn stream_single_step(
     model: Arc<dyn LanguageModel>,
-    call_options: ai_sdk_provider::language_model::call_options::LanguageModelCallOptions,
+    call_options: llm_kit_provider::language_model::call_options::LanguageModelCallOptions,
     tools: Option<&ToolSet>,
     include_raw_chunks: bool,
     tx: &mpsc::UnboundedSender<TextStreamPart>,
     on_chunk: Option<&Arc<OnChunkCallback>>,
     on_error: Option<&Arc<OnErrorCallback>>,
 ) -> Result<SingleStepStreamResult, AISDKError> {
-    use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
     use futures_util::StreamExt;
+    use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
     // Call model.do_stream
     let stream_response = model
@@ -205,7 +205,7 @@ async fn stream_single_step(
                 }
             }
             LanguageModelStreamPart::File(file) => {
-                use ai_sdk_provider::language_model::content::file::FileData;
+                use llm_kit_provider::language_model::content::file::FileData;
 
                 // Convert FileData to base64
                 let base64 = match file.data {
@@ -255,7 +255,7 @@ async fn stream_single_step(
                 step_provider_metadata = f.provider_metadata.clone();
 
                 TextStreamPart::FinishStep {
-                    response: ai_sdk_provider::language_model::response_metadata::LanguageModelResponseMetadata::default(),
+                    response: llm_kit_provider::language_model::response_metadata::LanguageModelResponseMetadata::default(),
                     usage: f.usage,
                     finish_reason: f.finish_reason.clone(),
                     provider_metadata: f.provider_metadata.clone(),
@@ -315,7 +315,7 @@ async fn stream_single_step(
             }
             LanguageModelStreamPart::ToolResult(provider_tool_result) => {
                 // Convert provider tool result to typed tool result
-                use ai_sdk_provider_utils::tool::ToolResult;
+                use llm_kit_provider_utils::tool::ToolResult;
 
                 // Find the matching tool call to get the input
                 let matching_call = step_tool_calls
@@ -390,11 +390,11 @@ async fn stream_single_step(
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::StreamText;
-/// use ai_sdk_core::prompt::Prompt;
+/// use llm_kit_core::StreamText;
+/// use llm_kit_core::prompt::Prompt;
 /// use std::sync::Arc;
 /// use futures::StreamExt;
-/// # use ai_sdk_provider::LanguageModel;
+/// # use llm_kit_provider::LanguageModel;
 /// # async fn example(model: Arc<dyn LanguageModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = StreamText::new(model, Prompt::text("Tell me a story"))
@@ -419,7 +419,7 @@ pub struct StreamText {
     tools: Option<ToolSet>,
     tool_choice: Option<LanguageModelToolChoice>,
     response_format:
-        Option<ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat>,
+        Option<llm_kit_provider::language_model::call_options::LanguageModelResponseFormat>,
     provider_options: Option<SharedProviderOptions>,
     stop_when: Option<Vec<Box<dyn StopCondition>>>,
     prepare_step: Option<Box<dyn PrepareStep>>,
@@ -430,7 +430,7 @@ pub struct StreamText {
     on_step_finish: Option<OnStepFinishCallback>,
     on_finish: Option<OnFinishCallback>,
     #[cfg(feature = "storage")]
-    storage: Option<Arc<dyn ai_sdk_storage::Storage>>,
+    storage: Option<Arc<dyn llm_kit_storage::Storage>>,
     #[cfg(feature = "storage")]
     session_id: Option<String>,
     #[cfg(feature = "storage")]
@@ -552,7 +552,7 @@ impl StreamText {
     /// Sets the response format (e.g., JSON mode).
     pub fn with_response_format(
         mut self,
-        format: ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat,
+        format: llm_kit_provider::language_model::call_options::LanguageModelResponseFormat,
     ) -> Self {
         self.response_format = Some(format);
         self
@@ -622,7 +622,7 @@ impl StreamText {
     /// # Example
     ///
     /// ```ignore
-    /// use ai_sdk_storage_filesystem::FilesystemStorage;
+    /// use llm_kit_storage_filesystem::FilesystemStorage;
     /// use std::sync::Arc;
     ///
     /// let storage = Arc::new(FilesystemStorage::new("./storage")?);
@@ -635,7 +635,7 @@ impl StreamText {
     ///     .await?;
     /// ```
     #[cfg(feature = "storage")]
-    pub fn with_storage(mut self, storage: Arc<dyn ai_sdk_storage::Storage>) -> Self {
+    pub fn with_storage(mut self, storage: Arc<dyn llm_kit_storage::Storage>) -> Self {
         self.storage = Some(storage);
         self.load_history = true; // Enable history loading by default
         self
@@ -705,7 +705,7 @@ impl StreamText {
 
             // Create session if it doesn't exist
             if storage.get_session(session_id).await.is_err() {
-                let session = ai_sdk_storage::Session::new(session_id.clone());
+                let session = llm_kit_storage::Session::new(session_id.clone());
                 if let Err(e) = storage.store_session(&session).await {
                     log::warn!("Failed to create session: {}", e);
                 }
@@ -713,7 +713,7 @@ impl StreamText {
 
             // Store the new user message immediately
             if let Some(user_msg) = standardized_prompt.messages.iter().find(|m| m.is_user())
-                && let ai_sdk_provider_utils::message::Message::User(user_message) = user_msg
+                && let llm_kit_provider_utils::message::Message::User(user_message) = user_msg
             {
                 let (storage_msg, parts) =
                     user_message_to_storage(storage, session_id.clone(), user_message);
@@ -882,10 +882,10 @@ impl StreamText {
                             .iter()
                             .filter(|tool| {
                                 active_tool_names.iter().any(|name| match tool {
-                                    ai_sdk_provider::language_model::tool::LanguageModelTool::Function(f) => {
+                                    llm_kit_provider::language_model::tool::LanguageModelTool::Function(f) => {
                                         f.name == *name
                                     }
-                                    ai_sdk_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
+                                    llm_kit_provider::language_model::tool::LanguageModelTool::ProviderDefined(p) => {
                                         p.name == *name
                                     }
                                 })
@@ -984,12 +984,12 @@ impl StreamText {
                         {
                             // Emit tool result to the stream
                             match &output {
-                                ai_sdk_provider_utils::tool::ToolOutput::Result(result) => {
+                                llm_kit_provider_utils::tool::ToolOutput::Result(result) => {
                                     let _ = tx_clone.send(TextStreamPart::ToolResult {
                                         tool_result: result.clone(),
                                     });
                                 }
-                                ai_sdk_provider_utils::tool::ToolOutput::Error(error) => {
+                                llm_kit_provider_utils::tool::ToolOutput::Error(error) => {
                                     let _ = tx_clone.send(TextStreamPart::ToolError {
                                         tool_error: error.clone(),
                                     });
@@ -1006,10 +1006,10 @@ impl StreamText {
                 let mut step_content = step_result.content.clone();
                 for output in client_tool_outputs {
                     match output {
-                        ai_sdk_provider_utils::tool::ToolOutput::Result(tool_result) => {
+                        llm_kit_provider_utils::tool::ToolOutput::Result(tool_result) => {
                             step_content.push(Output::ToolResult(tool_result));
                         }
-                        ai_sdk_provider_utils::tool::ToolOutput::Error(tool_error) => {
+                        llm_kit_provider_utils::tool::ToolOutput::Error(tool_error) => {
                             step_content.push(Output::ToolError(tool_error));
                         }
                     }

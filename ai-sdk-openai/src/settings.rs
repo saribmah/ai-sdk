@@ -16,7 +16,7 @@ use std::collections::HashMap;
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_openai::OpenAIProviderSettings;
+/// use llm_kit_openai::OpenAIProviderSettings;
 /// use std::collections::HashMap;
 ///
 /// let settings = OpenAIProviderSettings {

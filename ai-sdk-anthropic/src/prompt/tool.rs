@@ -47,7 +47,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::{AnthropicTool, AnthropicCustomTool};
+/// use llm_kit_anthropic::prompt::tool::{AnthropicTool, AnthropicCustomTool};
 /// use serde_json::json;
 ///
 /// // Custom tool
@@ -64,7 +64,7 @@ use serde::{Deserialize, Serialize};
 /// );
 ///
 /// // Code execution tool
-/// use ai_sdk_anthropic::prompt::tool::AnthropicCodeExecutionTool20250522;
+/// use llm_kit_anthropic::prompt::tool::AnthropicCodeExecutionTool20250522;
 /// let code_exec = AnthropicTool::CodeExecution20250522(
 ///     AnthropicCodeExecutionTool20250522::new("python")
 /// );
@@ -122,7 +122,7 @@ impl AnthropicTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::{AnthropicTool, AnthropicCustomTool};
+    /// use llm_kit_anthropic::prompt::tool::{AnthropicTool, AnthropicCustomTool};
     /// use serde_json::json;
     ///
     /// let tool = AnthropicTool::Custom(AnthropicCustomTool::new("my_tool", json!({})));
@@ -148,7 +148,7 @@ impl AnthropicTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicTool;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicTool;
     /// use serde_json::json;
     ///
     /// let tool = AnthropicTool::custom(
@@ -455,7 +455,7 @@ mod tests {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+/// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
 ///
 /// // Auto mode - model decides whether to use tools
 /// let auto = AnthropicToolChoice::auto();
@@ -515,7 +515,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::auto();
     /// ```
@@ -530,7 +530,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::any();
     /// ```
@@ -549,7 +549,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::tool("get_weather");
     /// ```
@@ -571,7 +571,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::auto()
     ///     .with_disable_parallel_tool_use(true);
@@ -603,7 +603,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::auto()
     ///     .with_disable_parallel_tool_use(true)
@@ -642,7 +642,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::tool("old_tool")
     ///     .with_tool_name("new_tool");
@@ -662,7 +662,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::tool("my_tool");
     /// assert_eq!(choice.tool_name(), Some("my_tool"));
@@ -682,7 +682,7 @@ impl AnthropicToolChoice {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::AnthropicToolChoice;
+    /// use llm_kit_anthropic::prompt::tool::AnthropicToolChoice;
     ///
     /// let choice = AnthropicToolChoice::auto()
     ///     .with_disable_parallel_tool_use(true);

@@ -1,13 +1,13 @@
-use ai_sdk_openai_compatible::{
+use llm_kit_openai_compatible::{
     OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel,
     OpenAICompatibleCompletionConfig, OpenAICompatibleCompletionLanguageModel,
     OpenAICompatibleEmbeddingConfig, OpenAICompatibleEmbeddingModel, OpenAICompatibleImageModel,
     OpenAICompatibleImageModelConfig,
 };
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
-use ai_sdk_provider::{EmbeddingModel, ImageModel};
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
+use llm_kit_provider::{EmbeddingModel, ImageModel};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -24,7 +24,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## Using Builder Pattern (Recommended)
 ///
 /// ```no_run
-/// use ai_sdk_azure::AzureClient;
+/// use llm_kit_azure::AzureClient;
 ///
 /// let provider = AzureClient::new()
 ///     .resource_name("my-azure-resource")
@@ -37,7 +37,7 @@ use crate::settings::AzureOpenAIProviderSettings;
 /// ## Direct Instantiation (Alternative)
 ///
 /// ```no_run
-/// use ai_sdk_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
+/// use llm_kit_azure::{AzureOpenAIProvider, AzureOpenAIProviderSettings};
 ///
 /// let provider = AzureOpenAIProvider::new(
 ///     AzureOpenAIProviderSettings::new()
@@ -340,7 +340,7 @@ impl Provider for AzureOpenAIProvider {
     fn transcription_model(
         &self,
         deployment_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             deployment_id,
             "azure.transcription-model-not-supported",
@@ -350,7 +350,7 @@ impl Provider for AzureOpenAIProvider {
     fn speech_model(
         &self,
         deployment_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             deployment_id,
             "azure.speech-model-not-supported",
@@ -360,7 +360,7 @@ impl Provider for AzureOpenAIProvider {
     fn reranking_model(
         &self,
         deployment_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             deployment_id,
             "azure.reranking-model-not-supported",

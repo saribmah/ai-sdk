@@ -33,9 +33,9 @@ pub mod call_options;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_provider::RerankingModel;
-/// use ai_sdk_provider::reranking_model::call_options::RerankingModelCallOptions;
-/// use ai_sdk_provider::reranking_model::RerankingModelResponse;
+/// use llm_kit_provider::RerankingModel;
+/// use llm_kit_provider::reranking_model::call_options::RerankingModelCallOptions;
+/// use llm_kit_provider::reranking_model::RerankingModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MyRerankingModel {
@@ -109,7 +109,7 @@ pub trait RerankingModel: Send + Sync {
     /// # Note
     ///
     /// The "do_" prefix prevents accidental direct usage of this method.
-    /// Use the high-level `Rerank` builder from `ai-sdk-core` instead.
+    /// Use the high-level `Rerank` builder from `llm-kit-core` instead.
     async fn do_rerank(
         &self,
         options: RerankingModelCallOptions,

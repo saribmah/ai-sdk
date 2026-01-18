@@ -1,9 +1,9 @@
-use ai_sdk_provider::reranking_model::{
+use async_trait::async_trait;
+use llm_kit_provider::reranking_model::{
     RankedDocument, RerankingModel, RerankingModelResponse, RerankingModelResponseMetadata,
     call_options::RerankingModelCallOptions,
 };
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use async_trait::async_trait;
+use llm_kit_provider::shared::headers::SharedHeaders;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -132,13 +132,13 @@ impl RerankingModel for TogetherAIRerankingModel {
 
         // Extract document values based on document type
         let document_values = match &options.documents {
-            ai_sdk_provider::reranking_model::call_options::RerankingDocuments::Text { values } => {
-                values
-                    .iter()
-                    .map(|s| serde_json::Value::String(s.clone()))
-                    .collect()
-            }
-            ai_sdk_provider::reranking_model::call_options::RerankingDocuments::Object {
+            llm_kit_provider::reranking_model::call_options::RerankingDocuments::Text {
+                values,
+            } => values
+                .iter()
+                .map(|s| serde_json::Value::String(s.clone()))
+                .collect(),
+            llm_kit_provider::reranking_model::call_options::RerankingDocuments::Object {
                 values,
             } => values
                 .iter()

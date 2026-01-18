@@ -1,5 +1,5 @@
 [package]
-name = "ai-sdk-openai"
+name = "llm-kit-openai"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -7,8 +7,8 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-ai-sdk-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
-ai-sdk-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
+llm-kit-provider = { path = "../ai-sdk-provider", version = "0.1.0" }
+llm-kit-provider-utils = { path = "../ai-sdk-provider-utils", version = "0.1.0" }
 async-stream = "0.3"
 async-trait = "0.1"
 base64 = "0.22.1"

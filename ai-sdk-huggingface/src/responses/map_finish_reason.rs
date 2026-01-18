@@ -1,4 +1,4 @@
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 
 /// Maps a Hugging Face Responses API finish reason to the standard finish reason.
 pub fn map_huggingface_responses_finish_reason(reason: Option<&str>) -> LanguageModelFinishReason {

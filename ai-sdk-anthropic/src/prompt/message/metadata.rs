@@ -42,7 +42,7 @@ impl ContainerSkill {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{ContainerSkill, SkillType};
+    /// use llm_kit_anthropic::prompt::message::metadata::{ContainerSkill, SkillType};
     ///
     /// let skill = ContainerSkill::new(
     ///     SkillType::Anthropic,
@@ -68,7 +68,7 @@ impl ContainerSkill {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::ContainerSkill;
+    /// use llm_kit_anthropic::prompt::message::metadata::ContainerSkill;
     ///
     /// let skill = ContainerSkill::anthropic("python", "1.0.0");
     /// ```
@@ -81,7 +81,7 @@ impl ContainerSkill {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::ContainerSkill;
+    /// use llm_kit_anthropic::prompt::message::metadata::ContainerSkill;
     ///
     /// let skill = ContainerSkill::custom("my-skill", "2.1.0");
     /// ```
@@ -94,7 +94,7 @@ impl ContainerSkill {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{ContainerSkill, SkillType};
+    /// use llm_kit_anthropic::prompt::message::metadata::{ContainerSkill, SkillType};
     ///
     /// let skill = ContainerSkill::latest(SkillType::Anthropic, "python");
     /// ```
@@ -131,7 +131,7 @@ impl ContainerInfo {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::ContainerInfo;
+    /// use llm_kit_anthropic::prompt::message::metadata::ContainerInfo;
     ///
     /// let container = ContainerInfo::new(
     ///     "2024-12-31T23:59:59Z",
@@ -152,7 +152,7 @@ impl ContainerInfo {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
+    /// use llm_kit_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
     ///
     /// let container = ContainerInfo::new("2024-12-31T23:59:59Z", "container_123")
     ///     .with_skills(vec![
@@ -170,7 +170,7 @@ impl ContainerInfo {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
+    /// use llm_kit_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
     ///
     /// let container = ContainerInfo::new("2024-12-31T23:59:59Z", "container_123")
     ///     .with_skill(ContainerSkill::anthropic("python", "1.0.0"));
@@ -189,7 +189,7 @@ impl ContainerInfo {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
+    /// use llm_kit_anthropic::prompt::message::metadata::{ContainerInfo, ContainerSkill};
     ///
     /// let container = ContainerInfo::new("2024-12-31T23:59:59Z", "container_123")
     ///     .with_skill(ContainerSkill::anthropic("python", "1.0.0"))
@@ -211,7 +211,7 @@ impl ContainerInfo {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
+/// use llm_kit_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
 /// use serde_json::json;
 ///
 /// let metadata = AnthropicMessageMetadata::new(json!({
@@ -254,7 +254,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
+    /// use llm_kit_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
     /// use serde_json::json;
     ///
     /// let metadata = AnthropicMessageMetadata::new(json!({
@@ -281,7 +281,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
+    /// use llm_kit_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
     /// use serde_json::json;
     ///
     /// let metadata = AnthropicMessageMetadata::new(json!({"input_tokens": 100}))
@@ -298,7 +298,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
+    /// use llm_kit_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
     /// use serde_json::json;
     ///
     /// let metadata = AnthropicMessageMetadata::new(json!({"input_tokens": 100}))
@@ -314,7 +314,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{
+    /// use llm_kit_anthropic::prompt::message::metadata::{
     ///     AnthropicMessageMetadata, ContainerInfo, ContainerSkill
     /// };
     /// use serde_json::json;
@@ -335,7 +335,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
+    /// use llm_kit_anthropic::prompt::message::metadata::AnthropicMessageMetadata;
     /// use serde_json::json;
     ///
     /// let metadata = AnthropicMessageMetadata::new(json!({"input_tokens": 100}))
@@ -354,7 +354,7 @@ impl AnthropicMessageMetadata {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::metadata::{
+    /// use llm_kit_anthropic::prompt::message::metadata::{
     ///     AnthropicMessageMetadata, ContainerInfo
     /// };
     /// use serde_json::json;

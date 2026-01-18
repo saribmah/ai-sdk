@@ -1,12 +1,12 @@
 use crate::tool::tool_set::ToolSet;
-use ai_sdk_provider::{
+use llm_kit_provider::{
     language_model::tool::{
         LanguageModelTool, function_tool::LanguageModelFunctionTool,
         provider_defined_tool::LanguageModelProviderDefinedTool,
     },
     language_model::tool_choice::LanguageModelToolChoice,
 };
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_provider_utils::tool::Tool;
 
 /// Prepares tools and tool choice for the language model.
 ///
@@ -25,8 +25,8 @@ use ai_sdk_provider_utils::tool::Tool;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::tool::{ToolSet, prepare_tools_and_tool_choice};
-/// use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+/// use llm_kit_core::tool::{ToolSet, prepare_tools_and_tool_choice};
+/// use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 /// use serde_json::json;
 /// use std::sync::Arc;
 ///
@@ -73,7 +73,7 @@ pub fn prepare_tools_and_tool_choice(
 /// * `name` - The name of the tool (from the ToolSet key)
 /// * `core_tool` - The tool definition
 fn convert_tool_to_provider(name: String, core_tool: &Tool) -> LanguageModelTool {
-    use ai_sdk_provider_utils::tool::ToolType;
+    use llm_kit_provider_utils::tool::ToolType;
 
     match &core_tool.tool_type {
         ToolType::Function => {

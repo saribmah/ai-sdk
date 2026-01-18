@@ -25,7 +25,7 @@ pub enum ComputerToolVersion {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::computer_tool::{AnthropicComputerTool, ComputerToolVersion};
+/// use llm_kit_anthropic::prompt::tool::computer_tool::{AnthropicComputerTool, ComputerToolVersion};
 ///
 /// let tool = AnthropicComputerTool::new(
 ///     "computer",
@@ -72,7 +72,7 @@ impl AnthropicComputerTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::computer_tool::{AnthropicComputerTool, ComputerToolVersion};
+    /// use llm_kit_anthropic::prompt::tool::computer_tool::{AnthropicComputerTool, ComputerToolVersion};
     ///
     /// let tool = AnthropicComputerTool::new(
     ///     "computer",

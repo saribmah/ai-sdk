@@ -6,8 +6,8 @@
 //! # Example
 //!
 //! ```
-//! use ai_sdk_anthropic::provider_tool::computer_20241022;
-//! use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+//! use llm_kit_anthropic::provider_tool::computer_20241022;
+//! use llm_kit_provider_utils::ProviderDefinedToolOptions;
 //! use serde_json::json;
 //!
 //! // Create a computer tool with display configuration
@@ -17,7 +17,7 @@
 //! let tool_x11 = computer_20241022(1920, 1080, Some(0));
 //! ```
 
-use ai_sdk_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
+use llm_kit_provider_utils::tool::{ProviderDefinedToolFactory, ProviderDefinedToolOptions, Tool};
 use serde_json::json;
 
 /// Creates a computer control tool (version 20241022).
@@ -57,7 +57,7 @@ use serde_json::json;
 /// ## Basic Usage
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::computer_20241022;
+/// use llm_kit_anthropic::provider_tool::computer_20241022;
 ///
 /// let tool = computer_20241022(1920, 1080, None);
 /// ```
@@ -65,7 +65,7 @@ use serde_json::json;
 /// ## With Display Number (X11)
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::computer_20241022;
+/// use llm_kit_anthropic::provider_tool::computer_20241022;
 ///
 /// let tool = computer_20241022(1920, 1080, Some(0));
 /// ```
@@ -73,8 +73,8 @@ use serde_json::json;
 /// ## With Custom Options
 ///
 /// ```
-/// use ai_sdk_anthropic::provider_tool::computer_20241022;
-/// use ai_sdk_provider_utils::ProviderDefinedToolOptions;
+/// use llm_kit_anthropic::provider_tool::computer_20241022;
+/// use llm_kit_provider_utils::ProviderDefinedToolOptions;
 ///
 /// let tool = computer_20241022(
 ///     1920,
@@ -139,7 +139,7 @@ pub fn computer_20241022(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::ToolType;
+    use llm_kit_provider_utils::ToolType;
 
     #[test]
     fn test_computer_20241022_basic() {
@@ -288,7 +288,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_computer_20241022_with_execute() {
-        use ai_sdk_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
+        use llm_kit_provider_utils::{ToolExecuteOptions, ToolExecutionOutput};
         use std::sync::Arc;
 
         let factory = ProviderDefinedToolFactory::new(

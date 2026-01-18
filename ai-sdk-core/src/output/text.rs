@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Text output of a text generation.
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::TextOutput;
+/// use llm_kit_core::TextOutput;
 ///
 /// let text = TextOutput::new("Hello, world!");
 /// ```
@@ -40,7 +40,7 @@ impl TextOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::TextOutput;
+    /// use llm_kit_core::TextOutput;
     ///
     /// let text = TextOutput::new("The weather is sunny today.");
     /// assert_eq!(text.text, "The weather is sunny today.");
@@ -62,8 +62,8 @@ impl TextOutput {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::output::TextOutput;
-    /// use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+    /// use llm_kit_core::output::TextOutput;
+    /// use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
     /// # let metadata = SharedProviderMetadata::new();
     ///
     /// let text = TextOutput::new("Hello")

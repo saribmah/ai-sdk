@@ -16,7 +16,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
+//! use llm_kit_deepseek::DeepSeekClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = DeepSeekClient::new()
@@ -29,7 +29,7 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
+//! use llm_kit_deepseek::{DeepSeekProvider, DeepSeekProviderSettings};
 //!
 //! // Create a provider using settings
 //! let provider = DeepSeekProvider::new(
@@ -43,7 +43,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
+//! use llm_kit_deepseek::DeepSeekClient;
 //!
 //! let model = DeepSeekClient::new()
 //!     .api_key("your-api-key")
@@ -54,7 +54,7 @@
 //! ## Environment Variable
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
+//! use llm_kit_deepseek::DeepSeekClient;
 //!
 //! // API key will be read from DEEPSEEK_API_KEY environment variable
 //! let provider = DeepSeekClient::new()
@@ -67,10 +67,10 @@
 //! ## Text Generation
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_deepseek::DeepSeekClient;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -95,10 +95,10 @@
 //! ## Reasoning Model
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::content::LanguageModelContent;
+//! use llm_kit_deepseek::DeepSeekClient;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::content::LanguageModelContent;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()
@@ -131,10 +131,10 @@
 //! ## Streaming
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
+//! use llm_kit_deepseek::DeepSeekClient;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 //! use futures_util::StreamExt;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -163,9 +163,9 @@
 //! DeepSeek provides prompt cache statistics in the metadata:
 //!
 //! ```no_run
-//! use ai_sdk_deepseek::DeepSeekClient;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_deepseek::DeepSeekClient;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = DeepSeekClient::new()

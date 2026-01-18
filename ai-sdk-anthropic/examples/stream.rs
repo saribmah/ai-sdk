@@ -1,21 +1,21 @@
-/// Streaming chat example using Anthropic provider with only ai-sdk-provider.
+use futures::StreamExt;
+/// Streaming chat example using Anthropic provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_stream() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_stream() directly (no llm-kit-core)
 /// - Processing stream parts and displaying output
 /// - Real-time streaming text generation
 ///
 /// Run with:
 /// ```bash
 /// export ANTHROPIC_API_KEY="your-api-key"
-/// cargo run --example stream -p ai-sdk-anthropic
+/// cargo run --example stream -p llm-kit-anthropic
 /// ```
-use ai_sdk_anthropic::AnthropicClient;
-use ai_sdk_provider::LanguageModel;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use futures::StreamExt;
+use llm_kit_anthropic::AnthropicClient;
+use llm_kit_provider::LanguageModel;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

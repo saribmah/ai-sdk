@@ -11,7 +11,7 @@ use crate::prompt::message::content::document::DocumentCitations;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::tool::web_fetch_tool::AnthropicWebFetchTool;
+/// use llm_kit_anthropic::prompt::tool::web_fetch_tool::AnthropicWebFetchTool;
 ///
 /// let tool = AnthropicWebFetchTool::new("web_fetch")
 ///     .with_max_uses(10)
@@ -62,7 +62,7 @@ impl AnthropicWebFetchTool {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::tool::web_fetch_tool::AnthropicWebFetchTool;
+    /// use llm_kit_anthropic::prompt::tool::web_fetch_tool::AnthropicWebFetchTool;
     ///
     /// let tool = AnthropicWebFetchTool::new("web_fetch");
     /// ```

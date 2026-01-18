@@ -1,11 +1,11 @@
-use ai_sdk_openai_compatible::{
+use async_trait::async_trait;
+use llm_kit_openai_compatible::{
     OpenAICompatibleChatConfig, OpenAICompatibleChatLanguageModel, OpenAICompatibleChatModelId,
 };
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::{
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelStreamResponse,
 };
-use async_trait::async_trait;
 use regex::Regex;
 use std::collections::HashMap;
 

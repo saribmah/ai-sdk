@@ -12,7 +12,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_openai_compatible::OpenAICompatibleClient;
+/// use llm_kit_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
 ///     .base_url("https://api.openai.com/v1")
@@ -25,7 +25,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 /// ## Custom Provider
 ///
 /// ```no_run
-/// use ai_sdk_openai_compatible::OpenAICompatibleClient;
+/// use llm_kit_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
 ///     .base_url("https://api.together.xyz/v1")
@@ -40,7 +40,7 @@ use crate::settings::OpenAICompatibleProviderSettings;
 /// ## Azure OpenAI
 ///
 /// ```no_run
-/// use ai_sdk_openai_compatible::OpenAICompatibleClient;
+/// use llm_kit_openai_compatible::OpenAICompatibleClient;
 ///
 /// let provider = OpenAICompatibleClient::new()
 ///     .base_url("https://my-resource.openai.azure.com/openai")
@@ -197,7 +197,7 @@ impl OpenAICompatibleClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_openai_compatible::OpenAICompatibleClient;
+    /// use llm_kit_openai_compatible::OpenAICompatibleClient;
     ///
     /// let provider = OpenAICompatibleClient::new()
     ///     .base_url("https://api.openai.com/v1")

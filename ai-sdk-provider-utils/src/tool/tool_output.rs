@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::tool::{ToolOutput, ToolResult, ToolError};
+/// use llm_kit_provider_utils::tool::{ToolOutput, ToolResult, ToolError};
 /// use serde_json::json;
 ///
 /// // Success case
@@ -45,7 +45,7 @@ impl ToolOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_provider_utils::tool::{ToolOutput, ToolResult};
+    /// use llm_kit_provider_utils::tool::{ToolOutput, ToolResult};
     /// use serde_json::json;
     ///
     /// let result = ToolResult::new("call_123", "tool", json!({}), json!({}));
@@ -60,7 +60,7 @@ impl ToolOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_provider_utils::tool::{ToolOutput, ToolError};
+    /// use llm_kit_provider_utils::tool::{ToolOutput, ToolError};
     /// use serde_json::json;
     ///
     /// let error = ToolError::new("call_123", "tool", json!({}), "Failed");

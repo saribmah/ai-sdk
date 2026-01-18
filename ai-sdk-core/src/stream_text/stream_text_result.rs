@@ -2,14 +2,14 @@ use crate::error::AISDKError;
 use crate::generate_text::{GeneratedFile, RequestMetadata, ResponseMetadata, StepResult};
 use crate::output::{Output, ReasoningOutput, TextOutput};
 use crate::stream_text::TextStreamPart;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
-use ai_sdk_provider_utils::tool::{ToolCall, ToolResult};
 use futures_util::StreamExt;
 use futures_util::stream::Stream;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::content::source::LanguageModelSource;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider_utils::tool::{ToolCall, ToolResult};
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
@@ -24,7 +24,7 @@ pub type ErrorHandler = Arc<dyn Fn(AISDKError) + Send + Sync>;
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::ConsumeStreamOptions;
+/// use llm_kit_core::stream_text::ConsumeStreamOptions;
 /// use std::sync::Arc;
 ///
 /// let options = ConsumeStreamOptions {
@@ -60,7 +60,7 @@ impl ConsumeStreamOptions {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::AsyncIterableStream;
+/// use llm_kit_core::stream_text::AsyncIterableStream;
 /// use futures::StreamExt;
 ///
 /// # async fn example() {
@@ -138,7 +138,7 @@ impl Default for StreamState {
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::stream_text::StreamTextResult;
+/// use llm_kit_core::stream_text::StreamTextResult;
 /// use futures::StreamExt;
 ///
 /// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {
@@ -175,9 +175,9 @@ impl StreamTextResult {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::stream_text::StreamTextResult;
-    /// # use ai_sdk_core::stream_text::AsyncIterableStream;
-    /// # use ai_sdk_core::stream_text::TextStreamPart;
+    /// use llm_kit_core::stream_text::StreamTextResult;
+    /// # use llm_kit_core::stream_text::AsyncIterableStream;
+    /// # use llm_kit_core::stream_text::TextStreamPart;
     ///
     /// # let stream: AsyncIterableStream<TextStreamPart> = Box::pin(futures::stream::empty());
     /// let result = StreamTextResult::new(stream);
@@ -369,7 +369,7 @@ impl StreamTextResult {
     /// # Example
     ///
     /// ```no_run
-    /// # use ai_sdk_core::stream_text::StreamTextResult;
+    /// # use llm_kit_core::stream_text::StreamTextResult;
     /// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {
     /// let content = result.content().await?;
     /// for part in content {
@@ -553,7 +553,7 @@ impl StreamTextResult {
     /// # Example
     ///
     /// ```no_run
-    /// # use ai_sdk_core::stream_text::StreamTextResult;
+    /// # use llm_kit_core::stream_text::StreamTextResult;
     /// # use futures::StreamExt;
     /// # use serde::Deserialize;
     /// # #[derive(Debug, Deserialize)]
@@ -613,7 +613,7 @@ impl StreamTextResult {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::stream_text::{ConsumeStreamOptions, StreamTextResult};
+    /// use llm_kit_core::stream_text::{ConsumeStreamOptions, StreamTextResult};
     /// use std::sync::Arc;
     ///
     /// # async fn example(result: StreamTextResult) -> Result<(), Box<dyn std::error::Error>> {

@@ -8,7 +8,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_xai::XaiClient;
+//! use llm_kit_xai::XaiClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = XaiClient::new()
@@ -21,7 +21,7 @@
 //! ## Alternative: Direct Instantiation
 //!
 //! ```no_run
-//! use ai_sdk_xai::{XaiProvider, XaiProviderSettings};
+//! use llm_kit_xai::{XaiProvider, XaiProviderSettings};
 //!
 //! // Create a provider using settings directly
 //! let provider = XaiProvider::new(
@@ -35,7 +35,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_xai::XaiClient;
+//! use llm_kit_xai::XaiClient;
 //!
 //! let model = XaiClient::new()
 //!     .api_key("your-api-key")
@@ -46,7 +46,7 @@
 //! ## Environment Variable
 //!
 //! ```no_run
-//! use ai_sdk_xai::XaiClient;
+//! use llm_kit_xai::XaiClient;
 //!
 //! // API key will be read from XAI_API_KEY environment variable
 //! let provider = XaiClient::new().build();
@@ -56,12 +56,12 @@
 //! ## Tool Calling
 //!
 //! ```no_run
-//! use ai_sdk_provider::LanguageModel;
-//! use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-//! use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-//! use ai_sdk_provider::language_model::tool::LanguageModelTool;
-//! use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-//! use ai_sdk_xai::XaiClient;
+//! use llm_kit_provider::LanguageModel;
+//! use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+//! use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+//! use llm_kit_provider::language_model::tool::LanguageModelTool;
+//! use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+//! use llm_kit_xai::XaiClient;
 //! use serde_json::json;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -71,7 +71,7 @@
 //!
 //! let model = provider.chat_model("grok-beta");
 //!
-//! // Define a tool using ai-sdk-provider types
+//! // Define a tool using llm-kit-provider types
 //! let weather_tool = LanguageModelFunctionTool::new(
 //!     "get_weather",
 //!     json!({
@@ -94,14 +94,14 @@
 //! # }
 //! ```
 //!
-//! For full tool execution with ai-sdk-core, see the examples directory.
+//! For full tool execution with llm-kit-core, see the examples directory.
 //!
 //! ## Image Generation
 //!
 //! ```no_run
-//! use ai_sdk_provider::ImageModel;
-//! use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
-//! use ai_sdk_xai::XaiClient;
+//! use llm_kit_provider::ImageModel;
+//! use llm_kit_provider::image_model::call_options::ImageModelCallOptions;
+//! use llm_kit_xai::XaiClient;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = XaiClient::new()
@@ -122,7 +122,7 @@
 //! # }
 //! ```
 //!
-//! For more image generation examples with ai-sdk-core, see the examples directory.
+//! For more image generation examples with llm-kit-core, see the examples directory.
 
 /// Chat completion implementation for xAI models.
 pub mod chat;

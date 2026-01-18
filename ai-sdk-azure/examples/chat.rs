@@ -1,20 +1,20 @@
-/// Basic chat example using Azure OpenAI provider with only ai-sdk-provider.
+/// Basic chat example using Azure OpenAI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_generate() directly (no ai-sdk-core)
+/// - Using LanguageModel::do_generate() directly (no llm-kit-core)
 /// - Basic text generation without tools
-/// - Working with LanguageModelCallOptions from ai-sdk-provider
+/// - Working with LanguageModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export AZURE_API_KEY="your-api-key"
 /// export AZURE_RESOURCE_NAME="your-resource-name"
-/// cargo run --example chat -p ai-sdk-azure
+/// cargo run --example chat -p llm-kit-azure
 /// ```
-use ai_sdk_azure::AzureClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_azure::AzureClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

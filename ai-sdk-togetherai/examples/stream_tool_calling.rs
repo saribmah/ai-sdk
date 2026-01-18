@@ -1,25 +1,25 @@
-/// Streaming tool calling example using Together AI provider with only ai-sdk-provider.
+use futures_util::StreamExt;
+/// Streaming tool calling example using Together AI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_stream() directly with tools (no ai-sdk-core)
+/// - Using LanguageModel::do_stream() directly with tools (no llm-kit-core)
 /// - Processing tool calls in streams
 /// - Handling stream parts with tool information
 /// - NOTE: This example shows tool definitions and stream parts but does not execute tools
-///   (tool execution requires ai-sdk-core). It validates that the provider correctly
+///   (tool execution requires llm-kit-core). It validates that the provider correctly
 ///   streams tool calls.
 ///
 /// Run with:
 /// ```bash
 /// export TOGETHER_AI_API_KEY="your-api-key"
-/// cargo run --example stream_tool_calling -p ai-sdk-togetherai
+/// cargo run --example stream_tool_calling -p llm-kit-togetherai
 /// ```
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-use ai_sdk_togetherai::TogetherAIClient;
-use futures_util::StreamExt;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+use llm_kit_togetherai::TogetherAIClient;
 use serde_json::json;
 
 #[tokio::main]
@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ Model loaded: {}\n", model.model_id());
 
-    // Define tools using ai-sdk-provider types
+    // Define tools using llm-kit-provider types
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
@@ -281,7 +281,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   ✓ Multiple tool calls in one request");
     println!("   ✓ Stream part analysis");
     println!("\n⚠️  Note: This example shows tool streaming only. For full tool execution,");
-    println!("   use ai-sdk-core's StreamText with tools.");
+    println!("   use llm-kit-core's StreamText with tools.");
 
     Ok(())
 }

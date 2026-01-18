@@ -1,18 +1,18 @@
-/// Text embedding example using Azure OpenAI provider with only ai-sdk-provider.
+/// Text embedding example using Azure OpenAI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using EmbeddingModel::do_embed() directly (no ai-sdk-core)
+/// - Using EmbeddingModel::do_embed() directly (no llm-kit-core)
 /// - Generating text embeddings for semantic search
-/// - Working with EmbeddingModelCallOptions from ai-sdk-provider
+/// - Working with EmbeddingModelCallOptions from llm-kit-provider
 ///
 /// Run with:
 /// ```bash
 /// export AZURE_API_KEY="your-api-key"
 /// export AZURE_RESOURCE_NAME="your-resource-name"
-/// cargo run --example text_embedding -p ai-sdk-azure
+/// cargo run --example text_embedding -p llm-kit-azure
 /// ```
-use ai_sdk_azure::AzureClient;
-use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+use llm_kit_azure::AzureClient;
+use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

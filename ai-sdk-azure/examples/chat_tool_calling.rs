@@ -1,25 +1,25 @@
-/// Tool calling example using Azure OpenAI provider with only ai-sdk-provider.
+/// Tool calling example using Azure OpenAI provider with only llm-kit-provider.
 ///
 /// This example demonstrates:
-/// - Using LanguageModel::do_generate() directly with tools (no ai-sdk-core)
-/// - Defining tools using ai-sdk-provider types
+/// - Using LanguageModel::do_generate() directly with tools (no llm-kit-core)
+/// - Defining tools using llm-kit-provider types
 /// - Handling tool calls in the response
 /// - NOTE: This example shows tool definitions but does not execute them
-///   (tool execution requires ai-sdk-core). It validates that the provider
+///   (tool execution requires llm-kit-core). It validates that the provider
 ///   correctly handles tool schemas and returns tool calls.
 ///
 /// Run with:
 /// ```bash
 /// export AZURE_API_KEY="your-api-key"
 /// export AZURE_RESOURCE_NAME="your-resource-name"
-/// cargo run --example chat_tool_calling -p ai-sdk-azure
+/// cargo run --example chat_tool_calling -p llm-kit-azure
 /// ```
-use ai_sdk_azure::AzureClient;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::prompt::LanguageModelMessage;
-use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
+use llm_kit_azure::AzureClient;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::prompt::LanguageModelMessage;
+use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
 use serde_json::json;
 
 #[tokio::main]
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("✓ Model loaded: {}\n", model.model_id());
 
-    // Define tools using ai-sdk-provider types
+    // Define tools using llm-kit-provider types
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
@@ -237,7 +237,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   ✓ Receiving tool calls in response");
     println!("   ✓ Inspecting response structure");
     println!("\n⚠️  Note: This example shows tool definitions only. For full tool execution,");
-    println!("   use ai-sdk-core's GenerateText with tools.");
+    println!("   use llm-kit-core's GenerateText with tools.");
 
     Ok(())
 }
@@ -247,7 +247,7 @@ fn extract_content_parts(
     content: &[LanguageModelContent],
 ) -> (
     String,
-    Vec<&ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall>,
+    Vec<&llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall>,
 ) {
     let text = content
         .iter()

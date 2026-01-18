@@ -1,6 +1,6 @@
 use crate::generate_text::StepResult;
 use crate::stream_text::TextStreamPart;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
 use serde_json::Value;
 use std::future::Future;
 use std::pin::Pin;
@@ -33,7 +33,7 @@ pub enum ChunkStreamPart {
         id: String,
         /// Provider-specific metadata.
         provider_metadata:
-            Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+            Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata>,
         /// The text delta content.
         text: String,
     },
@@ -44,7 +44,7 @@ pub enum ChunkStreamPart {
         id: String,
         /// Provider-specific metadata.
         provider_metadata:
-            Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+            Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata>,
         /// The reasoning delta content.
         text: String,
     },
@@ -58,7 +58,7 @@ pub enum ChunkStreamPart {
     /// A tool call.
     ToolCall {
         /// The tool call.
-        tool_call: ai_sdk_provider_utils::tool::ToolCall,
+        tool_call: llm_kit_provider_utils::tool::ToolCall,
     },
 
     /// Indicates the start of a tool input.
@@ -69,7 +69,7 @@ pub enum ChunkStreamPart {
         tool_name: String,
         /// Provider-specific metadata.
         provider_metadata:
-            Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+            Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata>,
         /// Whether the tool was executed by the provider.
         provider_executed: Option<bool>,
         /// Whether this is a dynamic tool.
@@ -86,13 +86,13 @@ pub enum ChunkStreamPart {
         delta: String,
         /// Provider-specific metadata.
         provider_metadata:
-            Option<ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata>,
+            Option<llm_kit_provider::shared::provider_metadata::SharedProviderMetadata>,
     },
 
     /// A tool result.
     ToolResult {
         /// The tool result.
-        tool_result: ai_sdk_provider_utils::tool::ToolResult,
+        tool_result: llm_kit_provider_utils::tool::ToolResult,
     },
 
     /// A raw value from the provider (for debugging/custom handling).
@@ -195,7 +195,7 @@ pub struct StreamTextAbortEvent {
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::stream_text::callbacks::{StreamTextOnErrorCallback, StreamTextErrorEvent};
+/// use llm_kit_core::stream_text::callbacks::{StreamTextOnErrorCallback, StreamTextErrorEvent};
 /// use std::pin::Pin;
 /// use std::future::Future;
 ///
@@ -213,8 +213,8 @@ pub type StreamTextOnErrorCallback =
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::stream_text::callbacks::StreamTextOnStepFinishCallback;
-/// use ai_sdk_core::StepResult;
+/// use llm_kit_core::stream_text::callbacks::StreamTextOnStepFinishCallback;
+/// use llm_kit_core::StepResult;
 /// use serde_json::Value;
 /// use std::pin::Pin;
 /// use std::future::Future;
@@ -237,7 +237,7 @@ pub type StreamTextOnStepFinishCallback =
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::stream_text::callbacks::{StreamTextOnChunkCallback, StreamTextChunkEvent};
+/// use llm_kit_core::stream_text::callbacks::{StreamTextOnChunkCallback, StreamTextChunkEvent};
 /// use serde_json::Value;
 /// use std::pin::Pin;
 /// use std::future::Future;
@@ -259,7 +259,7 @@ pub type StreamTextOnChunkCallback =
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::stream_text::callbacks::{StreamTextOnFinishCallback, StreamTextFinishEvent};
+/// use llm_kit_core::stream_text::callbacks::{StreamTextOnFinishCallback, StreamTextFinishEvent};
 /// use serde_json::Value;
 /// use std::pin::Pin;
 /// use std::future::Future;
@@ -279,7 +279,7 @@ pub type StreamTextOnFinishCallback =
 /// # Example
 ///
 /// ```rust
-/// use ai_sdk_core::stream_text::callbacks::{StreamTextOnAbortCallback, StreamTextAbortEvent};
+/// use llm_kit_core::stream_text::callbacks::{StreamTextOnAbortCallback, StreamTextAbortEvent};
 /// use serde_json::Value;
 /// use std::pin::Pin;
 /// use std::future::Future;
@@ -296,7 +296,7 @@ pub type StreamTextOnAbortCallback =
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider_utils::tool::ToolCall;
+    use llm_kit_provider_utils::tool::ToolCall;
 
     #[test]
     fn test_chunk_from_text_delta() {
@@ -372,7 +372,7 @@ mod tests {
     fn test_finish_event_creation() {
         let step_result = StepResult::new(
             vec![],
-            ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
+            llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason::Stop,
             LanguageModelUsage::new(100, 50),
             None,
             Default::default(),

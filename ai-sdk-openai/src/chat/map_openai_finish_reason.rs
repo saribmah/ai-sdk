@@ -2,7 +2,7 @@
 //!
 //! Maps OpenAI finish reasons to SDK finish reason types.
 
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
 
 /// Map OpenAI finish reason to SDK finish reason.
 ///

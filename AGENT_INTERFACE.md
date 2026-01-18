@@ -9,8 +9,8 @@ An Agent is a reusable wrapper around a language model with persistent configura
 ## Quick Start
 
 ```rust
-use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-use ai_sdk_core::tool::ToolSet;
+use llm_kit_core::{Agent, AgentSettings, AgentCallParameters};
+use llm_kit_core::tool::ToolSet;
 
 // 1. Create and configure tools
 let mut tools = ToolSet::new();
@@ -156,7 +156,7 @@ pub trait AgentInterface: Send + Sync {
 
 ## Default Implementation
 
-The default `Agent` implementation is in `ai-sdk-core/src/agent/default_impl.rs`:
+The default `Agent` implementation is in `llm-kit-core/src/agent/default_impl.rs`:
 
 ```rust
 impl AgentInterface for Agent {
@@ -199,8 +199,8 @@ impl AgentInterface for Agent {
 ### Non-Streaming Generation
 
 ```rust
-use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-use ai_sdk_core::tool::{Tool, ToolSet};
+use llm_kit_core::{Agent, AgentSettings, AgentCallParameters};
+use llm_kit_core::tool::{Tool, ToolSet};
 use std::sync::Arc;
 
 #[tokio::main]
@@ -285,7 +285,7 @@ while let Some(delta) = text_stream.next().await {
 ### Using Messages
 
 ```rust
-use ai_sdk_core::prompt::message::{Message, UserMessage, SystemMessage};
+use llm_kit_core::prompt::message::{Message, UserMessage, SystemMessage};
 
 let messages = vec![
     Message::System(SystemMessage::new("You are a helpful assistant")),

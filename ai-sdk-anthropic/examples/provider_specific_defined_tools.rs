@@ -1,17 +1,17 @@
 /// Provider-defined tools example with Anthropic Claude.
 ///
 /// This example demonstrates how to access Anthropic's provider-defined tools
-/// using only ai-sdk-provider (no ai-sdk-core dependency).
+/// using only llm-kit-provider (no llm-kit-core dependency).
 ///
 /// NOTE: This is a demonstration example. Provider-defined tools are available
-/// via the anthropic_tools module, which can be used with ai-sdk-core's tool
+/// via the anthropic_tools module, which can be used with llm-kit-core's tool
 /// execution system for full functionality.
 ///
 /// Run with:
 /// ```bash
-/// cargo run --example provider_specific_defined_tools -p ai-sdk-anthropic
+/// cargo run --example provider_specific_defined_tools -p llm-kit-anthropic
 /// ```
-use ai_sdk_anthropic::anthropic_tools;
+use llm_kit_anthropic::anthropic_tools;
 
 fn main() {
     println!("🛠️  Anthropic Provider-Defined Tools Example\n");
@@ -60,8 +60,8 @@ fn main() {
     println!("\n💡 Key Points:");
     println!("   ✓ Access provider-defined tools via anthropic_tools module");
     println!("   ✓ Tools can be configured with builder pattern");
-    println!("   ✓ Use with ai-sdk-core for full tool execution");
+    println!("   ✓ Use with llm-kit-core for full tool execution");
     println!("\n📝 For full examples with tool execution, see:");
-    println!("   - Provider examples in the ai-sdk-anthropic/examples/ directory");
+    println!("   - Provider examples in the llm-kit-anthropic/examples/ directory");
     println!("   - Main examples in the root examples/ directory");
 }

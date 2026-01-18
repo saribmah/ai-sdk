@@ -2,7 +2,7 @@ use crate::config::ElevenLabsConfig;
 use crate::settings::ElevenLabsProviderSettings;
 use crate::speech::ElevenLabsSpeechModel;
 use crate::transcription::ElevenLabsTranscriptionModel;
-use ai_sdk_provider::{
+use llm_kit_provider::{
     EmbeddingModel, ImageModel, LanguageModel, Provider, ProviderError, RerankingModel,
     SpeechModel, TranscriptionModel,
 };

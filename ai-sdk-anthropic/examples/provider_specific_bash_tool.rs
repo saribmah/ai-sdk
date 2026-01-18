@@ -2,8 +2,8 @@
 ///
 /// This shows various ways to create and configure the Anthropic bash tool
 /// using the provider-defined tool factory pattern.
-use ai_sdk_anthropic::provider_tool::bash_20241022;
-use ai_sdk_provider_utils::{ProviderDefinedToolOptions, ToolExecutionOutput, ToolType};
+use llm_kit_anthropic::provider_tool::bash_20241022;
+use llm_kit_provider_utils::{ProviderDefinedToolOptions, ToolExecutionOutput, ToolType};
 use serde_json::json;
 use std::sync::Arc;
 

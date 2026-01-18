@@ -1,19 +1,19 @@
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::content::LanguageModelContent;
-use ai_sdk_provider::language_model::content::reasoning::LanguageModelReasoning;
-use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::language_model::content::text::LanguageModelText;
-use ai_sdk_provider::language_model::content::tool_call::LanguageModelToolCall;
-use ai_sdk_provider::language_model::finish_reason::LanguageModelFinishReason;
-use ai_sdk_provider::language_model::stream_part::LanguageModelStreamPart;
-use ai_sdk_provider::language_model::usage::LanguageModelUsage;
-use ai_sdk_provider::language_model::{
+use async_trait::async_trait;
+use futures_util::{Stream, StreamExt};
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::content::LanguageModelContent;
+use llm_kit_provider::language_model::content::reasoning::LanguageModelReasoning;
+use llm_kit_provider::language_model::content::source::LanguageModelSource;
+use llm_kit_provider::language_model::content::text::LanguageModelText;
+use llm_kit_provider::language_model::content::tool_call::LanguageModelToolCall;
+use llm_kit_provider::language_model::finish_reason::LanguageModelFinishReason;
+use llm_kit_provider::language_model::stream_part::LanguageModelStreamPart;
+use llm_kit_provider::language_model::usage::LanguageModelUsage;
+use llm_kit_provider::language_model::{
     LanguageModel, LanguageModelGenerateResponse, LanguageModelRequestMetadata,
     LanguageModelStreamResponse, StreamResponseMetadata,
 };
-use async_trait::async_trait;
-use futures_util::{Stream, StreamExt};
 use regex::Regex;
 use reqwest::Client;
 use serde::Deserialize;
@@ -382,7 +382,7 @@ impl LanguageModel for XaiChatLanguageModel {
 
         // Handle response_format
         if let Some(response_format) = &options.response_format {
-            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+            use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
 
             let format_json = match response_format {
                 LanguageModelResponseFormat::Text => {
@@ -584,7 +584,7 @@ impl LanguageModel for XaiChatLanguageModel {
 
         // Handle response_format
         if let Some(response_format) = &options.response_format {
-            use ai_sdk_provider::language_model::call_options::LanguageModelResponseFormat;
+            use llm_kit_provider::language_model::call_options::LanguageModelResponseFormat;
 
             let format_json = match response_format {
                 LanguageModelResponseFormat::Text => {
@@ -966,8 +966,8 @@ mod tests {
 
     #[test]
     fn test_parse_provider_options_none() {
-        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-        use ai_sdk_provider::language_model::prompt::LanguageModelPrompt;
+        use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+        use llm_kit_provider::language_model::prompt::LanguageModelPrompt;
 
         let config = XaiChatConfig {
             provider: "xai".to_string(),
@@ -985,8 +985,8 @@ mod tests {
 
     #[test]
     fn test_parse_provider_options_reasoning_effort() {
-        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-        use ai_sdk_provider::language_model::prompt::LanguageModelPrompt;
+        use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+        use llm_kit_provider::language_model::prompt::LanguageModelPrompt;
         use std::collections::HashMap;
 
         let config = XaiChatConfig {
@@ -1018,8 +1018,8 @@ mod tests {
 
     #[test]
     fn test_parse_provider_options_search_parameters() {
-        use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-        use ai_sdk_provider::language_model::prompt::LanguageModelPrompt;
+        use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+        use llm_kit_provider::language_model::prompt::LanguageModelPrompt;
         use std::collections::HashMap;
 
         let config = XaiChatConfig {

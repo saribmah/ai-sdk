@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -10,7 +10,7 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::tool::ToolCall;
+/// use llm_kit_provider_utils::tool::ToolCall;
 /// use serde_json::json;
 ///
 /// let tool_call = ToolCall::new(
@@ -64,7 +64,7 @@ impl ToolCall {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_provider_utils::tool::ToolCall;
+    /// use llm_kit_provider_utils::tool::ToolCall;
     /// use serde_json::json;
     ///
     /// let tool_call = ToolCall::new(

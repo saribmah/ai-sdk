@@ -18,9 +18,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-cerebras = "0.1"
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-cerebras = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -29,8 +29,8 @@ tokio = { version = "1", features = ["full"] }
 ### Using the Client Builder (Recommended)
 
 ```rust
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_provider::LanguageModel;
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -51,8 +51,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Using Settings Directly (Alternative)
 
 ```rust
-use ai_sdk_cerebras::{CerebrasProvider, CerebrasProviderSettings};
-use ai_sdk_provider::LanguageModel;
+use llm_kit_cerebras::{CerebrasProvider, CerebrasProviderSettings};
+use llm_kit_provider::LanguageModel;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@ export CEREBRAS_BASE_URL=https://api.cerebras.ai/v1  # Optional
 ### Using the Client Builder
 
 ```rust
-use ai_sdk_cerebras::CerebrasClient;
+use llm_kit_cerebras::CerebrasClient;
 
 let provider = CerebrasClient::new()
     .api_key("your-api-key")
@@ -123,7 +123,7 @@ Cerebras offers high-performance language models powered by Wafer-Scale Engines.
 You can use predefined model constants:
 
 ```rust
-use ai_sdk_cerebras::chat::models;
+use llm_kit_cerebras::chat::models;
 
 let model = provider.chat_model(models::LLAMA_3_3_70B);
 let reasoning_model = provider.chat_model(models::QWEN_3_235B_THINKING);
@@ -136,7 +136,7 @@ let reasoning_model = provider.chat_model(models::QWEN_3_235B_THINKING);
 Cerebras supports OpenAI-compatible structured outputs with JSON schema validation:
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
+use llm_kit_core::{GenerateText, prompt::Prompt};
 use serde_json::json;
 
 let result = GenerateText::new(model, Prompt::text("Extract user info"))
@@ -163,8 +163,8 @@ let result = GenerateText::new(model, Prompt::text("Extract user info"))
 Cerebras offers thinking models (e.g., `qwen-3-235b-a22b-thinking-2507`) that expose their reasoning process:
 
 ```rust
-use ai_sdk_cerebras::chat::models;
-use ai_sdk_core::{GenerateText, prompt::Prompt, output::Output};
+use llm_kit_cerebras::chat::models;
+use llm_kit_core::{GenerateText, prompt::Prompt, output::Output};
 
 let model = provider.chat_model(models::QWEN_3_235B_THINKING);
 let result = GenerateText::new(model, Prompt::text("Solve this logic puzzle..."))
@@ -204,11 +204,11 @@ Run examples with:
 
 ```bash
 export CEREBRAS_API_KEY=your-api-key
-cargo run --example chat -p ai-sdk-cerebras
-cargo run --example stream -p ai-sdk-cerebras
+cargo run --example chat -p llm-kit-cerebras
+cargo run --example stream -p llm-kit-cerebras
 ```
 
-For user-facing examples using `ai-sdk-core`, see the root `examples/` directory:
+For user-facing examples using `llm-kit-core`, see the root `examples/` directory:
 
 ```bash
 cargo run --example cerebras_basic_chat
@@ -219,7 +219,7 @@ cargo run --example cerebras_reasoning
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-cerebras)
+- [API Documentation](https://docs.rs/llm-kit-cerebras)
 - [AI SDK Documentation](https://github.com/saribmah/ai-sdk)
 - [Cerebras API Reference](https://inference-docs.cerebras.ai/introduction)
 - [Cerebras Models Overview](https://inference-docs.cerebras.ai/models/overview)

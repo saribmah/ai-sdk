@@ -22,8 +22,8 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ai-sdk-core = "0.1"
-ai-sdk-provider = "0.1"
+llm-kit-core = "0.1"
+llm-kit-provider = "0.1"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -31,14 +31,14 @@ You'll also need a provider implementation. Choose one based on your needs:
 
 ```toml
 # For OpenAI-compatible APIs (OpenAI, OpenRouter, etc.)
-ai-sdk-openai-compatible = "0.1"
+llm-kit-openai-compatible = "0.1"
 
 # For specific providers
-ai-sdk-openai = "0.1"
-ai-sdk-anthropic = "0.1"
-ai-sdk-azure = "0.1"
-ai-sdk-deepseek = "0.1"
-ai-sdk-groq = "0.1"
+llm-kit-openai = "0.1"
+llm-kit-anthropic = "0.1"
+llm-kit-azure = "0.1"
+llm-kit-deepseek = "0.1"
+llm-kit-groq = "0.1"
 # ... and more
 ```
 
@@ -46,9 +46,9 @@ For storage functionality:
 
 ```toml
 [dependencies]
-ai-sdk-core = { version = "0.1", features = ["storage"] }
-ai-sdk-storage = "0.1"
-ai-sdk-storage-filesystem = "0.1"  # Or another storage provider
+llm-kit-core = { version = "0.1", features = ["storage"] }
+llm-kit-storage = "0.1"
+llm-kit-storage-filesystem = "0.1"  # Or another storage provider
 ```
 
 ## Quick Start
@@ -56,8 +56,8 @@ ai-sdk-storage-filesystem = "0.1"  # Or another storage provider
 ### Text Generation
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{GenerateText, prompt::Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -84,8 +84,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Text Streaming
 
 ```rust
-use ai_sdk_core::{StreamText, prompt::Prompt};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
+use llm_kit_core::{StreamText, prompt::Prompt};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
 use futures::StreamExt;
 
 #[tokio::main]
@@ -113,8 +113,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Tool Calling
 
 ```rust
-use ai_sdk_core::{GenerateText, prompt::Prompt, ToolSet};
-use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+use llm_kit_core::{GenerateText, prompt::Prompt, ToolSet};
+use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -153,8 +153,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Agent Pattern
 
 ```rust
-use ai_sdk_core::{Agent, AgentSettings, AgentCallParameters};
-use ai_sdk_core::agent::AgentInterface;
+use llm_kit_core::{Agent, AgentSettings, AgentCallParameters};
+use llm_kit_core::agent::AgentInterface;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -184,7 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Embeddings
 
 ```rust
-use ai_sdk_core::{Embed, EmbedMany};
+use llm_kit_core::{Embed, EmbedMany};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -325,7 +325,7 @@ let result = GenerateSpeech::new(speech_model, "Hello, world!".to_string())
 Convert audio to text.
 
 ```rust
-use ai_sdk_core::AudioInput;
+use llm_kit_core::AudioInput;
 
 let result = Transcribe::new(transcription_model, AudioInput::Data(audio_data))
     .max_retries(3)
@@ -383,8 +383,8 @@ let result = agent.stream(AgentCallParameters::from_text("Hello"))?
 Enable persistent conversation history with automatic loading and saving:
 
 ```rust
-use ai_sdk_storage_filesystem::FilesystemStorage;
-use ai_sdk_storage::Storage;
+use llm_kit_storage_filesystem::FilesystemStorage;
+use llm_kit_storage::Storage;
 use std::sync::Arc;
 
 let storage: Arc<dyn Storage> = Arc::new(FilesystemStorage::new("./storage")?);
@@ -426,12 +426,12 @@ let result2 = agent.generate(AgentCallParameters::from_text("Follow-up"))?
 ```
 
 **Storage providers:**
-- `ai-sdk-storage-filesystem` - Filesystem-based storage with JSON files
+- `llm-kit-storage-filesystem` - Filesystem-based storage with JSON files
 - More storage providers coming soon (MongoDB, PostgreSQL, etc.)
 
 **Enable with feature flag:**
 ```toml
-ai-sdk-core = { version = "0.1", features = ["storage"] }
+llm-kit-core = { version = "0.1", features = ["storage"] }
 ```
 
 ## Tool System
@@ -441,7 +441,7 @@ The SDK supports both dynamic and type-safe tools:
 ### Dynamic Tools
 
 ```rust
-use ai_sdk_provider_utils::tool::{Tool, ToolExecutionOutput};
+use llm_kit_provider_utils::tool::{Tool, ToolExecutionOutput};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -463,7 +463,7 @@ let tool = Tool::function(json!({
 ### Type-Safe Tools
 
 ```rust
-use ai_sdk_core::tool::TypeSafeTool;
+use llm_kit_core::tool::TypeSafeTool;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -495,7 +495,7 @@ impl TypeSafeTool for WeatherInput {
 The SDK automatically executes tools and feeds results back to the model:
 
 ```rust
-use ai_sdk_core::{GenerateText, has_tool_call};
+use llm_kit_core::{GenerateText, has_tool_call};
 
 let result = GenerateText::new(model, prompt)
     .tools(tools)
@@ -518,7 +518,7 @@ for step in &result.steps {
 Build prompts using various message types:
 
 ```rust
-use ai_sdk_core::prompt::{Prompt, UserMessage, SystemMessage};
+use llm_kit_core::prompt::{Prompt, UserMessage, SystemMessage};
 
 // Simple text prompt
 let prompt = Prompt::text("Hello");
@@ -530,7 +530,7 @@ let prompt = Prompt::from_messages(vec![
 ]);
 
 // Multi-modal with images
-use ai_sdk_core::prompt::ImagePart;
+use llm_kit_core::prompt::ImagePart;
 
 let image = ImagePart::from_base64("data:image/png;base64,...");
 let prompt = Prompt::from_user_message(
@@ -546,7 +546,7 @@ let prompt = Prompt::from_user_message(
 All operations return `Result<T, AISDKError>`:
 
 ```rust
-use ai_sdk_core::error::AISDKError;
+use llm_kit_core::error::AISDKError;
 
 match GenerateText::new(model, prompt).execute().await {
     Ok(result) => println!("Success: {}", result.text),
@@ -637,7 +637,7 @@ The default installation includes all core functionality except storage.
 **`storage`** - Enable storage functionality for persistent conversations:
 
 ```toml
-ai-sdk-core = { version = "0.1", features = ["storage"] }
+llm-kit-core = { version = "0.1", features = ["storage"] }
 ```
 
 Enables:
@@ -649,13 +649,13 @@ Enables:
 
 The SDK follows a three-layer architecture:
 
-1. **Builder Layer** (ai-sdk-core):
+1. **Builder Layer** (llm-kit-core):
    - Ergonomic builder APIs: `GenerateText`, `StreamText`, `Embed`, etc.
    - Agent pattern for reusable configurations
    - Tool execution and management
    - Prompt standardization and validation
 
-2. **Provider Layer** (ai-sdk-provider):
+2. **Provider Layer** (llm-kit-provider):
    - `Provider` trait for implementing new providers
    - `LanguageModel`, `EmbeddingModel`, `ImageModel`, etc. traits
    - Standardized types: `CallOptions`, `Content`, `FinishReason`, `Usage`
@@ -667,7 +667,7 @@ The SDK follows a three-layer architecture:
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/ai-sdk-core)
+- [API Documentation](https://docs.rs/llm-kit-core)
 - [AI SDK Repository](https://github.com/saribmah/ai-sdk)
 - [Provider Implementations](https://github.com/saribmah/ai-sdk#providers)
 - [Contributing Guide](../CONTRIBUTING.md)

@@ -1,5 +1,5 @@
-use ai_sdk_provider::language_model::content::source::LanguageModelSource;
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::language_model::content::source::LanguageModelSource;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Source output representing a source/reference in the generation.
@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::output::SourceOutput;
-/// use ai_sdk_provider::language_model::content::source::LanguageModelSource;
+/// use llm_kit_core::output::SourceOutput;
+/// use llm_kit_provider::language_model::content::source::LanguageModelSource;
 ///
 /// # let source = LanguageModelSource::Url {
 /// #     id: "source_1".to_string(),

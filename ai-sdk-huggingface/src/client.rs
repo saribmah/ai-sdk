@@ -46,7 +46,7 @@ impl HuggingFaceClientConfig {
 /// ## Basic Usage
 ///
 /// ```no_run
-/// use ai_sdk_huggingface::HuggingFaceClient;
+/// use llm_kit_huggingface::HuggingFaceClient;
 ///
 /// let provider = HuggingFaceClient::new()
 ///     .api_key("your-api-key")
@@ -58,7 +58,7 @@ impl HuggingFaceClientConfig {
 /// ## Custom Base URL
 ///
 /// ```no_run
-/// use ai_sdk_huggingface::HuggingFaceClient;
+/// use llm_kit_huggingface::HuggingFaceClient;
 ///
 /// let provider = HuggingFaceClient::new()
 ///     .base_url("https://custom.api.com/v1")
@@ -71,7 +71,7 @@ impl HuggingFaceClientConfig {
 /// ## With Custom Headers
 ///
 /// ```no_run
-/// use ai_sdk_huggingface::HuggingFaceClient;
+/// use llm_kit_huggingface::HuggingFaceClient;
 ///
 /// let provider = HuggingFaceClient::new()
 ///     .api_key("your-api-key")
@@ -105,7 +105,7 @@ impl HuggingFaceClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_huggingface::HuggingFaceClient;
+    /// use llm_kit_huggingface::HuggingFaceClient;
     ///
     /// let client = HuggingFaceClient::new()
     ///     .base_url("https://custom.api.com/v1");
@@ -126,7 +126,7 @@ impl HuggingFaceClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_huggingface::HuggingFaceClient;
+    /// use llm_kit_huggingface::HuggingFaceClient;
     ///
     /// let client = HuggingFaceClient::new()
     ///     .api_key("your-api-key");
@@ -146,7 +146,7 @@ impl HuggingFaceClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_huggingface::HuggingFaceClient;
+    /// use llm_kit_huggingface::HuggingFaceClient;
     ///
     /// let client = HuggingFaceClient::new()
     ///     .header("X-Custom-Header", "value");
@@ -165,7 +165,7 @@ impl HuggingFaceClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_huggingface::HuggingFaceClient;
+    /// use llm_kit_huggingface::HuggingFaceClient;
     /// use std::collections::HashMap;
     ///
     /// let mut headers = HashMap::new();
@@ -189,7 +189,7 @@ impl HuggingFaceClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_huggingface::HuggingFaceClient;
+    /// use llm_kit_huggingface::HuggingFaceClient;
     ///
     /// let provider = HuggingFaceClient::new()
     ///     .api_key("your-api-key")

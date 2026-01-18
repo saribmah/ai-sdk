@@ -1,10 +1,10 @@
 use super::options::GroqSpeechOptions;
-use ai_sdk_provider::speech_model::{
+use async_trait::async_trait;
+use llm_kit_provider::speech_model::{
     AudioData, SpeechModel, SpeechModelRequestMetadata, SpeechModelResponse,
     SpeechModelResponseMetadata, call_options::SpeechModelCallOptions,
     call_warning::SpeechModelCallWarning,
 };
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

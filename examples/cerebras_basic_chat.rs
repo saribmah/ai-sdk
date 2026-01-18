@@ -1,6 +1,6 @@
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_core::GenerateText;
-use ai_sdk_core::prompt::Prompt;
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_core::GenerateText;
+use llm_kit_core::prompt::Prompt;
 use std::env;
 
 /// Basic chat example with Cerebras.

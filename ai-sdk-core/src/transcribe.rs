@@ -5,13 +5,13 @@ pub use result::TranscriptionResult;
 
 use crate::error::AISDKError;
 use crate::generate_text::prepare_retries;
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use ai_sdk_provider::transcription_model::TranscriptionModel;
-use ai_sdk_provider::transcription_model::call_options::{
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::transcription_model::TranscriptionModel;
+use llm_kit_provider::transcription_model::call_options::{
     TranscriptionAudioData, TranscriptionModelCallOptions,
 };
-use ai_sdk_provider_utils::message::DataContent;
+use llm_kit_provider_utils::message::DataContent;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -22,10 +22,10 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::{Transcribe, AudioInput};
-/// use ai_sdk_provider_utils::message::DataContent;
+/// use llm_kit_core::{Transcribe, AudioInput};
+/// use llm_kit_provider_utils::message::DataContent;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::transcription_model::TranscriptionModel;
+/// # use llm_kit_provider::transcription_model::TranscriptionModel;
 /// # async fn example(model: Arc<dyn TranscriptionModel>) -> Result<(), Box<dyn std::error::Error>> {
 /// # let audio_bytes = vec![0u8; 100];
 ///

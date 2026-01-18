@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, NoOutputGeneratedErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, NoOutputGeneratedErrorBuilder};
 ///
 /// let error = NoOutputGeneratedErrorBuilder::new()
 ///     .message("The model failed to generate any output")
@@ -29,7 +29,7 @@ impl NoOutputGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoOutputGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoOutputGeneratedErrorBuilder;
     ///
     /// let builder = NoOutputGeneratedErrorBuilder::new();
     /// ```
@@ -46,7 +46,7 @@ impl NoOutputGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoOutputGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoOutputGeneratedErrorBuilder;
     ///
     /// let builder = NoOutputGeneratedErrorBuilder::new()
     ///     .message("Model failed to generate a response");
@@ -63,7 +63,7 @@ impl NoOutputGeneratedErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoOutputGeneratedErrorBuilder;
+    /// use llm_kit_core::error::NoOutputGeneratedErrorBuilder;
     ///
     /// let error = NoOutputGeneratedErrorBuilder::new()
     ///     .message("Model failed to generate response")
@@ -84,7 +84,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_output_generated();
     ///
@@ -110,7 +110,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_output_generated_with_message("Model failed to generate response");
     ///
@@ -132,7 +132,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_output_generated_builder()
     ///     .message("Model failed to generate")

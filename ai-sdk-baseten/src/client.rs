@@ -12,7 +12,7 @@ use crate::settings::BasetenProviderSettings;
 /// ## Basic Usage with Model APIs
 ///
 /// ```no_run
-/// use ai_sdk_baseten::BasetenClient;
+/// use llm_kit_baseten::BasetenClient;
 ///
 /// let provider = BasetenClient::new()
 ///     .api_key("your-api-key")
@@ -24,7 +24,7 @@ use crate::settings::BasetenProviderSettings;
 /// ## Custom Model URL
 ///
 /// ```no_run
-/// use ai_sdk_baseten::BasetenClient;
+/// use llm_kit_baseten::BasetenClient;
 ///
 /// let provider = BasetenClient::new()
 ///     .api_key("your-api-key")
@@ -37,7 +37,7 @@ use crate::settings::BasetenProviderSettings;
 /// ## With Environment Variable
 ///
 /// ```no_run
-/// use ai_sdk_baseten::BasetenClient;
+/// use llm_kit_baseten::BasetenClient;
 ///
 /// // API key loaded from BASETEN_API_KEY environment variable
 /// let provider = BasetenClient::new().build();
@@ -126,7 +126,7 @@ impl BasetenClient {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_baseten::BasetenClient;
+    /// use llm_kit_baseten::BasetenClient;
     ///
     /// let provider = BasetenClient::new()
     ///     .api_key("your-api-key")

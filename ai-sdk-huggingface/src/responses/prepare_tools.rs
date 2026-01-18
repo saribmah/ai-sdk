@@ -1,6 +1,6 @@
-use ai_sdk_provider::language_model::call_warning::LanguageModelCallWarning;
-use ai_sdk_provider::language_model::tool::LanguageModelTool;
-use ai_sdk_provider::language_model::tool_choice::LanguageModelToolChoice;
+use llm_kit_provider::language_model::call_warning::LanguageModelCallWarning;
+use llm_kit_provider::language_model::tool::LanguageModelTool;
+use llm_kit_provider::language_model::tool_choice::LanguageModelToolChoice;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_prepare_tools_function() {
-        use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+        use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 
         let tools = vec![LanguageModelTool::Function(
             LanguageModelFunctionTool::new("get_weather", json!({ "type": "object" }))
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_prepare_tool_choice_auto() {
-        use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+        use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 
         let result = prepare_responses_tools(
             Some(vec![LanguageModelTool::Function(
@@ -161,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_prepare_tool_choice_required() {
-        use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+        use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 
         let result = prepare_responses_tools(
             Some(vec![LanguageModelTool::Function(
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn test_prepare_tool_choice_specific() {
-        use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+        use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 
         let result = prepare_responses_tools(
             Some(vec![LanguageModelTool::Function(
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_prepare_tool_choice_none() {
-        use ai_sdk_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
+        use llm_kit_provider::language_model::tool::function_tool::LanguageModelFunctionTool;
 
         let result = prepare_responses_tools(
             Some(vec![LanguageModelTool::Function(

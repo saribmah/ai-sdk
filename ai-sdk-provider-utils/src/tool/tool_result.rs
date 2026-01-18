@@ -9,7 +9,7 @@ use serde_json::Value;
 /// # Example
 ///
 /// ```
-/// use ai_sdk_provider_utils::tool::ToolResult;
+/// use llm_kit_provider_utils::tool::ToolResult;
 /// use serde_json::json;
 ///
 /// let result = ToolResult::new(
@@ -60,7 +60,7 @@ impl ToolResult {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_provider_utils::tool::ToolResult;
+    /// use llm_kit_provider_utils::tool::ToolResult;
     /// use serde_json::json;
     ///
     /// let result = ToolResult::new(

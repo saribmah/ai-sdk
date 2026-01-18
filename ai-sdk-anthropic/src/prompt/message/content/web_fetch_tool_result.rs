@@ -36,8 +36,8 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let document = WebFetchResultDocument::new(
     ///     AnthropicContentSource::text("Fetched content")
@@ -61,7 +61,7 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
     ///
     /// let document = WebFetchResultDocument::from_pdf_base64("base64data...");
     /// ```
@@ -78,7 +78,7 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
     ///
     /// let document = WebFetchResultDocument::from_text("Fetched page content");
     /// ```
@@ -95,7 +95,7 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
     ///
     /// let document = WebFetchResultDocument::from_text("content")
     ///     .with_title("Web Page Title");
@@ -114,8 +114,8 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
-    /// use ai_sdk_anthropic::prompt::message::content::document::DocumentCitations;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::document::DocumentCitations;
     ///
     /// let document = WebFetchResultDocument::from_text("content")
     ///     .with_citations(DocumentCitations::enabled());
@@ -130,7 +130,7 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
     ///
     /// let document = WebFetchResultDocument::from_text("content")
     ///     .with_citations_enabled();
@@ -144,7 +144,7 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
     ///
     /// let document = WebFetchResultDocument::from_text("content")
     ///     .with_citations_disabled();
@@ -162,8 +162,8 @@ impl WebFetchResultDocument {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::WebFetchResultDocument;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let document = WebFetchResultDocument::from_text("old content")
     ///     .with_source(AnthropicContentSource::text("new content"));
@@ -206,7 +206,7 @@ impl WebFetchResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::{
     ///     WebFetchResultContent, WebFetchResultDocument
     /// };
     ///
@@ -231,7 +231,7 @@ impl WebFetchResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::{
     ///     WebFetchResultContent, WebFetchResultDocument
     /// };
     ///
@@ -272,7 +272,7 @@ impl WebFetchResultContent {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::{
+/// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::{
 ///     AnthropicWebFetchToolResultContent, WebFetchResultContent, WebFetchResultDocument
 /// };
 ///
@@ -312,7 +312,7 @@ impl AnthropicWebFetchToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::{
     ///     AnthropicWebFetchToolResultContent, WebFetchResultContent, WebFetchResultDocument
     /// };
     ///
@@ -338,10 +338,10 @@ impl AnthropicWebFetchToolResultContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::web_fetch_tool_result::{
+    /// use llm_kit_anthropic::prompt::message::content::web_fetch_tool_result::{
     ///     AnthropicWebFetchToolResultContent, WebFetchResultContent, WebFetchResultDocument
     /// };
-    /// use ai_sdk_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
+    /// use llm_kit_anthropic::prompt::message::cache_control::{AnthropicCacheControl, CacheTTL};
     ///
     /// let document = WebFetchResultDocument::from_text("content");
     /// let result = WebFetchResultContent::new("https://example.com", document);

@@ -1,4 +1,4 @@
-use ai_sdk_provider::error::ProviderError;
+use llm_kit_provider::error::ProviderError;
 use serde::Deserialize;
 
 /// xAI API error response structure

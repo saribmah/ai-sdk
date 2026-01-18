@@ -2,7 +2,7 @@ use crate::generate_text::GenerateText;
 use crate::prompt::PromptContent;
 use crate::stream_text::StreamText;
 use crate::tool::ToolSet;
-use ai_sdk_provider_utils::message::Message;
+use llm_kit_provider_utils::message::Message;
 
 /// Parameters for calling an agent.
 ///
@@ -11,8 +11,8 @@ use ai_sdk_provider_utils::message::Message;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::AgentCallParameters;
-/// use ai_sdk_core::prompt::PromptContent;
+/// use llm_kit_core::agent::AgentCallParameters;
+/// use llm_kit_core::prompt::PromptContent;
 ///
 /// // Using a text prompt
 /// let params = AgentCallParameters::new(PromptContent::Text {
@@ -40,7 +40,7 @@ impl AgentCallParameters {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_core::agent::AgentCallParameters;
+    /// use llm_kit_core::agent::AgentCallParameters;
     ///
     /// let params = AgentCallParameters::from_text("What is the weather?");
     /// ```
@@ -55,8 +55,8 @@ impl AgentCallParameters {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_core::agent::AgentCallParameters;
-    /// use ai_sdk_provider_utils::message::{Message, UserMessage};
+    /// use llm_kit_core::agent::AgentCallParameters;
+    /// use llm_kit_provider_utils::message::{Message, UserMessage};
     ///
     /// let messages = vec![Message::User(UserMessage::new("Hello"))];
     /// let params = AgentCallParameters::from_messages(messages);
@@ -84,12 +84,12 @@ impl AgentCallParameters {
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_core::agent::{AgentInterface, AgentCallParameters};
-/// use ai_sdk_core::tool::ToolSet;
-/// use ai_sdk_core::output::Output;
-/// use ai_sdk_core::generate_text::GenerateText;
-/// use ai_sdk_core::stream_text::StreamText;
-/// use ai_sdk_core::error::AISDKError;
+/// use llm_kit_core::agent::{AgentInterface, AgentCallParameters};
+/// use llm_kit_core::tool::ToolSet;
+/// use llm_kit_core::output::Output;
+/// use llm_kit_core::generate_text::GenerateText;
+/// use llm_kit_core::stream_text::StreamText;
+/// use llm_kit_core::error::AISDKError;
 ///
 /// struct MyAgent {
 ///     id: Option<String>,
@@ -163,8 +163,8 @@ pub trait AgentInterface: Send + Sync {
     /// # Examples
     ///
     /// ```no_run
-    /// # use ai_sdk_core::agent::AgentCallParameters;
-    /// # use ai_sdk_core::agent::AgentInterface;
+    /// # use llm_kit_core::agent::AgentCallParameters;
+    /// # use llm_kit_core::agent::AgentInterface;
     /// # async fn example(agent: &impl AgentInterface) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = AgentCallParameters::from_text("What is the weather?");
     ///
@@ -203,8 +203,8 @@ pub trait AgentInterface: Send + Sync {
     /// # Examples
     ///
     /// ```no_run
-    /// # use ai_sdk_core::agent::AgentCallParameters;
-    /// # use ai_sdk_core::agent::AgentInterface;
+    /// # use llm_kit_core::agent::AgentCallParameters;
+    /// # use llm_kit_core::agent::AgentInterface;
     /// # use futures::StreamExt;
     /// # async fn example(agent: &impl AgentInterface) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = AgentCallParameters::from_text("Tell me a story");

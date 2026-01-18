@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
 use serde::{Deserialize, Serialize};
 
 /// Reasoning output of a text generation. It contains reasoning text.
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use ai_sdk_core::ReasoningOutput;
+/// use llm_kit_core::ReasoningOutput;
 ///
 /// let reasoning = ReasoningOutput::new("First, I need to analyze the problem...");
 /// ```
@@ -41,7 +41,7 @@ impl ReasoningOutput {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_core::ReasoningOutput;
+    /// use llm_kit_core::ReasoningOutput;
     ///
     /// let reasoning = ReasoningOutput::new("Let me think through this step by step...");
     /// assert_eq!(reasoning.text, "Let me think through this step by step...");
@@ -63,8 +63,8 @@ impl ReasoningOutput {
     /// # Example
     ///
     /// ```no_run
-    /// use ai_sdk_core::output::ReasoningOutput;
-    /// use ai_sdk_provider::shared::provider_metadata::SharedProviderMetadata;
+    /// use llm_kit_core::output::ReasoningOutput;
+    /// use llm_kit_provider::shared::provider_metadata::SharedProviderMetadata;
     /// # let metadata = SharedProviderMetadata::new();
     ///
     /// let reasoning = ReasoningOutput::new("Thinking...")

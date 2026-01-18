@@ -32,9 +32,9 @@
 **Command:** `cargo test --workspace`
 **Status:** ✅ PASSED
 **Result:** All 716 tests passing
-- ai-sdk-core: 132 tests passed
-- ai-sdk-provider: 49 tests passed
-- ai-sdk-openai-compatible: Tests passed
+- llm-kit-core: 132 tests passed
+- llm-kit-provider: 49 tests passed
+- llm-kit-openai-compatible: Tests passed
 - No failures, no errors
 
 ### 5. Examples Build ✓
@@ -51,19 +51,19 @@
 ### New Files Added:
 ```
 A  AGENT_INTERFACE.md                                  # Agent documentation
-A  ai-sdk-core/src/agent.rs                           # Agent module declarations
-A  ai-sdk-core/src/agent/agent_on_finish_callback.rs # Finish callback types
-A  ai-sdk-core/src/agent/agent_on_step_finish_callback.rs # Step callback types
-A  ai-sdk-core/src/agent/agent_settings.rs            # Agent configuration
-A  ai-sdk-core/src/agent/default_impl.rs              # Agent implementation
-A  ai-sdk-core/src/agent/interface.rs                 # AgentInterface trait
+A  llm-kit-core/src/agent.rs                           # Agent module declarations
+A  llm-kit-core/src/agent/agent_on_finish_callback.rs # Finish callback types
+A  llm-kit-core/src/agent/agent_on_step_finish_callback.rs # Step callback types
+A  llm-kit-core/src/agent/agent_settings.rs            # Agent configuration
+A  llm-kit-core/src/agent/default_impl.rs              # Agent implementation
+A  llm-kit-core/src/agent/interface.rs                 # AgentInterface trait
 A  examples/agent_generate.rs                          # Generate example (14KB)
 A  examples/agent_stream.rs                            # Stream example (17KB)
 ```
 
 ### Modified Files:
 ```
-M  ai-sdk-core/src/lib.rs                              # Added agent exports
+M  llm-kit-core/src/lib.rs                              # Added agent exports
 ```
 
 ---
@@ -102,8 +102,8 @@ M  ai-sdk-core/src/lib.rs                              # Added agent exports
 **Error:**
 ```
 error: unused import: `super::*`
-  --> ai-sdk-core/src/agent/agent.rs:421:9
-  --> ai-sdk-core/src/agent/agent_settings.rs:437:9
+  --> llm-kit-core/src/agent/agent.rs:421:9
+  --> llm-kit-core/src/agent/agent_settings.rs:437:9
 ```
 
 **Fix:** Removed unused `use super::*` from empty test modules
@@ -112,7 +112,7 @@ error: unused import: `super::*`
 **Error:**
 ```
 error: module has the same name as its containing module
- --> ai-sdk-core/src/agent.rs:1:1
+ --> llm-kit-core/src/agent.rs:1:1
   |
 1 | mod agent;
   | ^^^^^^^^^^

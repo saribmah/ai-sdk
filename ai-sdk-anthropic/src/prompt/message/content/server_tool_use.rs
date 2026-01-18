@@ -33,7 +33,7 @@ pub enum ServerToolType {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::content::server_tool_use::{
+/// use llm_kit_anthropic::prompt::message::content::server_tool_use::{
 ///     AnthropicServerToolUseContent, ServerToolType
 /// };
 /// use serde_json::json;
@@ -84,7 +84,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::{
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::{
     ///     AnthropicServerToolUseContent, ServerToolType
     /// };
     /// use serde_json::json;
@@ -115,7 +115,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
     /// use serde_json::json;
     ///
     /// let tool_use = AnthropicServerToolUseContent::web_fetch(
@@ -137,7 +137,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
     /// use serde_json::json;
     ///
     /// let tool_use = AnthropicServerToolUseContent::web_search(
@@ -159,7 +159,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
     /// use serde_json::json;
     ///
     /// let tool_use = AnthropicServerToolUseContent::code_execution(
@@ -181,7 +181,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
     /// use serde_json::json;
     ///
     /// let tool_use = AnthropicServerToolUseContent::bash_code_execution(
@@ -203,7 +203,7 @@ impl AnthropicServerToolUseContent {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
+    /// use llm_kit_anthropic::prompt::message::content::server_tool_use::AnthropicServerToolUseContent;
     /// use serde_json::json;
     ///
     /// let tool_use = AnthropicServerToolUseContent::text_editor_code_execution(

@@ -5,7 +5,7 @@ use super::ProviderError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_provider::error::{LoadSettingErrorBuilder, ProviderError};
+/// use llm_kit_provider::error::{LoadSettingErrorBuilder, ProviderError};
 ///
 /// let error = LoadSettingErrorBuilder::new(
 ///     "Failed to load model configuration from config file"
@@ -46,7 +46,7 @@ impl ProviderError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_provider::error::ProviderError;
+    /// use llm_kit_provider::error::ProviderError;
     ///
     /// let error = ProviderError::load_setting_error(
     ///     "Configuration file not found at ~/.ai/config.json"

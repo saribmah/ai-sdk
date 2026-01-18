@@ -1,13 +1,13 @@
 //! Basic chat completion example using OpenAI provider
 //!
-//! This example demonstrates using do_generate() directly with ai-sdk-provider.
+//! This example demonstrates using do_generate() directly with llm-kit-provider.
 //!
-//! Run with: cargo run --example chat -p ai-sdk-openai
+//! Run with: cargo run --example chat -p llm-kit-openai
 
-use ai_sdk_openai::OpenAIClient;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-use ai_sdk_provider::language_model::prompt::message::LanguageModelMessage;
+use llm_kit_openai::OpenAIClient;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+use llm_kit_provider::language_model::prompt::message::LanguageModelMessage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Print response
     println!("\nResponse:");
     for content in &response.content {
-        if let ai_sdk_provider::language_model::content::LanguageModelContent::Text(text) = content
+        if let llm_kit_provider::language_model::content::LanguageModelContent::Text(text) = content
         {
             println!("{}", text.text);
         }

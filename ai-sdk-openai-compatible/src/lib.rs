@@ -8,7 +8,7 @@
 //! ## Basic Usage with Client Builder (Recommended)
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
 //!
 //! // Create a provider using the client builder
 //! let provider = OpenAICompatibleClient::new()
@@ -22,7 +22,7 @@
 //! ## Alternative: Using Settings Directly
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
+//! use llm_kit_openai_compatible::{OpenAICompatibleProvider, OpenAICompatibleProviderSettings};
 //!
 //! // Create a provider using settings
 //! let provider = OpenAICompatibleProvider::new(
@@ -39,7 +39,7 @@
 //! ## Chained Usage
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
 //!
 //! let model = OpenAICompatibleClient::new()
 //!     .base_url("https://api.example.com/v1")
@@ -52,7 +52,7 @@
 //! ## Custom Headers and Query Parameters
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
 //!
 //! let provider = OpenAICompatibleClient::new()
 //!     .base_url("https://api.example.com/v1")
@@ -68,7 +68,7 @@
 //! ## Azure OpenAI Example
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
 //!
 //! let provider = OpenAICompatibleClient::new()
 //!     .base_url("https://my-resource.openai.azure.com/openai")
@@ -83,9 +83,9 @@
 //! ## Text Embeddings
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_provider::EmbeddingModel;
-//! use ai_sdk_provider::embedding_model::call_options::EmbeddingModelCallOptions;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_provider::EmbeddingModel;
+//! use llm_kit_provider::embedding_model::call_options::EmbeddingModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()
@@ -111,9 +111,9 @@
 //! ## Image Generation
 //!
 //! ```no_run
-//! use ai_sdk_openai_compatible::OpenAICompatibleClient;
-//! use ai_sdk_provider::ImageModel;
-//! use ai_sdk_provider::image_model::call_options::ImageModelCallOptions;
+//! use llm_kit_openai_compatible::OpenAICompatibleClient;
+//! use llm_kit_provider::ImageModel;
+//! use llm_kit_provider::image_model::call_options::ImageModelCallOptions;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let provider = OpenAICompatibleClient::new()

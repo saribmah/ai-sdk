@@ -1,4 +1,4 @@
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Text content part of a prompt. It contains a string of text.

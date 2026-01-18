@@ -11,10 +11,10 @@
 /// export OPENAI_API_KEY="your-api-key"
 /// cargo run --example agent_generate
 /// ```
-use ai_sdk_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
-use ai_sdk_core::{ToolSet, step_count_is};
-use ai_sdk_openai_compatible::OpenAICompatibleClient;
-use ai_sdk_provider_utils::tool::Tool;
+use llm_kit_core::{Agent, AgentCallParameters, AgentInterface, AgentSettings};
+use llm_kit_core::{ToolSet, step_count_is};
+use llm_kit_openai_compatible::OpenAICompatibleClient;
+use llm_kit_provider_utils::tool::Tool;
 use serde_json::{Value, json};
 use std::env;
 use std::sync::Arc;
@@ -158,7 +158,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Defining Tools");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    use ai_sdk_provider_utils::tool::ToolExecutionOutput;
+    use llm_kit_provider_utils::tool::ToolExecutionOutput;
 
     // Helper function to create tools (since tools can't be cloned, we recreate them for each call)
     let mut tools = ToolSet::new();

@@ -1,6 +1,6 @@
 /// Speech generation example using ElevenLabs provider directly.
 ///
-/// This example demonstrates how to use ElevenLabs' speech model with only `ai-sdk-provider`,
+/// This example demonstrates how to use ElevenLabs' speech model with only `llm-kit-provider`,
 /// calling the `do_generate()` method directly on the `SpeechModel` trait.
 ///
 /// Features demonstrated:
@@ -14,11 +14,11 @@
 /// Run with:
 /// ```bash
 /// export ELEVENLABS_API_KEY="your-api-key"
-/// cargo run --example speech_generation -p ai-sdk-elevenlabs
+/// cargo run --example speech_generation -p llm-kit-elevenlabs
 /// ```
-use ai_sdk_elevenlabs::ElevenLabsClient;
-use ai_sdk_provider::Provider;
-use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
+use llm_kit_elevenlabs::ElevenLabsClient;
+use llm_kit_provider::Provider;
+use llm_kit_provider::speech_model::call_options::SpeechModelCallOptions;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -82,8 +82,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Speech generated successfully!");
 
     let audio_bytes = match result.audio {
-        ai_sdk_provider::speech_model::AudioData::Binary(bytes) => bytes,
-        ai_sdk_provider::speech_model::AudioData::Base64(base64_str) => {
+        llm_kit_provider::speech_model::AudioData::Binary(bytes) => bytes,
+        llm_kit_provider::speech_model::AudioData::Base64(base64_str) => {
             use base64::{Engine as _, engine::general_purpose};
             general_purpose::STANDARD.decode(base64_str)?
         }

@@ -18,7 +18,7 @@
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_cerebras::CerebrasChatModelId;
+/// use llm_kit_cerebras::CerebrasChatModelId;
 ///
 /// let model_id: CerebrasChatModelId = "llama-3.3-70b".to_string();
 /// ```

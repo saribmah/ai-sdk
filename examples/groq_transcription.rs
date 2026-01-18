@@ -1,5 +1,5 @@
-use ai_sdk_groq::{GroqClient, GroqTranscriptionOptions};
-use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+use llm_kit_groq::{GroqClient, GroqTranscriptionOptions};
+use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

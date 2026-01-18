@@ -1,7 +1,7 @@
-use ai_sdk_cerebras::CerebrasClient;
-use ai_sdk_core::StreamText;
-use ai_sdk_core::prompt::Prompt;
 use futures_util::StreamExt;
+use llm_kit_cerebras::CerebrasClient;
+use llm_kit_core::StreamText;
+use llm_kit_core::prompt::Prompt;
 use std::env;
 use std::sync::Arc;
 use tokio::sync::Mutex;

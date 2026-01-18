@@ -115,8 +115,8 @@ impl From<AnthropicToolResultContent> for UserMessageContent {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-/// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+/// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+/// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
 ///
 /// // Create a simple text message
 /// let message = AnthropicUserMessage::new(vec![
@@ -142,8 +142,8 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let message = AnthropicUserMessage::new(vec![
     ///     AnthropicTextContent::new("What is the weather today?").into()
@@ -165,7 +165,7 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
     ///
     /// let message = AnthropicUserMessage::from_text("Hello, Claude!");
     /// ```
@@ -182,9 +182,9 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let message = AnthropicUserMessage::from_image(
     ///     AnthropicImageContent::new(
@@ -205,9 +205,9 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let message = AnthropicUserMessage::from_document(
     ///     AnthropicDocumentContent::new(
@@ -228,8 +228,8 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::AnthropicToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::AnthropicToolResultContent;
     ///
     /// let message = AnthropicUserMessage::from_tool_result(
     ///     AnthropicToolResultContent::from_string("toolu_123", "Tool executed successfully")
@@ -248,8 +248,8 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::text::AnthropicTextContent;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::text::AnthropicTextContent;
     ///
     /// let message = AnthropicUserMessage::from_text("First message")
     ///     .with_content(AnthropicTextContent::new("Second message").into());
@@ -268,7 +268,7 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
     ///
     /// let message = AnthropicUserMessage::from_text("Hello")
     ///     .with_text("How are you?");
@@ -287,9 +287,9 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::image::AnthropicImageContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::image::AnthropicImageContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let message = AnthropicUserMessage::from_text("Look at this image:")
     ///     .with_image(AnthropicImageContent::new(
@@ -310,9 +310,9 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::document::AnthropicDocumentContent;
-    /// use ai_sdk_anthropic::prompt::message::content::source_type::AnthropicContentSource;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::document::AnthropicDocumentContent;
+    /// use llm_kit_anthropic::prompt::message::content::source_type::AnthropicContentSource;
     ///
     /// let message = AnthropicUserMessage::from_text("Please review this document:")
     ///     .with_document(AnthropicDocumentContent::new(
@@ -333,8 +333,8 @@ impl AnthropicUserMessage {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::prompt::message::user::AnthropicUserMessage;
-    /// use ai_sdk_anthropic::prompt::message::content::tool_result::AnthropicToolResultContent;
+    /// use llm_kit_anthropic::prompt::message::user::AnthropicUserMessage;
+    /// use llm_kit_anthropic::prompt::message::content::tool_result::AnthropicToolResultContent;
     ///
     /// let message = AnthropicUserMessage::from_text("Here are the tool results:")
     ///     .with_tool_result(

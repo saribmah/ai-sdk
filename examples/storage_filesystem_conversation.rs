@@ -1,8 +1,8 @@
-use ai_sdk_storage::{
+use llm_kit_storage::{
     AssistantMessage, MessageMetadata, MessagePart, Session, Storage, TextPart, UsageStats,
     UserMessage,
 };
-use ai_sdk_storage_filesystem::FilesystemStorage;
+use llm_kit_storage_filesystem::FilesystemStorage;
 use std::sync::Arc;
 
 #[tokio::main]

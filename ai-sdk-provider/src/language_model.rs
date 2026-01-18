@@ -53,9 +53,9 @@ pub mod usage;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_provider::LanguageModel;
-/// use ai_sdk_provider::language_model::call_options::LanguageModelCallOptions;
-/// use ai_sdk_provider::language_model::{LanguageModelGenerateResponse, LanguageModelStreamResponse};
+/// use llm_kit_provider::LanguageModel;
+/// use llm_kit_provider::language_model::call_options::LanguageModelCallOptions;
+/// use llm_kit_provider::language_model::{LanguageModelGenerateResponse, LanguageModelStreamResponse};
 /// use async_trait::async_trait;
 /// use std::collections::HashMap;
 /// use regex::Regex;

@@ -5,7 +5,7 @@ use crate::error::AISDKError;
 /// # Examples
 ///
 /// ```
-/// use ai_sdk_core::error::{AISDKError, NoSuchToolErrorBuilder};
+/// use llm_kit_core::error::{AISDKError, NoSuchToolErrorBuilder};
 ///
 /// let error = NoSuchToolErrorBuilder::new("unknown_tool")
 ///     .available_tools(vec!["search".to_string(), "calculate".to_string()])
@@ -35,7 +35,7 @@ impl NoSuchToolErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSuchToolErrorBuilder;
+    /// use llm_kit_core::error::NoSuchToolErrorBuilder;
     ///
     /// let builder = NoSuchToolErrorBuilder::new("unknown_tool");
     /// ```
@@ -55,7 +55,7 @@ impl NoSuchToolErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSuchToolErrorBuilder;
+    /// use llm_kit_core::error::NoSuchToolErrorBuilder;
     ///
     /// let builder = NoSuchToolErrorBuilder::new("unknown_tool")
     ///     .available_tools(vec!["search".to_string(), "calculate".to_string()]);
@@ -74,7 +74,7 @@ impl NoSuchToolErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSuchToolErrorBuilder;
+    /// use llm_kit_core::error::NoSuchToolErrorBuilder;
     ///
     /// let builder = NoSuchToolErrorBuilder::new("unknown_tool")
     ///     .add_available_tool("search")
@@ -90,7 +90,7 @@ impl NoSuchToolErrorBuilder {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::NoSuchToolErrorBuilder;
+    /// use llm_kit_core::error::NoSuchToolErrorBuilder;
     ///
     /// let error = NoSuchToolErrorBuilder::new("missing_tool")
     ///     .available_tools(vec!["tool1".to_string(), "tool2".to_string()])
@@ -118,7 +118,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_such_tool(
     ///     "unknown_tool",
@@ -149,7 +149,7 @@ impl AISDKError {
     /// # Examples
     ///
     /// ```
-    /// use ai_sdk_core::error::AISDKError;
+    /// use llm_kit_core::error::AISDKError;
     ///
     /// let error = AISDKError::no_such_tool_builder("missing_tool")
     ///     .add_available_tool("search")

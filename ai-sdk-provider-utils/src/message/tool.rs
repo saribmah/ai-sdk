@@ -1,6 +1,6 @@
 use crate::message::ToolResultPart;
 use crate::tool::ToolApprovalResponse;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
 use serde::{Deserialize, Serialize};
 
 /// Content of a tool message. It is an array of tool result parts.

@@ -1,9 +1,9 @@
-use ai_sdk_provider::transcription_model::call_options::TranscriptionModelCallOptions;
-use ai_sdk_provider::transcription_model::{
+use async_trait::async_trait;
+use llm_kit_provider::transcription_model::call_options::TranscriptionModelCallOptions;
+use llm_kit_provider::transcription_model::{
     TranscriptSegment, TranscriptionModelResponse, TranscriptionModelResponseMetadata,
 };
-use ai_sdk_provider::TranscriptionModel as TranscriptionModelTrait;
-use async_trait::async_trait;
+use llm_kit_provider::TranscriptionModel as TranscriptionModelTrait;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use std::collections::HashMap;
 use std::time::SystemTime;
@@ -278,10 +278,10 @@ impl TranscriptionModelTrait for AssemblyAITranscriptionModel {
 
         // Convert audio data to bytes
         let audio_bytes = match &options.audio {
-            ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData::Binary(
+            llm_kit_provider::transcription_model::call_options::TranscriptionAudioData::Binary(
                 bytes,
             ) => bytes.clone(),
-            ai_sdk_provider::transcription_model::call_options::TranscriptionAudioData::Base64(
+            llm_kit_provider::transcription_model::call_options::TranscriptionAudioData::Base64(
                 s,
             ) => {
                 // Decode base64 if needed

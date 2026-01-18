@@ -8,10 +8,10 @@ pub use result::{GenerateSpeechResult, audio_data_to_generated_audio_file};
 
 use crate::error::AISDKError;
 use crate::generate_text::prepare_retries;
-use ai_sdk_provider::shared::headers::SharedHeaders;
-use ai_sdk_provider::shared::provider_options::SharedProviderOptions;
-use ai_sdk_provider::speech_model::SpeechModel;
-use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
+use llm_kit_provider::shared::headers::SharedHeaders;
+use llm_kit_provider::shared::provider_options::SharedProviderOptions;
+use llm_kit_provider::speech_model::SpeechModel;
+use llm_kit_provider::speech_model::call_options::SpeechModelCallOptions;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
@@ -22,9 +22,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```no_run
-/// use ai_sdk_core::GenerateSpeech;
+/// use llm_kit_core::GenerateSpeech;
 /// # use std::sync::Arc;
-/// # use ai_sdk_provider::speech_model::SpeechModel;
+/// # use llm_kit_provider::speech_model::SpeechModel;
 /// # async fn example(model: Arc<dyn SpeechModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// let result = GenerateSpeech::new(model, "Hello, welcome to the AI SDK!".to_string())
@@ -250,8 +250,8 @@ impl GenerateSpeech {
 /// Detect media type from audio data.
 ///
 /// Detects the media type based on the magic bytes at the start of the data.
-fn detect_audio_media_type(audio_data: &ai_sdk_provider::speech_model::AudioData) -> String {
-    use ai_sdk_provider::speech_model::AudioData;
+fn detect_audio_media_type(audio_data: &llm_kit_provider::speech_model::AudioData) -> String {
+    use llm_kit_provider::speech_model::AudioData;
 
     match audio_data {
         AudioData::Base64(base64_str) => {
@@ -345,7 +345,7 @@ fn add_user_agent_suffix(headers: Option<SharedHeaders>, suffix: String) -> Opti
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ai_sdk_provider::speech_model::AudioData;
+    use llm_kit_provider::speech_model::AudioData;
 
     #[test]
     fn test_detect_media_type_mp3_id3() {

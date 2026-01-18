@@ -29,9 +29,9 @@ pub mod call_warning;
 /// # Examples
 ///
 /// ```no_run
-/// use ai_sdk_provider::SpeechModel;
-/// use ai_sdk_provider::speech_model::call_options::SpeechModelCallOptions;
-/// use ai_sdk_provider::speech_model::SpeechModelResponse;
+/// use llm_kit_provider::SpeechModel;
+/// use llm_kit_provider::speech_model::call_options::SpeechModelCallOptions;
+/// use llm_kit_provider::speech_model::SpeechModelResponse;
 /// use async_trait::async_trait;
 ///
 /// struct MySpeechModel {

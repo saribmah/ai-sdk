@@ -5,7 +5,7 @@ use std::collections::HashMap;
 /// Anthropic allows a maximum of 4 cache breakpoints per request
 const MAX_CACHE_BREAKPOINTS: usize = 4;
 
-/// Type alias for provider metadata (matches ai-sdk-provider's SharedProviderMetadata)
+/// Type alias for provider metadata (matches llm-kit-provider's SharedProviderMetadata)
 pub type SharedProviderMetadata = HashMap<String, HashMap<String, Value>>;
 
 /// Warning type for unsupported settings
@@ -73,7 +73,7 @@ impl CacheControlContext {
 /// # Example
 ///
 /// ```
-/// use ai_sdk_anthropic::get_cache_control::{CacheControlValidator, CacheControlContext};
+/// use llm_kit_anthropic::get_cache_control::{CacheControlValidator, CacheControlContext};
 /// use std::collections::HashMap;
 ///
 /// let mut validator = CacheControlValidator::new();
@@ -115,7 +115,7 @@ impl CacheControlValidator {
     /// # Example
     ///
     /// ```
-    /// use ai_sdk_anthropic::get_cache_control::{CacheControlValidator, CacheControlContext};
+    /// use llm_kit_anthropic::get_cache_control::{CacheControlValidator, CacheControlContext};
     /// use std::collections::HashMap;
     /// use serde_json::json;
     ///

@@ -1,7 +1,7 @@
-use ai_sdk_provider::EmbeddingModel;
-use ai_sdk_provider::error::ProviderError;
-use ai_sdk_provider::language_model::LanguageModel;
-use ai_sdk_provider::provider::Provider;
+use llm_kit_provider::EmbeddingModel;
+use llm_kit_provider::error::ProviderError;
+use llm_kit_provider::language_model::LanguageModel;
+use llm_kit_provider::provider::Provider;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -31,7 +31,7 @@ impl DeepSeekProvider {
     /// # Examples
     ///
     /// ```no_run
-    /// use ai_sdk_deepseek::DeepSeekClient;
+    /// use llm_kit_deepseek::DeepSeekClient;
     ///
     /// let provider = DeepSeekClient::new()
     ///     .api_key("your-api-key")
@@ -110,7 +110,7 @@ impl Provider for DeepSeekProvider {
     fn image_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::ImageModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::ImageModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "deepseek.image-model-not-supported".to_string(),
@@ -120,7 +120,7 @@ impl Provider for DeepSeekProvider {
     fn transcription_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::TranscriptionModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::TranscriptionModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "deepseek.transcription-model-not-supported".to_string(),
@@ -130,7 +130,7 @@ impl Provider for DeepSeekProvider {
     fn speech_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::SpeechModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::SpeechModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "deepseek.speech-model-not-supported".to_string(),
@@ -140,7 +140,7 @@ impl Provider for DeepSeekProvider {
     fn reranking_model(
         &self,
         model_id: &str,
-    ) -> Result<Arc<dyn ai_sdk_provider::RerankingModel>, ProviderError> {
+    ) -> Result<Arc<dyn llm_kit_provider::RerankingModel>, ProviderError> {
         Err(ProviderError::no_such_model(
             model_id,
             "deepseek.reranking-model-not-supported".to_string(),
