@@ -1,4 +1,4 @@
-//! AI SDK Provider - Provider interface and traits
+//! LLM Kit Provider - Provider interface and traits
 //!
 //! This crate defines the provider interface and traits that all AI providers must implement.
 //! It provides a standardized abstraction layer for language models, embedding models,
@@ -61,23 +61,23 @@
 //!             base_url: self.base_url.clone(),
 //!         }))
 //!     }
-//!     
+//!
 //!     fn text_embedding_model(&self, model_id: &str) -> Result<Arc<dyn EmbeddingModel<String>>, ProviderError> {
 //!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
-//!     
+//!
 //!     fn image_model(&self, model_id: &str) -> Result<Arc<dyn ImageModel>, ProviderError> {
 //!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
-//!     
+//!
 //!     fn transcription_model(&self, model_id: &str) -> Result<Arc<dyn TranscriptionModel>, ProviderError> {
 //!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
-//!     
+//!
 //!     fn speech_model(&self, model_id: &str) -> Result<Arc<dyn SpeechModel>, ProviderError> {
 //!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
-//!     
+//!
 //!     fn reranking_model(&self, model_id: &str) -> Result<Arc<dyn RerankingModel>, ProviderError> {
 //!         Err(ProviderError::no_such_model(model_id, "my-provider"))
 //!     }
@@ -94,7 +94,7 @@
 //!     fn provider(&self) -> &str { "my-provider" }
 //!     fn model_id(&self) -> &str { &self.model_id }
 //!     async fn supported_urls(&self) -> HashMap<String, Vec<Regex>> { HashMap::new() }
-//!     
+//!
 //!     async fn do_generate(
 //!         &self,
 //!         options: LanguageModelCallOptions,

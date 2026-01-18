@@ -1,4 +1,4 @@
-# AI SDK Hugging Face
+# LLM Kit Hugging Face
 
 Hugging Face provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with the Hugging Face Responses API for chat models with advanced features.
 
@@ -246,7 +246,7 @@ cargo run --example stream_tool_calling
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-huggingface)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Hugging Face Responses API Reference](https://router.huggingface.co/v1)
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 

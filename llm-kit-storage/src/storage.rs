@@ -3,7 +3,7 @@ use crate::{
 };
 use async_trait::async_trait;
 
-/// Storage trait for AI SDK conversation and message persistence.
+/// Storage trait for LLM Kit conversation and message persistence.
 ///
 /// This trait defines the interface that all storage implementations must provide.
 /// It supports session management, message storage, and conversation history retrieval.
@@ -48,20 +48,20 @@ use async_trait::async_trait;
 ///         // Provider-specific ID generation
 ///         todo!()
 ///     }
-///     
+///
 ///     fn generate_message_id(&self) -> String {
 ///         todo!()
 ///     }
-///     
+///
 ///     fn generate_part_id(&self) -> String {
 ///         todo!()
 ///     }
-///     
+///
 ///     async fn store_session(&self, session: &Session) -> Result<(), StorageError> {
 ///         // Provider-specific storage logic
 ///         todo!()
 ///     }
-///     
+///
 ///     // ... implement remaining methods
 /// #   async fn get_session(&self, session_id: &str) -> Result<Session, StorageError> { todo!() }
 /// #   async fn store_user_message(&self, message: &UserMessage, parts: &[MessagePart]) -> Result<(), StorageError> { todo!() }

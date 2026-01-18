@@ -1,4 +1,4 @@
-# AI SDK AssemblyAI
+# LLM Kit AssemblyAI
 
 AssemblyAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-quality speech-to-text transcription with advanced features like speaker diarization, sentiment analysis, and PII redaction.
 
@@ -263,7 +263,7 @@ cargo run --example transcription
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-assemblyai)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [AssemblyAI API Reference](https://www.assemblyai.com/docs)
 
 ## License

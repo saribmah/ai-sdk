@@ -1,4 +1,4 @@
-# AI SDK Cerebras
+# LLM Kit Cerebras
 
 Cerebras provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-speed AI model inference powered by Cerebras Wafer-Scale Engines and CS-3 systems.
 
@@ -220,7 +220,7 @@ cargo run --example cerebras_reasoning
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-cerebras)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Cerebras API Reference](https://inference-docs.cerebras.ai/introduction)
 - [Cerebras Models Overview](https://inference-docs.cerebras.ai/models/overview)
 

@@ -4,7 +4,7 @@ use serde_json::Value;
 
 /// A tool has a name, a description, and a set of parameters.
 ///
-/// Note: this is **not** the user-facing tool definition. The AI SDK methods will
+/// Note: this is **not** the user-facing tool definition. The LLM Kit methods will
 /// map the user-facing tool definitions to this format.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

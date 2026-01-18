@@ -1,4 +1,4 @@
-//! OpenAI-compatible provider implementation for the AI SDK.
+//! OpenAI-compatible provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for OpenAI-compatible APIs,
 //! including OpenAI, Azure OpenAI, and other compatible services.

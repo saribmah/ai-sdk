@@ -1,4 +1,4 @@
-# AI SDK Groq
+# LLM Kit Groq
 
 Groq provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Ultra-fast LLM inference with open-source models powered by Groq's LPU architecture.
 
@@ -271,7 +271,7 @@ cargo run --example transcription
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-groq)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Groq API Reference](https://console.groq.com/docs)
 - [Groq Models](https://console.groq.com/docs/models)
 

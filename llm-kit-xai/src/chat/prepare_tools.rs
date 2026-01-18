@@ -1,6 +1,6 @@
 //! Tool preparation for xAI API calls.
 //!
-//! This module converts AI SDK tools to xAI's OpenAI-compatible format and handles
+//! This module converts LLM Kit tools to xAI's OpenAI-compatible format and handles
 //! tool choice mapping.
 
 use llm_kit_provider::language_model::{

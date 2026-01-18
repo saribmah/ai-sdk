@@ -2,7 +2,7 @@
 name = "llm-kit-huggingface"
 version = "0.1.0"
 edition = "2024"
-authors = ["AI SDK Contributors"]
+authors = ["LLM Kit Contributors"]
 description = "Hugging Face provider for LLM Kit"
 license = "MIT"
 repository = "https://github.com/saribmah/llm-kit"

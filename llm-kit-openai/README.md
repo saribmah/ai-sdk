@@ -1,4 +1,4 @@
-# AI SDK OpenAI
+# LLM Kit OpenAI
 
 OpenAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with OpenAI's chat completion API.
 
@@ -161,7 +161,7 @@ These adjustments happen automatically when you use a reasoning model, so you do
 
 ### Provider-Specific Options
 
-OpenAI supports additional options beyond the standard AI SDK parameters:
+OpenAI supports additional options beyond the standard LLM Kit parameters:
 
 #### Reasoning Effort
 
@@ -258,7 +258,7 @@ cargo run --example stream_tool_calling
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-openai)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
 
 ## License

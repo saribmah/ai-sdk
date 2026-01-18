@@ -13,7 +13,7 @@ use tokio_util::sync;
 pub struct LanguageModelCallOptions {
     /// A language mode prompt is a standardized prompt type.
     ///
-    /// Note: This is **not** the user-facing prompt. The AI SDK methods will map the
+    /// Note: This is **not** the user-facing prompt. The LLM Kit methods will map the
     /// user-facing prompt types such as chat or instruction prompts to this format.
     /// That approach allows us to evolve the user facing prompts without breaking
     /// the language model interface.
@@ -81,7 +81,7 @@ pub struct LanguageModelCallOptions {
     pub headers: Option<HashMap<String, String>>,
 
     /// Additional provider-specific options. They are passed through
-    /// to the provider from the AI SDK and enable provider-specific
+    /// to the provider from the LLM Kit and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<SharedProviderOptions>,

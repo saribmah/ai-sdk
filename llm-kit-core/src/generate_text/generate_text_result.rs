@@ -112,7 +112,7 @@ pub struct GenerateTextResult {
 
     /// Additional provider-specific metadata.
     ///
-    /// They are passed through from the provider to the AI SDK and enable
+    /// They are passed through from the provider to the LLM Kit and enable
     /// provider-specific results that can be fully encapsulated in the provider.
     pub provider_metadata: Option<SharedProviderMetadata>,
 

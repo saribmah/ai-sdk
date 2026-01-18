@@ -12,6 +12,6 @@ pub use message::{
 /// Note: Not all models and prompt formats support multi-modal inputs and
 /// tool calls. The validation happens at runtime.
 ///
-/// Note: This is not a user-facing prompt. The AI SDK methods will map the
+/// Note: This is not a user-facing prompt. The LLM Kit methods will map the
 /// user-facing prompt types such as chat or instruction prompts to this format.
 pub type LanguageModelPrompt = Vec<LanguageModelMessage>;

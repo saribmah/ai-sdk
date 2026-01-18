@@ -68,7 +68,7 @@ pub struct XaiFunction {
     pub arguments: String,
 }
 
-/// Convert AI SDK prompt to xAI chat messages.
+/// Convert LLM Kit prompt to xAI chat messages.
 pub fn convert_to_xai_chat_messages(
     prompt: &LanguageModelPrompt,
 ) -> Result<(Vec<XaiChatMessage>, Vec<LanguageModelCallWarning>), String> {

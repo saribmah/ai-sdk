@@ -125,7 +125,7 @@ pub struct RerankingModelResponse {
     pub ranking: Vec<RankedDocument>,
 
     /// Additional provider-specific metadata. They are passed through
-    /// from the provider to the AI SDK and enable provider-specific
+    /// from the provider to the LLM Kit and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_metadata: Option<SharedProviderMetadata>,

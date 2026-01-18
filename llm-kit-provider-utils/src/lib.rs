@@ -1,6 +1,6 @@
-//! # AI SDK Provider Utilities
+//! # LLM Kit Provider Utilities
 //!
-//! Shared utilities and types for AI SDK providers.
+//! Shared utilities and types for LLM Kit providers.
 //!
 //! This crate provides reusable components that are used by both provider implementations
 //! and the core SDK. It includes message types, tool definitions, and other common utilities

@@ -1,9 +1,9 @@
-//! # AI SDK OpenAI
+//! # LLM Kit OpenAI
 //!
-//! OpenAI provider implementation for the AI SDK.
+//! OpenAI provider implementation for the LLM Kit.
 //!
 //! This crate provides integration with OpenAI's chat completion API,
-//! following the AI SDK provider pattern for Rust.
+//! following the LLM Kit provider pattern for Rust.
 //!
 //! ## Features
 //!
@@ -93,7 +93,7 @@
 //!
 //! ## Architecture
 //!
-//! The implementation follows the AI SDK provider pattern:
+//! The implementation follows the LLM Kit provider pattern:
 //!
 //! - **Provider** (`OpenAIProvider`): Creates model instances
 //! - **Language Model** (`OpenAIChatLanguageModel`): Implements text generation and streaming

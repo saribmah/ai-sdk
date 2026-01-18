@@ -1,4 +1,4 @@
-# AI SDK OpenAI-Compatible
+# LLM Kit OpenAI-Compatible
 
 OpenAI-compatible provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Universal provider supporting OpenAI, Azure OpenAI, and any OpenAI-compatible API.
 
@@ -407,7 +407,7 @@ cargo run --example image_generation
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-openai-compatible)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
 - [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
 

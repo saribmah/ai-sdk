@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🗄️  AI SDK Filesystem Storage Example\n");
+    println!("🗄️  LLM Kit Filesystem Storage Example\n");
 
     // Create a filesystem storage provider in a temporary directory
     let storage_path = std::env::temp_dir().join("llm-kit-storage-example");

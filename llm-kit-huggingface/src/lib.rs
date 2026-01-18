@@ -1,6 +1,6 @@
 //! # Hugging Face Provider for LLM Kit
 //!
-//! This crate provides a Hugging Face provider implementation for the AI SDK,
+//! This crate provides a Hugging Face provider implementation for the LLM Kit,
 //! supporting the Hugging Face Responses API.
 //!
 //! ## Features

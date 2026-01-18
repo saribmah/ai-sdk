@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "ElevenLabs provider for the AI SDK - text-to-speech and speech-to-text"
+description = "ElevenLabs provider for the LLM Kit - text-to-speech and speech-to-text"
 keywords = ["ai", "sdk", "elevenlabs", "speech", "transcription"]
 categories = ["api-bindings"]
 

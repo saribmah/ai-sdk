@@ -127,7 +127,7 @@ pub struct SpeechModelResponse {
     pub response: SpeechModelResponseMetadata,
 
     /// Additional provider-specific metadata. They are passed through
-    /// from the provider to the AI SDK and enable provider-specific
+    /// from the provider to the LLM Kit and enable provider-specific
     /// results that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_metadata: Option<SharedProviderMetadata>,

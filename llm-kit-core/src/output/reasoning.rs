@@ -25,7 +25,7 @@ pub struct ReasoningOutput {
 
     /// Additional provider-specific metadata.
     ///
-    /// These are passed through to the provider from the AI SDK and enable
+    /// These are passed through to the provider from the LLM Kit and enable
     /// provider-specific functionality that can be fully encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_metadata: Option<SharedProviderMetadata>,

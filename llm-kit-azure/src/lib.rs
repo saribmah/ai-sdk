@@ -1,6 +1,6 @@
 //! # Azure OpenAI Provider for LLM Kit
 //!
-//! This crate provides an Azure OpenAI provider implementation for the AI SDK.
+//! This crate provides an Azure OpenAI provider implementation for the LLM Kit.
 //! It allows you to use Azure OpenAI models for text generation, embeddings,
 //! and image generation.
 //!

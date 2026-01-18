@@ -27,7 +27,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # use llm_kit_provider::speech_model::SpeechModel;
 /// # async fn example(model: Arc<dyn SpeechModel>) -> Result<(), Box<dyn std::error::Error>> {
 ///
-/// let result = GenerateSpeech::new(model, "Hello, welcome to the AI SDK!".to_string())
+/// let result = GenerateSpeech::new(model, "Hello, welcome to the LLM Kit!".to_string())
 ///     .voice("alloy")
 ///     .output_format("mp3")
 ///     .speed(1.0)

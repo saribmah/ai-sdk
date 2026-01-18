@@ -1,4 +1,4 @@
-# AI SDK Together AI
+# LLM Kit Together AI
 
 Together AI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Together AI's extensive collection of open-source models.
 
@@ -204,7 +204,7 @@ cargo run --example reranking
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-togetherai)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Together AI API Reference](https://docs.together.ai/)
 - [Together AI Models](https://docs.together.ai/docs/serverless-models)
 

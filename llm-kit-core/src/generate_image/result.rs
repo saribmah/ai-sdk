@@ -67,7 +67,7 @@ pub struct GenerateImageResult {
     pub responses: Vec<ImageModelResponseMetadata>,
 
     /// Provider-specific metadata. They are passed through from the provider
-    /// to the AI SDK and enable provider-specific results that can be fully
+    /// to the LLM Kit and enable provider-specific results that can be fully
     /// encapsulated in the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_metadata: Option<ImageModelProviderMetadata>,

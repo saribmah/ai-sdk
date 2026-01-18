@@ -1,4 +1,4 @@
-# AI SDK Baseten
+# LLM Kit Baseten
 
 Baseten provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Baseten's Model APIs and custom model deployments.
 
@@ -202,7 +202,7 @@ cargo run --example text_embedding
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-baseten)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Baseten API Reference](https://docs.baseten.co/)
 - [Baseten Model APIs](https://docs.baseten.co/development/model-apis/overview)
 

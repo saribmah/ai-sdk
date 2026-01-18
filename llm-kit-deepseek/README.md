@@ -1,4 +1,4 @@
-# AI SDK DeepSeek
+# LLM Kit DeepSeek
 
 DeepSeek provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with DeepSeek's chat and reasoning models.
 
@@ -254,7 +254,7 @@ Make sure to set your `DEEPSEEK_API_KEY` environment variable first.
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-deepseek)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [DeepSeek API Reference](https://api-docs.deepseek.com/)
 
 ## License

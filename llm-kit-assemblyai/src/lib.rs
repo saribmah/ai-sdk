@@ -1,4 +1,4 @@
-//! AssemblyAI provider implementation for the AI SDK.
+//! AssemblyAI provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for AssemblyAI's transcription API,
 //! supporting speech-to-text functionality with advanced features like speaker

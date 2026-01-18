@@ -1,4 +1,4 @@
-//! Together AI provider implementation for the AI SDK.
+//! Together AI provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for Together AI's extensive collection of
 //! open-source models, supporting chat, embeddings, image generation, and reranking.

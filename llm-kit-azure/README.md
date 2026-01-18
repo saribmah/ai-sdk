@@ -1,4 +1,4 @@
-# AI SDK Azure
+# LLM Kit Azure
 
 Azure OpenAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Azure OpenAI Service for chat, completions, embeddings, and image generation.
 
@@ -308,7 +308,7 @@ cargo run --example image_generation
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-azure)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
 
 ## License

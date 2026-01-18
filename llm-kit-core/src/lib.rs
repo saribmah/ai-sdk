@@ -1,6 +1,6 @@
-//! AI SDK Core - Unified interface for building AI-powered applications
+//! LLM Kit Core - Unified interface for building AI-powered applications
 //!
-//! This crate provides the core functionality of the AI SDK, including builder APIs
+//! This crate provides the core functionality of the LLM Kit, including builder APIs
 //! for text generation, streaming, embeddings, image generation, speech synthesis,
 //! transcription, and reranking. It also includes a powerful agent system and
 //! type-safe tool integration.
@@ -179,7 +179,7 @@
 pub mod agent;
 /// Embedding generation (single and batch operations).
 pub mod embed;
-/// Error types for the AI SDK.
+/// Error types for the LLM Kit.
 pub mod error;
 /// Image generation functionality.
 pub mod generate_image;

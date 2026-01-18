@@ -1,4 +1,4 @@
-# AI SDK Core
+# LLM Kit Core
 
 Core functionality for [LLM Kit](https://github.com/saribmah/llm-kit) - unified interface for building AI-powered applications with multiple model providers.
 
@@ -668,7 +668,7 @@ The SDK follows a three-layer architecture:
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-core)
-- [AI SDK Repository](https://github.com/saribmah/llm-kit)
+- [LLM Kit Repository](https://github.com/saribmah/llm-kit)
 - [Provider Implementations](https://github.com/saribmah/llm-kit#providers)
 - [Contributing Guide](../CONTRIBUTING.md)
 

@@ -42,7 +42,7 @@ pub struct AssistantMessage {
     pub content: AssistantContent,
 
     /// Additional provider-specific metadata. They are passed through
-    /// to the provider from the AI SDK and enable provider-specific
+    /// to the provider from the LLM Kit and enable provider-specific
     /// functionality that can be fully encapsulated in the provider.
     #[serde(rename = "providerOptions", skip_serializing_if = "Option::is_none")]
     pub provider_options: Option<SharedProviderOptions>,

@@ -1,4 +1,4 @@
-# AI SDK Anthropic
+# LLM Kit Anthropic
 
 Anthropic provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete Claude integration with streaming, tools, extended thinking, and citations.
 
@@ -287,7 +287,7 @@ cargo run --example provider_specific_defined_tools
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-anthropic)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [Anthropic API Reference](https://docs.anthropic.com/en/api)
 
 ## License

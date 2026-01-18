@@ -1,7 +1,7 @@
 //! # Anthropic Provider for LLM Kit
 //!
 //! This crate provides a comprehensive Rust implementation of the Anthropic API provider
-//! for the AI SDK. It enables building AI-powered applications using Claude models with
+//! for the LLM Kit. It enables building AI-powered applications using Claude models with
 //! full support for text generation, streaming, tool calling, and advanced features like
 //! extended thinking, citations, and prompt caching.
 //!

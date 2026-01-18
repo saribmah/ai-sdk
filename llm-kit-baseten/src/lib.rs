@@ -1,4 +1,4 @@
-//! Baseten provider implementation for the AI SDK.
+//! Baseten provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for Baseten, supporting both
 //! Model APIs (hosted models) and custom model deployments.

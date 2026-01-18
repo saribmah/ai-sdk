@@ -1,4 +1,4 @@
-# AI SDK ElevenLabs
+# LLM Kit ElevenLabs
 
 ElevenLabs provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-quality text-to-speech and speech-to-text with natural-sounding voices and advanced voice customization.
 
@@ -237,7 +237,7 @@ cargo run --example transcription
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-elevenlabs)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [ElevenLabs API Reference](https://elevenlabs.io/docs/api-reference)
 
 ## License

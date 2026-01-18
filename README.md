@@ -649,4 +649,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-<sub>Inspired by [Vercel's AI SDK](https://github.com/vercel/ai)</sub>
+<sub>Inspired by [Vercel's LLM Kit](https://github.com/vercel/ai)</sub>

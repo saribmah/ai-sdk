@@ -226,7 +226,7 @@ pub struct AnthropicMessageMetadata {
 
     /// Cache creation input tokens (deprecated, use value in usage object instead)
     ///
-    /// This field is deprecated and will be removed in AI SDK 6.
+    /// This field is deprecated and will be removed in LLM Kit 6.
     /// Use the value from the usage object instead.
     #[serde(rename = "cacheCreationInputTokens")]
     #[serde(skip_serializing_if = "Option::is_none")]

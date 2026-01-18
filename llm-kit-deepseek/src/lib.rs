@@ -1,4 +1,4 @@
-//! DeepSeek provider implementation for the AI SDK.
+//! DeepSeek provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for DeepSeek's chat and reasoning models,
 //! supporting standard chat completions and advanced reasoning capabilities.

@@ -1,4 +1,4 @@
-//! Groq provider implementation for the AI SDK.
+//! Groq provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for Groq's chat models,
 //! supporting ultra-fast inference with open-source models.
@@ -140,7 +140,7 @@
 //!
 //! ## Tool Calling
 //!
-//! Groq supports tool/function calling. See the `examples/chat_tool_calling.rs`  
+//! Groq supports tool/function calling. See the `examples/chat_tool_calling.rs`
 //! and `examples/stream_tool_calling.rs` examples for complete working implementations.
 //!
 //! ## Groq-Specific Metadata

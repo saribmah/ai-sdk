@@ -1,4 +1,4 @@
-//! Cerebras provider for the AI SDK.
+//! Cerebras provider for the LLM Kit.
 //!
 //! This crate provides a provider implementation for Cerebras, offering high-speed
 //! AI model inference powered by Cerebras Wafer-Scale Engines and CS-3 systems.

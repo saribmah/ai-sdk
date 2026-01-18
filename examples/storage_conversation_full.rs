@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Storage - Full Conversation Example\n");
+    println!("🤖 LLM Kit Storage - Full Conversation Example\n");
 
     // Initialize provider
     let api_key = std::env::var("OPENAI_API_KEY")?;

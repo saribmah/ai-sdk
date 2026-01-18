@@ -1,6 +1,6 @@
-//! ElevenLabs provider for the AI SDK.
+//! ElevenLabs provider for the LLM Kit.
 //!
-//! This crate provides an ElevenLabs provider implementation for the AI SDK,
+//! This crate provides an ElevenLabs provider implementation for the LLM Kit,
 //! supporting text-to-speech and speech-to-text models.
 //!
 //! # Features

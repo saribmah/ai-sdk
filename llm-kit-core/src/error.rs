@@ -28,10 +28,10 @@ pub use no_transcript_generated::NoTranscriptGeneratedErrorBuilder;
 pub use retryable_error::RetryableErrorBuilder;
 pub use unsupported_model_version::UnsupportedModelVersionErrorBuilder;
 
-/// Errors that can occur when working with the AI SDK Core.
+/// Errors that can occur when working with the LLM Kit Core.
 ///
 /// This enum represents all possible errors that can occur when working with
-/// the core AI SDK functionality. Each variant contains specific information
+/// the core LLM Kit functionality. Each variant contains specific information
 /// relevant to that error type.
 ///
 /// # Examples
@@ -199,9 +199,9 @@ pub enum AISDKError {
     /// An unsupported model version error.
     ///
     /// This error occurs when a model with an unsupported version is used.
-    /// AI SDK only supports models that implement specification version "v2".
+    /// LLM Kit only supports models that implement specification version "v2".
     #[error(
-        "Unsupported model version {version} for provider \"{provider}\" and model \"{model_id}\". AI SDK only supports models that implement specification version \"v2\"."
+        "Unsupported model version {version} for provider \"{provider}\" and model \"{model_id}\". LLM Kit only supports models that implement specification version \"v2\"."
     )]
     UnsupportedModelVersion {
         /// The unsupported version string

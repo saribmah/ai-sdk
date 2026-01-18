@@ -11,7 +11,7 @@ use std::sync::Arc;
 /// and reranking models.
 ///
 /// This trait defines the interface that all AI providers must implement to integrate
-/// with the AI SDK. Providers are responsible for creating and managing model instances.
+/// with the LLM Kit. Providers are responsible for creating and managing model instances.
 ///
 /// # Example
 ///

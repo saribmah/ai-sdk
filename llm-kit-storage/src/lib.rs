@@ -1,4 +1,4 @@
-//! # AI SDK Storage
+//! # LLM Kit Storage
 //!
 //! Storage trait and types for the LLM Kit project.
 //!

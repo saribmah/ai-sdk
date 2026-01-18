@@ -1,4 +1,4 @@
-# AI SDK xAI
+# LLM Kit xAI
 
 xAI (Grok) provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with xAI's Grok models featuring reasoning capabilities, integrated search, and image generation.
 
@@ -289,7 +289,7 @@ cargo run --example image_generation
 ## Documentation
 
 - [API Documentation](https://docs.rs/llm-kit-xai)
-- [AI SDK Documentation](https://github.com/saribmah/llm-kit)
+- [LLM Kit Documentation](https://github.com/saribmah/llm-kit)
 - [xAI API Reference](https://docs.x.ai/)
 - [xAI Console](https://console.x.ai/)
 

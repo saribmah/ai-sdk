@@ -238,7 +238,7 @@ mod tests {
 
         // The error message should mention v2 as the supported version
         assert!(display.contains("v2"));
-        assert!(display.contains("AI SDK"));
+        assert!(display.contains("LLM Kit"));
     }
 
     #[test]

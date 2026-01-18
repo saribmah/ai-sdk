@@ -3,7 +3,7 @@ name = "llm-kit-togetherai"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
-description = "Together AI provider for AI SDK"
+description = "Together AI provider for LLM Kit"
 keywords = ["ai", "llm", "togetherai"]
 categories = ["api-bindings"]
 

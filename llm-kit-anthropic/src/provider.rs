@@ -1,7 +1,7 @@
 //! Anthropic Provider Implementation
 //!
 //! This module provides the main provider interface for creating Anthropic language models.
-//! It follows the AI SDK provider pattern and offers multiple convenience methods for
+//! It follows the LLM Kit provider pattern and offers multiple convenience methods for
 //! model creation.
 //!
 //! # Example

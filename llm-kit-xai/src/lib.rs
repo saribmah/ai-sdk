@@ -1,4 +1,4 @@
-//! xAI (Grok) provider implementation for the AI SDK.
+//! xAI (Grok) provider implementation for the LLM Kit.
 //!
 //! This crate provides a provider implementation for xAI's Grok models,
 //! supporting chat completions, image generation, reasoning modes, and integrated search.

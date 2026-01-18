@@ -1,6 +1,6 @@
-//! # AI SDK Storage - Filesystem Provider
+//! # LLM Kit Storage - Filesystem Provider
 //!
-//! Filesystem-based storage implementation for AI SDK Storage.
+//! Filesystem-based storage implementation for LLM Kit Storage.
 //!
 //! This crate provides a production-ready filesystem storage provider that implements
 //! the `Storage` trait from `llm-kit-storage`. It stores sessions, messages, and parts
