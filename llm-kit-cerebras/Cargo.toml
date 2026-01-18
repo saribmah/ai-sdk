@@ -1,0 +1,40 @@
+[package]
+name = "llm-kit-cerebras"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Cerebras provider for the AI SDK"
+repository = "https://github.com/saribmah/llm-kit"
+homepage = "https://github.com/saribmah/llm-kit"
+documentation = "https://docs.rs/llm-kit-cerebras"
+keywords = ["ai", "cerebras", "llm", "language-model"]
+categories = ["api-bindings"]
+
+[dependencies]
+llm-kit-provider = { path = "../llm-kit-provider", version = "0.1.0" }
+llm-kit-openai-compatible = { path = "../llm-kit-openai-compatible", version = "0.1.0" }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+llm-kit-provider-utils = { path = "../llm-kit-provider-utils", version = "0.1.0" }
+tokio = { version = "1", features = ["full"] }
+dotenvy = "0.15"
+futures-util = "0.3"
+
+[[example]]
+name = "chat"
+path = "examples/chat.rs"
+
+[[example]]
+name = "stream"
+path = "examples/stream.rs"
+
+[[example]]
+name = "chat_tool_calling"
+path = "examples/chat_tool_calling.rs"
+
+[[example]]
+name = "stream_tool_calling"
+path = "examples/stream_tool_calling.rs"

@@ -1,24 +1,24 @@
 [workspace]
 resolver = "3"
 members = [
-    "ai-sdk-core",
-    "ai-sdk-provider",
-    "ai-sdk-provider-utils",
-    "ai-sdk-openai-compatible",
-    "ai-sdk-openai",
-    "ai-sdk-storage",
-    "ai-sdk-storage-filesystem",
-    "ai-sdk-anthropic",
-    "ai-sdk-azure",
-    "ai-sdk-cerebras",
-    "ai-sdk-deepseek",
-    "ai-sdk-elevenlabs",
-    "ai-sdk-groq",
-    "ai-sdk-xai",
-    "ai-sdk-togetherai",
-    "ai-sdk-huggingface",
-    "ai-sdk-assemblyai",
-    "ai-sdk-baseten",
+    "llm-kit-core",
+    "llm-kit-provider",
+    "llm-kit-provider-utils",
+    "llm-kit-openai-compatible",
+    "llm-kit-openai",
+    "llm-kit-storage",
+    "llm-kit-storage-filesystem",
+    "llm-kit-anthropic",
+    "llm-kit-azure",
+    "llm-kit-cerebras",
+    "llm-kit-deepseek",
+    "llm-kit-elevenlabs",
+    "llm-kit-groq",
+    "llm-kit-xai",
+    "llm-kit-togetherai",
+    "llm-kit-huggingface",
+    "llm-kit-assemblyai",
+    "llm-kit-baseten",
 ]
 
 [workspace.package]
@@ -41,16 +41,16 @@ publish = false
 storage = ["llm-kit-core/storage"]
 
 [dependencies]
-llm-kit-core = { path = "ai-sdk-core", features = ["storage"] }
-llm-kit-provider = { path = "ai-sdk-provider" }
-llm-kit-provider-utils = { path = "ai-sdk-provider-utils" }
-llm-kit-openai-compatible = { path = "ai-sdk-openai-compatible" }
-llm-kit-storage = { path = "ai-sdk-storage" }
-llm-kit-storage-filesystem = { path = "ai-sdk-storage-filesystem" }
-llm-kit-azure = { path = "ai-sdk-azure" }
-llm-kit-cerebras = { path = "ai-sdk-cerebras" }
-llm-kit-groq = { path = "ai-sdk-groq" }
-llm-kit-xai = { path = "ai-sdk-xai" }
+llm-kit-core = { path = "llm-kit-core", features = ["storage"] }
+llm-kit-provider = { path = "llm-kit-provider" }
+llm-kit-provider-utils = { path = "llm-kit-provider-utils" }
+llm-kit-openai-compatible = { path = "llm-kit-openai-compatible" }
+llm-kit-storage = { path = "llm-kit-storage" }
+llm-kit-storage-filesystem = { path = "llm-kit-storage-filesystem" }
+llm-kit-azure = { path = "llm-kit-azure" }
+llm-kit-cerebras = { path = "llm-kit-cerebras" }
+llm-kit-groq = { path = "llm-kit-groq" }
+llm-kit-xai = { path = "llm-kit-xai" }
 tokio = { version = "1.41", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

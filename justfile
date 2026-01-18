@@ -55,7 +55,7 @@ doc:
     @echo "Building documentation..."
     @RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features --workspace
     @echo "✓ Documentation built"
-    @echo "  Open: target/doc/ai_sdk_core/index.html"
+    @echo "  Open: target/doc/llm_kit_core/index.html"
 
 # Open documentation in browser
 doc-open:

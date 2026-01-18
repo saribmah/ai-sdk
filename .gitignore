@@ -38,4 +38,5 @@ target
 
 reference-implementation
 
+llm-kit-*/*-IMPLEMENTATION.md
 ai-sdk-*/*-IMPLEMENTATION.md

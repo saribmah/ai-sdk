@@ -7,8 +7,8 @@ Thank you for considering contributing to AI SDK Rust! This document provides gu
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ai-sdk.git
-   cd ai-sdk
+   git clone https://github.com/YOUR_USERNAME/llm-kit.git
+   cd llm-kit
    ```
 3. **Install Just** (if not already installed):
    ```bash

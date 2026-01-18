@@ -1,0 +1,33 @@
+[package]
+name = "llm-kit-elevenlabs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "ElevenLabs provider for the AI SDK - text-to-speech and speech-to-text"
+keywords = ["ai", "sdk", "elevenlabs", "speech", "transcription"]
+categories = ["api-bindings"]
+
+[dependencies]
+llm-kit-provider = { path = "../llm-kit-provider", version = "0.1.0" }
+llm-kit-provider-utils = { path = "../llm-kit-provider-utils", version = "0.1.0" }
+async-trait = "0.1"
+base64 = "0.22"
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0" }
+thiserror = "2.0"
+urlencoding = "2.1"
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full", "test-util"] }
+
+[[example]]
+name = "speech_generation"
+path = "examples/speech_generation.rs"
+
+[[example]]
+name = "transcription"
+path = "examples/transcription.rs"
