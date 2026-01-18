@@ -179,7 +179,7 @@ fn analyze_sentiment(text: &str) -> Value {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Agent Stream Example (Streaming)\n");
+    println!("🤖 LLM Kit - Agent Stream Example (Streaming)\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

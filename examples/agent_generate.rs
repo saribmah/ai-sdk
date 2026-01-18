@@ -135,7 +135,7 @@ fn get_travel_time(from: &str, to: &str, mode: &str) -> Value {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Agent Generate Example (Non-Streaming)\n");
+    println!("🤖 LLM Kit - Agent Generate Example (Non-Streaming)\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

@@ -1,6 +1,6 @@
 # AI SDK Azure
 
-Azure OpenAI provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with Azure OpenAI Service for chat, completions, embeddings, and image generation.
+Azure OpenAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Azure OpenAI Service for chat, completions, embeddings, and image generation.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

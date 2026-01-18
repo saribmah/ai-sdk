@@ -1,6 +1,6 @@
 # AI SDK xAI
 
-xAI (Grok) provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with xAI's Grok models featuring reasoning capabilities, integrated search, and image generation.
+xAI (Grok) provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with xAI's Grok models featuring reasoning capabilities, integrated search, and image generation.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

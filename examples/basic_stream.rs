@@ -21,7 +21,7 @@ use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Basic Streaming Example\n");
+    println!("🤖 LLM Kit - Basic Streaming Example\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

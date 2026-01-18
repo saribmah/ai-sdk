@@ -17,7 +17,7 @@ use std::env;
 /// ```
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Cerebras Reasoning Model Example\n");
+    println!("🤖 LLM Kit - Cerebras Reasoning Model Example\n");
 
     // Load environment variables from .env file if present
     dotenvy::dotenv().ok();

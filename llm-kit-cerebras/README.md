@@ -1,6 +1,6 @@
 # AI SDK Cerebras
 
-Cerebras provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - High-speed AI model inference powered by Cerebras Wafer-Scale Engines and CS-3 systems.
+Cerebras provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-speed AI model inference powered by Cerebras Wafer-Scale Engines and CS-3 systems.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

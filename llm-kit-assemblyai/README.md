@@ -1,6 +1,6 @@
 # AI SDK AssemblyAI
 
-AssemblyAI provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - High-quality speech-to-text transcription with advanced features like speaker diarization, sentiment analysis, and PII redaction.
+AssemblyAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-quality speech-to-text transcription with advanced features like speaker diarization, sentiment analysis, and PII redaction.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

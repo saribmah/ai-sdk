@@ -15,7 +15,7 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - xAI Provider Options Example\n");
+    println!("🤖 LLM Kit - xAI Provider Options Example\n");
 
     // Get API key from environment
     let api_key = env::var("XAI_API_KEY").map_err(

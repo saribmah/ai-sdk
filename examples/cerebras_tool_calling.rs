@@ -35,7 +35,7 @@ fn get_weather(city: &str) -> Value {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Cerebras Tool Calling Example\n");
+    println!("🤖 LLM Kit - Cerebras Tool Calling Example\n");
 
     // Load environment variables from .env file if present
     dotenvy::dotenv().ok();

@@ -1,6 +1,6 @@
 # AI SDK Core
 
-Core functionality for [AI SDK Rust](https://github.com/saribmah/llm-kit) - unified interface for building AI-powered applications with multiple model providers.
+Core functionality for [LLM Kit](https://github.com/saribmah/llm-kit) - unified interface for building AI-powered applications with multiple model providers.
 
 ## Features
 

@@ -1,4 +1,4 @@
-//! # Azure OpenAI Provider for AI SDK Rust
+//! # Azure OpenAI Provider for LLM Kit
 //!
 //! This crate provides an Azure OpenAI provider implementation for the AI SDK.
 //! It allows you to use Azure OpenAI models for text generation, embeddings,
@@ -53,7 +53,7 @@
 //!     );
 //!
 //!     let model = provider.chat_model("gpt-4-deployment");
-//!     
+//!
 //!     println!("Model: {}", model.model_id());
 //!     Ok(())
 //! }

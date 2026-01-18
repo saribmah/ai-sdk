@@ -17,7 +17,7 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Basic Chat Example\n");
+    println!("🤖 LLM Kit - Basic Chat Example\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

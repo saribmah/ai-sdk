@@ -45,7 +45,7 @@ fn set_reminder(task: &str, time: &str) -> Value {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Agent Storage Conversation Example\n");
+    println!("🤖 LLM Kit - Agent Storage Conversation Example\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

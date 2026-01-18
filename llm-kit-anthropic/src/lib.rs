@@ -1,4 +1,4 @@
-//! # Anthropic Provider for AI SDK Rust
+//! # Anthropic Provider for LLM Kit
 //!
 //! This crate provides a comprehensive Rust implementation of the Anthropic API provider
 //! for the AI SDK. It enables building AI-powered applications using Claude models with
@@ -33,19 +33,19 @@
 //!     let provider = AnthropicClient::new()
 //!         .api_key("your-api-key")
 //!         .build();
-//!     
+//!
 //!     // Create a language model
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
-//!     
+//!
 //!     // Generate text
 //!     let options = LanguageModelCallOptions::new(
 //!         vec![LanguageModelMessage::user_text("Hello, Claude!")]
 //!     )
 //!     .with_temperature(0.7)
 //!     .with_max_output_tokens(100);
-//!     
+//!
 //!     let result = model.do_generate(options).await?;
-//!     
+//!
 //!     // Print the first text content
 //!     for content in &result.content {
 //!         if let LanguageModelContent::Text(text_content) = content {
@@ -69,19 +69,19 @@
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Create provider (uses ANTHROPIC_API_KEY env var)
 //!     let provider = AnthropicProvider::new(AnthropicProviderSettings::default());
-//!     
+//!
 //!     // Create a language model
 //!     let model = provider.language_model("claude-3-5-sonnet-20241022".to_string());
-//!     
+//!
 //!     // Generate text
 //!     let options = LanguageModelCallOptions::new(
 //!         vec![LanguageModelMessage::user_text("Hello, Claude!")]
 //!     )
 //!     .with_temperature(0.7)
 //!     .with_max_output_tokens(100);
-//!     
+//!
 //!     let result = model.do_generate(options).await?;
-//!     
+//!
 //!     // Print the first text content
 //!     for content in &result.content {
 //!         if let LanguageModelContent::Text(text_content) = content {

@@ -1,4 +1,4 @@
-# AI SDK Rust
+# LLM Kit
 
 A unified Rust SDK for building AI-powered applications with multiple model providers. Build with type safety, async/await, and ergonomic APIs designed for the Rust ecosystem.
 

@@ -35,7 +35,7 @@ fn get_weather(city: &str) -> Value {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Tool Calling Example\n");
+    println!("🤖 LLM Kit - Tool Calling Example\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

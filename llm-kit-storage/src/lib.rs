@@ -1,6 +1,6 @@
 //! # AI SDK Storage
 //!
-//! Storage trait and types for the AI SDK Rust project.
+//! Storage trait and types for the LLM Kit project.
 //!
 //! This crate provides the storage abstraction for persisting AI-related data including:
 //! - **Session management**: Create, retrieve, and delete conversation sessions

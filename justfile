@@ -1,4 +1,4 @@
-# AI SDK Rust - Justfile
+# LLM Kit - Justfile
 # Just is a command runner - see https://github.com/casey/just
 
 # Default recipe - show help

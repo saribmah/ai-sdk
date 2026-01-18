@@ -1,6 +1,6 @@
-# Contributing to AI SDK Rust
+# Contributing to LLM Kit
 
-Thank you for considering contributing to AI SDK Rust! This document provides guidelines and instructions for contributing.
+Thank you for considering contributing to LLM Kit! This document provides guidelines and instructions for contributing.
 
 ## Getting Started
 

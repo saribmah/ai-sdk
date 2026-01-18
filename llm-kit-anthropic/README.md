@@ -1,6 +1,6 @@
 # AI SDK Anthropic
 
-Anthropic provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete Claude integration with streaming, tools, extended thinking, and citations.
+Anthropic provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete Claude integration with streaming, tools, extended thinking, and citations.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

@@ -1,6 +1,6 @@
 # AI SDK Together AI
 
-Together AI provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with Together AI's extensive collection of open-source models.
+Together AI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Together AI's extensive collection of open-source models.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

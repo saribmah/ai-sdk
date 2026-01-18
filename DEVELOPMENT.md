@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide covers setting up your development environment and using the development tools for the AI SDK Rust project.
+This guide covers setting up your development environment and using the development tools for the LLM Kit project.
 
 ## Table of Contents
 

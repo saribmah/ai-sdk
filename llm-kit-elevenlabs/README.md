@@ -1,6 +1,6 @@
 # AI SDK ElevenLabs
 
-ElevenLabs provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - High-quality text-to-speech and speech-to-text with natural-sounding voices and advanced voice customization.
+ElevenLabs provider for [LLM Kit](https://github.com/saribmah/llm-kit) - High-quality text-to-speech and speech-to-text with natural-sounding voices and advanced voice customization.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

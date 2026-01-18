@@ -1,4 +1,4 @@
-//! # Hugging Face Provider for AI SDK Rust
+//! # Hugging Face Provider for LLM Kit
 //!
 //! This crate provides a Hugging Face provider implementation for the AI SDK,
 //! supporting the Hugging Face Responses API.

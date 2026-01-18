@@ -1,6 +1,6 @@
 # AI SDK DeepSeek
 
-DeepSeek provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with DeepSeek's chat and reasoning models.
+DeepSeek provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with DeepSeek's chat and reasoning models.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

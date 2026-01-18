@@ -1,6 +1,6 @@
 # AI SDK Hugging Face
 
-Hugging Face provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with the Hugging Face Responses API for chat models with advanced features.
+Hugging Face provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with the Hugging Face Responses API for chat models with advanced features.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

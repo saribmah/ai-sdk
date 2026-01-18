@@ -1,6 +1,6 @@
 # AI SDK Baseten
 
-Baseten provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with Baseten's Model APIs and custom model deployments.
+Baseten provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with Baseten's Model APIs and custom model deployments.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

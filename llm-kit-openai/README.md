@@ -1,6 +1,6 @@
 # AI SDK OpenAI
 
-OpenAI provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Complete integration with OpenAI's chat completion API.
+OpenAI provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Complete integration with OpenAI's chat completion API.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

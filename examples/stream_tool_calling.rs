@@ -71,7 +71,7 @@ fn convert_temperature(temperature: f64, from_unit: &str, to_unit: &str) -> Valu
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Streaming Tool Calling Example\n");
+    println!("🤖 LLM Kit - Streaming Tool Calling Example\n");
 
     // Get API key from environment
     let api_key = env::var("OPENAI_API_KEY").map_err(

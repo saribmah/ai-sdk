@@ -1,6 +1,6 @@
 # AI SDK Groq
 
-Groq provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Ultra-fast LLM inference with open-source models powered by Groq's LPU architecture.
+Groq provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Ultra-fast LLM inference with open-source models powered by Groq's LPU architecture.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

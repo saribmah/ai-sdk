@@ -1,6 +1,6 @@
 # AI SDK OpenAI-Compatible
 
-OpenAI-compatible provider for [AI SDK Rust](https://github.com/saribmah/llm-kit) - Universal provider supporting OpenAI, Azure OpenAI, and any OpenAI-compatible API.
+OpenAI-compatible provider for [LLM Kit](https://github.com/saribmah/llm-kit) - Universal provider supporting OpenAI, Azure OpenAI, and any OpenAI-compatible API.
 
 > **Note**: This provider uses the standardized builder pattern. See the [Quick Start](#quick-start) section for the recommended usage.
 

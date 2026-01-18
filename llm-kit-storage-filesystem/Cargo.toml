@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Filesystem storage provider for AI SDK Rust"
+description = "Filesystem storage provider for LLM Kit"
 
 [dependencies]
 # Workspace dependencies

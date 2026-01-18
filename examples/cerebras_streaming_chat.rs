@@ -21,7 +21,7 @@ use tokio::sync::Mutex;
 /// ```
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🤖 AI SDK Rust - Cerebras Streaming Chat Example\n");
+    println!("🤖 LLM Kit - Cerebras Streaming Chat Example\n");
 
     // Load environment variables from .env file if present
     dotenvy::dotenv().ok();
